@@ -8,7 +8,7 @@ run('python ../../../src/feature_plot_scripts/tsne_separate.py ../feature_calc_s
 NOTES
 
 DEPENDENCIES
-../feature_plot_scripts/tsne_separate.py
+../../../src/feature_plot_scripts/tsne_separate.py
 ../feature_calc_shuffle/feature_calc_shuffle.py
-    ../feature_calc_shuffle/features_4.tsv
+    ../feature_calc_shuffle/features_*.tsv
 """

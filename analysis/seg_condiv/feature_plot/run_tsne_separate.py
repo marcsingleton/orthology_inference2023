@@ -31,7 +31,7 @@ ZNORM
         In contrast, the diverged projections are more punctate along with the periphery and more clearly resolve the periphery clusters.
 
 DEPENDENCIES
-../feature_plot_scripts/tsne_separate.py
+../../../src/feature_plot_scripts/tsne_separate.py
 ../feature_calc/feature_calc.py
-    ../feature_calc/features_4.tsv
+    ../feature_calc/features_*.tsv
 """

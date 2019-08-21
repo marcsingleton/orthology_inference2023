@@ -39,7 +39,7 @@ It is also worthwhile investigating other clustering algorithms even if they are
 Regardless future analyses should focus on IDRs; there is no hypothesis that there are classes of conserved or diverged subsequences
 
 DEPENDENCIES
-../feature_plot_scripts/pca_joint.py
+../../../src/feature_plot_scripts/pca_joint.py
 ../feature_calc_shuffle/feature_calc_shuffle.py
     ../feature_calc_shuffle/features_*.tsv
 """

@@ -10,7 +10,7 @@ The shapes of the distributions for each feature appear largely the same between
     In many cases, the mode is the same value, but its frequency is decreased.
 
 DEPENDENCIES
-../feature_plot_scripts/dists.py
+../../../src/feature_plot_scripts/dists.py
 ../feature_calc/feature_calc.py
     ../feature_calc/features_*.tsv
 """

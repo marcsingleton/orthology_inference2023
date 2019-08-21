@@ -16,7 +16,7 @@ Nested dimensionality reductions are best for revealing substructure when classe
         2. The number of points in each cluster is small relative to the entire data set
 
 DEPENDENCIES
-../feature_plot_scripts/pca_separate.py
+../../../src/feature_plot_scripts/pca_separate.py
 ../feature_calc/feature_calc.py
     ../feature_calc/features_*.tsv
 """

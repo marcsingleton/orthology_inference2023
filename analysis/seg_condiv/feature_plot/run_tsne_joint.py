@@ -43,7 +43,7 @@ In contrast to the PCA projections, the t-SNE projections suggest subclasses of 
 Creating projections of randomly generated sequences will illuminate if these structures are inherent to the analysis or a product of selection.
 
 DEPENDENCIES
-../feature_calc_scripts/tsne_joint.py
+../../../src/feature_calc_scripts/tsne_joint.py
 ../feature_calc/feature_calc.py
-    ../feature_calc/features_4.tsv
+    ../feature_calc/features_*.tsv
 """

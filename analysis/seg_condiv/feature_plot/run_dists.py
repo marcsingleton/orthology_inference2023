@@ -6,7 +6,7 @@ run('python ../../../src/feature_plot_scripts/dists.py ../feature_calc/', shell=
 
 """
 DEPENDENCIES
-../feature_plot_scripts/dists.py
+../../../src/feature_plot_scripts/dists.py
 ../feature_calc/feature_calc.py
     ../feature_calc/features_*.tsv
 """

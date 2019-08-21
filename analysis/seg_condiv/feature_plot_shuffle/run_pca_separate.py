@@ -21,7 +21,7 @@ Like in the combined projections, the separate projections differ largely in the
     The differences are diminished in the conserved sequences and exaggerated in the diverged sequences.
 
 DEPENDENCIES
-../feature_plot_scripts/pca_separate.py
+../../../src/feature_plot_scripts/pca_separate.py
 ../feature_calc_shuffle/feature_calc_shuffle.py
     ../feature_calc_shuffle/features_*.tsv
 """

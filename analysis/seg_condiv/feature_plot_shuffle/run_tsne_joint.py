@@ -13,7 +13,7 @@ In the len+net_charge feature set, the shuffled sequences form clusters that are
     
 
 DEPENDENCIES
-../feature_calc_scripts/tsne_joint.py
+../../../src/feature_calc_scripts/tsne_joint.py
 ../feature_calc_shuffle/feature_calc_shuffle.py
-    ../feature_calc_shuffle/features_4.tsv
+    ../feature_calc_shuffle/features_?.tsv
 """
