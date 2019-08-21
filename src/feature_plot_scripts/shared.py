@@ -1,5 +1,6 @@
 """Shared functions and parameters between all feature projection analyses."""
 
+
 def minmax(df, feats):
     norm = df.copy()
     for col in feats:
@@ -15,6 +16,10 @@ def norm(df, featnorms):
     return df
 
 
+def top_vars(df, i):
+    return df.var().sort_values(ascending=False).index[:i]
+
+
 def znorm(df):
     avg = df.mean()
     std = df.std()
@@ -23,13 +28,14 @@ def znorm(df):
 
 
 n_components = 5  # number of PCA components
-fsets = {'all': lambda df: df,
-         '-len': lambda df: df.drop('loglen', axis=1),
-         '-net_charge': lambda df: df.drop('net_charge', axis=1),
-         '-len-net_charge': lambda df: df.drop(['loglen', 'net_charge'], axis=1),
-         'minmax': lambda df: minmax(df, ['net_charge', 'net_charge_P', 'ED_ratio', 'RK_ratio', 'SCD', 'loglen', 'iso_point']),
+fsets = {'minmax': lambda df: minmax(df, ['net_charge', 'net_charge_P', 'ED_ratio', 'RK_ratio', 'SCD', 'loglen', 'iso_point']),
          'norm': lambda df: norm(df.drop(['net_charge', 'net_charge_P', 'ED_ratio', 'RK_ratio', 'SCD', 'loglen', 'iso_point'], axis=1), [('NCPR', 2)]),
-         'znorm': znorm}
+         'znorm': znorm,
+         'drop_1': lambda df: df.drop(top_vars(df, 1), axis=1),
+         'drop_2': lambda df: df.drop(top_vars(df, 2), axis=1),
+         'drop_3': lambda df: df.drop(top_vars(df, 3), axis=1),
+         'drop_4': lambda df: df.drop(top_vars(df, 4), axis=1),
+         'drop_5': lambda df: df.drop(top_vars(df, 5), axis=1)}
 labels = {(True, False): 'κ = -1, Ω ≠ -1',
           (False, True): 'κ ≠ -1, Ω = -1',
           (True, True): 'κ = -1, Ω = -1',
