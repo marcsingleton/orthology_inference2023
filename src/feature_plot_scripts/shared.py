@@ -28,7 +28,7 @@ fsets = {'all': lambda df: df,
          '-net_charge': lambda df: df.drop('net_charge', axis=1),
          '-len-net_charge': lambda df: df.drop(['loglen', 'net_charge'], axis=1),
          'minmax': lambda df: minmax(df, ['net_charge', 'net_charge_P', 'ED_ratio', 'RK_ratio', 'loglen', 'iso_point']),
-         'norm': lambda df: norm(df.drop(['net_charge', 'net_charge_P', 'ED_ratio', 'RK_ratio', 'loglen', 'iso_point'], axis=1), [('NCPR', 2)]),
+         'norm': lambda df: norm(df.drop(['net_charge', 'net_charge_P', 'ED_ratio', 'RK_ratio', 'SCD', 'loglen', 'iso_point'], axis=1), [('NCPR', 2)]),
          'znorm': znorm}
 labels = {(True, False): 'κ = -1, Ω ≠ -1',
           (False, True): 'κ ≠ -1, Ω = -1',
