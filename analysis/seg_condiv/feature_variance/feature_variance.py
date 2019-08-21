@@ -41,3 +41,7 @@ for path in paths:
     plt.legend(loc='center left', bbox_to_anchor=(1.025, 0.5))
     plt.title('Fraction of Overall Variance by Feature')
     plt.savefig(f'var_{i}.png')
+
+    # Save var and var_frac to tsv
+    df = pd.DataFrame({'var': var, 'var_frac': var / sum(var)}).sort_values(by='var', ascending=False)
+    df.to_csv(f'var_{i}.tsv', sep='\t')
