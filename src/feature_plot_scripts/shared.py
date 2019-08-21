@@ -28,7 +28,8 @@ def znorm(df):
 
 
 n_components = 5  # number of PCA components
-fsets = {'minmax': lambda df: minmax(df, ['net_charge', 'net_charge_P', 'ED_ratio', 'RK_ratio', 'SCD', 'loglen', 'iso_point']),
+fsets = {'all': lambda df: df,
+         'minmax': lambda df: minmax(df, ['net_charge', 'net_charge_P', 'ED_ratio', 'RK_ratio', 'SCD', 'loglen', 'iso_point']),
          'norm': lambda df: norm(df.drop(['net_charge', 'net_charge_P', 'ED_ratio', 'RK_ratio', 'SCD', 'loglen', 'iso_point'], axis=1), [('NCPR', 2)]),
          'znorm': znorm,
          'drop_1': lambda df: df.drop(top_vars(df, 1), axis=1),
