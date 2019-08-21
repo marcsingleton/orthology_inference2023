@@ -30,9 +30,3 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
         # Merge subsets and save
         res_all = pd.concat([res_con, res_div], keys=['con', 'div'])
         res_all.to_csv(f'features_{i}.tsv', sep='\t')
-
-"""
-DEPENDENCIES
-../segment_shuffle/segment_shuffle.py
-    ../segment_shuffle/shuffseq_?.py
-"""

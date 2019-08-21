@@ -3,3 +3,10 @@
 from subprocess import run
 
 run('python ../../../src/feature_calc/feature_calc_shuffle.py ../segment_shuffle/', shell=True)
+
+"""
+DEPENDENCIES
+../../../src/feature_calc/feature_calc_shuffle.py
+../segment_shuffle/segment_shuffle.py
+    ../segment_shuffle/shuffseq_*.py
+"""
