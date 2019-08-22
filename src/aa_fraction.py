@@ -20,7 +20,7 @@ F_name = argv[4]  # Name of False class in sentence case
 bar_width = 0.35
 alphabet = 'DEHKRNQSTAILMVFWYCGP'
 
-# Split into separate conserved and divergent dataframes
+# Read data and split subsequences
 df = pd.read_csv(path, sep='\t', keep_default_na=False)
 df_T = df[df[key] == True]
 df_F = df[df[key] == False]
