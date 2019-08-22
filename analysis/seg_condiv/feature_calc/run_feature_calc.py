@@ -9,6 +9,7 @@ NOTES
 There are 8560 diverged sequences with len >= 32.
 
 DEPENDENCIES
+../../../src/feature_calc/feature_calc.py
 ../segment_aliscore/segment_aliscore.py
     ../segment_aliscore/segment_aliscore_ungap.tsv
 """
