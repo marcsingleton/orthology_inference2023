@@ -42,20 +42,20 @@ with open(path) as file:
 
                 # Find bounds
                 bounds = []
-                disordered_prev = scores[0] > thresh
+                ordered_prev = scores[0] < thresh
                 bound_start = 0
                 for i, score in enumerate(scores):
-                    disordered_curr = score > thresh
-                    if disordered_curr is not disordered_prev:
-                        bounds.append(((bound_start, i), disordered_prev))
+                    ordered_curr = score < thresh
+                    if ordered_curr is not ordered_prev:
+                        bounds.append(((bound_start, i), ordered_prev))
                         bound_start = i
-                    disordered_prev = disordered_curr
-                bounds.append(((bound_start, i + 1), disordered_curr))  # Bound for final segment
+                    ordered_prev = ordered_curr
+                bounds.append(((bound_start, i + 1), ordered_curr))  # Bound for final segment
 
                 # Create dataframe rows
-                for bound, conserved in bounds:
+                for bound, ordered in bounds:
                     sub_data.append({'ali_id': ali_id, 'seq_id': record.id, 'sub_id': hex(sub_num)[2:].zfill(8),
-                                     'bound': bound, 'disordered': conserved, 'seq': seq[bound[0]:bound[1]]})
+                                     'bound': bound, 'ordered': ordered, 'seq': seq[bound[0]:bound[1]]})
                     sub_num += 1
 
 df = pd.DataFrame(sub_data)
