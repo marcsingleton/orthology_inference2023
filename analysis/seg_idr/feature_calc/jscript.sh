@@ -12,10 +12,10 @@
 #
 # Reporting parameters
 #SBATCH --job-name=feature_calc
-#SBATCH --output=feature_calc.out
+#SBATCH --output=run_feature_calc.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
 module load python
-python feature_calc.py
+python run_feature_calc.py
