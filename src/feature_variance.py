@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import re
 from matplotlib import cm
+from sys import argv
 
 
 def merge(s_in, thresh):
@@ -15,7 +16,7 @@ def merge(s_in, thresh):
     return pd.Series(s_out)
 
 
-feature_dir = '../feature_calc/'
+feature_dir = argv[1]  # Feature directory must end in /
 paths = filter(lambda x: re.match('features_[0-9]+\.tsv', x), os.listdir(feature_dir))
 for path in paths:
     # Load data
