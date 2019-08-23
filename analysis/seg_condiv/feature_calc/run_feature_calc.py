@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_calc/feature_calc.py ../segment_aliscore/segment_aliscore_ungap.tsv conserved con div', shell=True)
+run('python ../../../src/feature_calc_scripts/feature_calc.py ../segment_aliscore/segment_aliscore_ungap.tsv conserved con div', shell=True)
 
 """
 NOTES
