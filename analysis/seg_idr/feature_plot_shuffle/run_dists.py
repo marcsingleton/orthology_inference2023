@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/dists.py ../feature_calc/ ord dis Ordered Disordered', shell=True)
+run('python ../../../src/feature_plot_scripts/dists.py ../feature_calc_shuffle/ ord dis Ordered Disordered', shell=True)
 
 """
 DEPENDENCIES
