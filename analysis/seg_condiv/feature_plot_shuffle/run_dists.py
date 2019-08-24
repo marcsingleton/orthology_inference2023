@@ -1,4 +1,4 @@
-"""Execute the dists.py script using the features of the unshuffled sequences as input."""
+"""Execute the dists.py script using the features of the shuffled sequences as input."""
 
 from subprocess import run
 
