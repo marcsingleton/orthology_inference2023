@@ -1,4 +1,4 @@
-"""Plot t-SNE of feature sets for conserved and diverged subsequences jointly."""
+"""Plot t-SNE of feature sets for two classes of subsequences jointly."""
 
 import matplotlib.pyplot as plt
 import os
@@ -9,10 +9,16 @@ from shared import fsets, labels
 from sklearn.manifold import TSNE
 from sys import argv
 
-# Load data
+# Input variables
 feature_dir = argv[1]  # Feature directory must end in /
+T_idx = argv[2]  # Index of True class in sentence case
+F_idx = argv[3]  # Index of False class in sentence case
+T_name = argv[4]  # Name of True class in sentence case
+F_name = argv[5]  # Name of False class in sentence case
+
 paths = filter(lambda x: re.match('features_[0-9]+\.tsv', x), os.listdir(feature_dir))
 for path in paths:
+    # Load data
     df = pd.read_csv(feature_dir + path, sep='\t', index_col=[0, 1])
 
     # Get file index
@@ -21,9 +27,9 @@ for path in paths:
     i = path[j0+1:j1]
 
     # Get indices for plotting
-    condiv_idx = df.index.get_level_values(0)
-    con = 'con' == condiv_idx
-    div = 'div' == condiv_idx
+    TF_idx = df.index.get_level_values(0)
+    T = T_idx == TF_idx
+    F = F_idx == TF_idx
     k = df['kappa'] == -1
     o = df['omega'] == -1
 
@@ -47,10 +53,10 @@ for path in paths:
             # One panel
             fig, ax = plt.subplots()
             fig.subplots_adjust(bottom=0.225)
-            ax.scatter(trans[con, 0], trans[con, 1], s=2, alpha=0.1, label='Conserved')
-            ax.scatter(trans[div, 0], trans[div, 1], s=2, alpha=0.1, label='Diverged')
-            ax.set_title('t-SNE of Features\nin Conserved and Diverged Subsequences')
-            leg = fig.legend(bbox_to_anchor=(0.5, 0.05), loc='lower center', ncol=2,markerscale=2.5)
+            ax.scatter(trans[T, 0], trans[T, 1], s=2, alpha=0.1, label=T_name)
+            ax.scatter(trans[F, 0], trans[F, 1], s=2, alpha=0.1, label=F_name)
+            ax.set_title(f't-SNE of Features\nin {T_name} and {F_name} Subsequences')
+            leg = fig.legend(bbox_to_anchor=(0.5, 0.05), loc='lower center', ncol=2, markerscale=2.5)
             for lh in leg.legendHandles:
                 lh.set_alpha(1)
             plt.savefig(cur_dir + f'tsne{j}_combined.png')
@@ -58,9 +64,9 @@ for path in paths:
 
             # Two panels
             fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(5, 7.5), sharex=True, sharey=True)
-            ax1.scatter(trans[con, 0], trans[con, 1], s=2, alpha=0.1, label='Conserved', color='C0')
-            ax2.scatter(trans[div, 0], trans[div, 1], s=2, alpha=0.1, label='Diverged', color='C1')
-            ax1.set_title('t-SNE of Features\nin Conserved and Diverged Subsequences')
+            ax1.scatter(trans[T, 0], trans[T, 1], s=2, alpha=0.1, label=T_name, color='C0')
+            ax2.scatter(trans[F, 0], trans[F, 1], s=2, alpha=0.1, label=F_name, color='C1')
+            ax1.set_title(f't-SNE of Features\nin {T_name} and {F_name} Subsequences')
             leg = fig.legend(bbox_to_anchor=(0.5, 0), loc='lower center', ncol=2, markerscale=2.5)
             for lh in leg.legendHandles:
                 lh.set_alpha(1)

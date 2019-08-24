@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/tsne_separate.py ../feature_calc/', shell=True)
+run('python ../../../src/feature_plot_scripts/tsne_separate.py ../feature_calc/ con div Conserved Diverged', shell=True)
 
 """
 NOTES
