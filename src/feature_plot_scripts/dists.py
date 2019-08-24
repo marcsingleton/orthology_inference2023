@@ -1,4 +1,4 @@
-"""Plot distributions of features for conserved and diverged subsequences jointly."""
+"""Plot distributions of features for two classes of subsequences jointly and separately."""
 
 import matplotlib.pyplot as plt
 import os
@@ -7,10 +7,16 @@ import re
 from shared import fsets
 from sys import argv
 
+# Input variables
 feature_dir = argv[1]  # Feature directory must end in /
+T_idx = argv[2]  # Index of True class in sentence case
+F_idx = argv[3]  # Index of False class in sentence case
+T_name = argv[4]  # Name of True class in sentence case
+F_name = argv[5]  # Name of False class in sentence case
+
 paths = filter(lambda x: re.match('features_[0-9]+\.tsv', x), os.listdir(feature_dir))
 for path in paths:
-    # Split into separate conserved and divergent dataframes
+    # Load data
     df = pd.read_csv(feature_dir + path, sep='\t', keep_default_na=False, index_col=[0, 1])
 
     # Get file index
@@ -37,8 +43,8 @@ for path in paths:
             plt.close()
 
             plt.figure()
-            plt.hist(feat_all.loc['con'][feature], label='Conserved', bins=bins, alpha=0.5)
-            plt.hist(feat_all.loc['div'][feature], label='Diverged', bins=bins, alpha=0.5)
+            plt.hist(feat_all.loc[T_idx][feature], label=T_name, bins=bins, alpha=0.5)
+            plt.hist(feat_all.loc[F_idx][feature], label=F_name, bins=bins, alpha=0.5)
             plt.xlabel(feature)
             plt.ylabel('Count')
             plt.legend()
