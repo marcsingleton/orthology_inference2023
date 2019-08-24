@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/pca_joint.py ../feature_calc_shuffle/', shell=True)
+run('python ../../../src/feature_plot_scripts/pca_joint.py ../feature_calc_shuffle/ con div Conserved Diverged', shell=True)
 
 """
 NOTES

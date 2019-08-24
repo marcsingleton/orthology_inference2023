@@ -1,4 +1,4 @@
-"""Plot principal components of feature sets for conserved and diverged subsequences separately."""
+"""Plot principal components of feature sets for two classes of subsequences separately."""
 
 import matplotlib.pyplot as plt
 import os
@@ -9,7 +9,13 @@ from shared import n_components, fsets, labels
 from sklearn.decomposition import PCA
 from sys import argv
 
+# Input variables
 feature_dir = argv[1]  # Feature directory must end in /
+T_idx = argv[2]  # Index of True class in sentence case
+F_idx = argv[3]  # Index of False class in sentence case
+T_name = argv[4]  # Name of True class in sentence case
+F_name = argv[5]  # Name of False class in sentence case
+
 paths = filter(lambda x: re.match('features_[0-9]+\.tsv', x), os.listdir(feature_dir))
 for path in paths:
     # Load data
@@ -20,7 +26,7 @@ for path in paths:
     j1 = path.find('.tsv')
     i = path[j0+1:j1]
 
-    for subset, name, color in [('con', 'Conserved', 'C0'), ('div', 'Diverged', 'C1')]:
+    for subset, name, color in [(T_idx, T_name, 'C0'), (F_idx, F_name, 'C1')]:
         # Get indices for plotting
         df_subset = df.loc[subset, :]
         k = df_subset['kappa'] == -1
