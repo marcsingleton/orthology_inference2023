@@ -6,11 +6,17 @@ run('python ../../../src/feature_plot_scripts/tsne_joint.py ../feature_calc_shuf
 
 """
 NOTES
-No differences between shuffled and observed sequences for the all, len, net_charge, norm, or znorm feature sets
-In the len+net_charge feature set, the shuffled sequences form clusters that are less diffuse and more punctate
-    The conserved and diverged sequences still cluster, but the clusters more a mosaic of subclusters of conserved or diverged than a mixture of the sequences
-    This effect is subtle, however, and largely only apparent at moderate perplexities
-    
+ALL
+    No clear differences between shuffled and observed sequences for the all feature set.
+        The shuffled sequences have a similar "constellation" of clusters observed in the unshuffled sequences.
+MINMAX
+    The patterns are similar to those in the norm feature set; however, the differences between the unshuffled and shuffled sequences appear somewhat more subtle.
+NORM
+    At low length cutoffs, the unshuffled and shuffled sequences are largely indistinguishable.
+    At high length cutoffs, the conserved and diverged sequences more clearly segregate in a gradient in the central cluster.
+        The central cluster is also more uniform and less punctate.
+ZNORM
+    Projections comparisons are the same as the minmax feature set relative to the norm feature set.
 
 DEPENDENCIES
 ../../../src/feature_calc_scripts/tsne_joint.py
