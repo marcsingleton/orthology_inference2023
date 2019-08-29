@@ -6,18 +6,31 @@ run('python ../../../src/feature_plot_scripts/pca_separate.py ../feature_calc_sh
 
 """
 NOTES
-Differences between shuffled and observed sequences similar to those noted in run_pca_joint.py for the complete, net charge, len, and len + net charge feature sets.
-The separate projections for the conserved and diverged classes highlights in the differences with regards to the presence of the kappa and omega clusters.
-    The kappa and omega clusters disappear by a length cutoff of 16 in the shuffled conserved sequences.
-        The clusters are still present in the original sequences until a cutoff of 32.
-    In contrast, the clusters do not disppear until a length cutoff of 32 in the shuffled diverged sequences.
-    In both cases, the kappa and omega clusters are denser (or more enriched) in the observed sequences.
-        It is unclear if the kappa and omega clusters are more enriched in diverged than conserved sequences relative to their shuffled counterparts.
-            Because the shuffled diverged sequences cluster by kappa and omega values at a higher cutoff, the amino acid pool is likely more biased towards producing sequences with no prolines or charged residues.
-            It is unclear if the increased number of sequences in kappa and omega clusters outstrips their inherent propensity for the kappa and omega clusters.
-            Directly counting the sequences in all categories should more clearly distinguish these possibilities.
-Like in the combined projections, the separate projections differ largely in the number and the intensity of their spokes.
-    The differences are diminished in the conserved sequences and exaggerated in the diverged sequences.
+ALL
+    Differences between shuffled and observed sequences similar to those noted in run_pca_joint.py for the all feature set.
+MINMAX
+    The projections largely follow the same patterns observed for the norm feature set.
+    The kappa-omega clusters tend to disappear at lower cutoffs than in the norm feature set projections.
+        The sequences are still present of course, but their contribution to the variance is not sufficient to ensure their separation.
+        This shows that although kappa-omega clusters are not visible in the projection, they are still potentially present in significant numbers.
+            The best test for enrichment of kappa-omega clusters over expectation is by counting and performing a goodness-of-fit test.
+NORM
+    The separate projections for the conserved and diverged classes highlights in the differences with regards to the presence of the kappa and omega clusters.
+        The kappa and omega clusters disappear by a length cutoff of 16 in the shuffled conserved sequences.
+            The clusters are still present in the original sequences until a cutoff of 32.
+        In contrast, the clusters do not disppear until a length cutoff of 32 in the shuffled diverged sequences.
+        In both cases, the kappa and omega clusters are denser (or more enriched) in the observed sequences.
+            It is unclear if the kappa and omega clusters are more enriched in diverged than conserved sequences relative to their shuffled counterparts.
+                Because the shuffled diverged sequences cluster by kappa and omega values at a higher cutoff, the amino acid pool is likely more biased towards producing sequences with no prolines or charged residues.
+                It is unclear if the increased number of sequences in kappa and omega clusters outstrips their inherent propensity for the kappa and omega clusters.
+                Directly counting the sequences in all categories should more clearly distinguish these possibilities.
+ZNORM
+    Interestingly, even at low cutoffs, the conserved unshuffled sequences are largely uniform in their projections whereas the conserved shuffled sequences have bands of increased intensity.
+        These largely disappear after the first few cutoffs.
+    The shuffled diverged sequences are intensely banded compared with their unshuffled counterparts, which are characterized by spokes.
+        Again these differences largely disppear at moderate cutoffs.
+        However, the unshuffled sequences still have remnants of spokes whereas the shuffled sequences are nearly uniform.
+        These observations are consistent with the conclusion that shuffled sequences are more "average" and observed sequences have a higher proportion of outliers.
 
 DEPENDENCIES
 ../../../src/feature_plot_scripts/pca_separate.py
