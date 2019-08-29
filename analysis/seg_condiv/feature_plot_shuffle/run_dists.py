@@ -5,8 +5,6 @@ from subprocess import run
 run('python ../../../src/feature_plot_scripts/dists.py ../feature_calc_shuffle/ con div Conserved Diverged', shell=True)
 
 """
-NOTES
-
 DEPENDENCIES
 ../../../src/feature_plot_scripts/dists.py
 ../feature_calc/feature_calc.py
