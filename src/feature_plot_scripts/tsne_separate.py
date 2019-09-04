@@ -48,7 +48,7 @@ for path in paths:
                 trans = tsne.fit_transform(feat.to_numpy())
                 kl_divs.append((j, tsne.kl_divergence_))
 
-                # Plot PCAs
+                # Plot t-SNEs
                 # One panel
                 fig, ax = plt.subplots()
                 fig.subplots_adjust(bottom=0.225)
