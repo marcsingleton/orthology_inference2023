@@ -13,7 +13,7 @@ from sys import exit
 path = ''
 submat = MatrixInfo.blosum50
 
-MSA = AlignIO.read(path, "fasta")
+MSA = AlignIO.read(path, 'fasta')
 row_len = len(MSA[0, :])
 column_len = len(MSA)
 
