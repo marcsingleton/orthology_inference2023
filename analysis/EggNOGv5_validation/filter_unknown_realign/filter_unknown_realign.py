@@ -71,7 +71,7 @@ with open(path_outmembers, 'w') as file_outmembers:
                     # Save unaligned sequences to file with gaps removed
                     with open(f'./raw/{alignment_id}/unaligned.fa', 'w') as file_unaligned:
                         file_unaligned.write('>' + MSA[0].name + '\n')  # Header
-                        file_unaligned.write(str(record.seq.upper()).translate({ord('-'): None}) + '\n') # Sequence with gaps removed and uppercase
+                        file_unaligned.write(str(record.seq.upper()).translate({ord('-'): None}) + '\n')  # Sequence with gaps removed and uppercase
 
                     # Save zipped copy of output to alignment directory
                     with open(f'./raw/{alignment_id}/unaligned.fa', 'rb') as file_aligned:
@@ -90,6 +90,7 @@ with open(path_outmembers, 'w') as file_outmembers:
 """
 NOTES
 Must run in bash shell in ete3 conda environment to correctly execute shell commands
+No alignments are removed, but the script does allow for the possibility of degenerate alignments (only 1 sequence).
 
 DEPENDENCIES
 ../../../data/EggNOGv5/drosophilidae/
