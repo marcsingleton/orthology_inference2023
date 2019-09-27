@@ -1,3 +1,5 @@
+""""Prune unneeded lineages from Drosophila tree and save image of pruned tree."""
+
 import Bio.Phylo as Phylo
 import matplotlib.pyplot as plt
 
