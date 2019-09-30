@@ -9,8 +9,8 @@ from sys import argv
 # Input variables
 dir = argv[1]  # Directory of segmented sequences must end in /
 key = argv[2]  # Key of column denoting subsequences class
-T_idx = argv[3]  # Index of True class in sentence case
-F_idx = argv[4]  # Index of False class in sentence case
+T_idx = argv[3]  # Index of True class
+F_idx = argv[4]  # Index of False class
 num_processes = int(environ['SLURM_NTASKS'])
 
 if __name__ == '__main__':  # Multiprocessing can only occur in top-level script (likely to prevent recursion)
