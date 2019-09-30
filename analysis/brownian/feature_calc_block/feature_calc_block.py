@@ -20,17 +20,19 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
         blocks_seq = []
         blocks_id = []
         blocks_class = []
+        blocks_species = []
         for _, block in df.groupby('block_id'):
             seqs = block['seq'].map(lambda x: x.translate({ord('-'): None}))
             if seqs.map(lambda x: len(x) >= i).all():  # All subsequences in block must meet length cutoff
                 blocks_seq.extend(seqs)
                 blocks_id.extend(block['block_id'])
                 blocks_class.extend(block[key])
+                blocks_species.extend(block['seq_id'].map(lambda x: x[0:4]))
 
         # Compute features
         with mp.Pool(processes=num_processes) as pool:
             results = pd.DataFrame(pool.imap(seqfeat.feat_all, blocks_seq, chunksize=50))
 
         # Merge subsets and save
-        results.set_index([blocks_id, blocks_class], inplace=True)
+        results.set_index([blocks_id, blocks_class, blocks_species], inplace=True)
         results.to_csv(f'features_{i}.tsv', sep='\t')
