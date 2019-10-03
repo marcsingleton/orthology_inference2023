@@ -8,8 +8,6 @@ from os import environ
 # Input variables
 path = '../segment_avg/segment_avg.tsv'  # Path to segmented sequences
 key = 'ordered'  # Key of column denoting block class
-T_idx = 'ord'  # Index of True class
-F_idx = 'dis'  # Index of False class
 num_processes = int(environ['SLURM_NTASKS'])
 
 if __name__ == '__main__':  # Multiprocessing can only occur in top-level script (likely to prevent recursion)
