@@ -16,7 +16,7 @@ F_name = argv[5]  # Name of False class
 paths = filter(lambda x: re.match('features_[0-9]+\.tsv', x), os.listdir(feature_dir))
 for path in paths:
     # Load data
-    df = pd.read_csv(feature_dir + path, sep='\t', keep_default_na=False, index_col=[0, 1])
+    df = pd.read_csv(feature_dir + path, sep='\t', index_col=[0, 1])
 
     # Get file index
     j0 = path.find('_')
