@@ -8,10 +8,10 @@ from sys import argv
 
 # Input variables
 feature_dir = argv[1]  # Feature directory must end in /
-T_idx = argv[2]  # Index of True class in sentence case
-F_idx = argv[3]  # Index of False class in sentence case
-T_name = argv[4]  # Name of True class in sentence case
-F_name = argv[5]  # Name of False class in sentence case
+T_idx = argv[2]  # Index of True class
+F_idx = argv[3]  # Index of False class
+T_name = argv[4]  # Name of True class
+F_name = argv[5]  # Name of False class
 
 paths = filter(lambda x: re.match('features_[0-9]+\.tsv', x), os.listdir(feature_dir))
 for path in paths:
