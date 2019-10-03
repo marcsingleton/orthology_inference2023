@@ -70,7 +70,6 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
     for path in paths:
         # Load data
         df_raw = pd.read_csv(feature_dir + path, sep='\t', index_col=[0, 1, 2])
-        df_raw.index.names = ['block_id', 'ordered', 'species_id']
 
         # Get file index
         j0 = path.find('_')

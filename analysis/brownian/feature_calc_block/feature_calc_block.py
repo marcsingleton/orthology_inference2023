@@ -33,4 +33,5 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
 
         # Merge subsets and save
         results.set_index([blocks_id, blocks_class, blocks_species], inplace=True)
+        results.index.names = ['block_id', 'ordered', 'species_id']
         results.to_csv(f'features_{i}.tsv', sep='\t')
