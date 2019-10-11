@@ -74,7 +74,7 @@ with open(path) as file:
             # Average IUPRED scores
             num_nongap = np.count_nonzero(MSA_iupred != -1, axis=0)
             MSA_avg = 1 / num_nongap * (np.sum(MSA_iupred, axis=0) + len(MSA) - num_nongap)
-            scores = ndimage.gaussian_filter1d(scores, 2)  # Smooth final average
+            MSA_avg = ndimage.gaussian_filter1d(MSA_avg, 2)  # Smooth final average
 
             # Find bounds
             bounds = []
@@ -97,3 +97,11 @@ with open(path) as file:
 
 df = pd.DataFrame(block_data)
 df.to_csv('segment_avg.tsv', sep='\t', index=False)
+
+"""
+DEPENDENCIES
+../../EggNOGv5_validation/filter_count/filter_count.py
+    ../../EggNOGv5_validation/filter_count/7214_noX_members/10_10_members.tsv
+../../EggNOGv5_validation/filter_unknown_realign/filter_unknown_realign.py
+    ../../EggNOGv5_validation/filter_unknown_realign/align/
+"""
