@@ -12,10 +12,11 @@ F_name = argv[4]  # Name of False class in sentence case
 
 # Read data and split subsequences
 df = pd.read_csv(path, sep='\t', keep_default_na=False)  # Prevents reading Asp-Ala (NA) sequences as not a number (NaN)
+df['seq'] = df['seq'].map(lambda x: x.translate({ord('-'): None}))  # Remove gaps if present
 df_T = df[df[key] == True]
 df_F = df[df[key] == False]
-len_T = df_T.apply(lambda row: len(row['seq']), axis=1)
-len_F = df_F.apply(lambda row: len(row['seq']), axis=1)
+len_T = df_T['seq'].map(lambda x: len(x))
+len_F = df_F['seq'].map(lambda x: len(x))
 
 # Histogram of full range
 bin_len = 10

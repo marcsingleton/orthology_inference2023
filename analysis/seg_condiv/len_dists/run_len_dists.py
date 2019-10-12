@@ -1,4 +1,4 @@
-"""Execute the len_dists.py script using the alignment score segmented segmented sequences as input."""
+"""Execute the len_dists.py script using the alignment score segmented sequences as input."""
 
 from subprocess import run
 
