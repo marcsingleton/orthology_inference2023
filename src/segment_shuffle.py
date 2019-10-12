@@ -7,12 +7,12 @@ from itertools import accumulate
 from random import shuffle
 from sys import argv
 
-sequence_dir = '../feature_calc/'
+dir = '../feature_calc/'
 key = argv[1]  # Key of column denoting subsequences class
-paths = filter(lambda x: re.match('sequences_[0-9]+\.tsv', x), os.listdir(sequence_dir))
+paths = filter(lambda x: re.match('sequences_[0-9]+\.tsv', x), os.listdir(dir))
 for path in paths:
     # Load data and split into subsets
-    df = pd.read_csv(sequence_dir + path, sep='\t', keep_default_na=False, index_col=0)
+    df = pd.read_csv(dir + path, sep='\t', keep_default_na=False)
     seq_T = df[df[key] == True]['seq']
     seq_F = df[df[key] == False]['seq']
 
