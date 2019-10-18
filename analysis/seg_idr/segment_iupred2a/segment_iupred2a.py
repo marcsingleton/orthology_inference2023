@@ -11,8 +11,8 @@ path = '../../EggNOGv5_validation/filter_count/7214_noX_members/10_10_members.ts
 dir = '../../EggNOGv5_validation/filter_unknown_realign/align/'
 thresh = 0.5
 
-sub_data = []  # Subsequence data with raw sequences
-sub_num = 0  # Counter for numbering rows
+seg_data = []  # Segment data with raw sequences
+seg_num = 0  # Counter for numbering rows
 
 with open(path) as file:
     for line in file:
@@ -28,12 +28,12 @@ with open(path) as file:
                     temp.seek(0)  # Set stream to file start
 
                     # Execute IUPRED2a with tempfile
-                    proc = subprocess.run(['python', '../../../bin/iupred2a/iupred2a.py', temp.name, 'long'],
-                                          capture_output=True, text=True, check=True)
+                    process = subprocess.run(['python', '../../../bin/iupred2a/iupred2a.py', temp.name, 'long'],
+                                             capture_output=True, text=True, check=True)
 
                 # Extract scores from output
                 scores = []
-                for line in proc.stdout.rstrip().split('\n'):  # Remove trailing newline to prevent empty line
+                for line in process.stdout.rstrip().split('\n'):  # Remove trailing newline to prevent empty line
                     if line.startswith('#'):
                         continue
                     fields = line.split('\t')
@@ -54,11 +54,11 @@ with open(path) as file:
 
                 # Create dataframe rows
                 for bound, ordered in bounds:
-                    sub_data.append({'ali_id': ali_id, 'seq_id': record.id, 'sub_id': hex(sub_num)[2:].zfill(8),
+                    seg_data.append({'ali_id': ali_id, 'seq_id': record.id, 'seg_id': hex(seg_num)[2:].zfill(8),
                                      'bound': bound, 'ordered': ordered, 'seq': seq[bound[0]:bound[1]]})
-                    sub_num += 1
+                    seg_num += 1
 
-df = pd.DataFrame(sub_data)
+df = pd.DataFrame(seg_data)
 df.to_csv('segment_iupred2a.tsv', sep='\t', index=False)
 
 """
