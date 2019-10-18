@@ -1,4 +1,4 @@
-"""Calculate features for different length cutoffs."""
+"""Calculate features for all non-empty sequences"""
 
 import multiprocessing as mp
 import pandas as pd
@@ -12,6 +12,7 @@ type_name = argv[2]  # Name of column denoting segment type
 num_processes = int(environ['SLURM_NTASKS'])
 
 if __name__ == '__main__':  # Multiprocessing can only occur in top-level script (likely to prevent recursion)
+    # Clean data by removing gaps and empty sequences
     segs = pd.read_csv(path, sep='\t', keep_default_na=False)
     segs['seq'] = segs['seq'].map(lambda x: x.translate({ord('-'): None}))
     subs_lt = segs[segs['seq'].map(lambda x: len(x) >= 1)]  # Select entries where sequence is non-empty
@@ -23,8 +24,8 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
 
     # Compute features
     with mp.Pool(processes=num_processes) as pool:
-        results = pd.DataFrame(pool.imap(seqfeat.feat_all, subs_lt['seq'], chunksize=50))
+        features = pd.DataFrame(pool.imap(seqfeat.feat_all, subs_lt['seq'], chunksize=50))
 
     # Merge subsets and save
-    results.set_index([seg_ids, types, lengths], inplace=True)
-    results.to_csv('features.tsv', sep='\t')
+    features.set_index([seg_ids, types, lengths], inplace=True)
+    features.to_csv('features.tsv', sep='\t')
