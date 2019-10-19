@@ -26,6 +26,6 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
     with mp.Pool(processes=num_processes) as pool:
         features = pd.DataFrame(pool.imap(seqfeat.feat_all, subs_lt['seq'], chunksize=50))
 
-    # Merge subsets and save
+    # Set index and save
     features.set_index([seg_ids, types, lengths], inplace=True)
     features.to_csv('features.tsv', sep='\t')

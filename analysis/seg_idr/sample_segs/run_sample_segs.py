@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/sample_segs.py ../segment_iupred2a/segment_iupred2a.tsv', shell=True)
+run('python ../../../src/sample_segs.py ../segment_iupred2a/segment_iupred2a.tsv ordered', shell=True)
 
 """
 DEPENDENCIES

@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/sample_segs.py ../segment_aliscore/segment_aliscore.tsv', shell=True)
+run('python ../../../src/sample_segs.py ../segment_aliscore/segment_aliscore.tsv conserved', shell=True)
 
 """
 DEPENDENCIES
