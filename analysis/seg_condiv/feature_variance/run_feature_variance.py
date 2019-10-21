@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_variance.py ../feature_calc/ con div Conserved Diverged', shell=True)
+run('python ../../../src/feature_variance.py ../sample_feats/ 3 conserved Conserved Diverged', shell=True)
 
 """
 NOTES
@@ -11,6 +11,6 @@ As the cutoff increases, net_charge, net_charge_P, and SCD increase as a proport
 
 DEPENDENCIES
 ../../../src/feature_variance.py
-../feature_calc/run_feature_calc.py
+../sample_feats/run_sample_feats.py
     ../feature_calc/features_*.tsv
 """

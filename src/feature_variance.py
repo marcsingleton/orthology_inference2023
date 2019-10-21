@@ -18,33 +18,34 @@ def merge(s_in, thresh):
 
 # Input variables
 feature_dir = argv[1]  # Feature directory must end in /
-T_idx = argv[2]  # Index of True class in sentence case
-F_idx = argv[3]  # Index of False class in sentence case
-T_name = argv[4]  # Name of True class in sentence case
-F_name = argv[5]  # Name of False class in sentence case
+num_idx = int(argv[2])  # Number of index columns
+type_name = argv[3]  # Name of column denoting segment type
+T_name = argv[4]  # Name of True type in sentence case
+F_name = argv[5]  # Name of False type in sentence case
 
 paths = filter(lambda x: re.match('features_[0-9]+\.tsv', x), os.listdir(feature_dir))
 for path in paths:
-    # Load data
-    df = pd.read_csv(feature_dir + path, sep='\t', index_col=[0, 1])
+    # Read data
+    features = pd.read_csv(feature_dir + path, sep='\t', index_col=list(range(num_idx)))
 
     # Get file index
     j0 = path.find('_')
     j1 = path.find('.tsv')
     i = path[j0 + 1:j1]
 
-    subsets = (df.loc[:, :], df.loc[T_idx, :], df.loc[F_idx, :])
-    idxs = ('all', T_idx, F_idx)
+    # Split into segment types
+    idx = features.index.get_level_values(type_name).array.astype(bool)
+    subsets = (features, features.loc[idx], features.loc[~idx])
     names = ('All', T_name, F_name)
-    for subset, idx, name in zip(subsets, idxs, names):
+    for subset, name in zip(subsets, names):
         # Make output directories for feature sets
         cur_dir = f'{name}/'
         if not os.path.exists(cur_dir):
             os.makedirs(cur_dir)  # Recursive folder creation
 
         # Get fractional variances and consolidate
-        var = subset.var()
-        vars_frac = merge(var / sum(var), 0.01).sort_values(ascending=False)
+        vars = subset.var()
+        vars_frac = merge(vars / sum(vars), 0.01).sort_values(ascending=False)
 
         # Create color map
         cmap = cm.get_cmap('GnBu')
@@ -58,6 +59,6 @@ for path in paths:
         plt.title(f'Fraction of Overall Variance by Feature:\n{name} Subsequences')
         plt.savefig(cur_dir + f'var_{i}.png')
 
-        # Save var and var_frac to tsv
-        df = pd.DataFrame({'var': var, 'var_frac': var / sum(var)}).sort_values(by='var', ascending=False)
-        df.to_csv(cur_dir + f'var_{i}.tsv', sep='\t')
+        # Save vars and vars_frac to tsv
+        variances = pd.DataFrame({'var': vars, 'var_frac': vars / sum(vars)}).sort_values(by='var', ascending=False)
+        variances.to_csv(cur_dir + f'var_{i}.tsv', sep='\t')

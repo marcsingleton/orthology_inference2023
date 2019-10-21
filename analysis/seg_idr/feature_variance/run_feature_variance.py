@@ -2,11 +2,11 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_variance.py ../feature_calc/ ord dis Ordered Disordered', shell=True)
+run('python ../../../src/feature_variance.py ../sample_feats/ 3 ordered Ordered Disordered', shell=True)
 
 """
 DEPENDENCIES
 ../../../src/feature_variance.py
-../feature_calc/run_feature_calc.py
+../sample_feats/run_sample_feats.py
     ../feature_calc/features_*.tsv
 """
