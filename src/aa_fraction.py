@@ -12,22 +12,22 @@ def counts(seq):
 
 # Input variables
 path = argv[1]  # Path to segmented sequences .tsv
-key = argv[2]  # Key of column denoting subsequences class
-T_name = argv[3]  # Name of True class in sentence case
-F_name = argv[4]  # Name of False class in sentence case
+type_name = argv[2]  # Name of column denoting segment type
+T_name = argv[3]  # Name of True type in sentence case
+F_name = argv[4]  # Name of False type in sentence case
 
 # Constants
 bar_width = 0.35
 alphabet = 'DEHKRNQSTAILMVFWYCGP'
 
-# Read data and split subsequences
-df = pd.read_csv(path, sep='\t', keep_default_na=False)
-df_T = df[df[key] == True]
-df_F = df[df[key] == False]
+# Read data and split segments
+segs = pd.read_csv(path, sep='\t', keep_default_na=False)
+T_segs = segs[segs[type_name]]
+F_segs = segs[~segs[type_name]]
 
 # Get counts as series of dict, convert series to list to dataframe, sum counts, reorder
-T_counts = pd.DataFrame(df_T['seq'].apply(counts).to_list()).agg('sum')[list(alphabet)]
-F_counts = pd.DataFrame(df_F['seq'].apply(counts).to_list()).agg('sum')[list(alphabet)]
+T_counts = pd.DataFrame(T_segs['seq'].apply(counts).to_list()).agg('sum')[list(alphabet)]
+F_counts = pd.DataFrame(F_segs['seq'].apply(counts).to_list()).agg('sum')[list(alphabet)]
 
 # Get total sum and convert counts to fraction
 T_sum = T_counts.agg('sum')
@@ -49,7 +49,7 @@ plt.legend(bbox_to_anchor=(1.025, 0.5), loc="center left")
 plt.savefig('aa_fraction.png')
 
 # Print output metrics
-print(f'Number of {T_name.lower()} subsequences:', len(df_T))
-print(f'Number of {F_name.lower()} subsequences:', len(df_F))
+print(f'Number of {T_name.lower()} subsequences:', len(T_segs))
+print(f'Number of {F_name.lower()} subsequences:', len(F_segs))
 print(f'Number of {T_name.lower()} amino acids:', T_sum)
 print(f'Number of {F_name.lower()} amino acids:', F_sum)
