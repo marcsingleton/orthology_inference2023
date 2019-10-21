@@ -39,4 +39,4 @@ for path in paths:
 
     # Convert to dataframe and save
     shuffseq = pd.DataFrame({type_name: segs[type_name], 'seq': shuffseq_T + shuffseq_F})
-    shuffseq.to_csv(f'shuffseq_{i}.tsv', sep='\t')
+    shuffseq.to_csv(f'shuffseq_{i}.tsv', sep='\t', index=False)
