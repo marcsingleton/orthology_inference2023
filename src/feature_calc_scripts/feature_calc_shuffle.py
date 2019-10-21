@@ -1,4 +1,4 @@
-"""Calculate features for different length cutoffs."""
+"""Calculate features of set of shuffled sequences."""
 
 import multiprocessing as mp
 import pandas as pd
@@ -7,17 +7,17 @@ from os import environ, listdir
 from sys import argv
 
 # Input variables
-dir = argv[1]  # Directory of segmented sequences must end in /
-key = argv[2]  # Key of column denoting subsequences class
+segment_dir = argv[1]  # Directory of segmented sequences must end in /
+type_name = argv[2]  # Name of column denoting segment type
 num_processes = int(environ['SLURM_NTASKS'])
 
 if __name__ == '__main__':  # Multiprocessing can only occur in top-level script (likely to prevent recursion)
-    paths = filter(lambda x: x.endswith('.tsv'), listdir(dir))
+    paths = filter(lambda x: x.endswith('.tsv'), listdir(segment_dir))
     for path in paths:
         # Load data and subset
-        segs = pd.read_csv(dir + path, sep='\t', keep_default_na=False)
-        segs_T = segs[segs[key] == True]
-        segs_F = segs[segs[key] == False]
+        segs = pd.read_csv(segment_dir + path, sep='\t', keep_default_na=False)
+        T_segs = segs[segs[type_name]]
+        F_segs = segs[~segs[type_name]]  # ~ is bitwise NOT operator; it interacts properly with numpy objects but not Python booleans
 
         # Get file index
         j0 = path.find('_')
@@ -26,10 +26,10 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
 
         # Compute features
         with mp.Pool(processes=num_processes) as pool:
-            features_T = pd.DataFrame(pool.imap(seqfeat.feat_all, segs_T['seq'], chunksize=50))
-            features_F = pd.DataFrame(pool.imap(seqfeat.feat_all, segs_F['seq'], chunksize=50))
+            T_features = pd.DataFrame(pool.imap(seqfeat.feat_all, T_segs['seq'], chunksize=50))
+            F_features = pd.DataFrame(pool.imap(seqfeat.feat_all, F_segs['seq'], chunksize=50))
 
         # Merge subsets and save
-        features = pd.concat([features_T, features_F])
-        features.set_index(segs[key], inplace=True)
+        features = pd.concat([T_features, F_features])
+        features.set_index(segs[type_name], inplace=True)
         features.to_csv(f'features_{i}.tsv', sep='\t')
