@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/pca_joint.py ../feature_calc/ ord dis Ordered Disordered', shell=True)
+run('python ../../../src/feature_plot_scripts/pca_joint.py ../sample_feats/ 3 ordered Ordered Disordered', shell=True)
 
 """
 NOTES
@@ -22,6 +22,6 @@ ZNORM
 
 DEPENDENCIES
 ../../../src/feature_plot_scripts/pca_joint.py
-../feature_calc_shuffle/feature_calc_shuffle.py
-    ../feature_calc_shuffle/features_*.tsv
+../sample_feats/run_sample_feats.py
+    ../sample_feats/features_*.tsv
 """

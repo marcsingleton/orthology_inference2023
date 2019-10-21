@@ -11,34 +11,34 @@ from sys import argv
 
 # Input variables
 feature_dir = argv[1]  # Feature directory must end in /
-T_idx = argv[2]  # Index of True class
-F_idx = argv[3]  # Index of False class
-T_name = argv[4]  # Name of True class
-F_name = argv[5]  # Name of False class
+num_idx = int(argv[2])  # Number of index columns
+type_name = argv[3]  # Name of column denoting segment type
+T_name = argv[4]  # Name of True type in sentence case
+F_name = argv[5]  # Name of False type in sentence case
 
 paths = filter(lambda x: re.match('features_[0-9]+\.tsv', x), os.listdir(feature_dir))
 for path in paths:
-    # Load data
-    df = pd.read_csv(feature_dir + path, sep='\t', index_col=[0, 1])
+    # Read data
+    df = pd.read_csv(feature_dir + path, sep='\t', index_col=list(range(num_idx)))
 
     # Get file index
     j0 = path.find('_')
     j1 = path.find('.tsv')
     i = path[j0+1:j1]
 
-    for subset, name, color in [(T_idx, T_name, 'C0'), (F_idx, F_name, 'C1')]:
+    for type_val, name, color in [(True, T_name, 'C0'), (False, F_name, 'C1')]:
         # Get indices for plotting
-        df_subset = df.loc[subset, :]
-        k = df_subset['kappa'] == -1
-        o = df_subset['omega'] == -1
+        df_xs = df.xs(type_val, level=type_name)
+        k_idx = df_xs['kappa'] == -1
+        o_idx = df_xs['omega'] == -1
 
         for key, fset in fsets.items():
-            # Calculate features
-            feat = fset(df_subset)
+            # Extract features
+            features = fset(df_xs)
 
             # Calculate PCAs and transform subsets
             pca = PCA(n_components=n_components)
-            trans = pca.fit_transform(feat.to_numpy())
+            transform = pca.fit_transform(features.to_numpy())
 
             # Make output directories for feature sets
             cur_dir = f'pca_separate/{key}/'
@@ -49,39 +49,39 @@ for path in paths:
             # One panel
             fig, ax = plt.subplots()
             fig.subplots_adjust(bottom=0.225)
-            ax.scatter(trans[:, 0], trans[:, 1], s=2, alpha=0.1, label=name, color=color)
+            ax.scatter(transform[:, 0], transform[:, 1], s=2, alpha=0.1, label=name, color=color)
             ax.set_title(f'PCA of Features in {name} Subsequences')
             ax.set_xlabel('PC1')
             ax.set_ylabel('PC2')
             leg = fig.legend(bbox_to_anchor=(0.5, 0.05), loc='lower center', markerscale=2.5)
             for lh in leg.legendHandles:
                 lh.set_alpha(1)
-            plt.savefig(cur_dir + f'pca{i}_{subset}.png')
+            plt.savefig(cur_dir + f'pca{i}_{name}.png')
             plt.close()
 
             # Color code by kappa and omega
             fig, ax = plt.subplots()
             fig.subplots_adjust(bottom=0.225)
             for cond, label in labels.items():
-                ko_idx = list(map(lambda x: x == cond, zip(k, o)))
-                ax.scatter(trans[ko_idx, 0], trans[ko_idx, 1], s=2, alpha=0.1, label=label)
+                ko_idx = list(map(lambda x: x == cond, zip(k_idx, o_idx)))
+                ax.scatter(transform[ko_idx, 0], transform[ko_idx, 1], s=2, alpha=0.1, label=label)
             ax.set_title(f'PCA of Features in {name} Subsequences\nGrouped by Kappa and Omega Values')
             ax.set_xlabel('PC1')
             ax.set_ylabel('PC2')
             leg = fig.legend(bbox_to_anchor=(0.5, 0), loc='lower center', ncol=2, markerscale=2.5)
             for lh in leg.legendHandles:
                 lh.set_alpha(1)
-            plt.savefig(cur_dir + f'pca{i}_{subset}_ko.png')
+            plt.savefig(cur_dir + f'pca{i}_{name}_ko.png')
             plt.close()
 
             # Write model and model summary
-            with open(cur_dir + f'model{i}_summary_{subset}.txt', 'w') as file:
+            with open(cur_dir + f'model{i}_summary_{name}.txt', 'w') as file:
                 file.write(f'Explained variance ratio of first {n_components} components\n')
                 file.write(str(pca.explained_variance_ratio_) + '\n\n')
                 file.write('Principle components in feature space (truncated to the largest 5)\n')
                 for component in pca.components_:
                     component = map(lambda x: round(x, 4), component)
-                    pairs = sorted(list(zip(feat.columns, component)), key=lambda x: abs(x[1]), reverse=True)[:5]
+                    pairs = sorted(list(zip(features.columns, component)), key=lambda x: abs(x[1]), reverse=True)[:5]
                     file.write(str(pairs) + '\n')
-            with open(cur_dir + f'model{i}_{subset}.pickle', 'wb') as file:
+            with open(cur_dir + f'model{i}_{name}.pickle', 'wb') as file:
                 pickle.dump(pca, file)

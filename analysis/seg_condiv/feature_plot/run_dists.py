@@ -2,11 +2,11 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/dists.py ../feature_calc/ con div Conserved Diverged', shell=True)
+run('python ../../../src/feature_plot_scripts/dists.py ../sample_feats/ 3 conserved Conserved Diverged', shell=True)
 
 """
 DEPENDENCIES
 ../../../src/feature_plot_scripts/dists.py
-../feature_calc/feature_calc.py
-    ../feature_calc/features_*.tsv
+../sample_feats/run_sample_feats.py
+    ../sample_feats/features_*.tsv
 """

@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/pca_joint.py ../feature_calc/ con div Conserved Diverged', shell=True)
+run('python ../../../src/feature_plot_scripts/pca_joint.py ../sample_feats/ 3 conserved Conserved Diverged', shell=True)
 
 """
 NOTES
@@ -45,6 +45,6 @@ Regardless future analyses should focus on IDRs; there is no hypothesis that the
 
 DEPENDENCIES
 ../../../src/feature_plot_scripts/pca_joint.py
-../feature_calc_shuffle/feature_calc_shuffle.py
-    ../feature_calc_shuffle/features_*.tsv
+../sample_feats/run_sample_feats.py
+    ../sample_feats/features_*.tsv
 """

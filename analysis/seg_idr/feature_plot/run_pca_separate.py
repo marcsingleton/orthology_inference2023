@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/pca_separate.py ../feature_calc/ ord dis Ordered Disordered', shell=True)
+run('python ../../../src/feature_plot_scripts/pca_separate.py ../sample_feats/ 3 ordered Ordered Disordered', shell=True)
 
 """
 NOTES
@@ -21,6 +21,6 @@ ZNORM
 
 DEPENDENCIES
 ../../../src/feature_plot_scripts/pca_separate.py
-../feature_calc/feature_calc.py
-    ../feature_calc/features_*.tsv
+../sample_feats/run_sample_feats.py
+    ../sample_feats/features_*.tsv
 """
