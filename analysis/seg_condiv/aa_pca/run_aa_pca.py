@@ -2,17 +2,17 @@
 
 from subprocess import run
 
-run('python ../../../src/aa_pca.py ../segment_aliscore/segment_aliscore_ungap.tsv conserved Conserved Diverged', shell=True)
+run('python ../../../src/aa_pca.py ../sample_segs/ conserved Conserved Diverged', shell=True)
 
 """
 OUTPUT
 Explained variance ratio of first 5 components by length cutoff
-1: [0.1305072  0.12551688 0.10045191 0.09082807 0.07945145]
-2: [0.13352252 0.12957343 0.10009022 0.09076264 0.08101013]
-4: [0.14725188 0.12965084 0.10409594 0.09934824 0.07996019]
-8: [0.16786116 0.12565534 0.11166224 0.09854166 0.07705222]
-16: [0.17760895 0.13070081 0.12216715 0.08805334 0.07371074]
-32: [0.18459773 0.14147164 0.11737025 0.08688669 0.07027735]
+1: [0.13206279 0.12318378 0.09863576 0.09003079 0.07873048]
+2: [0.13814809 0.12384513 0.10223027 0.0930317  0.08074934]
+4: [0.14685271 0.12365444 0.10176489 0.09546811 0.07962271]
+8: [0.16367689 0.12735185 0.11043737 0.10014565 0.0767275 ]
+16: [0.17951119 0.12942898 0.12038227 0.09261545 0.07246496]
+32: [0.18487645 0.14180928 0.11962467 0.08734077 0.06946414]
 
 NOTES
 "Spokes" in PCA are likely short homopolymeric sequences as there are fewer in plots with higher thresholds
@@ -22,6 +22,6 @@ At higher cutoffs, the plots are largely the same, though the spokes are more pr
 
 DEPENDENCIES
 ../../../src/aa_pca.py
-../segment_aliscore/segment_aliscore.py
-    ../segment_aliscore/segment_aliscore_ungap.tsv
+../sample_segs/run_sample_segs.py
+    ../segment_iupred2a/segments_*.tsv
 """

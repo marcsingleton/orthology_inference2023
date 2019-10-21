@@ -2,17 +2,17 @@
 
 from subprocess import run
 
-run('python ../../../src/aa_pca.py ../segment_iupred2a/segment_iupred2a.tsv ordered Ordered Disordered', shell=True)
+run('python ../../../src/aa_pca.py ../sample_segs/ ordered Ordered Disordered', shell=True)
 
 """
 OUTPUT
 Explained variance ratio of first 5 components by length cutoff
-1: [0.11202364 0.10079852 0.0787125  0.07605646 0.06953976]
-2: [0.1138936  0.10402136 0.08039153 0.0769274  0.07168185]
-4: [0.12214567 0.1032966  0.08654573 0.07993077 0.07456813]
-8: [0.13283162 0.10291754 0.09406589 0.08461914 0.0750315 ]
-16: [0.15037903 0.10966678 0.09557253 0.08403114 0.07549575]
-32: [0.16305408 0.12818101 0.09469934 0.09164521 0.07413461]
+1: [0.10835237 0.0985546  0.07720514 0.07521693 0.07371808]
+2: [0.11563894 0.09935632 0.07967057 0.07658405 0.07078912]
+4: [0.12177269 0.10160838 0.08221755 0.0814585  0.07623621]
+8: [0.13419047 0.1029753  0.09404481 0.08139625 0.07575718]
+16: [0.14722338 0.10811996 0.09972444 0.08523588 0.07748651]
+32: [0.16252439 0.12638589 0.09661872 0.08927426 0.07550576]
 
 NOTES
 Spokes are much less prevalent in the IDR PCA than in the conserved/diverged PCA
@@ -22,6 +22,6 @@ At higher length cutoffs, the disordered sequences appear to slightly separate f
 
 DEPENDENCIES
 ../../../src/aa_pca.py
-../segment_iupred2a/segment_iupred2a.py
-    ../segment_iupred2a/segment_iupred2a.tsv
+../sample_segs/run_sample_segs.py
+    ../segment_iupred2a/segments_*.tsv
 """

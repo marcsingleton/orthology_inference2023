@@ -1,8 +1,10 @@
-"""Perform PCA and visualization of conserved and divergent subsequences."""
+"""Perform PCA and visualization of two types of subsequences."""
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
+import re
 from sklearn.decomposition import PCA
 from sys import argv
 
@@ -12,48 +14,51 @@ def fracs(seq):
 
 
 # Input variables
-path = argv[1]  # Path to segmented sequences .tsv
-key = argv[2]  # Key of column denoting subsequences class
-T_name = argv[3]  # Name of True class in sentence case
-F_name = argv[4]  # Name of False class in sentence case
+segment_dir = argv[1]  # Segment directory must end in /
+type_name = argv[2]  # Name of column denoting segment type
+T_name = argv[3]  # Name of True type in sentence case
+F_name = argv[4]  # Name of False type in sentence case
 
 # Constants
 alphabet = 'DEHKRNQSTAILMVFWYCGP'
 n_components = 5
 
-df = pd.read_csv(path, sep='\t', keep_default_na=False)
-pcas = []
-for i in [2 ** x for x in range(6)]:
-    # Read data and split subsequences
-    df = df[df['seq'].map(lambda x: len(x) >= i)]  # Select entries where sequence is above length threshold
-    df_T = df[df[key] == True]
-    df_F = df[df[key] == False]
+pcas = {}
+paths = filter(lambda x: re.match('segments_[0-9]+\.tsv', x), os.listdir(segment_dir))
+for path in paths:
+    # Read data and split segments
+    segs = pd.read_csv(segment_dir + path, sep='\t', keep_default_na=False)
+    T_seqs = segs.loc[segs[type_name], 'seq']
+    F_seqs = segs.loc[~segs[type_name], 'seq']  # ~ is bitwise NOT operator; it interacts properly with numpy objects but not Python booleans
 
-    # Sample full dataframes, calculate fractions, and convert to array
-    T_sample = df_T.sample(8500)['seq']
-    F_sample = df_F.sample(8500)['seq']
-    T_features = T_sample.apply(fracs)
-    F_features = F_sample.apply(fracs)
+    # Get file index
+    j0 = path.find('_')
+    j1 = path.find('.tsv')
+    i = int(path[j0 + 1:j1])
+
+    # Calculate fractions and convert to array
+    T_features = T_seqs.apply(fracs)
+    F_features = F_seqs.apply(fracs)
     T_array = np.array([[*entry.values()] for entry in T_features])
     F_array = np.array([[*entry.values()] for entry in F_features])
-    TF_array = np.concatenate((T_array, F_array), axis=0)
+    array = np.concatenate((T_array, F_array), axis=0)
 
     # Calculate PCAs and transform subsets
     pca = PCA(n_components=n_components)
-    pca.fit(TF_array)
+    pca.fit(array)
     T_pca = pca.transform(T_array)
     F_pca = pca.transform(F_array)
-    pcas.append(pca)  # Store model for later output
+    pcas[i] = pca  # Store model for later output
 
     # Plot PCAs
     fig, ax = plt.subplots()
-    fig.subplots_adjust(right=0.8)
+    fig.subplots_adjust(bottom=0.175)
     ax.scatter(T_pca[:, 0], T_pca[:, 1], s=2, alpha=0.1, label=T_name)
     ax.scatter(F_pca[:, 0], F_pca[:, 1], s=2, alpha=0.1, label=F_name)
     ax.set_title(f'PCA of Amino Acid Fractions\nin {T_name} and {F_name} Subsequences')
     ax.set_xlabel('PC1')
     ax.set_ylabel('PC2')
-    leg = fig.legend(bbox_to_anchor=(0.8, 0.5), loc="center left", markerscale=2.5, handletextpad=0)
+    leg = fig.legend(bbox_to_anchor=(0.525, 0), loc='lower center', ncol=2, markerscale=2.5)
     for lh in leg.legendHandles:
         lh.set_alpha(1)
     plt.savefig(f'aa_pca{i}_combined.png')
@@ -66,12 +71,12 @@ for i in [2 ** x for x in range(6)]:
     ax2.set_xlabel('PC1')
     ax1.set_ylabel('PC2')
     ax2.set_ylabel('PC2')
-    leg = fig.legend(bbox_to_anchor=(0.525, 0), loc="lower center", ncol=2, markerscale=2.5)
+    leg = fig.legend(bbox_to_anchor=(0.525, 0), loc='lower center', ncol=2, markerscale=2.5)
     for lh in leg.legendHandles:
         lh.set_alpha(1)
     plt.savefig(f'aa_pca{i}_separate.png')
 
 # Print explained variance of components
 print(f'Explained variance ratio of first {n_components} components by length cutoff')
-for i, pca in enumerate(pcas):
-    print(2 ** i, pca.explained_variance_ratio_, sep=': ')
+for i, pca in sorted(pcas.items()):
+    print(i, pca.explained_variance_ratio_, sep=': ')
