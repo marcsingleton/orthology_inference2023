@@ -51,6 +51,7 @@ for path in paths:
     pcas[i] = pca  # Store model for later output
 
     # Plot PCAs
+    # One panel
     fig, ax = plt.subplots()
     fig.subplots_adjust(bottom=0.175)
     ax.scatter(T_pca[:, 0], T_pca[:, 1], s=2, alpha=0.1, label=T_name)
@@ -58,11 +59,12 @@ for path in paths:
     ax.set_title(f'PCA of Amino Acid Fractions\nin {T_name} and {F_name} Subsequences')
     ax.set_xlabel('PC1')
     ax.set_ylabel('PC2')
-    leg = fig.legend(bbox_to_anchor=(0.525, 0), loc='lower center', ncol=2, markerscale=2.5)
+    leg = fig.legend(bbox_to_anchor=(0.5, 0), loc='lower center', ncol=2, markerscale=2.5)
     for lh in leg.legendHandles:
         lh.set_alpha(1)
     plt.savefig(f'aa_pca{i}_combined.png')
 
+    # Two panels
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(5, 7.5), sharex=True, sharey=True)
     fig.subplots_adjust(left=0.15)
     ax1.scatter(T_pca[:, 0], T_pca[:, 1], s=2, alpha=0.1, label=T_name, color='C0')
