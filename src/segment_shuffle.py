@@ -7,14 +7,14 @@ from itertools import accumulate
 from random import shuffle
 from sys import argv
 
-dir = '../feature_calc/'
-key = argv[1]  # Key of column denoting subsequences class
-paths = filter(lambda x: re.match('sequences_[0-9]+\.tsv', x), os.listdir(dir))
+segment_dir = argv[1]  # Segment directory must end in /
+type_name = argv[2]  # Name of column denoting segment type
+paths = filter(lambda x: re.match('segments_[0-9]+\.tsv', x), os.listdir(segment_dir))
 for path in paths:
     # Load data and split into subsets
-    df = pd.read_csv(dir + path, sep='\t', keep_default_na=False)
-    seq_T = df[df[key] == True]['seq']
-    seq_F = df[df[key] == False]['seq']
+    segs = pd.read_csv(segment_dir + path, sep='\t', keep_default_na=False)
+    T_seqs = segs.loc[segs[type_name], 'seq']
+    F_seqs = segs.loc[~segs[type_name], 'seq']
 
     # Get file index
     j0 = path.find('_')
@@ -22,22 +22,21 @@ for path in paths:
     i = path[j0+1:j1]
 
     # Create list of symbols and shuffle in place
-    shufflist_T = [sym for seq in seq_T for sym in seq]
-    shufflist_F = [sym for seq in seq_F for sym in seq]
-    shuffle(shufflist_T)
-    shuffle(shufflist_F)
+    T_symlist = [sym for seq in T_seqs for sym in seq]
+    F_symlist = [sym for seq in F_seqs for sym in seq]
+    shuffle(T_symlist)
+    shuffle(F_symlist)
 
     # Create splice indices
-    lens_T = [len(seq) for seq in seq_T]
-    lens_F = [len(seq) for seq in seq_F]
-    accum_T = accumulate(lens_T)
-    accum_F = accumulate(lens_F)
+    T_lens = [len(seq) for seq in T_seqs]
+    F_lens = [len(seq) for seq in F_seqs]
+    T_accum = accumulate(T_lens)
+    F_accum = accumulate(F_lens)
 
     # Slice shuffled lists
-    shuffseq_T = [''.join(shufflist_T[accum - size:accum]) for accum, size in zip(accum_T, lens_T)]
-    shuffseq_F = [''.join(shufflist_F[accum - size:accum]) for accum, size in zip(accum_F, lens_F)]
+    shuffseq_T = [''.join(T_symlist[accum - size:accum]) for accum, size in zip(T_accum, T_lens)]
+    shuffseq_F = [''.join(F_symlist[accum - size:accum]) for accum, size in zip(F_accum, F_lens)]
 
     # Convert to dataframe and save
-    df_shuff = pd.DataFrame({key: [True] * len(shuffseq_T) + [False] * len(shuffseq_F),
-                             'seq': shuffseq_T + shuffseq_F})
-    df_shuff.to_csv(f'shuffseq_{i}.tsv', sep='\t')
+    shuffseq = pd.DataFrame({type_name: segs[type_name], 'seq': shuffseq_T + shuffseq_F})
+    shuffseq.to_csv(f'shuffseq_{i}.tsv', sep='\t')
