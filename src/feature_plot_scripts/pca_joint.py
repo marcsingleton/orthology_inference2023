@@ -1,4 +1,4 @@
-"""Plot principal components of feature sets for two classes of subsequences jointly."""
+"""Plot principal components of feature sets for two types of subsequences jointly."""
 
 import matplotlib.pyplot as plt
 import os

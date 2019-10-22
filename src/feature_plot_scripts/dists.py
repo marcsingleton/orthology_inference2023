@@ -1,4 +1,4 @@
-"""Plot distributions of features for two classes of subsequences jointly and separately."""
+"""Plot distributions of features for two types of subsequences jointly and separately."""
 
 import matplotlib.pyplot as plt
 import os
