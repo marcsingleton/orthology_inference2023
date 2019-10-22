@@ -26,15 +26,19 @@ for path in paths:
     j1 = path.find('.tsv')
     i = path[j0+1:j1]
 
-    for type_val, name, color in [(True, T_name, 'C0'), (False, F_name, 'C1')]:
-        # Get indices for plotting
-        df_xs = df.xs(type_val, level=type_name)
-        k_idx = df_xs['kappa'] == -1
-        o_idx = df_xs['omega'] == -1
+    # Get indices for type
+    T_idx = df.index.get_level_values(type_name).array.astype(bool)
+    F_idx = ~T_idx
+
+    for idx, name, color in [(T_idx, T_name, 'C0'), (F_idx, F_name, 'C1')]:
+        # Get indices for kappa and omega
+        subset = df.loc[idx]
+        k_idx = subset['kappa'] == -1
+        o_idx = subset['omega'] == -1
 
         for key, fset in fsets.items():
             # Extract features
-            features = fset(df_xs)
+            features = fset(subset)
 
             # Calculate PCAs and transform subsets
             pca = PCA(n_components=n_components)

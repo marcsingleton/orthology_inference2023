@@ -23,6 +23,10 @@ for path in paths:
     j1 = path.find('.tsv')
     i = int(path[j0+1:j1])
 
+    # Get indices for plotting
+    T_idx = df.index.get_level_values(type_name).array.astype(bool)
+    F_idx = ~T_idx
+
     # Make output directories for cutoffs and feature sets
     cur_dir = f'dists/{i}/'
     if not os.path.exists(cur_dir):
@@ -40,8 +44,8 @@ for path in paths:
 
         # Plot classes as two series
         plt.figure()
-        plt.hist(df.xs(True, level=type_name)[feature], label=T_name, bins=bins, alpha=0.5)
-        plt.hist(df.xs(False, level=type_name)[feature], label=F_name, bins=bins, alpha=0.5)
+        plt.hist(df.loc[T_idx, feature], label=T_name, bins=bins, alpha=0.5)
+        plt.hist(df.loc[F_idx, feature], label=F_name, bins=bins, alpha=0.5)
         plt.xlabel(feature)
         plt.ylabel('Count')
         plt.legend()
@@ -50,7 +54,7 @@ for path in paths:
 
         # Plot classes as separate graphs
         plt.figure()
-        plt.hist(df.xs(True, level=type_name)[feature], label=T_name, bins=25, color='C0')
+        plt.hist(df.loc[T_idx, feature], label=T_name, bins=25, color='C0')
         plt.xlabel(feature)
         plt.ylabel('Count')
         plt.legend()
@@ -58,7 +62,7 @@ for path in paths:
         plt.close()
 
         plt.figure()
-        plt.hist(df.xs(False, level=type_name)[feature], label=F_name, bins=25, color='C1')
+        plt.hist(df.loc[F_idx, feature], label=F_name, bins=25, color='C1')
         plt.xlabel(feature)
         plt.ylabel('Count')
         plt.legend()
