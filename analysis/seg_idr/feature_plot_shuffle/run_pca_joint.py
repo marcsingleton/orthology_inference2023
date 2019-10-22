@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/pca_joint.py ../feature_calc_shuffle/ ord dis Ordered Disordered', shell=True)
+run('python ../../../src/feature_plot_scripts/pca_joint.py ../feature_calc_shuffle/ 1 ordered Ordered Disordered', shell=True)
 
 """
 NOTES
@@ -38,6 +38,6 @@ In future experiments, the data should be displayed using "cross" transformation
 
 DEPENDENCIES
 ../../../src/feature_plot_scripts/pca_joint.py
-../feature_calc_shuffle/feature_calc_shuffle.py
+../feature_calc_shuffle/run_feature_calc_shuffle.py
     ../feature_calc_shuffle/features_*.tsv
 """
