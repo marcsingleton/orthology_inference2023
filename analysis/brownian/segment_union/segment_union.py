@@ -14,6 +14,7 @@ thresh = 0.5
 
 block_data = []  # Block data with raw sequences
 block_num = 0  # Counter for numbering blocks
+seg_num = 0  # Counter for numbering rows
 
 with open(path) as file:
     for line in file:
@@ -53,12 +54,12 @@ with open(path) as file:
                     temp.seek(0)  # Set stream to file start
 
                     # Execute IUPRED2a with tempfile
-                    proc = subprocess.run(['python', '../../../bin/iupred2a/iupred2a.py', temp.name, 'long'],
-                                          capture_output=True, text=True, check=True)
+                    process = subprocess.run(['python', '../../../bin/iupred2a/iupred2a.py', temp.name, 'long'],
+                                             capture_output=True, text=True, check=True)
 
                 # Extract scores from output
                 scores = []
-                for line in proc.stdout.rstrip().split('\n'):  # Remove trailing newline to prevent empty line
+                for line in process.stdout.rstrip().split('\n'):  # Remove trailing newline to prevent empty line
                     if line.startswith('#'):
                         continue
                     fields = line.split('\t')
@@ -88,14 +89,17 @@ with open(path) as file:
             # Create dataframe rows
             for bound, ordered in bounds:
                 for record in MSA:
-                    block_data.append({'ali_id': ali_id, 'seq_id': record.id, 'block_id': hex(block_num)[2:].zfill(8),
-                                       'bound': bound, 'ordered': ordered, 'seq': record.seq[bound[0]:bound[1]]})
+                    block_data.append({'ali_id': ali_id, 'seq_id': record.id, 'seg_id': hex(seg_num)[2:].zfill(8),
+                                       'block_id': hex(block_num)[2:].zfill(8), 'bound': bound, 'ordered': ordered,
+                                       'seq': record.seq[bound[0]:bound[1]]})
+                    seg_num += 1
                 block_num += 1
 
 df = pd.DataFrame(block_data)
 df.to_csv('segment_union.tsv', sep='\t', index=False)
 
 """
+DEPENDENCIES
 ../../EggNOGv5_validation/filter_count/filter_count.py
     ../../EggNOGv5_validation/filter_count/7214_noX_members/10_10_members.tsv
 ../../EggNOGv5_validation/filter_unknown_realign/filter_unknown_realign.py
