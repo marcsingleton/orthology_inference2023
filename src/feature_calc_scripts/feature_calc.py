@@ -15,16 +15,16 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
     # Clean data by removing gaps and empty sequences
     segs = pd.read_csv(path, sep='\t', keep_default_na=False)
     segs['seq'] = segs['seq'].map(lambda x: x.translate({ord('-'): None}))
-    subs_lt = segs[segs['seq'].map(lambda x: len(x) >= 1)]  # Select entries where sequence is non-empty
+    segs_lt = segs[segs['seq'].map(lambda x: len(x) >= 1)]  # Select entries where sequence is non-empty
 
     # Extract indices
-    seg_ids = subs_lt['seg_id']
-    types = subs_lt[type_name]
-    lengths = subs_lt['seq'].map(len).rename('length')
+    seg_ids = segs_lt['seg_id']
+    types = segs_lt[type_name]
+    lengths = segs_lt['seq'].map(len).rename('length')
 
     # Compute features
     with mp.Pool(processes=num_processes) as pool:
-        features = pd.DataFrame(pool.imap(seqfeat.feat_all, subs_lt['seq'], chunksize=50))
+        features = pd.DataFrame(pool.imap(seqfeat.feat_all, segs_lt['seq'], chunksize=50))
 
     # Set index and save
     features.set_index([seg_ids, types, lengths], inplace=True)
