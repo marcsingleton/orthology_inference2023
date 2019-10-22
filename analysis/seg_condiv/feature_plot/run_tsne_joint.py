@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/tsne_joint.py ../feature_calc/ con div Conserved Diverged', shell=True)
+run('python ../../../src/feature_plot_scripts/tsne_joint.py ../sample_feats/ 3 conserved Conserved Diverged', shell=True)
 
 """
 NOTES
@@ -46,6 +46,6 @@ Creating projections of randomly generated sequences will illuminate if these st
 
 DEPENDENCIES
 ../../../src/feature_calc_scripts/tsne_joint.py
-../feature_calc/feature_calc.py
-    ../feature_calc/features_*.tsv
+../sample_feats/run_sample_feats.py
+    ../sample_feats/features_*.tsv
 """

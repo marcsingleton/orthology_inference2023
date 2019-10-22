@@ -2,11 +2,11 @@
 
 from subprocess import run
 
-run('python ../../../src/aa_tsne.py ../segment_aliscore/segment_aliscore_ungap.tsv conserved Conserved Diverged', shell=True)
+run('python ../../../src/aa_tsne.py ../sample_segs/ conserved Conserved Diverged', shell=True)
 
 """
 DEPENDENCIES
 ../../../src/aa_tsne.py
-../segment_aliscore/segment_aliscore.py
-    ../segment_aliscore/segment_aliscore_ungap.tsv
+../sample_segs/run_sample_segs.py
+    ../segment_iupred2a/segments_*.tsv
 """

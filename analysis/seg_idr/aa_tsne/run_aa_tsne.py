@@ -2,11 +2,11 @@
 
 from subprocess import run
 
-run('python ../../../src/aa_tsne.py ../segment_iupred2a/segment_iupred2a.tsv ordered Ordered Disordered', shell=True)
+run('python ../../../src/aa_tsne.py ../sample_segs/ ordered Ordered Disordered', shell=True)
 
 """
 DEPENDENCIES
 ../../../src/aa_tsne.py
-../segment_iupred2a/segment_iupred2a.py
-    ../segment_iupred2a/segment_iupred2a.tsv
+../sample_segs/run_sample_segs.py
+    ../segment_iupred2a/segments_*.tsv
 """
