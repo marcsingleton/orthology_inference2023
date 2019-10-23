@@ -1,18 +1,18 @@
-"""Execute the aa_fraction.py script using the IUPRED2a average segmented sequences as input."""
+"""Execute the aa_fraction.py script using the segments corresponding to the pics as input."""
 
 from subprocess import run
 
-run('python ../../../src/aa_fraction.py ../segment_avg/segment_avg.tsv ordered Ordered Disordered', shell=True)
+run('python ../../../src/aa_fraction.py ../filter_blocks/seg_filter.tsv ordered Ordered Disordered', shell=True)
 
 """
 OUTPUT
-Number of ordered subsequences: 242440
-Number of disordered subsequences: 221470
-Number of ordered amino acids: 20275996
-Number of disordered amino acids: 7808814
+Number of ordered subsequences: 196490
+Number of disordered subsequences: 173670
+Number of ordered amino acids: 19593513
+Number of disordered amino acids: 7098410
 
 DEPENDENCIES
 ../../../src/aa_fraction.py
-../segment_iupred2a/segment_avg.py
-    ../segment_iupred2a/segment_avg.tsv
+../filter_blocks/filter_blocks.py
+    ../filter_blocks/seg_filter.tsv
 """
