@@ -33,7 +33,7 @@ for path in paths:
         os.makedirs(cur_dir)  # Recursive folder creation
 
     # Plot distributions
-    for feature in df.columns:
+    for feature in df:
         # Plot classes as one series
         plt.figure()
         _, bins, _ = plt.hist(df[feature], bins=25)
