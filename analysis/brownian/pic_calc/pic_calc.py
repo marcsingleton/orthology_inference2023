@@ -1,4 +1,4 @@
-"""Calculate phylogenetic contrasts from raw features."""
+"""Calculate phylogenetic contrasts from features."""
 
 import Bio.Phylo as Phylo
 import multiprocessing as mp
@@ -82,3 +82,11 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
 
     # Concatenate block dataframes and save
     pics.to_csv('pics.tsv', sep='\t')
+
+"""
+DEPENDENCIES
+../feature_calc/feature_calc.py
+    ../feature_calc/features.tsv
+../prune_d_tree_25/prune_d_tree_25.py
+    ../prune_d_tree_25/drosophila-10spec-tree.nwk
+"""
