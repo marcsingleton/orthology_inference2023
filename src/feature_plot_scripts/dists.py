@@ -28,7 +28,7 @@ for path in paths:
     F_idx = ~T_idx
 
     # Make output directories for cutoffs and feature sets
-    cur_dir = f'dists/{i}/'
+    cur_dir = f'out/dists/{i}/'
     if not os.path.exists(cur_dir):
         os.makedirs(cur_dir)  # Recursive folder creation
 

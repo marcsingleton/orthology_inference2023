@@ -38,7 +38,7 @@ for path in paths:
         kl_divs = []
 
         # Make output directories for feature sets
-        cur_dir = f'tsne_joint/{i}/{key}/'
+        cur_dir = f'out/tsne_joint/{i}/{key}/'
         if not os.path.exists(cur_dir):
             os.makedirs(cur_dir)  # Recursive folder creation
 

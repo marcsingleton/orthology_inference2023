@@ -45,7 +45,7 @@ for path in paths:
             transform = pca.fit_transform(features.to_numpy())
 
             # Make output directories for feature sets
-            cur_dir = f'pca_separate/{key}/'
+            cur_dir = f'out/pca_separate/{key}/'
             if not os.path.exists(cur_dir):
                 os.makedirs(cur_dir)  # Recursive folder creation
 

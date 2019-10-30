@@ -39,7 +39,7 @@ for path in paths:
     names = ('All', T_name, F_name)
     for subset, name in zip(subsets, names):
         # Make output directories for feature sets
-        cur_dir = f'{name}/'
+        cur_dir = f'out/{name}/'
         if not os.path.exists(cur_dir):
             os.makedirs(cur_dir)  # Recursive folder creation
 
