@@ -1,4 +1,4 @@
-"""Create list of segments and features corresponding to the contrasts."""
+"""Create list of segments and features corresponding to the PICs."""
 
 import pandas as pd
 
@@ -15,12 +15,12 @@ pics = pd.read_csv(pic_path, sep='\t', index_col=list(range(3)))
 # Filter segments
 idx = segs['block_id'].isin(pics.index.unique('block_id'))
 segs_pics = segs.loc[idx, :]
-segs_pics.to_csv('seg_filter.tsv', sep='\t')
+segs_pics.to_csv('segments.tsv', sep='\t')
 
 # Filter features
 idx = features.index.get_level_values('block_id').isin(pics.index.unique('block_id'))
 features_pics = features.loc[idx, :]
-features_pics.to_csv('feat_filter.tsv', sep='\t')
+features_pics.to_csv('features.tsv', sep='\t')
 
 print('blocks in filtered segments:', len(segs_pics['block_id'].unique()))
 print('blocks in filtered features:', len(features_pics.index.unique('block_id')))
