@@ -28,7 +28,7 @@ with open(path) as file:
             column_scores = []
             for i in range(row_len):
                 score = 0
-                for pair in combinations(sorted(MSA[:, i]), 2):
+                for pair in combinations(MSA[:, i], 2):
                     score += matrix.get(pair, -2)
                 column_scores.append(score)
             column_scores = ndimage.gaussian_filter1d(column_scores, 2)
