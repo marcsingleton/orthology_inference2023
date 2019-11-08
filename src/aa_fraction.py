@@ -45,7 +45,7 @@ plt.xlabel('Amino Acid')
 plt.ylabel('Fraction')
 plt.xticks(index + bar_width, T_fracs.index)
 plt.title(f'Amino Acid Fractions in {T_name} and {F_name} Subsets')
-plt.legend(bbox_to_anchor=(1.025, 0.5), loc="center left")
+plt.legend(bbox_to_anchor=(1.025, 0.5), loc='center left')
 plt.savefig('aa_fraction.png')
 
 # Print output metrics
