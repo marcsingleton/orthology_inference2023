@@ -84,6 +84,14 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
     pics.to_csv('pics.tsv', sep='\t')
 
 """
+NOTES
+The somewhat awkward zipping of the group and trees lists is due to a limitation of groupby and mp.Pool
+    It is possible to filter groups with a built-in method, which is likely more efficient, but the filtration combines the data again, which would force a second round of grouping.
+    Ideally, the code would pass the groups and the block_contrasts function would instantiate a new tree as needed.
+        However, mp.Pool cannot parallelize functions which are not defined at initialization.
+        Thus, I cannot create a block_contrasts factory function which can include the tree in the enclosing scope.
+            The options are either to pass the tree as a argument or make block_contrasts dependent on the global environment.
+
 DEPENDENCIES
 ../feature_calc/feature_calc.py
     ../feature_calc/features.tsv
