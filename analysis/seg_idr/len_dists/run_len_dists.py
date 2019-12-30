@@ -38,6 +38,6 @@ The ordered and disordered length distributions have heavier tails than their co
 
 DEPENDENCIES
 ../../../src/len_dists.py
-../segment_iupred2a/segment_iupred2a.PY
+../segment_iupred2a/segment_iupred2a.py
     ../segment_iupred2a/segment_iupred2a.tsv
 """
