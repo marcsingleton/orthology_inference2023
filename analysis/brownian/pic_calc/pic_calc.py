@@ -55,7 +55,8 @@ def block_contrasts(grouptree):
 
 
 # Input variables
-path = '../feature_calc/features.tsv'
+path_features = '../feature_calc/features.tsv'
+path_tree = '../prune_tree_25/out/drosophila-10spec-tree.nwk'
 num_processes = int(environ['SLURM_NTASKS'])
 taxon_ids = {'ananassae': 7217,
              'erecta': 7220,
@@ -70,8 +71,8 @@ taxon_ids = {'ananassae': 7217,
 
 if __name__ == '__main__':  # Multiprocessing can only occur in top-level script (likely to prevent recursion)
     # Load data
-    features = pd.read_csv(path, sep='\t', index_col=list(range(5)))
-    tree = Phylo.read('../prune_d_tree_25/drosophila-10spec-tree.nwk', 'newick')
+    features = pd.read_csv(path_features, sep='\t', index_col=list(range(5)))
+    tree = Phylo.read(path_tree, 'newick')
 
     # Compute PICs for each block
     groups = [group for group in features.groupby(level='block_id') if len(group[1]) == 10]  # Second item in tuple is df
@@ -95,6 +96,6 @@ The somewhat awkward zipping of the group and trees lists is due to a limitation
 DEPENDENCIES
 ../feature_calc/feature_calc.py
     ../feature_calc/features.tsv
-../prune_d_tree_25/prune_d_tree_25.py
-    ../prune_d_tree_25/drosophila-10spec-tree.nwk
+../prune_tree_25/prune_tree_25.py
+    ../prune_tree_25/out/drosophila-10spec-tree.nwk
 """
