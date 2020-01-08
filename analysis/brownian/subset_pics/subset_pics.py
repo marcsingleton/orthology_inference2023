@@ -32,6 +32,10 @@ blocks in filtered segments: 37016
 blocks in filtered features: 37016
 blocks in pics: 37016
 
+NOTES
+Some blocks do not have full sets of contrasts since one or more species may have an empty sequence within those bounds.
+    This script creates a list of segments and features corresponding to the PICs for analysis of the original sequences.
+
 DEPENDENCIES
 ../pic_calc/pic_calc.py
     ../pic_calc/pics.tsv

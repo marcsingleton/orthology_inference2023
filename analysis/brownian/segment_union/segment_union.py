@@ -8,6 +8,7 @@ import tempfile
 from Bio import AlignIO
 from scipy import ndimage
 
+# Input variables
 path = '../../EggNOGv5_validation/filter_count/7214_noX_members/10_10_members.tsv'
 dir = '../../EggNOGv5_validation/filter_unknown_realign/align/'
 thresh = 0.5

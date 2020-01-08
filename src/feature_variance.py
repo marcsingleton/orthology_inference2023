@@ -1,3 +1,5 @@
+"""Create pie chart of contribution to overall variance of each feature."""
+
 import os
 import matplotlib.pyplot as plt
 import pandas as pd

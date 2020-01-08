@@ -90,6 +90,6 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
 
 """
 DEPENDENCIES
-../pic_calc/pics_calc.py
+../pic_calc/pic_calc.py
     ../pic_calc/pics.tsv
 """

@@ -71,7 +71,7 @@ Set 2 is has 755 records, meaning 8 records are duplicates. This is an increase 
 All set 1 records are still unique.
 
 DEPENDENCIES
-../trim_update/
+../trim_update/trim_update.py
     ../trim_update/nature15545-s1_trim_update_TF.csv
     ../trim_update/nmeth.1763-S2_trim_update.csv
 """
