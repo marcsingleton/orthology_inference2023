@@ -34,9 +34,9 @@ for path, dir in pathdir:
 
     # Create directory to store figures and change to that directory
     root, _ = os.path.splitext(os.path.basename(path))
-    if not os.path.exists(root):
-        os.mkdir(root)
-    os.chdir(root)
+    if not os.path.exists('out/' + root):
+        os.makedirs('out/' + root)  # Recursive folder creation
+    os.chdir('out/' + root)
 
     # Plot analysis in groups
     for i in range(len(sorts) // num_box):
@@ -74,7 +74,7 @@ for path, dir in pathdir:
         plt.savefig(f'boxplot{i}.png')
         plt.close()
 
-    os.chdir('..')
+    os.chdir('../..')
 
 """
 NOTES
@@ -87,10 +87,10 @@ spurious sequences by a bulk measure. A phylogenetic probabilitistic approach wo
 identifying highly divergent sequences.
 
 DEPENDENCIES
-../filter_unknown_realign/filter_unknown_realign.py/
+../filter_unknown_realign/filter_unknown_realign.py
     ../filter_unknown_realign/7214_noX_members.tsv
     ../filter_unknown_realign/align/
- ../filter_count/filter_count.py
+../filter_count/filter_count.py
     ../filter_count/7214_noX_members/equal_+5_members.tsv
 ../../../data/EggNOGv5/drosophilidae/
     ../../../data/EggNOGv5/drosophilidae/7214_members.tsv

@@ -4,10 +4,8 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 
-dirs = filter(os.path.isdir, os.listdir())
-
-for dir in dirs:
-    os.chdir(dir)
+for dir in os.listdir('out/'):
+    os.chdir('out/' + dir)
     ali_df = pd.read_pickle('ali_df.pkl')
     seq_df = pd.read_pickle('seq_df.pkl')
 
@@ -157,7 +155,7 @@ for dir in dirs:
     plt.savefig('numseqx.png')
 
     plt.close('all')
-    os.chdir('..')
+    os.chdir('../..')
 
 """
 OUTPUT
@@ -227,4 +225,5 @@ Name: frac_x, dtype: float64
 
 DEPENDENCIES
 ./unknown_aa_calc.py
+    ./out/*/*.pkl
 """

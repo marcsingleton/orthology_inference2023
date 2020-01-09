@@ -43,9 +43,9 @@ for path, root in zip(paths, roots):
             dist_dup[num_dup] = dist_dup.get(num_dup, 0) + 1
 
         # Create subdirectory to save plots and move to that directory
-        if not os.path.exists(root):
-            os.mkdir(root)
-        os.chdir(root)
+        if not os.path.exists('out/' + root):
+            os.makedirs('out/' + root)  # Recursive folder creation
+        os.chdir('out/' + root)
 
         # Print counts
         print(root.upper())
@@ -111,7 +111,7 @@ for path, root in zip(paths, roots):
         fig3.savefig('duplicate_distribution.png')
 
         plt.close('all')
-        os.chdir('..')  # Return to initial directory
+        os.chdir('../..')  # Return to initial directory
 
 """
 OUTPUT

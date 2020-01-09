@@ -40,9 +40,9 @@ for path, root in zip(paths, roots):
                 dist_alignments[spec] = dist_alignments.get(spec, 0) + 1
 
     # Create subdirectory to save plots and move to that directory
-    if not os.path.exists(root):
-        os.mkdir(root)
-    os.chdir(root)
+    if not os.path.exists('out/' + root):
+        os.makedirs('out/' + root)  # Recursive folder creation
+    os.chdir('out/' + root)
 
     # Plot distributions
     # Representation of species in alignments
@@ -89,7 +89,7 @@ for path, root in zip(paths, roots):
     fig3.savefig('correlation.png')
 
     plt.close('all')
-    os.chdir('..')  # Return to initial directory
+    os.chdir('../..')  # Return to initial directory
 
 """
 DEPENDENCIES

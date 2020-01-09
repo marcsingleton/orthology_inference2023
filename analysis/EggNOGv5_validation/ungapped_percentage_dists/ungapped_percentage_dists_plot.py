@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 import os
 
 params = {'s': 5, 'color': 'black', 'edgecolors': 'none', 'alpha': '0.125'}
-dirs = filter(os.path.isdir, os.listdir())
+dirs = filter(os.path.isdir, os.listdir('out/'))
 
-for dir in dirs:
-    os.chdir(dir)
+for dir in os.listdir('out/'):
+    os.chdir('out/' + dir)
 
     with open('means.json') as file:
         means = json.load(file)
@@ -42,7 +42,7 @@ for dir in dirs:
     plt.savefig('hist_mean.png')
 
     plt.close('all')
-    os.chdir('..')
+    os.chdir('../..')
 
 """
 NOTES
@@ -55,4 +55,5 @@ fewer alignments at lower alignment percentages. TFs have a bell-shaped distribu
 
 DEPENDENCIES
 ./ungapped_percentage_dists_calc.py
+    ./out/*/*.json
 """

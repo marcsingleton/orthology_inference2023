@@ -45,14 +45,14 @@ for path_members, dir_msa in pathdir:
 
     # Save statistics to folder
     root, _ = os.path.splitext(os.path.basename(path_members))  # Get name of member file without extension
-    if not os.path.exists(root):
-        os.mkdir(root)
+    if not os.path.exists('out/' + root):
+        os.makedirs('out/' + root)  # Recursive folder creation
 
-    with open(root + '/means.json', 'w') as file:
+    with open('out/' + root + '/means.json', 'w') as file:
         json.dump(means, file)
-    with open(root + '/stds.json', 'w') as file:
+    with open('out/' + root + '/stds.json', 'w') as file:
         json.dump(stds, file)
-    with open(root + '/iqrs.json', 'w') as file:
+    with open('out/' + root + '/iqrs.json', 'w') as file:
         json.dump(iqrs, file)
 
 """

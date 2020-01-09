@@ -66,13 +66,13 @@ for path_members, dir_msa in pathdir:
 
     # Save dataframes
     root, _ = os.path.splitext(os.path.basename(path_members))  # Get name of member file without extension
-    if not os.path.exists(root):
-        os.mkdir(root)
+    if not os.path.exists('out/' + root):
+        os.makedirs('out/' + root)  # Recursive folder creation
 
-    ali_df.to_csv(root + '/ali_df.csv', index=False)
-    seq_df.to_csv(root + '/seq_df.csv', index=False)
-    ali_df.to_pickle(root + '/ali_df.pkl')
-    seq_df.to_pickle(root + '/seq_df.pkl')
+    ali_df.to_csv('out/' + root + '/ali_df.csv', index=False)
+    seq_df.to_csv('out/' + root + '/seq_df.csv', index=False)
+    ali_df.to_pickle('out/' + root + '/ali_df.pkl')
+    seq_df.to_pickle('out/' + root + '/seq_df.pkl')
 
 """
 DEPENDENCIES
