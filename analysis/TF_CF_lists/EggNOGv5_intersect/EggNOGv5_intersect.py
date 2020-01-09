@@ -3,8 +3,8 @@
 import os.path
 
 paths_ali = ['../../../data/EggNOGv5/drosophilidae/7214_members.tsv',
-             '../../EggNOGv5_validation/filter_unknown_realign/7214_noX_members.tsv',
-             '../../EggNOGv5_validation/filter_count/7214_noX_members/equal_+5_members.tsv']
+             '../../EggNOGv5_validation/filter_unknown_realign/out/7214_noX_members.tsv',
+             '../../EggNOGv5_validation/filter_count/out/7214_noX_members/equal_+5_members.tsv']
 path_gn = '../gn2ali_reduce/gn2ali_reduce.csv'
 path_TF = '../trim_update_TFunion/TF_union.csv'
 path_CF = '../trim_update/nature15545-s1_trim_update_CF.csv'
@@ -111,9 +111,9 @@ DEPENDENCIES
 ../../../data/EggNOGv5/drosophilidae/
     ../../../data/EggNOGv5/drosophilidae/7214_members.tsv
 ../../EggNOGv5_validation/filter_count/filter_count.py
-    ../../EggNOGv5_validation/filter_count/7214_noX_members/equal_+5_members.tsv
+    ../../EggNOGv5_validation/filter_count/out/7214_noX_members/equal_+5_members.tsv
 ../../EggNOGv5_validation/filter_unknown_realign/filter_unknown_realign.py
-    ../../EggNOGv5_validation/filter_unknown_realign/7214_noX_members.tsv
+    ../../EggNOGv5_validation/filter_unknown_realign/out/7214_noX_members.tsv
 ../gn2ali_reduce/gn2ali_reduce.py
     ../gn2ali_reduce/gn2ali_reduce.csv
 ../trim_update_TFunion/trim_update_TFunion.py

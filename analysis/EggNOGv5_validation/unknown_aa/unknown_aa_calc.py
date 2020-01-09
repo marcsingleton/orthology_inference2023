@@ -9,8 +9,8 @@ import pandas as pd
 from Bio import AlignIO
 from itertools import groupby
 
-pathdir = [('../filter_count/7214_members/equal_+5_members.tsv', '../../../data/EggNOGv5/drosophilidae/7214/'),
-            ('../../../data/EggNOGv5/drosophilidae/7214_members.tsv', '../../../data/EggNOGv5/drosophilidae/7214/')]
+pathdir = [('../filter_count/out/7214_members/equal_+5_members.tsv', '../../../data/EggNOGv5/drosophilidae/7214/'),
+           ('../../../data/EggNOGv5/drosophilidae/7214_members.tsv', '../../../data/EggNOGv5/drosophilidae/7214/')]
 
 for path_members, dir_msa in pathdir:
     with open(path_members) as file_member:
@@ -77,7 +77,7 @@ for path_members, dir_msa in pathdir:
 """
 DEPENDENCIES
 ../filter_count/filter_count.py
-    ../filter_count/7214_members/equal_+5_members.tsv
+    ../filter_count/out/7214_members/equal_+5_members.tsv
 ../../../data/EggNOGv5/drosophilidae/
     ../../../data/EggNOGv5/drosophilidae/7214_members.tsv
     ../../../data/EggNOGv5/drosophilidae/7214/

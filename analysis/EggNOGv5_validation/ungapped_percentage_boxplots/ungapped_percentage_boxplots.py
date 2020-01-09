@@ -15,9 +15,10 @@ def fraction_ungapped(MSA):
         fractions.append(1 - record.seq.count('-') / length)
     return fractions
 
+
 # Parameters
-pathdir = [('../filter_count/7214_noX_members/equal_+5_members.tsv', '../filter_unknown_realign/align/'),
-           ('../filter_unknown_realign/7214_noX_members.tsv', '../filter_unknown_realign/align/'),
+pathdir = [('../filter_count/out/7214_noX_members/equal_+5_members.tsv', '../filter_unknown_realign/out/align/'),
+           ('../filter_unknown_realign/out/7214_noX_members.tsv', '../filter_unknown_realign/out/align/'),
            ('../../../data/EggNOGv5/drosophilidae/7214_members.tsv', '../../../data/EggNOGv5/drosophilidae/7214/')]
 num_box = 15  # Number of boxes per plot
 params = {'linewidths': 1, 'color': 'black', 'alpha': 0.1, 'zorder': 0}  # Boxplot display parameters
@@ -88,10 +89,10 @@ identifying highly divergent sequences.
 
 DEPENDENCIES
 ../filter_unknown_realign/filter_unknown_realign.py
-    ../filter_unknown_realign/7214_noX_members.tsv
-    ../filter_unknown_realign/align/
+    ../filter_unknown_realign/out/7214_noX_members.tsv
+    ../filter_unknown_realign/out/align/
 ../filter_count/filter_count.py
-    ../filter_count/7214_noX_members/equal_+5_members.tsv
+    ../filter_count/out/7214_noX_members/equal_+5_members.tsv
 ../../../data/EggNOGv5/drosophilidae/
     ../../../data/EggNOGv5/drosophilidae/7214_members.tsv
     ../../../data/EggNOGv5/drosophilidae/7214/

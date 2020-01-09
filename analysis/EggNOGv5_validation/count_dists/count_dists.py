@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import os
 
 # Compile paths of TSVs from list of directories containing TSVs and list of direct paths
-dirs = ['../filter_count/7214_members/', '../filter_count/7214_noX_members/']  # Folders to check for TSVs (must end in /)
-paths = ['../../../data/EggNOGv5/drosophilidae/7214_members.tsv', '../filter_unknown_realign/7214_noX_members.tsv']
+dirs = ['../filter_count/out/7214_members/', '../filter_count/out/7214_noX_members/']  # Folders to check for TSVs (must end in /)
+paths = ['../../../data/EggNOGv5/drosophilidae/7214_members.tsv', '../filter_unknown_realign/out/7214_noX_members.tsv']
 for dir in dirs:
     paths.extend([dir + file for file in os.listdir(dir) if file.endswith('.tsv')])
 
@@ -218,10 +218,10 @@ The distribution of alignments with duplicates appears exponential.
 
 DEPENDENCIES
 ../filter_count/filter_count.py
-    ../filter_count/7214_members/*.tsv
-    ../filter_count/7214_noX_members/*.tsv
+    ../filter_count/out/7214_members/*.tsv
+    ../filter_count/out/7214_noX_members/*.tsv
 ../../../data/EggNOGv5/drosophilidae/
     ../../../data/EggNOGv5/drosophilidae/7214_members.tsv
 ../filter_unknown_realign/filter_unknown_realign.py
-    ../filter_unknown_realign/7214_noX_members.tsv
+    ../filter_unknown_realign/out/7214_noX_members.tsv
 """

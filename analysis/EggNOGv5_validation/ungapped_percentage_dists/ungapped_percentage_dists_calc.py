@@ -8,12 +8,12 @@ from Bio import AlignIO
 from numpy import quantile
 
 pathdir = [('../../../data/EggNOGv5/drosophilidae/7214_members.tsv', '../../../data/EggNOGv5/drosophilidae/7214/'),
-           ('../filter_unknown_realign/7214_noX_members.tsv', '../filter_unknown_realign/align/'),
-           ('../filter_count/7214_members/equal_+5_members.tsv', '../filter_unknown_realign/align/'),
-           ('../../TF_CF_lists/EggNOGv5_intersect/equal_+5_members_CF.tsv', '../filter_unknown_realign/align/'),
-           ('../../TF_CF_lists/EggNOGv5_intersect/7214_noX_members_CF.tsv', '../filter_unknown_realign/align/'),
-           ('../../TF_CF_lists/EggNOGv5_intersect/equal_+5_members_TF.tsv', '../filter_unknown_realign/align/'),
-           ('../../TF_CF_lists/EggNOGv5_intersect/7214_noX_members_TF.tsv', '../filter_unknown_realign/align/')]
+           ('../filter_unknown_realign/out/7214_noX_members.tsv', '../filter_unknown_realign/out/align/'),
+           ('../filter_count/out/7214_members/equal_+5_members.tsv', '../filter_unknown_realign/out/align/'),
+           ('../../TF_CF_lists/EggNOGv5_intersect/equal_+5_members_CF.tsv', '../filter_unknown_realign/out/align/'),
+           ('../../TF_CF_lists/EggNOGv5_intersect/7214_noX_members_CF.tsv', '../filter_unknown_realign/out/align/'),
+           ('../../TF_CF_lists/EggNOGv5_intersect/equal_+5_members_TF.tsv', '../filter_unknown_realign/out/align/'),
+           ('../../TF_CF_lists/EggNOGv5_intersect/7214_noX_members_TF.tsv', '../filter_unknown_realign/out/align/')]
 
 def fraction_ungapped(MSA):
     fractions = []
@@ -61,10 +61,10 @@ DEPENDENCIES
     ../../../data/EggNOGv5/drosophilidae/7214/
     ../../../data/EggNOGv5/drosophilidae/7214_members.tsv
 ../filter_unknown_realign/filter_unknown_realign.py
-    ../filter_unknown_realign/7214_noX_members.tsv
-    ../filter_unknown_realign/align/
+    ../filter_unknown_realign/out/7214_noX_members.tsv
+    ../filter_unknown_realign/out/align/
 ../filter_count/filter_count.py
-    ../filter_count/7214_members/equal_+5_members.tsv
+    ../filter_count/out/7214_members/equal_+5_members.tsv
 ../../TF_CF_lists/EggNOGv5_intersect/EggNOGv5_intersect.py
     ../../TF_CF_lists/EggNOGv5_intersect/equal_+5_members_CF.tsv
     ../../TF_CF_lists/EggNOGv5_intersect/7214_noX_members_CF.tsv

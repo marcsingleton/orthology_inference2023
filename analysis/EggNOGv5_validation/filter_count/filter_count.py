@@ -2,22 +2,22 @@
 
 import os
 
-inpaths = ['../filter_unknown_realign/7214_noX_members.tsv', '../../../data/EggNOGv5/drosophilidae/7214_members.tsv']
+inpaths = ['../filter_unknown_realign/out/7214_noX_members.tsv', '../../../data/EggNOGv5/drosophilidae/7214_members.tsv']
 outpaths = ['Dmel_members.tsv', '10_10_members.tsv', 'equal_+5_members.tsv']
 
 for inpath in inpaths:
     # Create subdirectory to save plots and move to that directory
     root, _ = os.path.splitext(os.path.basename(inpath))  # Get name of member file without extension
-    if not os.path.exists(root):
-        os.mkdir(root)
-    os.chdir(root)
+    if not os.path.exists('out/' + root):
+        os.makedirs('out/' + root)
+    os.chdir('out/' + root)
 
     # Opening and closing files is slow, so minimize by performing once at beginning and end
     outfiles = []
     for out in outpaths:
         outfiles.append(open(out, 'w'))  # 'w' option overwrites existing files
 
-    with open('../' + inpath) as infile:  # Add additional parent directory relative path since current directory is output subdirectory
+    with open('../../' + inpath) as infile:  # Add additional parent directory relative path since current directory is output subdirectory
         num_filters = [0 for _ in outpaths]
         num_alignments = 0
         for line in infile:
@@ -43,7 +43,7 @@ for inpath in inpaths:
         print('fraction of alignments: ', num_filters[i] / num_alignments)
     print()
 
-    os.chdir('..')  # Return to initial directory
+    os.chdir('../..')  # Return to initial directory
 
 """
 OUTPUT
@@ -79,7 +79,7 @@ fraction of alignments:  0.5699254712845243
 
 DEPENDENCIES
 ../filter_unknown_realign/filter_unknown_realign.py
-    ../filter_unknown_realign/7214_noX_members.tsv
+    ../filter_unknown_realign/out/7214_noX_members.tsv
 ../../../data/EggNOGv5/drosophilidae/
     ../../../data/EggNOGv5/drosophilidae/7214_members.tsv
 """

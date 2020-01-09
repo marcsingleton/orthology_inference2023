@@ -7,8 +7,8 @@ from Bio.SubsMat import MatrixInfo
 from itertools import combinations
 from scipy import ndimage
 
-path = '../../EggNOGv5_validation/filter_count/7214_noX_members/10_10_members.tsv'
-dir = '../../EggNOGv5_validation/filter_unknown_realign/align/'
+path = '../../EggNOGv5_validation/filter_count/out/7214_noX_members/10_10_members.tsv'
+dir = '../../EggNOGv5_validation/filter_unknown_realign/out/align/'
 matrix = MatrixInfo.blosum50
 thresh = 0
 
@@ -60,7 +60,7 @@ df.to_csv('segment_aliscore.tsv', sep='\t', index=False)
 """
 DEPENDENCIES
 ../../EggNOGv5_validation/filter_count/filter_count.py
-    ../../EggNOGv5_validation/filter_count/7214_noX_members/10_10_members.tsv
+    ../../EggNOGv5_validation/filter_count/out/7214_noX_members/10_10_members.tsv
 ../../EggNOGv5_validation/filter_unknown_realign/filter_unknown_realign.py
-    ../../EggNOGv5_validation/filter_unknown_realign/align/
+    ../../EggNOGv5_validation/filter_unknown_realign/out/align/
 """
