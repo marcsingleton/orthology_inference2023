@@ -11,10 +11,10 @@
 #SBATCH --cpus-per-task=1
 #
 # Reporting parameters
-#SBATCH --job-name=mixture_pic_dist
-#SBATCH --output=mixture_pic_dist.out
+#SBATCH --job-name=mixture_pic_calc
+#SBATCH --output=mixture_pic_calc.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
-python mixture_pic_dist.py
+python mixture_pic_calc.py

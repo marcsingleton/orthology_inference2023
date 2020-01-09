@@ -6,27 +6,33 @@ import multiprocessing as mp
 import os
 import pandas as pd
 import scipy.stats as stats
+from math import ceil
 from numpy import linspace
 from pymix.mixture import MixtureModel
 
-def make_plots(pics_lt, dirfile, filename):
+
+def make_plots(pics_lt, dirpath, filename):
     # Load model
-    with open(dirfile + '/' + filename) as file:
+    with open(dirpath + '/' + filename) as file:
         dist_names, params, params_fix, weights, name = json.load(file)
     dists = [dists_dict[dist_name] for dist_name in dist_names]
     mixmod = MixtureModel(dists, params, params_fix, weights)
 
     # Calculate quantiles
-    _, feature = dirfile.split('/')
+    _, feature = dirpath.split('/')
     q_obs = pics_lt.loc[pics_lt[feature] != 0, feature].sort_values()
     q_dist = [mixmod.ppf((i - 0.5) / len(q_obs)) for i in range(1, len(q_obs) + 1)]
 
     for cutoff in [5, 2, 1, 0]:
-        idx = int(cutoff * len(q_obs) / 100)
+        if cutoff == 0:
+            sliver = slice(None)  # Slices do not behave nicely with zeroes
+        else:
+            idx = ceil(cutoff * len(q_obs) / 100)  # Ceil ensures the cutoff fraction is removed
+            sliver = slice(idx, -idx)
 
         # Plot quantiles
         fig, ax = plt.subplots()
-        ax.scatter(q_dist[idx + 1:-idx - 1], q_obs[idx + 1:-idx - 1], s=10, edgecolors='none')
+        ax.scatter(q_dist[sliver], q_obs[sliver], s=10, edgecolors='none')
         ax.plot(ax.get_xlim(), ax.get_xlim(), color='k', linewidth=1)  # Plot y=x line
         ax.set_xlabel('Theoretical Quantiles')
         ax.set_ylabel('Observed Quantiles')
@@ -36,8 +42,7 @@ def make_plots(pics_lt, dirfile, filename):
 
         # Plot histograms
         fig, ax = plt.subplots()
-        n, bins, _ = ax.hist(q_obs[idx + 1:-idx - 1], bins=50, density=True, color='white', linewidth=1,
-                             edgecolor='black')
+        _, bins, _ = ax.hist(q_obs[sliver], bins=50, density=True, color='white', linewidth=1, edgecolor='black')
         x = linspace(min(bins), max(bins), 1000)
         for i in range(len(mixmod.dists)):
             ax.plot(x, mixmod.pdf_comp(x, comp=i), label=mixmod.dists[i].name)
@@ -48,6 +53,7 @@ def make_plots(pics_lt, dirfile, filename):
         ax.legend()
         plt.savefig(f'out/{feature}/hist_{cutoff}_{name}.png')
         plt.close()
+
 
 # Input variables
 path = '../pic_calc/pics.tsv'

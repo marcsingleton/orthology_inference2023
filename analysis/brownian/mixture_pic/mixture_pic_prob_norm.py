@@ -1,7 +1,8 @@
-"""Plot heatmaps of posterior probabilities."""
+"""Plot heatmaps of posterior probabilities for normal mixture models."""
 
 import json
 import matplotlib.pyplot as plt
+import re
 import os
 import pandas as pd
 import scipy.stats as stats
@@ -11,8 +12,7 @@ from pymix.mixture import MixtureModel
 # Input variables
 path = '../pic_calc/pics.tsv'
 lt = 32
-dists_dict = {'laplace': stats.laplace,
-              'norm': stats.norm}
+dists_dict = {'norm': stats.norm}
 height = 250
 
 # Read data and filter
@@ -21,13 +21,16 @@ pics_lt = pics[(pics.index.get_level_values('min_length') >= lt) &
                (~pics.index.get_level_values('ordered').array.astype(bool))]
 
 for feature in os.listdir('out'):
-    model_paths = [x for x in os.listdir('out/' + feature) if x.endswith('.json')]
-    fig, axs = plt.subplots(len(model_paths), 1)
-    fig.suptitle(f'Posterior Probabilities of Mixture Model Components:\n{feature}', y=0.95, size=10)
+    model_paths = [x for x in os.listdir('out/' + feature) if re.match('model_norm.\.json', x)]
+    fig, axs = plt.subplots(len(model_paths), 1, figsize=(6, 3.5))
+    fig.suptitle(f'{feature}:\nPosterior Probabilities of Mixture Model Components', y=0.95, size=10)
+    fig.subplots_adjust(top=0.85)
     for i, model_path in enumerate(model_paths):
-        # Load model
+        # Load model, sorting components by scale and instantiating distributions from names
         with open('/'.join(['out', feature, model_path])) as file:
-            dist_names, params, params_fix, weights, name = json.load(file)
+            model = json.load(file)
+        model_params, name = model[:-1], model[-1]
+        dist_names, params, params_fix, weights = [list(x) for x in zip(*sorted(zip(*model[:-1]), key=lambda y: y[1]['scale']))]
         dists = [dists_dict[dist_name] for dist_name in dist_names]
         mixmod = MixtureModel(dists, params, params_fix, weights, name)
 
@@ -53,7 +56,7 @@ for feature in os.listdir('out'):
     cbar.set_label('Probability', size=8)
     cbar.ax.tick_params(labelsize=7.5)
 
-    plt.savefig('out/' + feature + '/prob_plot.png')
+    plt.savefig('out/' + feature + '/prob_plot_norm.png')
     plt.close()
 
 """

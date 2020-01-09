@@ -1,4 +1,4 @@
-"""Fit mixture models to rate distributions."""
+"""Fit mixture models to PIC distributions with Laplace and Gaussian mixtures after removing zeroes."""
 
 import multiprocessing as mp
 import numpy as np
@@ -40,7 +40,7 @@ def fit_model(pics_lt, feature, model):
     while len(results) < num_init:
         mixmod = MixtureModel(dists, name=name, params=get_rand_params(rand_maxes))
         try:
-            n, ll = mixmod.fit(data, max_iter=500)
+            n, ll = mixmod.fit(data, max_iter=1000)
         except RuntimeError:  # Catch RuntimeErrors from failure to converge
             pass
 
@@ -69,11 +69,13 @@ def fit_model(pics_lt, feature, model):
 
 # Input variables
 path = '../pic_calc/pics.tsv'
-num_processes = 4
-num_init = 5  # Number of initializations for each model
-num_std = 10  # Number of standard deviations above mean for max of the random initials
-models = [('norm3', [stats.norm, stats.norm, stats.norm]),
+num_processes = int(os.environ['SLURM_NTASKS'])
+num_init = 10  # Number of initializations for each model
+num_std = 20  # Number of standard deviations above mean for max of the random initials
+models = [('norm4', [stats.norm, stats.norm, stats.norm, stats.norm]),
+          ('norm3', [stats.norm, stats.norm, stats.norm]),
           ('norm2', [stats.norm, stats.norm]),
+          ('laplace4', [stats.laplace, stats.laplace, stats.laplace, stats.laplace]),
           ('laplace3', [stats.laplace, stats.laplace, stats.laplace]),
           ('laplace2', [stats.laplace, stats.laplace])]
 lt = 32
