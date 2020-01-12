@@ -12,11 +12,13 @@ from pymix.mixture import MixtureModel
 
 
 def make_plots(pics_lt, dirpath, filename):
-    # Load model
+    # Load model, sorting components by scale and instantiating distributions from names
     with open(dirpath + '/' + filename) as file:
-        dist_names, params, params_fix, weights, name = json.load(file)
+            model = json.load(file)
+    model_params, name = model[:-1], model[-1]
+    dist_names, params, params_fix, weights = [list(x) for x in zip(*sorted(zip(*model[:-1]), key=lambda y: y[1]['scale']))]
     dists = [dists_dict[dist_name] for dist_name in dist_names]
-    mixmod = MixtureModel(dists, params, params_fix, weights)
+    mixmod = MixtureModel(dists, params, params_fix, weights, name)
 
     # Calculate quantiles
     _, feature = dirpath.split('/')
@@ -42,8 +44,8 @@ def make_plots(pics_lt, dirpath, filename):
 
         # Plot histograms
         fig, ax = plt.subplots()
-        _, bins, _ = ax.hist(q_obs[sliver], bins=50, density=True, color='white', linewidth=1, edgecolor='black')
-        x = linspace(min(bins), max(bins), 1000)
+        ax.hist(q_obs[sliver], bins=50, density=True, color='white', linewidth=1, edgecolor='black')
+        x = linspace(min(q_obs[sliver]), max(q_obs[sliver]), 1000)
         for i in range(len(mixmod.dists)):
             ax.plot(x, mixmod.pdf_comp(x, comp=i), label=mixmod.dists[i].name)
         ax.plot(x, mixmod.pdf(x), label='total')
@@ -74,6 +76,10 @@ if __name__ == '__main__':
         pool.starmap(make_plots, dirfile)
 
 """
+NOTES
+This analysis was attempted without removing the zeroes. It was unsuccessful as the large number of zeroes for some
+features necessarily resulted in the scale of one of the components approaching zero.
+
 DEPENDENCIES
 ../pic_calc/pic_calc.py
     ../pic_calc/pics.tsv
