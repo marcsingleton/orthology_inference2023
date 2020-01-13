@@ -1,4 +1,4 @@
-"""Fit Laplace and Gaussian mixtures mixture models to PIC distributions after removing zeroes."""
+"""Fit mixture models to rate distributions."""
 
 import multiprocessing as mp
 import numpy as np
@@ -16,9 +16,9 @@ def get_rand_params(rand_maxes):
     return rand_params
 
 
-def fit_model(pics_lt, feature, model):
+def fit_model(rates, feature, model):
     # Filter data and unpack variables
-    data = pics_lt.loc[pics_lt[feature] != 0, feature].sort_values()
+    data = rates.loc[rates[feature] != 0, feature].sort_values()
     name, dists = model
 
     # Make output directories for feature models
@@ -68,30 +68,30 @@ def fit_model(pics_lt, feature, model):
 
 
 # Input variables
-path = '../pic_calc/pics.tsv'
+path = '../mixture_filter/out/rates_filter.tsv'
+lt = 32
 num_processes = int(os.environ['SLURM_NTASKS'])
 num_init = 10  # Number of initializations for each model
-num_std = 20  # Number of standard deviations above mean for max of the random initials
-models = [('norm4', [stats.norm, stats.norm, stats.norm, stats.norm]),
-          ('norm3', [stats.norm, stats.norm, stats.norm]),
-          ('norm2', [stats.norm, stats.norm]),
-          ('laplace4', [stats.laplace, stats.laplace, stats.laplace, stats.laplace]),
-          ('laplace3', [stats.laplace, stats.laplace, stats.laplace]),
-          ('laplace2', [stats.laplace, stats.laplace])]
-lt = 32
+num_std = 10  # Number of standard deviations above mean for max of the random initials
+models = [('lognorm3', [stats.lognorm, stats.lognorm, stats.lognorm]),
+          ('lognorm2', [stats.lognorm, stats.lognorm]),
+          ('glognorm2', [stats.gamma, stats.lognorm, stats.lognorm]),
+          ('elognorm2', [stats.expon, stats.lognorm, stats.lognorm]),
+          ('plognorm2', [stats.pareto, stats.lognorm, stats.lognorm]),
+          ('llognorm2', [stats.levy, stats.lognorm, stats.lognorm])]
 
 if __name__ == '__main__':  # Multiprocessing can only occur in top-level script (likely to prevent recursion)
-    # Read data and filter
-    pics = pd.read_csv(path, sep='\t', index_col=list(range(3)))
-    pics_lt = pics[(pics.index.get_level_values('min_length') >= lt) &
-                   (~pics.index.get_level_values('ordered').array.astype(bool))]
-    featmods = [(pics_lt, feature, model) for feature in pics_lt for model in models]
+    # Read data
+    rates = pd.read_csv(path, sep='\t', index_col=0).dropna()
+    featmods = [(rates, feature, model) for feature in rates for model in models]
 
     with mp.Pool(processes=num_processes) as pool:
         pool.starmap(fit_model, featmods)
 
 """
 DEPENDENCIES
+../mixture_filter/mixture_filter.py
+    ../mixture_filter/out/rates_filter.tsv
 ../pic_calc/pic_calc.py
     ../pic_calc/pics.tsv
 """
