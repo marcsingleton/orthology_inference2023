@@ -1,0 +1,11 @@
+#species	taxid	tcds_path
+dana	7217	../../../data/ncbi_annotations/7217/101/GCF_003285975.2_DanaRS2.1/GCF_003285975.2_DanaRS2.1_translated_cds.faa
+dere	7220	../../../data/ncbi_annotations/7220/101/GCF_003286155.1_DereRS2/GCF_003286155.1_DereRS2_translated_cds.faa
+dgri	7222	../../../data/ncbi_annotations/7222/102/GCF_000005155.2_dgri_caf1/GCF_000005155.2_dgri_caf1_translated_cds.faa
+dmel	7227	../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.32_FB2020_01/fasta/dmel-all-translation-r6.32.fasta
+dmoj	7230	../../../data/ncbi_annotations/7230/101/GCF_000005175.2_dmoj_caf1/GCF_000005175.2_dmoj_caf1_translated_cds.faa
+dper	7234	../../../data/ncbi_annotations/7234/101/GCF_003286085.1_DperRS2/GCF_003286085.1_DperRS2_translated_cds.faa
+dpse	7237	../extract_orfs/out/dpse_translated_orfs.faa
+dvir	7244	../../../data/ncbi_annotations/7244/103/GCF_003285735.1_DvirRS2/GCF_003285735.1_DvirRS2_translated_cds.faa
+dwil	7260	../../../data/ncbi_annotations/7260/101/GCF_000005925.1_dwil_caf1/GCF_000005925.1_dwil_caf1_translated_cds.faa
+dyak	7245	../extract_orfs/out/dyak_translated_orfs.faa
