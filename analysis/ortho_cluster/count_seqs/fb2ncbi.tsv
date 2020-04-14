@@ -1,0 +1,13 @@
+#species	ncbi	flybase
+dana	GCA_000005115.1_dana_caf1_genomic.fna.gz	Drosophila_ananassae/dana_r1.06_FB2018_04/fasta/dana-all-chromosome-r1.06.fasta.gz
+dere	GCA_000005135.1_dere_caf1_genomic.fna.gz	Drosophila_erecta/dere_r1.05_FB2018_06/fasta/dere-all-chromosome-r1.05.fasta.gz
+dgri	GCA_000005155.1_dgri_caf1_genomic.fna.gz	Drosophila_grimshawi/dgri_r1.05_FB2018_06/fasta/dgri-all-chromosome-r1.05.fasta.gz
+dmel	GCA_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.gz	Drosophila_melanogaster/dmel_r6.32_FB2020_01/fasta/dmel-all-chromosome-r6.32.fasta.gz
+dmoj	GCA_000005175.1_dmoj_caf1_genomic.fna.gz	Drosophila_mojavensis/dmoj_r1.04_FB2018_06/fasta/dmoj-all-chromosome-r1.04.fasta.gz
+dper	GCA_000005195.1_dper_caf1_genomic.fna.gz	Drosophila_persimilis/dper_r1.3_FB2018_06/fasta/dper-all-chromosome-r1.3.fasta.gz
+dpse	GCA_000001765.2_Dpse_3.0_genomic.fna.gz	Drosophila_pseudoobscura/dpse_r3.04_FB2018_05/fasta/dpse-all-chromosome-r3.04.fasta.gz
+dsec	GCA_000005215.1_dsec_caf1_genomic.fna.gz	Drosophila_sechellia/dsec_r1.3_FB2018_06/fasta/dsec-all-chromosome-r1.3.fasta.gz
+dsim	GCA_000754195.3_ASM75419v3_genomic.fna.gz	Drosophila_simulans/dsim_r2.02_FB2017_04/fasta/dsim-all-chromosome-r2.02.fasta.gz
+dvir	GCA_000005245.1_dvir_caf1_genomic.fna.gz	Drosophila_virilis/dvir_r1.07_FB2018_05/fasta/dvir-all-chromosome-r1.07.fasta.gz
+dwil	GCA_000005925.1_dwil_caf1_genomic.fna.gz	Drosophila_willistoni/dwil_r1.05_FB2018_06/fasta/dwil-all-chromosome-r1.05.fasta.gz
+dyak	GCA_000005975.1_dyak_caf1_genomic.fna.gz	Drosophila_yakuba/dyak_r1.05_FB2018_06/fasta/dyak-all-chromosome-r1.05.fasta.gz
