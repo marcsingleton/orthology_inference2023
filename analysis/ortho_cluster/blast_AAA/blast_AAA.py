@@ -9,7 +9,7 @@ num_threads = '20'
 # Parse parameters
 params = []
 with open('params.tsv') as infile:
-    fields = infile.readline().rstrip().split()
+    fields = infile.readline().split()  # Skip header
     for line in infile:
         params.append(line.split())
 
@@ -33,7 +33,7 @@ for query_species, _, tcds_path in params:
             t1 = asctime()
 
             # Manually write output to file since direction while in background does not immediately write to file
-            with open('blast_BRH.out', 'a') as outfile:
+            with open('out/blast_AAA.out', 'a') as outfile:
                 outfile.write('\t'.join([query_species, db_species, t0, t1 + '\n']))
 
 """
