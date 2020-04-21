@@ -6,10 +6,7 @@ import re
 from itertools import permutations
 
 
-def get_BH_ppids(subjects):
-    if not subjects:
-        return [(db_species, None, None)]
-
+def get_BHs(subjects):
     BHs = []
     gnid = pp_meta[re.search(pp_regex[params[db_species]], subjects[0][1]).group(1)][0]
     for subject in subjects:
@@ -17,14 +14,18 @@ def get_BH_ppids(subjects):
         BH_gnid = pp_meta[BH_ppid][0]  # First entry is gnid, second is species
         if BH_gnid != gnid:
             break
-        BHs.append((BH_ppid, BH_gnid, subject[-1]))  # Last subject entry is bit score
+        BH = {'BH_ppid': BH_ppid,
+              'BH_gnid': BH_gnid,
+              'evalue': subject[-2],
+              'bitscore': subject[-1]}
+        BHs.append(BH)
         gnid = BH_gnid
 
     return BHs
 
 
-def add_BH(ggraph, query_ppid, query_gnid, BH_ppid, BH_gnid, bscore=None):
-    BH = BH_ppid if bscore is None else (BH_ppid, bscore)
+def add_BH(ggraph, query_ppid, query_gnid, BH_ppid, BH_gnid, **kwargs):
+    BH = BH_ppid if BH_gnid is None else {'BH_ppid': BH_ppid, **kwargs}
     try:
         ggraph[query_gnid][BH_gnid][query_ppid].append(BH)
     except KeyError as err:
@@ -62,6 +63,7 @@ for query_species, db_species in permutations(params.keys(), 2):
         query_ppid, subjects = None, []
         line = file.readline()
         while line:
+            # Record query
             while line.startswith('#'):
                 if line == '# BLASTP 2.10.0+\n' and query_ppid is not None:  # Skip for first line
                     add_BH(ggraph, query_ppid, query_gnid, db_species, None)
@@ -70,12 +72,17 @@ for query_species, db_species in permutations(params.keys(), 2):
                     query_gnid = pp_meta[query_ppid][0]  # First entry is gnid, second is species
                 line = file.readline()
 
-            subjects = []  # Or "hits," but using the BLAST jargon here
+            # Record hits
+            subjects = []  # Using the BLAST jargon here
             while line and not line.startswith('#'):
                 subjects.append(line.split())
                 line = file.readline()
-            for BH_ppid, BH_gnid, bscore in get_BH_ppids(subjects):
-                add_BH(ggraph, query_ppid, query_gnid, BH_ppid, BH_gnid, bscore)
+
+            # Add best from hit list
+            BHs = get_BHs(sorted(subjects, key=lambda x: float(x[-2]))) if subjects \
+                  else [{'BH_ppid': db_species, 'BH_gnid': None}]
+            for BH in BHs:
+                add_BH(ggraph, query_ppid, query_gnid, **BH)
 
 # Make output directory
 if not os.path.exists(f'out/'):
