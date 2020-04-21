@@ -23,6 +23,7 @@ for query_species, db_species in permutations(params.keys(), 2):
         query_ppid, subjects = None, []
         line = file.readline()
         while line:
+            # Record query
             while line.startswith('#'):
                 if line == '# BLASTP 2.10.0+\n' and query_ppid is not None:  # Skip for first line
                     pgraph[query_ppid] = pgraph.get(query_ppid, [])
@@ -30,11 +31,18 @@ for query_species, db_species in permutations(params.keys(), 2):
                     query_ppid = re.search(pp_regex[params[query_species]], line).group(1)
                 line = file.readline()
 
-            subjects = []  # Or "hits," but using the BLAST jargon here
+            # Record hits
+            subjects = []  # Using the BLAST jargon here
             while line and not line.startswith('#'):
                 subjects.append(line.split())
                 line = file.readline()
-            BH_ppid = [re.search(pp_regex[params[db_species]], subjects[0][1]).group(1)] if subjects else []
+
+            # Add best from hit list
+            if subjects:
+                BH = sorted(subjects, key=lambda x: float(x[-2]))[0]
+                BH_ppid = [re.search(pp_regex[params[db_species]], BH[1]).group(1)]
+            else:
+                BH_ppid = []
             try:
                 pgraph[query_ppid].extend(BH_ppid)
             except KeyError:
