@@ -25,16 +25,15 @@ def get_BHs(subjects):
 
 
 def add_BH(ggraph, query_ppid, query_gnid, BH_ppid, BH_gnid, **kwargs):
-    BH = BH_ppid if BH_gnid is None else {'BH_ppid': BH_ppid, **kwargs}
     try:
-        ggraph[query_gnid][BH_gnid][query_ppid].append(BH)
+        ggraph[query_gnid][BH_gnid][query_ppid][BH_ppid] = kwargs
     except KeyError as err:
         if err.args[0] == query_gnid:
-            ggraph[query_gnid] = {BH_gnid: {query_ppid: [BH]}}
+            ggraph[query_gnid] = {BH_gnid: {query_ppid: {BH_ppid: kwargs}}}
         elif err.args[0] == BH_gnid:
-            ggraph[query_gnid][BH_gnid] = {query_ppid: [BH]}
+            ggraph[query_gnid][BH_gnid] = {query_ppid: {BH_ppid: kwargs}}
         elif err.args[0] == query_ppid:
-            ggraph[query_gnid][BH_gnid] = {query_ppid: [BH]}
+            ggraph[query_gnid][BH_gnid][query_ppid] = {BH_ppid: kwargs}
 
 
 pp_regex = {'flybase': r'(FBpp[0-9]+)',
@@ -45,8 +44,8 @@ pp_regex = {'flybase': r'(FBpp[0-9]+)',
 pp_meta = {}
 with open('../ppid2meta/out/ppid2meta.tsv') as infile:
     for line in infile:
-        pp_id, meta = line.split()
-        pp_meta[pp_id] = meta.split(',')
+        ppid, meta = line.split()
+        pp_meta[ppid] = meta.split(',')
 
 # Parse parameters
 params = {}
