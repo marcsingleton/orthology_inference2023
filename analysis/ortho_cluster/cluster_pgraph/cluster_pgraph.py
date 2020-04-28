@@ -34,7 +34,7 @@ if not os.path.exists(f'out/'):
     os.mkdir(f'out/')
 
 # Write clusters to file
-with open('out/p_clusters.tsv', 'w') as outfile:
+with open('out/pclusters.tsv', 'w') as outfile:
     for OG in OGs:
         outfile.write(','.join(OG) + '\n')
 

@@ -30,11 +30,11 @@ for species, _, source, tcds_path in params:
                 pp_match = re.search(pp_regex[source], line)
                 try:
                     # First group is entire line, second is first match
-                    gn_id = gn_match.group(1)
-                    pp_id = pp_match.group(1)
+                    gnid = gn_match.group(1)
+                    ppid = pp_match.group(1)
 
-                    pp_meta[pp_id] = (gn_id, species)
-                    pp_counts[pp_id] = pp_counts.get(pp_id, 0) + 1
+                    pp_meta[ppid] = (gnid, species)
+                    pp_counts[ppid] = pp_counts.get(ppid, 0) + 1
                 except AttributeError:
                     print(line)
 

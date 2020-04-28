@@ -36,8 +36,8 @@ if not os.path.exists(f'out/'):
     os.mkdir(f'out/')
 
 # Write clusters to file
-with open('out/g_clusters.json', 'w') as outfile:
-    json.dump(ggraph, outfile, indent=1)
+with open('out/gclusters.json', 'w') as outfile:
+    json.dump(OGs, outfile, indent=1)
 
 """
 DEPENDENCIES
