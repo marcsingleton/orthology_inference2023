@@ -17,28 +17,29 @@ def get_OG_links(OG, adj_gns):
     """Return list of edges to current OG from an adjacency dictionary."""
 
     links = []
-    for gn_label in adj_gns:
-        if gn_label in OG:
-            links.append(gn_label)
-        if len(links) == 2:
-            return links
+    for adj_label in adj_gns:
+        if adj_label in OG:
+            links.append(adj_label)
+
+    return links
 
 
 def parse_adjacencies(node, OG, graph, expand_stack):
-    """Iterate over adjacencies of node, adding node to OG and to expand stack as appropriate."""
+    """Iterate over adjacencies of node, adding them to OG and expand stack as appropriate."""
 
-    for gn_label in node.adj_gns:
-        if gn_label in OG:  # Skip previously added nodes; not strictly necessary but prevents redundant loops
+    for adj_label in node.adj_gns:
+        if adj_label in OG:  # Skip previously added nodes; not strictly necessary but prevents redundant loops
             continue
 
-        adj = graph[gn_label]
+        adj = graph[adj_label]
         links = get_OG_links(OG, adj.adj_gns)
-        if links:
-            OG[adj.label] = {gn_label: adj.adj_gns[link] for link in links}
-            OG[links[0]][adj.label] = graph[links[0]].adj_gns[adj.label]
-            OG[links[1]][adj.label] = graph[links[1]].adj_gns[adj.label]
+        if len(links) >= 2:
+            OG[adj.label] = {}
+            for link in links:
+                OG[adj.label][link] = adj.adj_gns[link]
+                OG[link][adj.label] = graph[link].adj_gns[adj.label]
             if not adj.marked:
-                expand_stack.append(gn_label)
+                expand_stack.append(adj_label)
 
     node.marked = True
 
