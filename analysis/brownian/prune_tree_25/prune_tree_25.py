@@ -12,8 +12,7 @@ remain = set(['ananassae', 'erecta', 'grimshawi',
 
 # Read data and filter
 tree = Phylo.read(path, 'newick')
-leaf_names = set([terminal.name for terminal in tree.get_terminals()])
-remove = leaf_names - remain
+remove = set([terminal.name for terminal in tree.get_terminals()]) - remain
 for leaf in remove:
     tree.prune(leaf)
 

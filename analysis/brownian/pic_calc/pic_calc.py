@@ -44,7 +44,7 @@ def block_contrasts(grouptree):
 
         # Get PICs and store in dictionary
         pics = []
-        get_contrasts(tree, pics)
+        get_contrasts(tree.root, pics)  # Pass root since tree object has no clades attribute
         feature_pics[feature] = pics
 
     # Convert dictionary to dataframe
@@ -76,7 +76,7 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
 
     # Compute PICs for each block
     groups = [group for group in features.groupby(level='block_id') if len(group[1]) == 10]  # Second item in tuple is df
-    trees = [deepcopy(tree.clade) for i in range(len(groups))]  # Deepcopy necessary due to nested structure of trees
+    trees = [deepcopy(tree) for i in range(len(groups))]  # Deepcopy necessary due to nested structure of trees
     with mp.Pool(processes=num_processes) as pool:
         blocks_pics = pool.imap(block_contrasts, zip(groups, trees), chunksize=50)  # Dataframe of PICs for each block
         pics = pd.concat(blocks_pics)
