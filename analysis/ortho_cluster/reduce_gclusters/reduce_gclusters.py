@@ -154,6 +154,7 @@ if not os.path.exists(f'out/'):
 
 # Write reduced clusters to file
 with open('out/rclusters.tsv', 'w') as outfile:
+    outfile.write('rOGid\tspid\tgnid\tppid\n')
     for i, rOG in enumerate(rOGs):
         rOGid = hex(i)[2:].zfill(4)
         for entry in rOG:
