@@ -117,13 +117,12 @@ with open('../cluster_ggraph/out/gclusters.json') as infile:
     OGs = json.load(infile)
 tree_template = Phylo.read('drosophila-10spec-tree.nwk', 'newick')
 
-# Load pp metadata
-pp_meta = {}
+# Load gn metadata
+gnid2spid = {}
 with open('../ppid2meta/out/ppid2meta.tsv') as infile:
     for line in infile:
-        ppid, meta = line.split()
-        pp_meta[ppid] = meta.split(',')
-gnid2spid = {gnid: spid for gnid, spid in pp_meta.values()}
+        _, gnid, spid = line.split()
+        gnid2spid[gnid] = spid
 
 rOGs = []
 for OG in OGs:

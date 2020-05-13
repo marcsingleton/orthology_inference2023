@@ -1,4 +1,4 @@
-"""Extract and count polypeptide IDs, storing associated metadata as dictionary."""
+"""Extract and count polypeptide IDs, storing associated metadata as tsv."""
 
 import os
 import re
@@ -18,8 +18,8 @@ with open('params.tsv') as infile:
         params.append(line.split())
 
 # Extract and count polypeptide IDs
-pp_counts = {}  # Counts for each PPID to find duplicates
-pp_meta = {}  # PPID to gene and species
+ppid_counts = {}  # Counts for each PPID to find duplicates
+ppid2meta = {}  # PPID to gene and species
 num_headers = 0
 for species, _, source, tcds_path in params:
     with open(tcds_path) as file:
@@ -33,8 +33,8 @@ for species, _, source, tcds_path in params:
                     gnid = gn_match.group(1)
                     ppid = pp_match.group(1)
 
-                    pp_meta[ppid] = (gnid, species)
-                    pp_counts[ppid] = pp_counts.get(ppid, 0) + 1
+                    ppid2meta[ppid] = (gnid, species)
+                    ppid_counts[ppid] = ppid_counts.get(ppid, 0) + 1
                 except AttributeError:
                     print(line)
 
@@ -44,11 +44,11 @@ if not os.path.exists(f'out/'):
 
 # Write graph as adjacency list to file
 with open('out/ppid2meta.tsv', 'w') as outfile:
-    for pp_id, meta in pp_meta.items():
-        outfile.write(pp_id + '\t' + ','.join(meta) + '\n')
+    for ppid, meta in ppid2meta.items():
+        outfile.write(ppid + '\t' + '\t'.join(meta) + '\n')
 
 print('Total headers:', num_headers)
-print('Unique IDs:', len(pp_counts))
+print('Unique IDs:', len(ppid_counts))
 
 """
 OUTPUT
