@@ -17,7 +17,7 @@ for node, adjs in pgraph.items():
     for adj_idx, adj in enumerate(adjs):
         try:  # Cannot test with "in" easily since it assumes the node is in the graph in the first place
             pgraph[adj].index(node)
-        except (KeyError, ValueError):  # KeyError from adj not in tgraph; ValueError from node not in adjs
+        except (KeyError, ValueError):  # KeyError from adj not in pgraph; ValueError from node not in adjs
             adj_idxs.append(adj_idx)
 
     # Remove non-reciprocal hits after initial loop is completed to not modify list during loop
