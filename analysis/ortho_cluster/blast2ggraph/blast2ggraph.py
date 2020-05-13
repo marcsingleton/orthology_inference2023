@@ -5,6 +5,9 @@ import os
 import re
 from itertools import permutations
 
+header = ['length', 'pident', 'nident', 'gaps',
+          'qlen', 'qstart', 'qend', 'slen', 'sstart', 'send',
+          'evalue', 'bitscore']
 
 def get_BHs(subjects):
     BHs = []
@@ -14,12 +17,9 @@ def get_BHs(subjects):
         BH_gnid = pp_meta[BH_ppid][0]  # First entry is gnid, second is species
         if BH_gnid != gnid:
             break
-        BH = {'BH_ppid': BH_ppid,
-              'BH_gnid': BH_gnid,
-              'evalue': subject[-2],
-              'bitscore': subject[-1]}
+        BH = {'BH_ppid': BH_ppid, 'BH_gnid': BH_gnid,
+              **{key: val for key, val in zip(header, subject[2:])}}
         BHs.append(BH)
-        gnid = BH_gnid
 
     return BHs
 
