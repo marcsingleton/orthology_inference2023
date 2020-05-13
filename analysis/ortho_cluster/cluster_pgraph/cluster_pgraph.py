@@ -11,7 +11,6 @@ with open('../blast2pgraph/out/pgraph.tsv') as file:
         pgraph[node] = adjs.split(',')
 
 # Remove non-reciprocal hits
-num_del = 0
 for node, adjs in pgraph.items():
     # Search current node for non-reciprocal hits
     adj_idxs = []
@@ -20,7 +19,6 @@ for node, adjs in pgraph.items():
             pgraph[adj].index(node)
         except (KeyError, ValueError):  # KeyError from adj not in tgraph; ValueError from node not in adjs
             adj_idxs.append(adj_idx)
-            num_del += 1
 
     # Remove non-reciprocal hits after initial loop is completed to not modify list during loop
     for offset, adj_idx in enumerate(adj_idxs):

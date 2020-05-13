@@ -9,7 +9,6 @@ with open('../blast2ggraph/out/ggraph.json') as file:
     ggraph = json.load(file)
 
 # Remove non-reciprocal hits
-num_del = 0
 for node, adj_gns in ggraph.items():
     # Remove None first to prevent recognition
     if 'null' in adj_gns:
@@ -22,7 +21,6 @@ for node, adj_gns in ggraph.items():
             ggraph[adj_gn][node]
         except KeyError:
             del_keys.append(adj_gn)
-            num_del += 1
 
     # Remove non-reciprocal hits after initial loop is completed to not modify list during loop
     for del_key in del_keys:
