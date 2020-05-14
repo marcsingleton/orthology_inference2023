@@ -11,12 +11,20 @@ header = ['length', 'pident', 'nident', 'gaps',
 
 def get_BHs(subjects):
     BHs = []
+    ppids = set()
     gnid = ppid2gnid[re.search(pp_regex[params[db_species]], subjects[0][1]).group(1)]
     for subject in subjects:
+        # Check if ppid added already
         BH_ppid = re.search(pp_regex[params[db_species]], subject[1]).group(1)
+        if BH_ppid in ppids:
+            continue
+        ppids.add(BH_ppid)
+
+        # Check if gnid has changed
         BH_gnid = ppid2gnid[BH_ppid]
         if BH_gnid != gnid:
             break
+
         BH = {'BH_ppid': BH_ppid, 'BH_gnid': BH_gnid,
               **{key: val for key, val in zip(header, subject[2:])}}
         BHs.append(BH)
@@ -81,7 +89,7 @@ for query_species, db_species in permutations(params.keys(), 2):
                   else [{'BH_ppid': db_species, 'BH_gnid': None}]  # In case last search in file returned no hits
             for BH in BHs:
                 add_BH(ggraph, query_ppid, query_gnid, **BH)
-            query_ppid, subjects = None, []  # Reset to signal previous search was successfully recorded
+            query_ppid, subjects = None, []  # Signals current search was successfully recorded
 
 # Make output directory
 if not os.path.exists(f'out/'):
