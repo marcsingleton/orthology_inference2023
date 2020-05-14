@@ -11,10 +11,10 @@ header = ['length', 'pident', 'nident', 'gaps',
 
 def get_BHs(subjects):
     BHs = []
-    gnid = pp_meta[re.search(pp_regex[params[db_species]], subjects[0][1]).group(1)][0]
+    gnid = ppid2gnid[re.search(pp_regex[params[db_species]], subjects[0][1]).group(1)]
     for subject in subjects:
         BH_ppid = re.search(pp_regex[params[db_species]], subject[1]).group(1)
-        BH_gnid = pp_meta[BH_ppid][0]  # First entry is gnid, second is species
+        BH_gnid = ppid2gnid[BH_ppid]
         if BH_gnid != gnid:
             break
         BH = {'BH_ppid': BH_ppid, 'BH_gnid': BH_gnid,
@@ -41,11 +41,11 @@ pp_regex = {'flybase': r'(FBpp[0-9]+)',
             'YO': r'(YOtr[A-Z0-9]+\|orf[0-9]+)'}
 
 # Load pp metadata
-pp_meta = {}
+ppid2gnid = {}
 with open('../ppid2meta/out/ppid2meta.tsv') as infile:
     for line in infile:
-        ppid, meta = line.split()
-        pp_meta[ppid] = meta.split(',')
+        ppid, gnid, _ = line.split()
+        ppid2gnid[ppid] = gnid
 
 # Parse parameters
 params = {}
@@ -64,24 +64,24 @@ for query_species, db_species in permutations(params.keys(), 2):
         while line:
             # Record query
             while line.startswith('#'):
-                if line == '# BLASTP 2.10.0+\n' and query_ppid is not None:  # Skip for first line
+                if line == '# BLASTP 2.10.0+\n' and query_ppid is not None:  # Only add if previous search returned no hits
                     add_BH(ggraph, query_ppid, query_gnid, db_species, None)
                 elif line.startswith('# Query:'):
                     query_ppid = re.search(pp_regex[params[query_species]], line).group(1)
-                    query_gnid = pp_meta[query_ppid][0]  # First entry is gnid, second is species
+                    query_gnid = ppid2gnid[query_ppid]
                 line = file.readline()
 
             # Record hits
-            subjects = []  # Using the BLAST jargon here
             while line and not line.startswith('#'):
                 subjects.append(line.split())
                 line = file.readline()
 
             # Add best from hit list
             BHs = get_BHs(sorted(subjects, key=lambda x: float(x[-2]))) if subjects \
-                  else [{'BH_ppid': db_species, 'BH_gnid': None}]
+                  else [{'BH_ppid': db_species, 'BH_gnid': None}]  # In case last search in file returned no hits
             for BH in BHs:
                 add_BH(ggraph, query_ppid, query_gnid, **BH)
+            query_ppid, subjects = None, []  # Reset to signal previous search was successfully recorded
 
 # Make output directory
 if not os.path.exists(f'out/'):
@@ -95,5 +95,7 @@ with open('out/ggraph.json', 'w') as outfile:
 DEPENDENCIES
 ../blast_AAA/blast_AAA.py
     ../blast_AAA/out/*
+../ppid2meta/ppid2meta.py
+    ../ppid2meta/out/ppid2meta.tsv
 ./params.tsv
 """
