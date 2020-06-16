@@ -1,7 +1,7 @@
 """Cluster pgraph on triangle criterion."""
 
 import os
-from ptriDFS import cluster
+from triDFS import cluster
 
 # Parse best hits as graph
 pgraph = {}
@@ -28,17 +28,17 @@ for node, adjs in pgraph.items():
 OGs = cluster(pgraph)
 
 # Make output directory
-if not os.path.exists(f'out/'):
-    os.mkdir(f'out/')
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # Write clusters to file
 with open('out/pclusters.tsv', 'w') as outfile:
     for OG in OGs:
-        outfile.write(','.join(OG) + '\n')
+        outfile.write('\t'.join([f'{node1},{node2}' for node1, node2 in OG]) + '\n')
 
 """
 DEPENDENCIES
 ../blast2pgraph/blast2pgraph.py
     ../blast2pgraph/out/pgraph.tsv
-./ptriDFS.py
+./triDFS.py
 """
