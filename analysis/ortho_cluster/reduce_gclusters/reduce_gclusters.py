@@ -112,25 +112,46 @@ def get_distances(node, d0=0):
     return distances
 
 
+# Load ggraph
+with open('../blast2ggraph/out/ggraph.json') as file:
+    ggraph = json.load(file)
+
 # Load OGs and tree
-with open('../cluster_ggraph/out/gclusters.json') as infile:
-    OGs = json.load(infile)
+OGs = []
+with open('../cluster_xgraph/out/gclusters.tsv') as file:
+    for line in file:
+        OGs.append([tuple(edge.split(',')) for edge in line.split()])
 tree_template = Phylo.read('drosophila-10spec-tree.nwk', 'newick')
+
+# Convert OG into subggraph
+subggraphs = []
+for OG in OGs:
+    subggraph = {}
+    for node1, node2 in OG:
+        try:
+            subggraph[node1][node2] = ggraph[node1][node2]
+        except KeyError:
+            subggraph[node1] = {node2: ggraph[node1][node2]}
+        try:
+            subggraph[node2][node1] = ggraph[node2][node1]
+        except KeyError:
+            subggraph[node2] = {node1: ggraph[node2][node1]}
+    subggraphs.append(subggraph)
 
 # Load gn metadata
 gnid2spid = {}
-with open('../ppid2meta/out/ppid2meta.tsv') as infile:
-    for line in infile:
+with open('../ppid2meta/out/ppid2meta.tsv') as file:
+    for line in file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
 
 rOGs = []
-for OG in OGs:
+for subggraph in subggraphs:
     # Add genes to leaves of tree
     tree = deepcopy(tree_template)
     terminals = {terminal.name: terminal for terminal in tree.get_terminals()}
     remain = set()
-    for gnid in OG:
+    for gnid in subggraph:
         spid = gnid2spid[gnid]
         remain.add(spid)
         try:
@@ -144,7 +165,7 @@ for OG in OGs:
         tree.prune(terminal)
 
     # Reduce OG
-    rOG = reduce_node(tree.root, OG)  # Pass root since tree object has no clades attribute
+    rOG = reduce_node(tree.root, subggraph)  # Pass root since tree object has no clades attribute
     rOGs.append(rOG)
 
 # Make output directory
@@ -153,16 +174,16 @@ if not os.path.exists(f'out/'):
 
 # Write reduced clusters to file
 with open('out/rclusters.tsv', 'w') as outfile:
-    outfile.write('rOGid\tspid\tgnid\tppid\n')
+    outfile.write('OGid\tspid\tgnid\tppid\n')
     for i, rOG in enumerate(rOGs):
-        rOGid = hex(i)[2:].zfill(4)
+        OGid = hex(i)[2:].zfill(4)
         for entry in rOG:
-            outfile.write(rOGid + '\t' + '\t'.join(entry) + '\n')
+            outfile.write(OGid + '\t' + '\t'.join(entry) + '\n')
 
 """
 DEPENDENCIES
-../cluster_ggraph/cluster_ggraph.py
-    ../cluster_ggraph/out/gclusters.json
+../cluster_xgraph/cluster_ggraph.py
+    ../cluster_xgraph/out/gclusters.tsv
 ../ppid2meta/ppid2meta.py
     ../ppid2meta/out/ppid2meta.tsv
 ./drosophila-10spec-tree.nwk
