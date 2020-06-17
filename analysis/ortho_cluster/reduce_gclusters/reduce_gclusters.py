@@ -117,15 +117,16 @@ with open('../blast2ggraph/out/ggraph.json') as file:
     ggraph = json.load(file)
 
 # Load OGs and tree
-OGs = []
-with open('../cluster_xgraph/out/gclusters.tsv') as file:
+OGs = {}
+with open('../subcluster_xgraph/out/ggraph/gclusters.txt') as file:
     for line in file:
-        OGs.append([tuple(edge.split(',')) for edge in line.split()])
+        _, OGid, edges = line.rstrip().split(':')
+        OGs[OGid] = [tuple(edge.split(',')) for edge in edges.split('\t')]
 tree_template = Phylo.read('drosophila-10spec-tree.nwk', 'newick')
 
 # Convert OG into subggraph
-subggraphs = []
-for OG in OGs:
+subggraphs = {}
+for OGid, OG in OGs.items():
     subggraph = {}
     for node1, node2 in OG:
         try:
@@ -136,7 +137,7 @@ for OG in OGs:
             subggraph[node2][node1] = ggraph[node2][node1]
         except KeyError:
             subggraph[node2] = {node1: ggraph[node2][node1]}
-    subggraphs.append(subggraph)
+    subggraphs[OGid] = subggraph
 
 # Load gn metadata
 gnid2spid = {}
@@ -145,8 +146,8 @@ with open('../ppid2meta/out/ppid2meta.tsv') as file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
 
-rOGs = []
-for subggraph in subggraphs:
+rOGs = {}
+for OGid, subggraph in subggraphs.items():
     # Add genes to leaves of tree
     tree = deepcopy(tree_template)
     terminals = {terminal.name: terminal for terminal in tree.get_terminals()}
@@ -166,7 +167,7 @@ for subggraph in subggraphs:
 
     # Reduce OG
     rOG = reduce_node(tree.root, subggraph)  # Pass root since tree object has no clades attribute
-    rOGs.append(rOG)
+    rOGs[OGid] = rOG
 
 # Make output directory
 if not os.path.exists(f'out/'):
@@ -175,15 +176,14 @@ if not os.path.exists(f'out/'):
 # Write reduced clusters to file
 with open('out/rclusters.tsv', 'w') as outfile:
     outfile.write('OGid\tspid\tgnid\tppid\n')
-    for i, rOG in enumerate(rOGs):
-        OGid = hex(i)[2:].zfill(4)
+    for OGid, rOG in rOGs.items():
         for entry in rOG:
             outfile.write(OGid + '\t' + '\t'.join(entry) + '\n')
 
 """
 DEPENDENCIES
-../cluster_xgraph/cluster_ggraph.py
-    ../cluster_xgraph/out/gclusters.tsv
+../subcluster_xgraph/subcluster_ggraph.py
+    ../subcluster_xgraph/out/ggraph/gclusters.txt
 ../ppid2meta/ppid2meta.py
     ../ppid2meta/out/ppid2meta.tsv
 ./drosophila-10spec-tree.nwk
