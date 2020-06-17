@@ -32,9 +32,10 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Write clusters to file
-with open('out/pclusters.tsv', 'w') as outfile:
-    for OG in OGs:
-        outfile.write('\t'.join([f'{node1},{node2}' for node1, node2 in OG]) + '\n')
+with open('out/pclusters.txt', 'w') as outfile:
+    for i, OG in enumerate(OGs):
+        OGid = hex(i)[2:].zfill(4)
+        outfile.write(OGid + ':' + '\t'.join([f'{node1},{node2}' for node1, node2 in OG]) + '\n')
 
 """
 DEPENDENCIES
