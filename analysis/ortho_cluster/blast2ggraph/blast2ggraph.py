@@ -95,9 +95,14 @@ for query_species, db_species in permutations(params.keys(), 2):
 if not os.path.exists(f'out/'):
     os.mkdir(f'out/')
 
-# Write graph as adjacency list to file
+# Write graph to file
 with open('out/ggraph.json', 'w') as outfile:
     json.dump(ggraph, outfile, indent=1)
+
+# Write graph as adjacency list to file
+with open('out/ggraph.tsv', 'w') as outfile:
+    for query_gnid, adj_gns in ggraph.items():
+        outfile.write(query_gnid + '\t' + ','.join(adj_gns.keys()) + '\n')
 
 """
 DEPENDENCIES

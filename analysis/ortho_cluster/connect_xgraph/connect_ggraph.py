@@ -1,34 +1,29 @@
 """Find connected components of ggraph."""
 
 import os
-import json
 from DFS import connect
 
-# Load best hits graph
-with open('../blast2ggraph/out/ggraph.json') as file:
-    ggraph = json.load(file)
+# Parse best hits as graph
+ggraph = {}
+with open('../blast2ggraph/out/ggraph.tsv') as file:
+    for line in file:
+        node, adjs = line.rstrip('\n').split('\t')
+        if node != 'null':  # Remove None first to prevent recognition later
+            ggraph[node] = adjs.split(',')
 
 # Remove non-reciprocal hits
-for node, adj_gns in ggraph.items():
-    # Remove None first to prevent recognition
-    if 'null' in adj_gns:
-        del adj_gns['null']
-
+for node, adjs in ggraph.items():
     # Search current node for non-reciprocal hits
-    del_keys = []
-    for adj_gn in adj_gns:
-        try:
-            ggraph[adj_gn][node]
-        except KeyError:
-            del_keys.append(adj_gn)
+    adj_idxs = []
+    for adj_idx, adj in enumerate(adjs):
+        try:  # Cannot test with "in" easily since it assumes the node is in the graph in the first place
+            ggraph[adj].index(node)
+        except (KeyError, ValueError):  # KeyError from adj not in pgraph; ValueError from node not in adjs
+            adj_idxs.append(adj_idx)
 
     # Remove non-reciprocal hits after initial loop is completed to not modify list during loop
-    for del_key in del_keys:
-        del adj_gns[del_key]
-
-# Remove substructure
-for node, adj_gns in ggraph.items():
-    ggraph[node] = list(adj_gns)
+    for offset, adj_idx in enumerate(adj_idxs):
+        del adjs[adj_idx - offset]
 
 # Cluster by triangle criterion
 CCs = connect(ggraph)
@@ -46,6 +41,6 @@ with open('out/gconnect.txt', 'w') as outfile:
 """
 DEPENDENCIES
 ../blast2pgraph/blast2ggraph.py
-    ../blast2pgraph/out/ggraph.json
+    ../blast2pgraph/out/ggraph.tsv
 ./DFS.py
 """
