@@ -82,7 +82,9 @@ plt.xlabel('Number of OGs in Connected Component')
 plt.ylabel('Number of Connected Components')
 plt.title('Distribution of Connected Components across Number of OGs')
 plt.legend()
-plt.savefig('out/ggraph/connectnum-OGnum_type_dist1.png')
+plt.savefig('out/ggraph/connectnum-OGnum_type_dist1-1.png')
+plt.xlim((-1, 17))  # Adjust axis to truncate outliers
+plt.savefig('out/ggraph/connectnum-OGnum_type_dist1-2.png')
 plt.close()
 
 plt.bar(CCtypes[3].keys(), CCtypes[3].values(), label='Type 3', color='C3')
@@ -91,7 +93,9 @@ plt.xlabel('Number of OGs in Connected Component')
 plt.ylabel('Number of Connected Components')
 plt.title('Distribution of Connected Components across Number of OGs')
 plt.legend()
-plt.savefig('out/ggraph/connectnum-OGnum_type_dist2.png')
+plt.savefig('out/ggraph/connectnum-OGnum_type_dist2-1.png')
+plt.xlim((-1, 17))  # Adjust axis to truncate outliers
+plt.savefig('out/ggraph/connectnum-OGnum_type_dist2-2.png')
 plt.close()
 
 plt.pie([sum(CCtype.values()) for CCtype in CCtypes], labels=[f'Type {i}' for i in range(len(CCtypes))])
