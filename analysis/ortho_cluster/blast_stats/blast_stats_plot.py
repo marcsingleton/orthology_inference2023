@@ -87,7 +87,7 @@ hist1(eval0, 200, 'log10(E-value)', 'reciprocal', 'C1', 'hist_evalue_reciprocal'
 # BITSCORE HISTOGRAMS
 hist2([df0['bitscore'], df1['bitscore']], 200, 'Bitscore', ['all', 'reciprocal'], ['C0', 'C1'], 'hist_bitscore')
 hist1(df0['bitscore'], 200, 'Bitscore', 'all', 'C0', 'hist_bitscore_all')
-hist1(df1['bitscore'], 200, 'Bitscore', 'reciprocal', 'C1', 'hist_reciprocal_all')
+hist1(df1['bitscore'], 200, 'Bitscore', 'reciprocal', 'C1', 'hist_bitscore_reciprocal')
 
 # PIDENT HISTOGRAMS
 hist2([df0['pident'], df1['pident']], 50, 'Percent Identity', ['all', 'reciprocal'], ['C0', 'C1'], 'hist_pident')
