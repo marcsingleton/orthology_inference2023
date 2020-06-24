@@ -3,12 +3,12 @@
 import os
 import re
 
-pp_regex = {'flybase': r'(FBpp[0-9]+)',
-            'ncbi': r'(XP_[0-9]+(\.[0-9]+)?)',
-            'YO': r'(YOtr[A-Z0-9]+\|orf[0-9]+)'}
-gn_regex = {'flybase': r'parent=(FBgn[0-9]+)',
-            'ncbi': r'\[db_xref=GeneID:([0-9]+)\]',
-            'YO': r'(YOgn[A-Z]+[0-9]+)'}
+pp_regex = {'FlyBase': r'>(FBpp[0-9]+)',
+            'NCBI': r'(XP_[0-9]+(\.[0-9]+)?)',
+            'YO': r'(YOtr[A-Z]{2}[0-9]+\|orf[0-9]+)'}
+gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
+            'NCBI': r'gene=LOC([0-9]+)',
+            'YO': r'>(YOgn[A-Z]{2}[0-9]+)'}
 
 # Parse parameters
 params = []

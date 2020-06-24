@@ -4,9 +4,9 @@ import os
 import re
 from itertools import permutations
 
-pp_regex = {'flybase': r'(FBpp[0-9]+)',
-            'ncbi': r'(XP_[0-9]+(\.[0-9]+)?)',
-            'YO': r'(YOtr[A-Z0-9]+\|orf[0-9]+)'}
+pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
+            'NCBI': r'(XP_[0-9]+(\.[0-9]+)?)',
+            'YO': r'(YOtr[A-Z]{2}[0-9]+\|orf[0-9]+)'}
 
 # Parse parameters
 params = {}

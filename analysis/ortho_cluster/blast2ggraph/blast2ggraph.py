@@ -44,9 +44,9 @@ def add_BH(ggraph, query_ppid, query_gnid, BH_ppid, BH_gnid, **kwargs):
             ggraph[query_gnid][BH_gnid][query_ppid] = {BH_ppid: kwargs}
 
 
-pp_regex = {'flybase': r'(FBpp[0-9]+)',
-            'ncbi': r'(XP_[0-9]+(\.[0-9]+)?)',
-            'YO': r'(YOtr[A-Z0-9]+\|orf[0-9]+)'}
+pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
+            'NCBI': r'(XP_[0-9]+(\.[0-9]+)?)',
+            'YO': r'(YOtr[A-Z]{2}[0-9]+\|orf[0-9]+)'}
 
 # Load pp metadata
 ppid2gnid = {}
