@@ -25,8 +25,8 @@ for root, idx in roots_idx.items():
 
 for path, root in zip(paths, roots):
     with open(path) as file:
-        num_alis = 0
-        num_ppids = 0
+        alinum = 0
+        ppidnum = 0
 
         # Stats relative to txids
         species_ali = {}  # Species representation in alignments
@@ -39,8 +39,8 @@ for path, root in zip(paths, roots):
         for line in file:
             fields = line.rstrip().split('\t')
             txids = [ppid[:4] for ppid in fields[4].split(',')]  # Gets txid
-            num_alis += 1
-            num_ppids += len(fields[4].split(','))
+            alinum += 1
+            ppidnum += len(fields[4].split(','))
 
             # Stats relative to txids
             for txid in txids:
@@ -49,12 +49,12 @@ for path, root in zip(paths, roots):
                 species_ali[txid] = species_ali.get(txid, 0) + 1
 
             # Stats relative to counts in alignments
-            num_seqs = len(txids)
-            num_species = len(set(txids))
-            num_dups = num_seqs - num_species
-            dist_nseq[num_seqs] = dist_nseq.get(num_seqs, 0) + 1
-            dist_nspecies[num_species] = dist_nspecies.get(num_species, 0) + 1
-            dist_ndup[num_dups] = dist_ndup.get(num_dups, 0) + 1
+            seqnum = len(txids)
+            spnum = len(set(txids))
+            dupnum = seqnum - spnum
+            dist_nseq[seqnum] = dist_nseq.get(seqnum, 0) + 1
+            dist_nspecies[spnum] = dist_nspecies.get(spnum, 0) + 1
+            dist_ndup[dupnum] = dist_ndup.get(dupnum, 0) + 1
 
     # Create subdirectory to save plots and move to that directory
     if not os.path.exists('out/' + root):
@@ -63,35 +63,35 @@ for path, root in zip(paths, roots):
 
     # Print counts
     print(root.upper())
-    print('number of alignments:', num_alis)
+    print('number of alignments:', alinum)
     print()
     print('number of alignments with 10 species:', dist_nspecies[10])
-    print('fraction of alignments with 10 species:', dist_nspecies[10] / num_alis)
+    print('fraction of alignments with 10 species:', dist_nspecies[10] / alinum)
     print()
     print('number of alignments with 10 sequences:', dist_nseq[10])
-    print('fraction of alignments with 10 sequences:', dist_nseq[10] / num_alis)
+    print('fraction of alignments with 10 sequences:', dist_nseq[10] / alinum)
     print()
-    print('number of alignments with duplicates:', num_alis - dist_ndup[0])
-    print('fraction of alignments with duplicates', (num_alis - dist_ndup[0]) / num_alis)
+    print('number of alignments with duplicates:', alinum - dist_ndup[0])
+    print('fraction of alignments with duplicates', (alinum - dist_ndup[0]) / alinum)
     print()
 
-    # Plot stats
+    # Plots
     # Number of associated alignments for species
     labels, h_ali = zip(*sorted(species_ali.items(), key=lambda i: i[0]))
     x = list(range(1, len(labels) + 1))
     fig, ax1 = plt.subplots()
     ax1.bar(x, h_ali, tick_label=labels, align='center')
     ax1.set_xlabel('Species')
-    ax1.set_ylabel('Number of Associated Alignments')
-    ax1.set_title('Number of Associated Alignments for each Species')
+    ax1.set_ylabel('Number of associated alignments')
+    ax1.set_title('Number of associated alignments for each species')
 
     ax2 = ax1.twinx()
     mn, mx = ax1.get_ylim()
-    ax2.set_ylim(mn / num_alis, mx / num_alis)
-    ax2.set_ylabel('Fraction of Total Alignments')
+    ax2.set_ylim(mn / alinum, mx / alinum)
+    ax2.set_ylabel('Fraction of total alignments')
 
     fig.tight_layout()
-    fig.savefig('alinum-species.png')
+    fig.savefig('bar_alinum-species.png')
     plt.close()
 
     # Distribution of sequences across species
@@ -99,78 +99,78 @@ for path, root in zip(paths, roots):
     x = list(range(1, len(labels) + 1))
     fig, ax1 = plt.subplots()
     ax1.bar(x, h_seq, tick_label=labels, align='center')
-    ax1.set_xlabel('Species')
-    ax1.set_ylabel('Number of Sequences')
-    ax1.set_title('Distribution of Sequences across Species')
+    ax1.set_xlabel('Associated species')
+    ax1.set_ylabel('Number of sequences')
+    ax1.set_title('Distribution of sequences across associated species')
 
     ax2 = ax1.twinx()
     mn, mx = ax1.get_ylim()
-    ax2.set_ylim(mn / num_ppids, mx / num_ppids)
-    ax2.set_ylabel('Fraction of Total Sequences')
+    ax2.set_ylim(mn / ppidnum, mx / ppidnum)
+    ax2.set_ylabel('Fraction of total sequences')
 
     fig.tight_layout()
-    fig.savefig('seqnum-species_dist.png')
+    fig.savefig('dist_seqnum-species.png')
     plt.close()
 
     # Correlation of number of sequences and associated alignments
     fig, ax = plt.subplots()
     ax.scatter(h_ali, h_seq)
-    ax.set_xlabel('Number of Associated Alignments')
-    ax.set_ylabel('Number of Sequences')
-    ax.set_title('Correlation of Numbers of Sequences\nand Associated Alignments for each Species')
+    ax.set_xlabel('Number of associated alignments')
+    ax.set_ylabel('Number of associated sequences')
+    ax.set_title('Correlation of numbers of associated\nsequences and alignments for each species')
 
-    fig.savefig('seqnum-alinum_corr.png')
+    fig.savefig('scatter_seqnum-alinum.png')
     plt.close()
 
-    # Distribution of number of species
+    # Distribution of alignments across number of unique species
     spec, spec_count = zip(*dist_nspecies.items())
     fig, ax1 = plt.subplots()
     ax1.bar(spec, spec_count)
-    ax1.set_title('Distribution of Alignments across Number of Unique Species')
-    ax1.set_xlabel('Number of Unique Species')
-    ax1.set_ylabel('Number of Alignments')
+    ax1.set_title('Distribution of alignments across\nnumber of unique species in alignment')
+    ax1.set_xlabel('Number of unique species in alignment')
+    ax1.set_ylabel('Number of alignments')
 
     ax2 = ax1.twinx()
     mn, mx = ax1.get_ylim()
-    ax2.set_ylim(mn / num_alis, mx / num_alis)
-    ax2.set_ylabel('Fraction of Total Alignments')
+    ax2.set_ylim(mn / alinum, mx / alinum)
+    ax2.set_ylabel('Fraction of total alignments')
 
     fig.tight_layout()
-    fig.savefig('alinum-spnum_dist.png')
+    fig.savefig('dist_alinum-spnum.png')
     plt.close()
 
-    # Distribution of number of sequences
+    # Distribution of alignments across number of sequences
     seq, seq_count = zip(*dist_nseq.items())
     fig, ax1 = plt.subplots()
     ax1.bar(seq, seq_count, width=1, align='edge')
-    ax1.set_title('Distribution of Alignments across Number of Sequences')
-    ax1.set_xlabel('Number of Sequences')
-    ax1.set_ylabel('Number of Alignments')
+    ax1.set_title('Distribution of alignments across\nnumber of sequences in alignment')
+    ax1.set_xlabel('Number of sequences in alignment')
+    ax1.set_ylabel('Number of alignments')
 
     ax2 = ax1.twinx()
     mn, mx = ax1.get_ylim()
-    ax2.set_ylim(mn / num_alis, mx / num_alis)
-    ax2.set_ylabel('Fraction of Total Alignments')
+    ax2.set_ylim(mn / alinum, mx / alinum)
+    ax2.set_ylabel('Fraction of total alignments')
 
     fig.tight_layout()
-    fig.savefig('alinum-seqnum_dist.png')
+    fig.savefig('dist_alinum-seqnum.png')
     plt.close()
 
-    # Distribution of number of duplicates
+    # Distribution of alignments across number of species duplicates
     seq, seq_count = zip(*dist_ndup.items())
     fig, ax1 = plt.subplots()
     ax1.bar(seq, seq_count, width=1, align='center')
-    ax1.set_title('Distribution of Alignments across Number of Species Duplicates')
-    ax1.set_xlabel('Number of Species Duplicates')
-    ax1.set_ylabel('Number of Alignments')
+    ax1.set_title('Distribution of alignments across\nnumber of species duplicates in aligment')
+    ax1.set_xlabel('Number of species duplicates in alignment')
+    ax1.set_ylabel('Number of alignments')
 
     ax2 = ax1.twinx()
     mn, mx = ax1.get_ylim()
-    ax2.set_ylim(mn / num_alis, mx / num_alis)
-    ax2.set_ylabel('Fraction of Total Alignments')
+    ax2.set_ylim(mn / alinum, mx / alinum)
+    ax2.set_ylabel('Fraction of total alignments')
 
     fig.tight_layout()
-    fig.savefig('alinum-spdup_dist.png')
+    fig.savefig('dist_alinum-spdup.png')
     plt.close()
 
     os.chdir('../..')  # Return to initial directory
