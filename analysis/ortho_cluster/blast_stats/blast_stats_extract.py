@@ -38,8 +38,8 @@ for qgnid, sgnids in ggraph.items():
                 records.append(record)
 
 # Make output directory
-if not os.path.exists(f'out/'):
-    os.mkdir(f'out/')
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # Save as tsv
 df = pd.DataFrame(records)  # Use df to ensure columns are aligned

@@ -49,8 +49,8 @@ df1 = ggraph.query('reciprocal == True')
 print('Fraction reciprocal:', len(df1) / len(df0))
 
 # Make plots output directory
-if not os.path.exists(f'out/plots'):
-    os.makedirs(f'out/plots')  # Recursive folder creation
+if not os.path.exists('out/plots'):
+    os.makedirs('out/plots')  # Recursive folder creation
 
 # EVALUE PLOTS
 eval0 = df0.loc[df0['evalue'] != 0, 'evalue'].apply(log10)

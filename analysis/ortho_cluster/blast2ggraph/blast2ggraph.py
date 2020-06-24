@@ -92,8 +92,8 @@ for query_species, db_species in permutations(params.keys(), 2):
             query_ppid, subjects = None, []  # Signals current search was successfully recorded
 
 # Make output directory
-if not os.path.exists(f'out/'):
-    os.mkdir(f'out/')
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # Write graph to file
 with open('out/ggraph.json', 'w') as outfile:

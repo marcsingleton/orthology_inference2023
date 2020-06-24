@@ -31,8 +31,8 @@ with open('../connect_xgraph/out/gconnect.txt') as file:
 CCs = pd.DataFrame(rows)
 
 # Make output directory
-if not os.path.exists(f'out/CCOG'):
-    os.makedirs(f'out/CCOG')  # Recursive folder creation
+if not os.path.exists('out/CCOG'):
+    os.makedirs('out/CCOG')  # Recursive folder creation
 
 # Plots
 # Distribution of genes across number of associated OGs

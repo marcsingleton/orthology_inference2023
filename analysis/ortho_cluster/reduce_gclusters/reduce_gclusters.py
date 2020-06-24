@@ -170,8 +170,8 @@ for OGid, subggraph in subggraphs.items():
     rOGs[OGid] = rOG
 
 # Make output directory
-if not os.path.exists(f'out/'):
-    os.mkdir(f'out/')
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # Write reduced clusters to file
 with open('out/rclusters.tsv', 'w') as outfile:

@@ -49,8 +49,8 @@ for query_species, db_species in permutations(params.keys(), 2):
                 pgraph[query_ppid] = BH_ppid
 
 # Make output directory
-if not os.path.exists(f'out/'):
-    os.mkdir(f'out/')
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # Write graph as adjacency list to file
 with open('out/pgraph.tsv', 'w') as outfile:

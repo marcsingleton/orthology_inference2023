@@ -29,8 +29,8 @@ for node, adjs in ggraph.items():
 CCs = connect(ggraph)
 
 # Make output directory
-if not os.path.exists(f'out/'):
-    os.mkdir(f'out/')
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # Write clusters to file
 with open('out/gconnect.txt', 'w') as outfile:

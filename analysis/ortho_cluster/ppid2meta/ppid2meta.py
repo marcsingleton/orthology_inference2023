@@ -39,8 +39,8 @@ for species, _, source, tcds_path in params:
                     print(line)
 
 # Make output directory
-if not os.path.exists(f'out/'):
-    os.mkdir(f'out/')
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # Write graph as adjacency list to file
 with open('out/ppid2meta.tsv', 'w') as outfile:

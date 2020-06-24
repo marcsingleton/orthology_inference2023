@@ -27,8 +27,8 @@ ugnnum = OGs['gnid'].nunique()
 u10num = len(groups.filter(lambda x: len(x) == 10 and x['spid'].nunique() == 10)) // 10
 
 # Make output directory
-if not os.path.exists(f'out/spgn'):
-    os.makedirs(f'out/spgn')  # Recursive folder creation
+if not os.path.exists('out/spgn'):
+    os.makedirs('out/spgn')  # Recursive folder creation
 
 # Plots
 # Number of associated OGs for species

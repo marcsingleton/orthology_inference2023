@@ -43,8 +43,8 @@ for spid, (source, tcds_path) in params.items():
             rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'pplen': pplen})
 
 # Make plots output directory
-if not os.path.exists(f'out/'):
-    os.makedirs(f'out/')  # Recursive folder creation
+if not os.path.exists('out/'):
+    os.makedirs('out/')  # Recursive folder creation
 
 # Define dataframe and groups
 df = pd.DataFrame(rows)

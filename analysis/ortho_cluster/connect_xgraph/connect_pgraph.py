@@ -28,8 +28,8 @@ for node, adjs in pgraph.items():
 CCs = connect(pgraph)
 
 # Make output directory
-if not os.path.exists(f'out/'):
-    os.mkdir(f'out/')
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # Write clusters to file
 with open('out/pconnect.txt', 'w') as outfile:
