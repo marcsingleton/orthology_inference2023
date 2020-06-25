@@ -16,7 +16,7 @@ def connect(adj_dict):
     OG = None
     OGs = []
     expand_stack = list()  # Stack to expand current OG
-    search_stack = list(adj_dict)  # Stack to search for new OG; initialize with all nodes
+    search_stack = sorted(list(adj_dict))  # Stack to search for new OG; sort to ensure consistent order
     graph = {label: Node(label, adj_labels) for label, adj_labels in adj_dict.items()}  # Convert adj_dict to graph
 
     # LOOP

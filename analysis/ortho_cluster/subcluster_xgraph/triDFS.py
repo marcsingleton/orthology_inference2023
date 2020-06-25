@@ -8,7 +8,7 @@ def cluster(graph):
     OG = set()
     OGs = []
     expand_stack = []  # Stack to expand current OG
-    search_stack = [frozenset([node, adj]) for node, adjs in graph.items() for adj in adjs]  # Stack to search for new OG; initialize with all edges
+    search_stack = sorted([(node, adj) for node, adjs in graph.items() for adj in adjs])  # Stack to search for new OG; sort to ensure consistent order
     marked = set()
 
     # LOOP
@@ -33,11 +33,11 @@ def cluster(graph):
         # Proceed to search stack when expand stack is empty
         while search_stack and not OG:
             edge = search_stack.pop()
-            if edge in marked:  # Prevents revisiting previous OGs
+            if frozenset(edge) in marked:  # Prevents revisiting previous OGs
                 continue
 
             node1, node2 = edge
-            for node3 in graph[node1]:
+            for node3 in sorted(graph[node1]):  # Sort to ensure consistent order
                 if node3 in graph[node2]:  # Assumes undirected
                     edges = [frozenset([label1, label2]) for label1, label2 in combinations([node1, node2, node3], 2)]
                     OG |= set(edges)  # Sets check membership in constant time
