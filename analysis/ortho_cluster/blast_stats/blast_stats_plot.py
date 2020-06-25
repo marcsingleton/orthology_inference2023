@@ -68,7 +68,7 @@ plt.ylabel('Fraction of total top hits')
 plt.title('Fraction of top hits with zero and non-zero E-values')
 plt.legend(bbox_to_anchor=(0.5, -0.1875), loc='lower center', ncol=2)
 plt.subplots_adjust(bottom=0.15)
-plt.savefig('out/plots/fraction_reciprocal.png')
+plt.savefig('out/plots/fraction_zero.png')
 plt.close()
 
 # Histograms
