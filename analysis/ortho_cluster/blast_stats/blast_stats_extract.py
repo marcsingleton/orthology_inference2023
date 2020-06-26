@@ -16,7 +16,7 @@ with open('../blast2ggraph/out/ggraph.json') as file:
     ggraph = json.load(file)
 
 # Extract data from graph
-records = []
+rows = []
 for qgnid, sgnids in ggraph.items():
     # Remove None first to not loop over
     if 'null' in sgnids:
@@ -32,17 +32,17 @@ for qgnid, sgnids in ggraph.items():
 
         for qppid, sppids in qppids.items():
             for sppid, params in sppids.items():
-                record = {'qppid': qppid, 'qgnid': qgnid, 'qspid': qspid,
-                          'sppid': sppid, 'sgnid': sgnid, 'sspid': sspid,
-                          'reciprocal': reciprocal, **params}
-                records.append(record)
+                row = {'qppid': qppid, 'qgnid': qgnid, 'qspid': qspid,
+                       'sppid': sppid, 'sgnid': sgnid, 'sspid': sspid,
+                       'reciprocal': reciprocal, **params}
+                rows.append(row)
 
 # Make output directory
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Save as tsv
-df = pd.DataFrame(records)  # Use df to ensure columns are aligned
+df = pd.DataFrame(rows)  # Use df to ensure columns are aligned
 df.to_csv('out/ggraph.tsv', sep='\t', index=False)
 
 """
