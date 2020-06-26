@@ -143,7 +143,7 @@ plt.close()
 for data, data_label, color, file_label in [(ncbi, 'NCBI', 'C0', 'NCBI'),
                                             (yo, r'Yang $et\ al.$', 'C1', 'YO'),
                                             (flybase, 'FlyBase', 'C2', 'FB')]:
-    plt.hist(ncbi, bins=100, label=data_label, color=color)
+    plt.hist(data, bins=100, label=data_label, color=color)
     plt.xlabel('Length')
     plt.ylabel('Number of polypeptides')
     plt.title('Distribution of polypeptides across length')
@@ -196,7 +196,7 @@ for data, data_label, color, file_label in [(ncbi, 'NCBI', 'C0', 'NCBI'),
     plt.ylabel('Number of genes')
     plt.title('Distribution of genes across\nnumber of associated polypeptides')
     plt.legend()
-    plt.savefig(f'out/dist_ppidnum-pplen_{file_label}.png')
+    plt.savefig(f'out/dist_gnidnum-ppidnum_{file_label}.png')
     plt.close()
 
 """
