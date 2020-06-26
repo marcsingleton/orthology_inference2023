@@ -112,6 +112,13 @@ def get_distances(node, d0=0):
     return distances
 
 
+# Load gn metadata
+gnid2spid = {}
+with open('../ppid2meta/out/ppid2meta.tsv') as file:
+    for line in file:
+        _, gnid, spid = line.split()
+        gnid2spid[gnid] = spid
+
 # Load ggraph
 with open('../blast2ggraph/out/ggraph.json') as file:
     ggraph = json.load(file)
@@ -138,13 +145,6 @@ for OGid, OG in OGs.items():
         except KeyError:
             subggraph[node2] = {node1: ggraph[node2][node1]}
     subggraphs[OGid] = subggraph
-
-# Load gn metadata
-gnid2spid = {}
-with open('../ppid2meta/out/ppid2meta.tsv') as file:
-    for line in file:
-        _, gnid, spid = line.split()
-        gnid2spid[gnid] = spid
 
 rOGs = {}
 for OGid, subggraph in subggraphs.items():

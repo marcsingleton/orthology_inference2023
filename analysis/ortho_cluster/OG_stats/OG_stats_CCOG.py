@@ -11,6 +11,15 @@ with open('../ppid2meta/out/ppid2meta.tsv') as file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
 
+# Load CCs
+rows = []
+with open('../connect_xgraph/out/gconnect.txt') as file:
+    for line in file:
+        CCid, nodes = line.rstrip().split(':')
+        for gnid in nodes.split(','):
+            rows.append({'CCid': CCid, 'gnid': gnid})
+CCs = pd.DataFrame(rows)
+
 # Load OGs
 rows = []
 with open('../subcluster_xgraph/out/ggraph/gclusters.txt') as file:
@@ -20,15 +29,6 @@ with open('../subcluster_xgraph/out/ggraph/gclusters.txt') as file:
         for gnid in gnids:
             rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid, 'spid': gnid2spid[gnid]})
 OGs = pd.DataFrame(rows)
-
-# Load CCs
-rows = []
-with open('../connect_xgraph/out/gconnect.txt') as file:
-    for line in file:
-        CCid, nodes = line.rstrip().split(':')
-        for gnid in nodes.split(','):
-            rows.append({'CCid': CCid, 'gnid': gnid})
-CCs = pd.DataFrame(rows)
 
 # Make output directory
 if not os.path.exists('out/CCOG'):
