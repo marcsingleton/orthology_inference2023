@@ -18,20 +18,19 @@ with open('../blast2ggraph/out/ggraph.json') as file:
 # Extract data from graph
 rows = []
 for qgnid, sgnids in ggraph.items():
-    # Remove None first to not loop over
-    if 'null' in sgnids:
-        del sgnids['null']
     qspid = gnid2spid[qgnid]
+    if 'null' in sgnids:
+        del sgnids['null']  # Remove None first to not loop over
 
     for sgnid, qppids in sgnids.items():
-        try:
-            reciprocal = qgnid in ggraph[sgnid]
-        except KeyError:
-            reciprocal = False
         sspid = gnid2spid[sgnid]
-
         for qppid, sppids in qppids.items():
             for sppid, params in sppids.items():
+                try:
+                    reciprocal = qppid in ggraph[sgnid][qgnid][sppid]
+                except KeyError:
+                    reciprocal = False
+
                 row = {'qppid': qppid, 'qgnid': qgnid, 'qspid': qspid,
                        'sppid': sppid, 'sgnid': sgnid, 'sspid': sspid,
                        'reciprocal': reciprocal, **params}

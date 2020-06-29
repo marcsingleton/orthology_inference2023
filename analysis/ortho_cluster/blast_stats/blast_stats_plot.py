@@ -167,6 +167,9 @@ bar({key: val for key, val in ncbifb_counts.items() if key <= 10},
     {key: val for key, val in yo_counts.items() if key <= 10}, 'le10')
 
 """
+OUTPUT
+Fraction reciprocal: 0.7653073916073564
+
 DEPENDENCIES
 ../genome_stats/genome_stats.py
     ../genome_stats/out/gnid_ppidnum.tsv
