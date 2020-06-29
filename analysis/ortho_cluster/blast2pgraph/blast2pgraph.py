@@ -18,8 +18,8 @@ with open('params.tsv') as infile:
 
 # Parse BLAST results
 pgraph = {}
-for query_species, db_species in permutations(params.keys(), 2):
-    with open(f'../blast_AAA/out/{query_species}/{db_species}.blast') as file:
+for query_species, subject_species in permutations(params.keys(), 2):
+    with open(f'../blast_AAA/out/{query_species}/{subject_species}.blast') as file:
         query_ppid, subjects = None, []
         line = file.readline()
         while line:
@@ -40,7 +40,7 @@ for query_species, db_species in permutations(params.keys(), 2):
             # Add best from hit list
             if subjects:
                 BH = sorted(subjects, key=lambda x: float(x[-2]))[0]
-                BH_ppid = [re.search(pp_regex[params[db_species]], BH[1]).group(1)]
+                BH_ppid = [re.search(pp_regex[params[subject_species]], BH[1]).group(1)]
             else:
                 BH_ppid = []
             try:

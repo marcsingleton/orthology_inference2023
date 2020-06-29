@@ -12,10 +12,10 @@ header = ['length', 'pident', 'nident', 'gaps',
 def get_BHs(subjects):
     BHs = []
     ppids = set()
-    gnid = ppid2gnid[re.search(pp_regex[params[db_species]], subjects[0][1]).group(1)]
+    gnid = ppid2gnid[re.search(pp_regex[params[subject_species]], subjects[0][1]).group(1)]
     for subject in subjects:
         # Check if ppid added already
-        BH_ppid = re.search(pp_regex[params[db_species]], subject[1]).group(1)
+        BH_ppid = re.search(pp_regex[params[subject_species]], subject[1]).group(1)
         if BH_ppid in ppids:
             continue
         ppids.add(BH_ppid)
@@ -65,15 +65,15 @@ with open('params.tsv') as infile:
 
 # Parse BLAST results
 ggraph = {}
-for query_species, db_species in permutations(params.keys(), 2):
-    with open(f'../blast_AAA/out/{query_species}/{db_species}.blast') as file:
+for query_species, subject_species in permutations(params.keys(), 2):
+    with open(f'../blast_AAA/out/{query_species}/{subject_species}.blast') as file:
         query_ppid, subjects = None, []
         line = file.readline()
         while line:
             # Record query
             while line.startswith('#'):
                 if line == '# BLASTP 2.10.0+\n' and query_ppid is not None:  # Only add if previous search returned no hits
-                    add_BH(ggraph, query_ppid, query_gnid, db_species, None)
+                    add_BH(ggraph, query_ppid, query_gnid, subject_species, None)
                 elif line.startswith('# Query:'):
                     query_ppid = re.search(pp_regex[params[query_species]], line).group(1)
                     query_gnid = ppid2gnid[query_ppid]
@@ -86,7 +86,7 @@ for query_species, db_species in permutations(params.keys(), 2):
 
             # Add best from hit list
             BHs = get_BHs(sorted(subjects, key=lambda x: float(x[-2]))) if subjects \
-                  else [{'BH_ppid': db_species, 'BH_gnid': None}]  # In case last search in file returned no hits
+                  else [{'BH_ppid': subject_species, 'BH_gnid': None}]  # In case last search in file returned no hits
             for BH in BHs:
                 add_BH(ggraph, query_ppid, query_gnid, **BH)
             query_ppid, subjects = None, []  # Signals current search was successfully recorded
@@ -101,8 +101,8 @@ with open('out/ggraph.json', 'w') as outfile:
 
 # Write graph as adjacency list to file
 with open('out/ggraph.tsv', 'w') as outfile:
-    for query_gnid, adj_gns in ggraph.items():
-        outfile.write(query_gnid + '\t' + ','.join(adj_gns.keys()) + '\n')
+    for query_gnid, BH_gnids in ggraph.items():
+        outfile.write(query_gnid + '\t' + ','.join(BH_gnids.keys()) + '\n')
 
 """
 DEPENDENCIES
