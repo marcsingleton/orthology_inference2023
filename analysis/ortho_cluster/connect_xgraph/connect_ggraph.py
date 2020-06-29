@@ -5,25 +5,10 @@ from DFS import connect
 
 # Parse best hits as graph
 ggraph = {}
-with open('../blast2ggraph/out/ggraph.tsv') as file:
+with open('../make_xreciprocal/out/ggraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        if node != 'null':  # Remove None first to prevent recognition later
-            ggraph[node] = adjs.split(',')
-
-# Remove non-reciprocal hits
-for node, adjs in ggraph.items():
-    # Search current node for non-reciprocal hits
-    adj_idxs = []
-    for adj_idx, adj in enumerate(adjs):
-        try:  # Cannot test with "in" easily since it assumes the node is in the graph in the first place
-            ggraph[adj].index(node)
-        except (KeyError, ValueError):  # KeyError from adj not in pgraph; ValueError from node not in adjs
-            adj_idxs.append(adj_idx)
-
-    # Remove non-reciprocal hits after initial loop is completed to not modify list during loop
-    for offset, adj_idx in enumerate(adj_idxs):
-        del adjs[adj_idx - offset]
+        ggraph[node] = adjs.split(',')
 
 # Cluster by triangle criterion
 CCs = connect(ggraph)
@@ -40,7 +25,7 @@ with open('out/gconnect.txt', 'w') as outfile:
 
 """
 DEPENDENCIES
-../blast2pgraph/blast2ggraph.py
-    ../blast2pgraph/out/ggraph.tsv
+../make_xreciprocal/make_greciprocal.py
+    ../make_xreciprocal/out/ggraph.tsv
 ./DFS.py
 """

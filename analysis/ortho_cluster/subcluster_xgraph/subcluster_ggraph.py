@@ -7,11 +7,10 @@ from triDFS import cluster
 
 # Parse best hits as graph
 ggraph = {}
-with open('../blast2ggraph/out/ggraph.tsv') as file:
+with open('../make_xreciprocal/out/ggraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        if node != 'null':  # Remove None first to prevent recognition later
-            ggraph[node] = adjs.split(',')
+        ggraph[node] = adjs.split(',')
 
 # Parse connected components
 CCs = []
@@ -24,20 +23,6 @@ OGs = []
 CCtypes = [{} for _ in range(5)]
 for CC in CCs:
     subggraph = {node: ggraph[node] for node in CC}
-
-    # Remove non-reciprocal hits
-    for node, adjs in subggraph.items():
-        # Search current node for non-reciprocal hits
-        adj_idxs = []
-        for adj_idx, adj in enumerate(adjs):
-            try:  # Cannot test with "in" easily since it assumes the node is in the graph in the first place
-                subggraph[adj].index(node)
-            except (KeyError, ValueError):  # KeyError from adj not in pgraph; ValueError from node not in adjs
-                adj_idxs.append(adj_idx)
-
-        # Remove non-reciprocal hits after initial loop is completed to not modify list during loop
-        for offset, adj_idx in enumerate(adj_idxs):
-            del adjs[adj_idx - offset]
 
     # Cluster by triangle criterion
     subOGs = cluster(subggraph)
@@ -107,16 +92,16 @@ for i, CCtype in enumerate(CCtypes):
 
 """
 OUTPUT
-Type 0: 130
-Type 1: 7128
-Type 2: 958
-Type 3: 852
-Type 4: 788
+Type 0: 126
+Type 1: 7192
+Type 2: 938
+Type 3: 861
+Type 4: 787
 
 DEPENDENCIES
-../blast2ggraph/blast2ggraph.py
-    ../blast2ggraph/out/ggraph.tsv
 ../connect_xgraph/connect_ggraph.py
     ../connect_xgraph/out/gconnect.txt
+../make_xreciprocal/make_greciprocal.py
+    ../make_xreciprocal/out/ggraph.tsv
 ./triDFS.py
 """

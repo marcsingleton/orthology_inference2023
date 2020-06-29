@@ -7,7 +7,7 @@ from triDFS import cluster
 
 # Parse best hits as graph
 pgraph = {}
-with open('../blast2pgraph/out/pgraph.tsv') as file:
+with open('../make_xreciprocal/out/pgraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         pgraph[node] = adjs.split(',')
@@ -23,20 +23,6 @@ OGs = []
 CCtypes = [{} for _ in range(5)]
 for CC in CCs:
     subpgraph = {node: pgraph[node] for node in CC}
-
-    # Remove non-reciprocal hits
-    for node, adjs in subpgraph.items():
-        # Search current node for non-reciprocal hits
-        adj_idxs = []
-        for adj_idx, adj in enumerate(adjs):
-            try:  # Cannot test with "in" easily since it assumes the node is in the graph in the first place
-                subpgraph[adj].index(node)
-            except (KeyError, ValueError):  # KeyError from adj not in pgraph; ValueError from node not in adjs
-                adj_idxs.append(adj_idx)
-
-        # Remove non-reciprocal hits after initial loop is completed to not modify list during loop
-        for offset, adj_idx in enumerate(adj_idxs):
-            del adjs[adj_idx - offset]
 
     # Cluster by triangle criterion
     subOGs = cluster(subpgraph)
@@ -109,9 +95,9 @@ Type 3: 1024
 Type 4: 449
 
 DEPENDENCIES
-../blast2pgraph/blast2pgraph.py
-    ../blast2pgraph/out/pgraph.tsv
 ../connect_xgraph/connect_pgraph.py
     ../connect_xgraph/out/pconnect.txt
+../make_xreciprocal/make_preciprocal.py
+    ../make_xreciprocal/out/pgraph.tsv
 ./triDFS.py
 """
