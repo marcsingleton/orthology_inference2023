@@ -18,27 +18,27 @@ colors = {'FlyBase': 'C1',
 
 # Parse parameters
 params = {}
-with open('params.tsv') as infile:
-    fields = infile.readline().split()  # Skip header
-    for line in infile:
+with open('params.tsv') as file:
+    fields = file.readline().split()  # Skip header
+    for line in file:
         spid, _, source, tcds_path = line.split()
         params[spid] = (source, tcds_path)
 
 # Parse polypeptides
 rows = []
 for spid, (source, tcds_path) in params.items():
-    with open(tcds_path) as infile:
-        line = infile.readline()
+    with open(tcds_path) as file:
+        line = file.readline()
         while line:
             if line.startswith('>'):
                 ppid = re.search(pp_regex[source], line).group(1)
                 gnid = re.search(gn_regex[source], line).group(1)
-                line = infile.readline()
+                line = file.readline()
 
             pplen = 0
             while line and not line.startswith('>'):
                 pplen += len(line.rstrip())
-                line = infile.readline()
+                line = file.readline()
 
             rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'pplen': pplen})
 

@@ -50,16 +50,16 @@ pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
 
 # Load pp metadata
 ppid2gnid = {}
-with open('../ppid2meta/out/ppid2meta.tsv') as infile:
-    for line in infile:
+with open('../ppid2meta/out/ppid2meta.tsv') as file:
+    for line in file:
         ppid, gnid, _ = line.split()
         ppid2gnid[ppid] = gnid
 
 # Parse parameters
 params = {}
-with open('params.tsv') as infile:
-    fields = infile.readline().split()  # Skip header
-    for line in infile:
+with open('params.tsv') as file:
+    fields = file.readline().split()  # Skip header
+    for line in file:
         species, _, source = line.split()
         params[species] = source
 

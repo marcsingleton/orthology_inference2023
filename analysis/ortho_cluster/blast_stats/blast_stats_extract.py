@@ -6,8 +6,8 @@ import pandas as pd
 
 # Load gn metadata
 gnid2spid = {}
-with open('../ppid2meta/out/ppid2meta.tsv') as infile:
-    for line in infile:
+with open('../ppid2meta/out/ppid2meta.tsv') as file:
+    for line in file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
 

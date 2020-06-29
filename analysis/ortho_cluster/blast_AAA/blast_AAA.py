@@ -8,9 +8,9 @@ num_threads = '20'
 
 # Parse parameters
 params = []
-with open('params.tsv') as infile:
-    fields = infile.readline().split()  # Skip header
-    for line in infile:
+with open('params.tsv') as file:
+    fields = file.readline().split()  # Skip header
+    for line in file:
         params.append(line.split())
 
 # Execute BLASTs

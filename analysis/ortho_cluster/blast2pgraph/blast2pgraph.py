@@ -10,9 +10,9 @@ pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
 
 # Parse parameters
 params = {}
-with open('params.tsv') as infile:
-    fields = infile.readline().split()  # Skip header
-    for line in infile:
+with open('params.tsv') as file:
+    fields = file.readline().split()  # Skip header
+    for line in file:
         species, _, source = line.split()
         params[species] = source
 
