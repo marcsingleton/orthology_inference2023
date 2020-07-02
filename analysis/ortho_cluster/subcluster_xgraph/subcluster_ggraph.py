@@ -43,8 +43,8 @@ for CC in CCs:
         CCtypes[4][len(subnOGs)] = CCtypes[4].get(len(subnOGs), 0) + 1  # Component has multiple pairwise disjoint OGs
 
 # Make plots output directory
-if not os.path.exists('out/ggraph'):
-    os.makedirs('out/ggraph')  # Recursive folder creation
+if not os.path.exists('out/ggraph/'):
+    os.makedirs('out/ggraph/')  # Recursive folder creation
 
 # Write OGs to file
 j = 0

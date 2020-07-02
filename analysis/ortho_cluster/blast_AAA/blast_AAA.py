@@ -16,8 +16,8 @@ with open('params.tsv') as file:
 # Execute BLASTs
 for query_species, _, tcds_path in params:
     # Make output directory
-    if not os.path.exists(f'out/{query_species}'):
-        os.makedirs(f'out/{query_species}')
+    if not os.path.exists(f'out/{query_species}/'):
+        os.makedirs(f'out/{query_species}/')
 
     for db_species, _, _ in params:
         if not os.path.exists(f'out/{query_species}/{db_species}.blast'):
