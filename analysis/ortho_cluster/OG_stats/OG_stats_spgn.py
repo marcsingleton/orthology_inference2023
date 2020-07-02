@@ -27,8 +27,8 @@ ugnnum = OGs['gnid'].nunique()
 u10num = len(groups.filter(lambda x: len(x) == 10 and x['spid'].nunique() == 10)) // 10
 
 # Make output directory
-if not os.path.exists('out/spgn'):
-    os.makedirs('out/spgn')  # Recursive folder creation
+if not os.path.exists('out/spgn/'):
+    os.makedirs('out/spgn/')  # Recursive folder creation
 
 # Plots
 # Number of associated OGs for species
@@ -74,7 +74,7 @@ fig.savefig('out/spgn/dist_gnnum-species.png')
 plt.close()
 
 # Distribution of unique genes across species
-spid_ugns = OGs.loc[:, ['gnid', 'spid']].drop_duplicates()['spid'].value_counts().sort_index()
+spid_ugns = OGs.groupby('spid')['gnid'].nunique().sort_index()
 labels, h_ugn = zip(*spid_ugns.items())
 x = list(range(1, len(labels) + 1))
 fig, ax1 = plt.subplots()

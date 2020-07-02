@@ -31,8 +31,8 @@ with open('../subcluster_xgraph/out/ggraph/gclusters.txt') as file:
 OGs = pd.DataFrame(rows)
 
 # Make output directory
-if not os.path.exists('out/CCOG'):
-    os.makedirs('out/CCOG')  # Recursive folder creation
+if not os.path.exists('out/CCOG/'):
+    os.makedirs('out/CCOG/')  # Recursive folder creation
 
 # Plots
 # Distribution of genes across number of associated OGs
@@ -78,8 +78,8 @@ plt.savefig('out/CCOG/dist_gnnum-OGnum_species2.png')
 plt.close()
 
 # Distribution of connected components across number of associated OGs
-sizes = OGs.loc[:, ['CCid', 'OGid']].drop_duplicates().groupby('CCid').size()
-dist = sizes.reindex(CCs['CCid'].drop_duplicates(), fill_value=0).value_counts()
+sizes = OGs.groupby('CCid')['OGid'].nunique()
+dist = sizes.reindex(CCs['CCid'].unique(), fill_value=0).value_counts()
 plt.bar(dist.index, dist.values)
 plt.xlabel('Number of OGs in connected component')
 plt.ylabel('Number of connected components')
@@ -92,8 +92,8 @@ plt.close()
 CCOG_pairs = OGs[['CCid', 'OGid']].drop_duplicates()
 OG_OGgnnum = OGs.groupby('OGid').size().rename('OG_OGgnnum')
 CC_OGgnnum = CCOG_pairs.join(OG_OGgnnum, on='OGid').groupby('CCid')['OG_OGgnnum']
-CC_OGnum = CCOG_pairs.groupby('CCid').size().rename('CC_OGnum')
-CC_CCgnnum = CCs.groupby('CCid').size()[OGs['CCid'].drop_duplicates()].rename('CC_CCgnnum')
+CC_OGnum = OGs.groupby('CCid')['OGid'].nunique().rename('CC_OGnum')
+CC_CCgnnum = CCs.groupby('CCid').size()[OGs['CCid'].unique()].rename('CC_CCgnnum')  # Filter out CCs w/o OGs
 
 # Correlation of number of OGs associated with CC and number of genes in CC
 plt.scatter(CC_OGnum, CC_CCgnnum, alpha=0.5, s=10, edgecolors='none')
@@ -128,9 +128,8 @@ plt.ylabel('Number of genes in CC')
 plt.savefig('out/CCOG/scatter_CCgnnum-CCOGgnmean.png')
 plt.close()
 
-OGgn_pairs = OGs[['OGid', 'gnid']].drop_duplicates()
 CCgn_pairs = OGs[['CCid', 'gnid']].drop_duplicates()
-gn_OGnum = OGgn_pairs.groupby('gnid').size().rename('gn_OGnum')
+gn_OGnum = OGs.groupby('gnid')['OGid'].nunique().rename('gn_OGnum')
 hitnum = pd.read_csv('../blast_stats/out/hitnum_reciprocal/sgnids.tsv', sep='\t', header=0, names=['gnid', 'hitnum', 'spid'], index_col=0)
 df = CCgn_pairs.join(gn_OGnum, on='gnid').join(CC_CCgnnum, on='CCid').join(CC_OGnum, on='CCid').join(hitnum, on='gnid')
 

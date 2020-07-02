@@ -85,7 +85,7 @@ plt.savefig('out/dist_ppidnum-species_NCBI-FB.png')
 plt.close()
 
 # Distribution of number of genes across associated species
-spid_gnidnum = df[['spid', 'gnid']].drop_duplicates().groupby('spid').size()
+spid_gnidnum = df.groupby('spid')['gnid'].nunique()
 ncbi = {spid: spid_gnidnum[spid] for spid in ncbi_spids}
 yo = {spid: spid_gnidnum[spid] for spid in yo_spids}
 flybase = {spid: spid_gnidnum[spid] for spid in flybase_spids}
@@ -152,7 +152,8 @@ for data, data_label, color, file_label in [(ncbi, 'NCBI', 'C0', 'NCBI'),
     plt.close()
 
 # Distribution of genes across number of associated polypeptides
-gnid_ppidnum = df[['spid', 'gnid']].drop_duplicates().join(df.groupby('gnid').size().rename('ppidnum'), on='gnid')
+spidgnid_pairs = df[['spid', 'gnid']].drop_duplicates()
+gnid_ppidnum = spidgnid_pairs.join(df.groupby('gnid').size().rename('ppidnum'), on='gnid')
 gnid_ppidnum.to_csv('out/gnid_ppidnum.tsv', sep='\t', index=False)
 ncbi = gnid_ppidnum.loc[gnid_ppidnum['spid'].isin(ncbi_spids), 'ppidnum']
 yo = gnid_ppidnum.loc[gnid_ppidnum['spid'].isin(yo_spids), 'ppidnum']
