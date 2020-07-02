@@ -4,28 +4,41 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 from math import log10
+from numpy import linspace
 
 
-def hist1(df, bins, x_label, df_label, color, file_label, capital=True):
+def hist1(df, bins, file_label, x_label, df_label, color, capital=True):
     plt.hist(df, bins=bins, label=df_label, color=color)
     plt.xlabel((x_label[0].upper() + x_label[1:]) if capital else x_label)
     plt.ylabel('Number of top hits')
     plt.title('Distribution of top hits across ' + x_label)
     plt.legend()
-    plt.savefig(f'out/plots/{file_label}.png')
+    plt.savefig(f'out/plots/hist_{file_label}.png')
     plt.close()
 
 
-def hist2(dfs, bins, x_label, df_labels, colors, file_label):
+def hist2_1(dfs, bins, file_label, x_label, df_labels, colors, capital=True):
+    b = linspace(min([df.min() for df in dfs]), max([df.max() for df in dfs]), bins, endpoint=True)
+    for df, data_label, color in zip(dfs, df_labels, colors):
+        plt.hist(df, bins=b, label=data_label, color=color)
+    plt.xlabel((x_label[0].upper() + x_label[1:]) if capital else x_label)
+    plt.ylabel('Number of top hits')
+    plt.title('Distribution of top hits across ' + x_label)
+    plt.legend()
+    plt.savefig(f'out/plots/hist2_1_{file_label}.png')
+    plt.close()
+
+
+def hist2_2(dfs, bins, file_label, x_label, df_labels, colors, capital=True):
     fig, axs = plt.subplots(2, 1, sharex=True)
+    b = linspace(min([df.min() for df in dfs]), max([df.max() for df in dfs]), bins, endpoint=True)
     for ax, df, data_label, color in zip(axs, dfs, df_labels, colors):
-        ax.hist(df, bins=bins, label=data_label, color=color)
+        ax.hist(df, bins=b, label=data_label, color=color)
         ax.set_ylabel('Number of top hits')
         ax.legend()
-    axs[1].set_xlabel(x_label[0].upper() + x_label[1:])
+    axs[1].set_xlabel((x_label[0].upper() + x_label[1:]) if capital else x_label)
     fig.suptitle('Distribution of top hits across ' + x_label)
-
-    plt.savefig(f'out/plots/{file_label}.png')
+    fig.savefig(f'out/plots/hist2_2_{file_label}.png')
     plt.close()
 
 
@@ -49,19 +62,19 @@ df1 = ggraph.query('reciprocal == True')
 print('Fraction reciprocal:', len(df1) / len(df0))
 
 # Make plots output directory
-if not os.path.exists('out/plots'):
-    os.makedirs('out/plots')  # Recursive folder creation
+if not os.path.exists('out/plots/'):
+    os.makedirs('out/plots/')  # Recursive folder creation
 
 # EVALUE PLOTS
-eval0 = df0.loc[df0['evalue'] != 0, 'evalue'].apply(log10)
-eval1 = df1.loc[df1['evalue'] != 0, 'evalue'].apply(log10)
+evalue0 = df0.loc[df0['evalue'] != 0, 'evalue'].apply(log10)
+evalue1 = df1.loc[df1['evalue'] != 0, 'evalue'].apply(log10)
 
 # Stacked bar
 xs = list(range(2))
-ys0 = [len(eval0) / len(df0), len(eval1) / len(df1)]  # Fraction of hits with evalue > 0
-ys1 = [1 - ys0[0], 1 - ys0[1]]  # Fraction of hits with evalue == 0
-plt.bar(xs, ys0, label='non-zero', width=0.25)
-plt.bar(xs, ys1, label='zero', width=0.25, bottom=ys0)
+ys_g0 = [len(evalue0) / len(df0), len(evalue1) / len(df1)]  # Fraction of hits with evalue > 0
+ys_e0 = [1 - ys_g0[0], 1 - ys_g0[1]]  # Fraction of hits with evalue == 0
+plt.bar(xs, ys_g0, label='non-zero', width=0.25)
+plt.bar(xs, ys_e0, label='zero', width=0.25, bottom=ys_g0)
 plt.xticks(xs, ['all', 'reciprocal'])
 plt.xlim((-0.75, 1.75))
 plt.ylabel('Fraction of total top hits')
@@ -72,41 +85,45 @@ plt.savefig('out/plots/fraction_zero.png')
 plt.close()
 
 # Histograms
-plt.hist(eval0, bins=200, label='all', color='C0')
-plt.hist(eval1, bins=200, label='reciprocal', color='C1')
-plt.xlabel('log10(E-value)')
-plt.ylabel('Number of top hits')
-plt.title('Distribution of top hits across log10(E-value)')
-plt.legend()
-plt.savefig('out/plots/hist_evalue.png')
-plt.close()
-
-hist1(eval0, 200, 'log10(E-value)', 'all', 'C0', 'hist_evalue_all', capital=False)
-hist1(eval0, 200, 'log10(E-value)', 'reciprocal', 'C1', 'hist_evalue_reciprocal', capital=False)
+hist2_1([evalue0, evalue1], 200, 'evalue', 'log10(E-value)',
+        ['all', 'reciprocal'], ['C0', 'C1'], capital=False)
+hist2_2([evalue0, evalue1], 200, 'evalue', 'log10(E-value)',
+        ['all', 'reciprocal'], ['C0', 'C1'], capital=False)
+hist1(evalue0, 200, 'evalue_all', 'log10(E-value)', 'all', 'C0', capital=False)
+hist1(evalue1, 200, 'evalue_reciprocal', 'log10(E-value)', 'reciprocal', 'C1', capital=False)
 
 # BITSCORE HISTOGRAMS
-hist2([df0['bitscore'], df1['bitscore']], 200, 'bitscore', ['all', 'reciprocal'], ['C0', 'C1'], 'hist_bitscore')
-hist1(df0['bitscore'], 200, 'bitscore', 'all', 'C0', 'hist_bitscore_all')
-hist1(df1['bitscore'], 200, 'bitscore', 'reciprocal', 'C1', 'hist_bitscore_reciprocal')
+hist2_1([df0['bitscore'], df1['bitscore']], 200, 'bitscore', 'bitscore',
+        ['all', 'reciprocal'], ['C0', 'C1'])
+hist2_2([df0['bitscore'], df1['bitscore']], 200, 'bitscore', 'bitscore',
+        ['all', 'reciprocal'], ['C0', 'C1'])
+hist1(df0['bitscore'], 200, 'bitscore_all', 'bitscore', 'all', 'C0')
+hist1(df1['bitscore'], 200, 'bitscore_reciprocal', 'bitscore', 'reciprocal', 'C1')
 
 # PIDENT HISTOGRAMS
-hist2([df0['pident'], df1['pident']], 50, 'percent identity', ['all', 'reciprocal'], ['C0', 'C1'], 'hist_pident')
-hist1(df0['pident'], 50, 'percent identity', 'all', 'C0', 'hist_pident_all')
-hist1(df1['pident'], 50, 'percent identity', 'reciprocal', 'C1', 'hist_pident_reciprocal')
+hist2_1([df0['pident'], df1['pident']], 50, 'pident', 'percent identity',
+        ['all', 'reciprocal'], ['C0', 'C1'])
+hist2_2([df0['pident'], df1['pident']], 50, 'pident', 'percent identity',
+        ['all', 'reciprocal'], ['C0', 'C1'])
+hist1(df0['pident'], 50, 'pident_all', 'percent identity', 'all', 'C0')
+hist1(df1['pident'], 50, 'pident_reciprocal', 'percent identity', 'reciprocal', 'C1')
 
 # FRACTION ALIGNED HISTOGRAMS
 fali0 = (df0['qend'] - df0['qstart'] + 1) / df0['qlen']
 fali1 = (df1['qend'] - df1['qstart'] + 1) / df1['qlen']
 
-hist2([fali0, fali1], 50, 'fraction of query aligned', ['all', 'reciprocal'], ['C0', 'C1'], 'hist_fali')
-hist1(fali0, 50, 'fraction of query aligned', 'all', 'C0', 'hist_fali_all')
-hist1(fali1, 50, 'fraction of query aligned', 'reciprocal', 'C1', 'hist_fali_reciprocal')
+hist2_1([fali0, fali1], 50, 'fali', 'fraction of query aligned',
+        ['all', 'reciprocal'], ['C0', 'C1'])
+hist2_2([fali0, fali1], 50, 'fali', 'fraction of query aligned',
+        ['all', 'reciprocal'], ['C0', 'C1'])
+hist1(fali0, 50, 'fali_all', 'fraction of query aligned', 'all', 'C0')
+hist1(fali1, 50, 'fali_reciprocal', 'fraction of query aligned', 'reciprocal', 'C1')
 
 # TOP HITS
 for data_label, df in [('all', df0), ('reciprocal', df1)]:
     # Make top hits output directory
-    if not os.path.exists(f'out/hitnum_{data_label}'):
-        os.mkdir(f'out/hitnum_{data_label}')
+    if not os.path.exists(f'out/hitnum_{data_label}/'):
+        os.mkdir(f'out/hitnum_{data_label}/')
 
     # PPID
     sppid_hitnum = df['sppid'].value_counts().rename('sppid_hitnum').to_frame()
@@ -118,8 +135,7 @@ for data_label, df in [('all', df0), ('reciprocal', df1)]:
     sppid_hitnum_dmel.to_csv(f'out/hitnum_{data_label}/sppids_dmel.tsv', sep='\t', index_label='sppid')
 
     # GNID
-    gnid_pairs = df[['qgnid', 'sgnid']].drop_duplicates()
-    sgnid_hitnum = gnid_pairs['sgnid'].value_counts().rename('sgnid_hitnum').to_frame()
+    sgnid_hitnum = df.groupby('sgnid')['qgnid'].nunique().rename('sgnid_hitnum').to_frame()
     ids = df.loc[:, ['sgnid', 'sspid']].drop_duplicates().set_index('sgnid')
     sgnid_hitnum = sgnid_hitnum.join(ids)
 
