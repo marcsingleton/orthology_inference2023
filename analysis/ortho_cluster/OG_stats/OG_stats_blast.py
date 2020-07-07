@@ -44,14 +44,10 @@ def scatter1(x, y, file_label, xy_label, df_label, color):
 
 
 def scatter2(x, y, file_label, y_label):
-    fig, ax = plt.subplots()
-    ax.scatter(x, y, alpha=0.5, s=10, label='all', color='C0', edgecolors='none')
-    ax.set_xlabel(f'Number of genes in OG')
-    ax.set_ylabel(y_label)
-    leg = ax.legend(markerscale=2)
-    for lh in leg.legendHandles:
-        lh.set_alpha(1)
-    fig.savefig(f'out/blast/scatter_{file_label}.png')
+    plt.scatter(x, y, alpha=0.5, s=10, label='all', color='C0', edgecolors='none')
+    plt.xlabel(f'Number of genes in OG')
+    plt.ylabel(y_label)
+    plt.savefig(f'out/blast/scatter_{file_label}.png')
     plt.close()
 
 
@@ -91,7 +87,6 @@ for x, y, label, color in zip(xs, ys, ['all', 'filter1', 'filter2'], ['C0', 'C1'
 plt.xticks(xs, ['all', 'filter1', 'filter2'])
 plt.xlim((-0.75, 2.75))
 plt.ylabel('Number of OGs')
-plt.legend()
 plt.savefig('out/blast/bar_OGnum-filter.png')
 plt.close()
 
