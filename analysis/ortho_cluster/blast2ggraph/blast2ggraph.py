@@ -5,29 +5,38 @@ import os
 import re
 from itertools import permutations
 
-header = ['length', 'pident', 'nident', 'gaps',
-          'qlen', 'qstart', 'qend', 'slen', 'sstart', 'send',
-          'evalue', 'bitscore']
 
 def get_BHs(subjects):
     BHs = []
     ppids = set()
-    gnid = ppid2gnid[re.search(pp_regex[params[subject_species]], subjects[0][1]).group(1)]
-    for subject in subjects:
-        # Check if ppid added already
-        BH_ppid = re.search(pp_regex[params[subject_species]], subject[1]).group(1)
-        if BH_ppid in ppids:
-            continue
-        ppids.add(BH_ppid)
+    gnid = ppid2gnid[re.search(pp_regex[params[subject_species]], subjects[0][1]).group(1)] if subjects else None
+    evalue = 1
 
-        # Check if gnid has changed
+    for subject in subjects:
+        BH_ppid = re.search(pp_regex[params[subject_species]], subject[1]).group(1)
         BH_gnid = ppid2gnid[BH_ppid]
+
         if BH_gnid != gnid:
+            evalue = float(subject[-2])
             break
 
-        BH = {'BH_ppid': BH_ppid, 'BH_gnid': BH_gnid,
-              **{key: val for key, val in zip(header, subject[2:])}}
+    for subject in subjects:
+        BH_ppid = re.search(pp_regex[params[subject_species]], subject[1]).group(1)
+        BH_gnid = ppid2gnid[BH_ppid]
+        BH_evalue = float(subject[-2])
+
+        if BH_evalue >= evalue or BH_gnid != gnid:  # Check if evalue equals or exceeds limit or gnid has changed
+            break
+        if BH_ppid in ppids:  # Check if ppid added already
+            continue
+
+        header = ['length', 'pident', 'nident', 'gaps', 'qlen', 'qstart', 'qend', 'slen', 'sstart', 'send', 'evalue', 'bitscore']
+        BH = {'BH_ppid': BH_ppid, 'BH_gnid': BH_gnid, **{key: val for key, val in zip(header, subject[2:])}}
         BHs.append(BH)
+        ppids.add(BH_ppid)  # "Mark" ppid as added to skip in future
+
+    if not BHs:  # In case last search in file returned no hits or there are no unique top gene hits
+        BHs.append({'BH_ppid': subject_species, 'BH_gnid': 'null'})
 
     return BHs
 
@@ -73,7 +82,7 @@ for query_species, subject_species in permutations(params.keys(), 2):
             # Record query
             while line.startswith('#'):
                 if line == '# BLASTP 2.10.0+\n' and query_ppid is not None:  # Only add if previous search returned no hits
-                    add_BH(ggraph, query_ppid, query_gnid, subject_species, None)
+                    add_BH(ggraph, query_ppid, query_gnid, subject_species, 'null')
                 elif line.startswith('# Query:'):
                     query_ppid = re.search(pp_regex[params[query_species]], line).group(1)
                     query_gnid = ppid2gnid[query_ppid]
@@ -85,8 +94,7 @@ for query_species, subject_species in permutations(params.keys(), 2):
                 line = file.readline()
 
             # Add best from hit list
-            BHs = get_BHs(sorted(subjects, key=lambda x: float(x[-2]))) if subjects \
-                  else [{'BH_ppid': subject_species, 'BH_gnid': None}]  # In case last search in file returned no hits
+            BHs = get_BHs(sorted(subjects, key=lambda x: float(x[-2])))
             for BH in BHs:
                 add_BH(ggraph, query_ppid, query_gnid, **BH)
             query_ppid, subjects = None, []  # Signals current search was successfully recorded
@@ -105,6 +113,19 @@ with open('out/ggraph.tsv', 'w') as outfile:
         outfile.write(query_gnid + '\t' + ','.join(BH_gnids.keys()) + '\n')
 
 """
+NOTES
+This script makes a few decisions about what exactly a best hit to both a polypeptide and a gene are. Regarding
+polypeptides, since it is possible for there to be multiple hits to different segments of the sequence, the "best" is
+taken as the one with the lowest E-value and all others are ignored. Since the quality of the resulting orthologous
+group is likely better assessed by aligning the sequences anyway, these secondary hits are not of high importance.
+Regarding genes, a strict adherence to the top hit criterion would allow only polypeptide per gene. This can create
+mutually exclusive sets of polypeptide hits within a single orthologous group, a more flexible strategy is allowing
+multiple best hits within a gene. The most natural extension of the polypeptide criterion is choosing top hits ranked by
+evalue until the parent gene of the polypeptide changes. Subsequent hits to the top gene are considered ambiguous and
+ignored (similar to how subsequent hits to a polypeptide are ignored in the polypeptide case). This criterion will
+exclude some polypeptides that are associated with the best gene, but since these are ranked lower than hits to
+polypeptides in other genes, they should not be included since other stronger hits are discarded.
+
 DEPENDENCIES
 ../blast_AAA/blast_AAA.py
     ../blast_AAA/out/*
