@@ -9,25 +9,28 @@ from itertools import permutations
 def get_BHs(subjects):
     BHs = []
     ppids = set()
-    gnid = ppid2gnid[re.search(pp_regex[params[subject_species]], subjects[0][1]).group(1)] if subjects else None
-    evalue = 1
+    gnids = set()
+    cutoff = 0
 
     for subject in subjects:
         BH_ppid = re.search(pp_regex[params[subject_species]], subject[1]).group(1)
         BH_gnid = ppid2gnid[BH_ppid]
+        BH_bitscore = float(subject[-1])
 
-        if BH_gnid != gnid:
-            evalue = float(subject[-2])
+        if BH_bitscore == float(subjects[0][-1]):  # Add gnid to allowable list if bitscore is equal to highest
+            gnids.add(BH_gnid)
+        if BH_gnid not in gnids:  # Record bitscore once a hit is not within allowable list
+            cutoff = BH_bitscore
             break
 
     for subject in subjects:
         BH_ppid = re.search(pp_regex[params[subject_species]], subject[1]).group(1)
         BH_gnid = ppid2gnid[BH_ppid]
-        BH_evalue = float(subject[-2])
+        BH_bitscore = float(subject[-1])
 
-        if BH_evalue >= evalue or BH_gnid != gnid:  # Check if evalue equals or exceeds limit or gnid has changed
+        if BH_bitscore <= cutoff:  # Stop recording hits once bitscore is lower than cutoff
             break
-        if BH_ppid in ppids:  # Check if ppid added already
+        if BH_ppid in ppids:  # Record hit parameters for only best hit to a polypeptide
             continue
 
         header = ['length', 'pident', 'nident', 'gaps', 'qlen', 'qstart', 'qend', 'slen', 'sstart', 'send', 'evalue', 'bitscore']
@@ -94,7 +97,7 @@ for query_species, subject_species in permutations(params.keys(), 2):
                 line = file.readline()
 
             # Add best from hit list
-            BHs = get_BHs(sorted(subjects, key=lambda x: float(x[-2])))
+            BHs = get_BHs(sorted(subjects, key=lambda x: float(x[-1]), reverse=True))
             for BH in BHs:
                 add_BH(ggraph, query_ppid, query_gnid, **BH)
             query_ppid, subjects = None, []  # Signals current search was successfully recorded
