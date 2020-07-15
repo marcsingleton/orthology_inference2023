@@ -171,7 +171,7 @@ scatter1(OGs[2]['fali'].mean(), OGs[2]['fali'].var(),
 
 # EDGES
 edgenums = [df[['qgnid', 'sgnid', 'OGid']].drop_duplicates().groupby('OGid').size() / 2 for df in dfs]
-gnidnums = [df.groupby('OGid')['qgnid'].nunique() for df in dfs]
+gnidnums = [OG['qgnid'].nunique() for OG in OGs]
 edgefracs = [2*edgenum / (gnidnum*(gnidnum-1)) for edgenum, gnidnum in zip(edgenums, gnidnums)]
 
 hist3(edgenums, 100, 'OGnum-edgenum', 'OGs', 'number of edges',
@@ -187,17 +187,34 @@ hist1(edgefracs[1], 50, 'OGnum-edgefrac_filter1', 'OGs', 'fraction of possible e
 hist1(edgefracs[2], 50, 'OGnum-edgefrac_filter2', 'OGs', 'fraction of possible edges', 'filter2', 'C2')
 
 # CORRELATIONS
-OG_gnnum = OGs[0]['qgnid'].nunique()
-scatter2(OG_gnnum, OGs[0]['bitscore'].mean(),
+scatter2(gnidnums[0], OGs[0]['bitscore'].mean(),
          f'bitscore-OGgnnum_all', 'Mean bitscore of hits in OG')
-scatter2(OG_gnnum, OGs[0]['pident'].mean(),
+scatter2(gnidnums[0], OGs[0]['pident'].mean(),
          f'pident-OGgnnum_all', 'Mean percent identity of hits in OG')
-scatter2(OG_gnnum, OGs[0]['fali'].mean(),
+scatter2(gnidnums[0], OGs[0]['fali'].mean(),
          f'fali-OGgnnum_all', 'Mean fraction of query aligned of hits in OG')
-scatter2(OG_gnnum, edgenums[0],
+scatter2(gnidnums[0], edgenums[0],
          f'edgenum-OGgnnum_all', 'Number of edges in OG')
-scatter2(OG_gnnum, edgefracs[0],
+scatter2(gnidnums[0], edgefracs[0],
          f'edgefrac-OGgnnum_all', 'Fraction of possible edges in OG')
+
+# Remove His OGs
+df3 = df0[~df0['OGid'].isin(['0122', '0044', '0059', '004b', '011e'])]
+OG3 = df3.groupby('OGid')
+edgenum = df3[['qgnid', 'sgnid', 'OGid']].drop_duplicates().groupby('OGid').size() / 2
+gnidnum = OG3['qgnid'].nunique()
+edgefrac = 2*edgenum / (gnidnum*(gnidnum-1))
+
+scatter2(gnidnum, OG3['bitscore'].mean(),
+         f'bitscore-OGgnnum_his', 'Mean bitscore of hits in OG')
+scatter2(gnidnum, OG3['pident'].mean(),
+         f'pident-OGgnnum_his', 'Mean percent identity of hits in OG')
+scatter2(gnidnum, OG3['fali'].mean(),
+         f'fali-OGgnnum_his', 'Mean fraction of query aligned of hits in OG')
+scatter2(gnidnum, edgenum,
+         f'edgenum-OGgnnum_his', 'Number of edges in OG')
+scatter2(gnidnum, edgefrac,
+         f'edgefrac-OGgnnum_his', 'Fraction of possible edges in OG')
 
 """
 DEPENDENCIES

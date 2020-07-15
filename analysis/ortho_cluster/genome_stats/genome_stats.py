@@ -12,9 +12,6 @@ pp_regex = {'FlyBase': r'>(FBpp[0-9]+)',
 gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
             'NCBI': r'gene=LOC([0-9]+)',
             'YO': r'>(YOgn[A-Z]{2}[0-9]+)'}
-colors = {'FlyBase': 'C1',
-          'NCBI': 'C0',
-          'YO': 'C2'}
 
 # Parse parameters
 params = {}

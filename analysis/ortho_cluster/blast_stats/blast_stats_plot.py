@@ -10,8 +10,8 @@ from numpy import linspace
 def hist1(df, bins, file_label, x_label, df_label, color, capital=True):
     plt.hist(df, bins=bins, label=df_label, color=color)
     plt.xlabel((x_label[0].upper() + x_label[1:]) if capital else x_label)
-    plt.ylabel('Number of top hits')
-    plt.title('Distribution of top hits across ' + x_label)
+    plt.ylabel('Number of hits')
+    plt.title('Distribution of hits across ' + x_label)
     plt.legend()
     plt.savefig(f'out/plots/hist_{file_label}.png')
     plt.close()
@@ -22,8 +22,8 @@ def hist2_1(dfs, bins, file_label, x_label, df_labels, colors, capital=True):
     for df, data_label, color in zip(dfs, df_labels, colors):
         plt.hist(df, bins=b, label=data_label, color=color)
     plt.xlabel((x_label[0].upper() + x_label[1:]) if capital else x_label)
-    plt.ylabel('Number of top hits')
-    plt.title('Distribution of top hits across ' + x_label)
+    plt.ylabel('Number of hits')
+    plt.title('Distribution of hits across ' + x_label)
     plt.legend()
     plt.savefig(f'out/plots/hist2_1_{file_label}.png')
     plt.close()
@@ -34,10 +34,10 @@ def hist2_2(dfs, bins, file_label, x_label, df_labels, colors, capital=True):
     b = linspace(min([df.min() for df in dfs]), max([df.max() for df in dfs]), bins, endpoint=True)
     for ax, df, data_label, color in zip(axs, dfs, df_labels, colors):
         ax.hist(df, bins=b, label=data_label, color=color)
-        ax.set_ylabel('Number of top hits')
+        ax.set_ylabel('Number of hits')
         ax.legend()
     axs[1].set_xlabel((x_label[0].upper() + x_label[1:]) if capital else x_label)
-    fig.suptitle('Distribution of top hits across ' + x_label)
+    fig.suptitle('Distribution of hits across ' + x_label)
     fig.savefig(f'out/plots/hist2_2_{file_label}.png')
     plt.close()
 
@@ -45,7 +45,7 @@ def hist2_2(dfs, bins, file_label, x_label, df_labels, colors, capital=True):
 def bar(counts1, counts2, file_label):
     plt.bar(counts1.keys(), counts1.values(), label='NCBI + FlyBase')
     plt.bar(counts2.keys(), counts2.values(), bottom=[counts1.get(key, 0) for key in counts2.keys()], label=r'Yang $et\ al.$')
-    plt.title('Distribution of genes across\nnumber of reciprocal top hits')
+    plt.title('Distribution of genes across\nnumber of reciprocal hits')
     plt.xlabel('Number of reciprocal hits to gene')
     plt.ylabel('Number of genes')
     plt.legend()
@@ -77,8 +77,8 @@ plt.bar(xs, ys_g0, label='non-zero', width=0.25)
 plt.bar(xs, ys_e0, label='zero', width=0.25, bottom=ys_g0)
 plt.xticks(xs, ['all', 'reciprocal'])
 plt.xlim((-0.75, 1.75))
-plt.ylabel('Fraction of total top hits')
-plt.title('Fraction of top hits with zero and non-zero E-values')
+plt.ylabel('Fraction of total hits')
+plt.title('Fraction of hits with zero and non-zero E-values')
 plt.legend(bbox_to_anchor=(0.5, -0.1875), loc='lower center', ncol=2)
 plt.subplots_adjust(bottom=0.15)
 plt.savefig('out/plots/fraction_zero.png')
@@ -126,33 +126,49 @@ for data_label, df in [('all', df0), ('reciprocal', df1)]:
         os.mkdir(f'out/hitnum_{data_label}/')
 
     # PPID
-    sppid_hitnum = df['sppid'].value_counts().rename('sppid_hitnum').to_frame()
     ids = df.loc[:, ['sppid', 'sgnid', 'sspid']].drop_duplicates().set_index('sppid')
-    sppid_hitnum = sppid_hitnum.join(ids)
+    YO = df[~df['qspid'].isin(['dpse', 'dyak'])]
 
+    # All hits
+    sppid_hitnum = df['sppid'].value_counts().rename('sppid_hitnum').sort_values(ascending=False).to_frame()
+    sppid_hitnum = sppid_hitnum.join(ids)
     sppid_hitnum.to_csv(f'out/hitnum_{data_label}/sppids.tsv', sep='\t', index_label='sppid')
+
     sppid_hitnum_dmel = sppid_hitnum.loc[sppid_hitnum['sspid'] == 'dmel', :]
     sppid_hitnum_dmel.to_csv(f'out/hitnum_{data_label}/sppids_dmel.tsv', sep='\t', index_label='sppid')
 
-    # GNID
-    sgnid_hitnum = df.groupby('sgnid')['qgnid'].nunique().rename('sgnid_hitnum').to_frame()
-    ids = df.loc[:, ['sgnid', 'sspid']].drop_duplicates().set_index('sgnid')
-    sgnid_hitnum = sgnid_hitnum.join(ids)
+    # Hits excluding YO annotations
+    sppid_hitnum = YO['sppid'].value_counts().rename('sppid_hitnum').sort_values(ascending=False).to_frame()
+    sppid_hitnum = sppid_hitnum.join(ids)
+    sppid_hitnum.to_csv(f'out/hitnum_{data_label}/sppids_YO.tsv', sep='\t', index_label='sppid')
 
+    # GNID
+    ids = df.loc[:, ['sgnid', 'sspid']].drop_duplicates().set_index('sgnid')
+
+    # All hits
+    sgnid_hitnum = df.groupby('sgnid')['qgnid'].nunique().rename('sgnid_hitnum').sort_values(ascending=False).to_frame()
+    sgnid_hitnum = sgnid_hitnum.join(ids)
     sgnid_hitnum.to_csv(f'out/hitnum_{data_label}/sgnids.tsv', sep='\t', index_label='sgnid')
+
     sgnid_hitnum_dmel = sgnid_hitnum.loc[sgnid_hitnum['sspid'] == 'dmel', :]
     sgnid_hitnum_dmel.to_csv(f'out/hitnum_{data_label}/sgnids_dmel.tsv', sep='\t', index_label='sgnid')
+
+    # Hits from Dmel only
+    sgnid_hitnum = YO.groupby('sgnid')['qgnid'].nunique().rename('sgnid_hitnum').sort_values(ascending=False).to_frame()
+    sgnid_hitnum = sgnid_hitnum.join(ids)
+    sgnid_hitnum.to_csv(f'out/hitnum_{data_label}/sgnids_YO.tsv', sep='\t', index_label='sgnid')
 
     # Correlation of gene hits with number of associated polypeptides
     gnid_ppidnum = pd.read_csv('../genome_stats/out/gnid_ppidnum.tsv', sep='\t', index_col='gnid')
     corr = sgnid_hitnum.join(gnid_ppidnum)
     yo_gns = (corr['spid'] == 'dyak') | (corr['spid'] == 'dpse')
+    type = 'reciprocal ' if data_label == 'reciprocal' else ''
 
     plt.scatter(corr['ppidnum'], corr['sgnid_hitnum'],
                 alpha=0.5, s=10, edgecolors='none')
     plt.xlabel('Number of polypeptides associated with gene')
-    plt.ylabel('Number of hits to gene')
-    plt.title('Correlation of number of hits to gene\nwith number of associated polypeptides')
+    plt.ylabel(f'Number of {type}hits to gene')
+    plt.title(f'Correlation of number of {type}hits to gene\nwith number of associated polypeptides')
     plt.savefig(f'out/plots/scatter_hitnum-ppidnum_{data_label}.png')
     plt.close()
 
@@ -162,8 +178,8 @@ for data_label, df in [('all', df0), ('reciprocal', df1)]:
     ax.scatter(corr.loc[yo_gns, 'ppidnum'], corr.loc[yo_gns, 'sgnid_hitnum'],
                 label=r'Yang $et\ al.$', alpha=0.5, s=10, edgecolors='none')
     ax.set_xlabel('Number of polypeptides associated with gene')
-    ax.set_ylabel('Number of hits to gene')
-    ax.set_title('Correlation of number of hits to gene\nwith number of associated polypeptides')
+    ax.set_ylabel(f'Number of {type}hits to gene')
+    ax.set_title(f'Correlation of number of {type}hits to gene\nwith number of associated polypeptides')
     leg = ax.legend(markerscale=2)
     for lh in leg.legendHandles:
         lh.set_alpha(1)
@@ -184,7 +200,7 @@ bar({key: val for key, val in ncbifb_counts.items() if key <= 10},
 
 """
 OUTPUT
-Fraction reciprocal: 0.7653073916073564
+Fraction reciprocal: 0.7628523944345292
 
 DEPENDENCIES
 ../genome_stats/genome_stats.py
