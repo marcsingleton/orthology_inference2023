@@ -26,8 +26,8 @@ do
 #
 # Process parameters
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=24
-#SBATCH --cpus-per-task=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=24
 #
 # Reporting parameters
 #SBATCH --job-name=blast_AAA_$species

@@ -4,8 +4,6 @@ import os
 from subprocess import run
 from time import asctime
 
-num_threads = '20'
-
 # Parse parameters
 params = []
 with open('params.tsv') as file:
@@ -24,7 +22,7 @@ for query_species, _, tcds_path in params:
             # Generate args
             input_args = ['../../../bin/ncbi-blast-2.10.0+/bin/blastp', '-query', tcds_path]
             output_args = ['-out', f'out/{query_species}/{db_species}.blast']
-            search_args = ['-db', f'../blast_dbs/out/{db_species}_blastdb', '-evalue', '1', '-num_threads', num_threads]
+            search_args = ['-db', f'../blast_dbs/out/{db_species}_blastdb', '-evalue', '1', '-num_threads', '20']
             format_args = ['-outfmt', '7 qacc sacc length pident nident gaps qlen qstart qend slen sstart send evalue bitscore']
 
             # Execute command
