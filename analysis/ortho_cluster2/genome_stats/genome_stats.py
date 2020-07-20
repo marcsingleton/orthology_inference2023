@@ -6,7 +6,7 @@ import pandas as pd
 import re
 from numpy import linspace
 
-pp_regex = {'FlyBase': r'>(FBpp[0-9]+)',
+pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
             'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
 gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
             'NCBI': r'db_xref=GeneID:([0-9]+)'}
@@ -146,9 +146,6 @@ for data, data_label, color, file_label in [(ncbi, 'NCBI', 'C0', 'NCBI'),
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.32_FB2020_01/fasta/dmel-all-translation-r6.32.fasta
-../extract_orfs/extract_orfs.py
-    ../extract_orfs/out/dpse_translated_orfs.faa
-    ../extract_orfs/out/dyak_translated_orfs.faa
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ./params.tsv
 """
