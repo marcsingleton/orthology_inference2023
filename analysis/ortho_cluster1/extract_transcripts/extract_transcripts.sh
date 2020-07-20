@@ -8,7 +8,7 @@ fi
 
 cat params.tsv | while read species genome_path
 do
-	if [[ $genome != \#* ]]  # Double brackets is expanded syntax for tests
+	if [[ $species != \#* ]]  # Double brackets is expanded syntax for tests
 	then
 		../../../bin/gffread -w out/"$species"_transcript.fna -g ../../../data/flybase_genomes/"$genome_path" -F ../../../data/YO_annotations/"$species".YO.gff3
 	fi
