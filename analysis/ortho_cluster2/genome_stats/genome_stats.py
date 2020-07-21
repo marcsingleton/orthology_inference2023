@@ -13,7 +13,7 @@ gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
 
 # Parse parameters
 params = {}
-with open('../blast_dbs/params.tsv') as file:
+with open('../ppid2meta/params.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
         spid, _, source, tcds_path = line.split()
@@ -76,6 +76,7 @@ plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
 plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
 plt.xlabel('Associated species')
 plt.ylabel('Number of genes')
+plt.ylim((0, 1.1 * plt.ylim()[1]))  # Increase y-axis span to prevent overlap with legend
 plt.title('Distribution of genes across associated species')
 plt.subplots_adjust(bottom=0.15)
 plt.legend()
