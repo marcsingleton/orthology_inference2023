@@ -19,7 +19,7 @@
 # Command(s) to run:
 cd "$(dirname "$0")"
 if [ ! -d out ]; then
-  out_dir=/global/home/users/singleton/scratch/IDREvoDevo/analysis/ortho_cluster2/blast2ggraph/out
+  out_dir=/global/scratch/singleton/IDREvoDevo/analysis/ortho_cluster2/blast2ggraph/out
   if [ ! -d $out_dir ]; then
     mkdir -p $out_dir  # -p makes intermediate directory if they do not exist
   fi
