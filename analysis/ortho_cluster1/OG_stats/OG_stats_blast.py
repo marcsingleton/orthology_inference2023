@@ -80,11 +80,9 @@ if not os.path.exists('out/blast/'):
     os.makedirs('out/blast/')  # Recursive folder creation
 
 # Size of groups
-xs = list(range(3))
+xs = ['all', 'filter1', 'filter2']
 ys = [df['OGid'].nunique() for df in dfs]
-for x, y, label, color in zip(xs, ys, ['all', 'filter1', 'filter2'], ['C0', 'C1', 'C2']):
-    plt.bar(x, y, label=label, color=color, width=0.25)
-plt.xticks(xs, ['all', 'filter1', 'filter2'])
+plt.bar(xs, ys, color=['C0', 'C1', 'C2'], width=0.25)
 plt.xlim((-0.75, 2.75))
 plt.ylabel('Number of OGs')
 plt.savefig('out/blast/bar_OGnum-filter.png')
@@ -105,7 +103,7 @@ plt.ylabel('Fraction of total hits in OGs')
 plt.title('Fraction of hits in OGs with zero and non-zero E-values')
 plt.legend(bbox_to_anchor=(0.5, -0.1875), loc='lower center', ncol=2)
 plt.subplots_adjust(bottom=0.15)
-plt.savefig('out/blast/fraction_zero.png')
+plt.savefig('out/blast/bar_evalue_zero.png')
 plt.close()
 
 # Histograms

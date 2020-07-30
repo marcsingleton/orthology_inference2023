@@ -1,5 +1,6 @@
 """Plot various statistics of the BLAST results."""
 
+import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
@@ -7,29 +8,29 @@ from math import log10
 from numpy import linspace
 
 
-def hist1(df, bins, file_label, x_label, df_label, color, capital=True):
+def hist1(df, bins, file_label, x_label, df_label, color, capital=True, wrap=False):
     plt.hist(df, bins=bins, label=df_label, color=color)
     plt.xlabel((x_label[0].upper() + x_label[1:]) if capital else x_label)
     plt.ylabel('Number of hits')
-    plt.title('Distribution of hits across ' + x_label)
+    plt.title('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     plt.legend()
     plt.savefig(f'out/plots/hist_{file_label}.png')
     plt.close()
 
 
-def hist2_1(dfs, bins, file_label, x_label, df_labels, colors, capital=True):
+def hist2_1(dfs, bins, file_label, x_label, df_labels, colors, capital=True, wrap=False):
     b = linspace(min([df.min() for df in dfs]), max([df.max() for df in dfs]), bins, endpoint=True)
     for df, data_label, color in zip(dfs, df_labels, colors):
         plt.hist(df, bins=b, label=data_label, color=color)
     plt.xlabel((x_label[0].upper() + x_label[1:]) if capital else x_label)
     plt.ylabel('Number of hits')
-    plt.title('Distribution of hits across ' + x_label)
+    plt.title('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     plt.legend()
     plt.savefig(f'out/plots/hist2_1_{file_label}.png')
     plt.close()
 
 
-def hist2_2(dfs, bins, file_label, x_label, df_labels, colors, capital=True):
+def hist2_2(dfs, bins, file_label, x_label, df_labels, colors, capital=True, wrap=False):
     fig, axs = plt.subplots(2, 1, sharex=True)
     b = linspace(min([df.min() for df in dfs]), max([df.max() for df in dfs]), bins, endpoint=True)
     for ax, df, data_label, color in zip(axs, dfs, df_labels, colors):
@@ -37,37 +38,49 @@ def hist2_2(dfs, bins, file_label, x_label, df_labels, colors, capital=True):
         ax.set_ylabel('Number of hits')
         ax.legend()
     axs[1].set_xlabel((x_label[0].upper() + x_label[1:]) if capital else x_label)
-    fig.suptitle('Distribution of hits across ' + x_label)
+    fig.suptitle('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     fig.savefig(f'out/plots/hist2_2_{file_label}.png')
     plt.close()
 
 
-def bar(counts1, counts2, file_label):
-    plt.bar(counts1.keys(), counts1.values(), label='NCBI + FlyBase')
-    plt.bar(counts2.keys(), counts2.values(), bottom=[counts1.get(key, 0) for key in counts2.keys()], label=r'Yang $et\ al.$')
+def bar_hist(counts1, counts2, file_label):
+    plt.bar(counts1.keys(), counts1.values(),
+            width=1, label='NCBI + FlyBase')
+    plt.bar(counts2.keys(), counts2.values(), bottom=[counts1.get(key, 0) for key in counts2.keys()],
+            width=1, label=r'Yang $et\ al.$')
     plt.title('Distribution of genes across\nnumber of reciprocal hits')
     plt.xlabel('Number of reciprocal hits to gene')
     plt.ylabel('Number of genes')
     plt.legend()
-    plt.savefig(f'out/plots/bar_reciprocal_gnids_{file_label}.png')
+    plt.savefig(f'out/plots/hist_gnidnum-hitnum_{file_label}.png')
     plt.close()
 
 
 cols = ['qppid', 'qgnid', 'qspid', 'sppid', 'sgnid', 'sspid']
 ggraph = pd.read_csv('out/ggraph.tsv', sep='\t', dtype={col: str for col in cols})
+ggraph['nqa'] = ggraph['qend'] - ggraph['qstart'] + 1
+ggraph['fqa'] = (ggraph['qend'] - ggraph['qstart'] + 1) / ggraph['qlen']
+ggraph['logevalue'] = ggraph['evalue'].apply(lambda x: log10(x) if x > 0 else -180)
 
 # Subset ggraph into various categories
 df0 = ggraph
 df1 = ggraph.query('reciprocal == True')
-print('Fraction reciprocal:', len(df1) / len(df0))
 
 # Make plots output directory
 if not os.path.exists('out/plots/'):
     os.makedirs('out/plots/')  # Recursive folder creation
 
+# FILTER PLOTS
+plt.bar(['all', 'reciprocal'], [len(df0), len(df1)], color=['C0', 'C1'], width=0.25)
+plt.xlim((-0.75, 1.75))
+plt.ylabel('Number of hits')
+plt.savefig('out/plots/bar_reciprocal_filter.png')
+plt.close()
+print('Fraction reciprocal:', len(df1) / len(df0))
+
 # EVALUE PLOTS
-evalue0 = df0.loc[df0['evalue'] != 0, 'evalue'].apply(log10)
-evalue1 = df1.loc[df1['evalue'] != 0, 'evalue'].apply(log10)
+evalue0 = df0.loc[df0['evalue'] != 0, 'logevalue']
+evalue1 = df1.loc[df1['evalue'] != 0, 'logevalue']
 
 # Stacked bar
 xs = list(range(2))
@@ -81,7 +94,7 @@ plt.ylabel('Fraction of total hits')
 plt.title('Fraction of hits with zero and non-zero E-values')
 plt.legend(bbox_to_anchor=(0.5, -0.1875), loc='lower center', ncol=2)
 plt.subplots_adjust(bottom=0.15)
-plt.savefig('out/plots/fraction_zero.png')
+plt.savefig('out/plots/bar_evalue_zero.png')
 plt.close()
 
 # Histograms
@@ -91,6 +104,58 @@ hist2_2([evalue0, evalue1], 200, 'evalue', 'log10(E-value)',
         ['all', 'reciprocal'], ['C0', 'C1'], capital=False)
 hist1(evalue0, 200, 'evalue_all', 'log10(E-value)', 'all', 'C0', capital=False)
 hist1(evalue1, 200, 'evalue_reciprocal', 'log10(E-value)', 'reciprocal', 'C1', capital=False)
+
+# Scatters
+plt.hist2d(df1['logevalue'], df1['fqa'], bins=50, norm=colors.PowerNorm(0.3))
+plt.xlabel('log10(E-value)')
+plt.ylabel('Fraction of query aligned')
+plt.colorbar()
+plt.savefig('out/plots/hist2d_fqa-evalue.png')
+plt.close()
+
+x = df0.groupby('logevalue')['nqa'].min()
+fig, ax = plt.subplots()
+ax.scatter(x.index, x.values, label='all', color='C0', alpha=0.5, s=10, edgecolors='none')
+ax.set_xlabel('log10(E-value)')
+ax.set_ylabel('Minimum number of residues aligned')
+leg = ax.legend(markerscale=2)
+for lh in leg.legendHandles:
+    lh.set_alpha(1)
+fig.savefig('out/plots/scatter_nqamin-evalue_all.png')
+plt.close()
+
+x = df1.groupby('logevalue')['nqa'].min()
+fig, ax = plt.subplots()
+ax.scatter(x.index, x.values, label='reciprocal', color='C1', alpha=0.5, s=10, edgecolors='none')
+ax.set_xlabel('log10(E-value)')
+ax.set_ylabel('Minimum number of residues aligned')
+leg = ax.legend(markerscale=2)
+for lh in leg.legendHandles:
+    lh.set_alpha(1)
+fig.savefig('out/plots/scatter_nqamin-evalue_reciprocal.png')
+plt.close()
+
+x = df0.groupby('logevalue')['bitscore'].min()
+fig, ax = plt.subplots()
+ax.scatter(x.index, x.values, label='all', color='C0', alpha=0.5, s=10, edgecolors='none')
+ax.set_xlabel('log10(E-value)')
+ax.set_ylabel('Minimum bitscore')
+leg = ax.legend(markerscale=2)
+for lh in leg.legendHandles:
+    lh.set_alpha(1)
+fig.savefig('out/plots/scatter_bitscoremin-evalue_all.png')
+plt.close()
+
+x = df1.groupby('logevalue')['bitscore'].min()
+fig, ax = plt.subplots()
+ax.scatter(x.index, x.values, label='reciprocal', color='C1', alpha=0.5, s=10, edgecolors='none')
+ax.set_xlabel('log10(E-value)')
+ax.set_ylabel('Minimum bitscore')
+leg = ax.legend(markerscale=2)
+for lh in leg.legendHandles:
+    lh.set_alpha(1)
+fig.savefig('out/plots/scatter_bitscoremin-evalue_reciprocal.png')
+plt.close()
 
 # BITSCORE HISTOGRAMS
 hist2_1([df0['bitscore'], df1['bitscore']], 200, 'bitscore', 'bitscore',
@@ -108,16 +173,21 @@ hist2_2([df0['pident'], df1['pident']], 50, 'pident', 'percent identity',
 hist1(df0['pident'], 50, 'pident_all', 'percent identity', 'all', 'C0')
 hist1(df1['pident'], 50, 'pident_reciprocal', 'percent identity', 'reciprocal', 'C1')
 
-# FRACTION ALIGNED HISTOGRAMS
-fali0 = (df0['qend'] - df0['qstart'] + 1) / df0['qlen']
-fali1 = (df1['qend'] - df1['qstart'] + 1) / df1['qlen']
+# NUMBER ALIGNED HISTOGRAMS
+hist2_1([df0['nqa'], df1['nqa']], 250, 'nqa', 'number of query residues aligned',
+        ['all', 'reciprocal'], ['C0', 'C1'], wrap=True)
+hist2_2([df0['nqa'], df1['nqa']], 250, 'nqa', 'number of query residues aligned',
+        ['all', 'reciprocal'], ['C0', 'C1'], wrap=True)
+hist1(df0['nqa'], 50, 'nqa_all', 'number of query residues aligned', 'all', 'C0', wrap=True)
+hist1(df1['nqa'], 50, 'nqa_reciprocal', 'number of query residues aligned', 'reciprocal', 'C1', wrap=True)
 
-hist2_1([fali0, fali1], 50, 'fali', 'fraction of query aligned',
+# FRACTION ALIGNED HISTOGRAMS
+hist2_1([df0['fqa'], df1['fqa']], 50, 'fqa', 'fraction of query aligned',
         ['all', 'reciprocal'], ['C0', 'C1'])
-hist2_2([fali0, fali1], 50, 'fali', 'fraction of query aligned',
+hist2_2([df0['fqa'], df1['fqa']], 50, 'fqa', 'fraction of query aligned',
         ['all', 'reciprocal'], ['C0', 'C1'])
-hist1(fali0, 50, 'fali_all', 'fraction of query aligned', 'all', 'C0')
-hist1(fali1, 50, 'fali_reciprocal', 'fraction of query aligned', 'reciprocal', 'C1')
+hist1(df0['fqa'], 50, 'fqa_all', 'fraction of query aligned', 'all', 'C0')
+hist1(df1['fqa'], 50, 'fqa_reciprocal', 'fraction of query aligned', 'reciprocal', 'C1')
 
 # TOP HITS
 for data_label, df in [('all', df0), ('reciprocal', df1)]:
@@ -153,7 +223,7 @@ for data_label, df in [('all', df0), ('reciprocal', df1)]:
     sgnid_hitnum_dmel = sgnid_hitnum.loc[sgnid_hitnum['sspid'] == 'dmel', :]
     sgnid_hitnum_dmel.to_csv(f'out/hitnum_{data_label}/sgnids_dmel.tsv', sep='\t', index_label='sgnid')
 
-    # Hits from Dmel only
+    # Hits excluding YO annotations
     sgnid_hitnum = YO.groupby('sgnid')['qgnid'].nunique().rename('sgnid_hitnum').sort_values(ascending=False).to_frame()
     sgnid_hitnum = sgnid_hitnum.join(ids)
     sgnid_hitnum.to_csv(f'out/hitnum_{data_label}/sgnids_YO.tsv', sep='\t', index_label='sgnid')
@@ -161,7 +231,7 @@ for data_label, df in [('all', df0), ('reciprocal', df1)]:
     # Correlation of gene hits with number of associated polypeptides
     gnid_ppidnum = pd.read_csv('../genome_stats/out/gnid_ppidnum.tsv', sep='\t', index_col='gnid')
     corr = sgnid_hitnum.join(gnid_ppidnum)
-    yo_gns = (corr['spid'] == 'dyak') | (corr['spid'] == 'dpse')
+    yo_gns = corr['spid'].isin(['dpse', 'dyak'])
     type = 'reciprocal ' if data_label == 'reciprocal' else ''
 
     plt.scatter(corr['ppidnum'], corr['sgnid_hitnum'],
@@ -186,17 +256,17 @@ for data_label, df in [('all', df0), ('reciprocal', df1)]:
     fig.savefig(f'out/plots/scatter_hitnum-ppidnum_NCBI-YO_{data_label}.png')
     plt.close()
 
-# Bar plot
+# RECIPROCAL HIT HISTOGRAMS
 top_sgnids = pd.read_csv('out/hitnum_reciprocal/sgnids.tsv', sep='\t')
 yo_gns = top_sgnids['sspid'].isin(['dpse', 'dyak'])
 yo_counts = top_sgnids.loc[yo_gns, 'sgnid_hitnum'].value_counts().to_dict()
 ncbifb_counts = top_sgnids.loc[~yo_gns, 'sgnid_hitnum'].value_counts().to_dict()
 
-bar(ncbifb_counts, yo_counts, 'all')
-bar({key: val for key, val in ncbifb_counts.items() if key > 10},
-    {key: val for key, val in yo_counts.items() if key > 10}, 'g10')
-bar({key: val for key, val in ncbifb_counts.items() if key <= 10},
-    {key: val for key, val in yo_counts.items() if key <= 10}, 'le10')
+bar_hist(ncbifb_counts, yo_counts, 'all')
+bar_hist({key: val for key, val in ncbifb_counts.items() if key > 10},
+         {key: val for key, val in yo_counts.items() if key > 10}, '10+')
+bar_hist({key: val for key, val in ncbifb_counts.items() if key <= 10},
+         {key: val for key, val in yo_counts.items() if key <= 10}, '10-')
 
 """
 OUTPUT
