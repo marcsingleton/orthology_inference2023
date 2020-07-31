@@ -38,9 +38,9 @@ for CC in CCs:
         else:
             CCtypes[2][len(subnOGs)] = CCtypes[2].get(len(subnOGs), 0) + 1  # Component has single OG which is a subset of the component
     elif any([set.intersection(nOG1, nOG2) for nOG1, nOG2 in combinations(subnOGs, 2)]):
-        CCtypes[3][len(subnOGs)] = CCtypes[3].get(len(subnOGs), 0) + 1  # Component has multiple non-disjoint OGs
-    else:
         CCtypes[4][len(subnOGs)] = CCtypes[4].get(len(subnOGs), 0) + 1  # Component has multiple pairwise disjoint OGs
+    else:
+        CCtypes[3][len(subnOGs)] = CCtypes[3].get(len(subnOGs), 0) + 1  # Component has multiple non-disjoint OGs
 
 # Make plots output directory
 if not os.path.exists('out/ggraph/'):
@@ -95,8 +95,8 @@ OUTPUT
 Type 0: 165
 Type 1: 7289
 Type 2: 913
-Type 3: 878
-Type 4: 748
+Type 3: 748
+Type 4: 878
 
 DEPENDENCIES
 ../connect_xgraph/connect_ggraph.py
