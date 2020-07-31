@@ -80,7 +80,7 @@ for path, root in zip(paths, roots):
     labels, h_ali = zip(*sorted(species_ali.items(), key=lambda i: i[0]))
     x = list(range(1, len(labels) + 1))
     fig, ax1 = plt.subplots()
-    ax1.bar(x, h_ali, tick_label=labels, align='center')
+    ax1.bar(x, h_ali, tick_label=labels)
     ax1.set_xlabel('Species')
     ax1.set_ylabel('Number of associated alignments')
     ax1.set_title('Number of associated alignments for each species')
@@ -98,7 +98,7 @@ for path, root in zip(paths, roots):
     labels, h_seq = zip(*sorted(species_seq.items(), key=lambda i: i[0]))
     x = list(range(1, len(labels) + 1))
     fig, ax1 = plt.subplots()
-    ax1.bar(x, h_seq, tick_label=labels, align='center')
+    ax1.bar(x, h_seq, tick_label=labels)
     ax1.set_xlabel('Associated species')
     ax1.set_ylabel('Number of sequences')
     ax1.set_title('Distribution of sequences across associated species')
@@ -109,7 +109,7 @@ for path, root in zip(paths, roots):
     ax2.set_ylabel('Fraction of total sequences')
 
     fig.tight_layout()
-    fig.savefig('dist_seqnum-species.png')
+    fig.savefig('bar_seqnum-species.png')
     plt.close()
 
     # Correlation of number of sequences and associated alignments
@@ -136,13 +136,13 @@ for path, root in zip(paths, roots):
     ax2.set_ylabel('Fraction of total alignments')
 
     fig.tight_layout()
-    fig.savefig('dist_alinum-spnum.png')
+    fig.savefig('hist_alinum-spnum.png')
     plt.close()
 
     # Distribution of alignments across number of sequences
     seq, seq_count = zip(*dist_nseq.items())
     fig, ax1 = plt.subplots()
-    ax1.bar(seq, seq_count, width=1, align='edge')
+    ax1.bar(seq, seq_count, width=1)
     ax1.set_title('Distribution of alignments across\nnumber of sequences in alignment')
     ax1.set_xlabel('Number of sequences in alignment')
     ax1.set_ylabel('Number of alignments')
@@ -153,13 +153,13 @@ for path, root in zip(paths, roots):
     ax2.set_ylabel('Fraction of total alignments')
 
     fig.tight_layout()
-    fig.savefig('dist_alinum-seqnum.png')
+    fig.savefig('hist_alinum-seqnum.png')
     plt.close()
 
     # Distribution of alignments across number of species duplicates
     seq, seq_count = zip(*dist_ndup.items())
     fig, ax1 = plt.subplots()
-    ax1.bar(seq, seq_count, width=1, align='center')
+    ax1.bar(seq, seq_count, width=1)
     ax1.set_title('Distribution of alignments across\nnumber of species duplicates in aligment')
     ax1.set_xlabel('Number of species duplicates in alignment')
     ax1.set_ylabel('Number of alignments')
@@ -170,7 +170,7 @@ for path, root in zip(paths, roots):
     ax2.set_ylabel('Fraction of total alignments')
 
     fig.tight_layout()
-    fig.savefig('dist_alinum-spdup.png')
+    fig.savefig('hist_alinum-spdup.png')
     plt.close()
 
     os.chdir('../..')  # Return to initial directory

@@ -66,7 +66,7 @@ plt.xlabel('Associated species')
 plt.ylabel('Number of polypeptides')
 plt.title('Distribution of polypeptides across associated species')
 plt.legend()
-plt.savefig('out/dist_ppidnum-species_all.png')
+plt.savefig('out/bar_ppidnum-species_all.png')
 plt.close()
 
 plt.bar(range(0, len(ncbi)),
@@ -78,7 +78,7 @@ plt.xlabel('Associated species')
 plt.ylabel('Number of polypeptides')
 plt.title('Distribution of polypeptides across associated species')
 plt.legend()
-plt.savefig('out/dist_ppidnum-species_NCBI-FB.png')
+plt.savefig('out/bar_ppidnum-species_NCBI-FB.png')
 plt.close()
 
 # Distribution of number of genes across associated species
@@ -99,7 +99,7 @@ plt.ylabel('Number of genes')
 plt.ylim((0, 1.1 * plt.ylim()[1]))  # Increase y-axis span to prevent overlap with legend
 plt.title('Distribution of genes across associated species')
 plt.legend()
-plt.savefig('out/dist_gnidnum-species.png')
+plt.savefig('out/bar_gnidnum-species.png')
 plt.close()
 
 # Distribution of polypeptides across length
@@ -119,7 +119,7 @@ fig.suptitle('Distribution of polypeptides across length')
 fig.subplots_adjust(left=0.175)
 for ax in axs:
     ax.legend()
-fig.savefig('out/dist_ppidnum-pplen_all.png')
+fig.savefig('out/hist_ppidnum-pplen_all.png')
 plt.close()
 
 # NCBI and FlyBase
@@ -133,7 +133,7 @@ fig.subplots_adjust(left=0.175)
 for ax in axs:
     ax.set_ylabel('Number of polypeptides')
     ax.legend()
-fig.savefig('out/dist_ppidnum-pplen_NCBI-FB.png')
+fig.savefig('out/hist_ppidnum-pplen_NCBI-FB.png')
 plt.close()
 
 # Individual
@@ -145,7 +145,7 @@ for data, data_label, color, file_label in [(ncbi, 'NCBI', 'C0', 'NCBI'),
     plt.ylabel('Number of polypeptides')
     plt.title('Distribution of polypeptides across length')
     plt.legend()
-    plt.savefig(f'out/dist_ppidnum-pplen_{file_label}.png')
+    plt.savefig(f'out/hist_ppidnum-pplen_{file_label}.png')
     plt.close()
 
 # Distribution of genes across number of associated polypeptides
@@ -168,7 +168,7 @@ fig.suptitle('Distribution of genes across\nnumber of associated polypeptides')
 fig.subplots_adjust(left=0.175)
 for ax in axs:
     ax.legend()
-fig.savefig('out/dist_gnidnum-ppidnum_all.png')
+fig.savefig('out/hist_gnidnum-ppidnum_all.png')
 plt.close()
 
 # NCBI and FlyBase
@@ -182,7 +182,7 @@ fig.subplots_adjust(left=0.175)
 for ax in axs:
     ax.set_ylabel('Number of genes')
     ax.legend()
-fig.savefig('out/dist_gnidnum-ppidnum_NCBI-FB.png')
+fig.savefig('out/hist_gnidnum-ppidnum_NCBI-FB.png')
 plt.close()
 
 # Individual
@@ -194,7 +194,7 @@ for data, data_label, color, file_label in [(ncbi, 'NCBI', 'C0', 'NCBI'),
     plt.ylabel('Number of genes')
     plt.title('Distribution of genes across\nnumber of associated polypeptides')
     plt.legend()
-    plt.savefig(f'out/dist_gnidnum-ppidnum_{file_label}.png')
+    plt.savefig(f'out/hist_gnidnum-ppidnum_{file_label}.png')
     plt.close()
 
 """

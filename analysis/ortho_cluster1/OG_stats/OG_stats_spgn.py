@@ -40,7 +40,7 @@ for _, group in groups:
 labels, h_OG = zip(*sorted(spid_OGs.items(), key=lambda i: i[0]))
 x = list(range(1, len(labels) + 1))
 fig, ax1 = plt.subplots()
-ax1.bar(x, h_OG, tick_label=labels, align='center')
+ax1.bar(x, h_OG, tick_label=labels)
 ax1.set_xlabel('Species')
 ax1.set_ylabel('Number of associated OGs')
 ax1.set_title('Number of associated OGs for each species')
@@ -70,7 +70,7 @@ ax2.set_ylim(mn / len(OGs), mx / len(OGs))
 ax2.set_ylabel('Fraction of total genes')
 
 fig.tight_layout()
-fig.savefig('out/spgn/dist_gnnum-species.png')
+fig.savefig('out/spgn/bar_gnnum-species.png')
 plt.close()
 
 # Distribution of unique genes across species
@@ -89,7 +89,29 @@ ax2.set_ylim(mn / ugnnum, mx / ugnnum)
 ax2.set_ylabel('Fraction of total unique genes')
 
 fig.tight_layout()
-fig.savefig('out/spgn/dist_ugnnum-species.png')
+fig.savefig('out/spgn/bar_ugnnum-species.png')
+plt.close()
+
+# Number of exclusions for each species
+spids = set(OGs['spid'].drop_duplicates())
+spid_counts = {spid: 0 for spid in sorted(spids)}
+for spid, in [spids - set(group['spid'].drop_duplicates()) for _, group in groups if group['spid'].nunique() == 9]:
+    spid_counts[spid] += 1
+labels, h = zip(*spid_counts.items())
+x = list(range(1, len(labels) + 1))
+fig, ax1 = plt.subplots()
+ax1.bar(x, h, tick_label=labels)
+ax1.set_xlabel('Species')
+ax1.set_ylabel('Number of OGs')
+ax1.set_title('Number of exclusions for each species in OGs with 9 species')
+
+ax2 = ax1.twinx()
+mn, mx = ax1.get_ylim()
+ax2.set_ylim(mn / sum(h), mx / sum(h))
+ax2.set_ylabel('Fraction of total OGs with 9 species')
+
+fig.tight_layout()
+fig.savefig('out/spgn/bar_OGexclusion-species.png')
 plt.close()
 
 # Correlation of number of genes and associated OGs
@@ -127,14 +149,14 @@ ax2.set_ylim(mn / OGnum, mx / OGnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/spgn/dist_OGnum-spnum.png')
+fig.savefig('out/spgn/hist_OGnum-spnum.png')
 plt.close()
 
 # Distribution of OGs across number of genes
 dist_seq = groups.size().value_counts()
 seq, seq_count = zip(*dist_seq.items())
 fig, ax1 = plt.subplots()
-ax1.bar(seq, seq_count, width=1, align='center')
+ax1.bar(seq, seq_count, width=1)
 ax1.set_title('Distribution of OGs across number of genes in OG')
 ax1.set_xlabel('Number of genes in OG')
 ax1.set_ylabel('Number of OGs')
@@ -145,14 +167,14 @@ ax2.set_ylim(mn / OGnum, mx / OGnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/spgn/dist_OGnum-gnnum.png')
+fig.savefig('out/spgn/hist_OGnum-gnnum.png')
 plt.close()
 
 # Distribution of OGs across number of species duplicates
 dist_dup = (groups.size() - groups['spid'].nunique()).value_counts()
 seq, seq_count = zip(*dist_dup.drop(0, errors='ignore').items())  # Drop 0; ignore error if 0 does not exist
 fig, ax1 = plt.subplots()
-ax1.bar(seq, seq_count, width=1, align='center')
+ax1.bar(seq, seq_count, width=1)
 ax1.set_title('Distribution of OGs across number of species duplicates in OG')
 ax1.set_xlabel('Number of species duplicates in OG')
 ax1.set_ylabel('Number of OGs')
@@ -163,7 +185,7 @@ ax2.set_ylim(mn / OGnum, mx / OGnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/spgn/dist_OGnum-spdup.png')
+fig.savefig('out/spgn/hist_OGnum-spdup.png')
 plt.close()
 
 # Print counts
@@ -201,8 +223,8 @@ NOTES
 These plots are largely based off those in analysis/EggNOGv5_validation/ali_stats/ali_stats.py
 
 DEPENDENCIES
-../cluster_xgraph/cluster_ggraph.py
-    ../cluster_xgraph/out/gclusters.tsv
 ../ppid2meta/ppid2meta.py
     ../ppid2meta/out/ppid2meta.tsv
+../subcluster_xgraph/subcluster_ggraph.py
+    ../subcluster_xgraph/out/gclusters.tsv
 """

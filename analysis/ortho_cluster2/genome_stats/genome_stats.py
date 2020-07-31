@@ -54,14 +54,14 @@ flybase = {spid: spid_ppidnum[spid] for spid in flybase_spids}
 plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0')
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
-        flybase.values(), label=r'FlyBase', color='C2')
+        flybase.values(), label=r'FlyBase', color='C1')
 plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
 plt.xlabel('Associated species')
 plt.ylabel('Number of polypeptides')
 plt.title('Distribution of polypeptides across associated species')
 plt.subplots_adjust(bottom=0.15)
 plt.legend()
-plt.savefig('out/dist_ppidnum-species.png')
+plt.savefig('out/bar_ppidnum-species.png')
 plt.close()
 
 # Distribution of number of genes across associated species
@@ -72,7 +72,7 @@ flybase = {spid: spid_gnidnum[spid] for spid in flybase_spids}
 plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0')
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
-        flybase.values(), label=r'FlyBase', color='C2')
+        flybase.values(), label=r'FlyBase', color='C1')
 plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
 plt.xlabel('Associated species')
 plt.ylabel('Number of genes')
@@ -80,7 +80,7 @@ plt.ylim((0, 1.1 * plt.ylim()[1]))  # Increase y-axis span to prevent overlap wi
 plt.title('Distribution of genes across associated species')
 plt.subplots_adjust(bottom=0.15)
 plt.legend()
-plt.savefig('out/dist_gnidnum-species.png')
+plt.savefig('out/bar_gnidnum-species.png')
 plt.close()
 
 # Distribution of polypeptides across length
@@ -91,25 +91,25 @@ flybase = df.loc[df['spid'].isin(flybase_spids), 'pplen']
 bins = linspace(min(ncbi.min(), flybase.min()), max(ncbi.max(), flybase.max()), 100, endpoint=True)
 fig, axs = plt.subplots(2, 1, sharex=True, figsize=(4.8, 6))
 axs[0].hist(ncbi, bins=bins, label='NCBI', color='C0')
-axs[1].hist(flybase, bins=bins, label='FlyBase', color='C2')
+axs[1].hist(flybase, bins=bins, label='FlyBase', color='C1')
 axs[1].set_xlabel('Length')
 fig.suptitle('Distribution of polypeptides across length')
 fig.subplots_adjust(left=0.175)
 for ax in axs:
     ax.set_ylabel('Number of polypeptides')
     ax.legend()
-fig.savefig('out/dist_ppidnum-pplen.png')
+fig.savefig('out/hist_ppidnum-pplen.png')
 plt.close()
 
 # Individual
 for data, data_label, color, file_label in [(ncbi, 'NCBI', 'C0', 'NCBI'),
-                                            (flybase, 'FlyBase', 'C2', 'FB')]:
+                                            (flybase, 'FlyBase', 'C1', 'FB')]:
     plt.hist(data, bins=100, label=data_label, color=color)
     plt.xlabel('Length')
     plt.ylabel('Number of polypeptides')
     plt.title('Distribution of polypeptides across length')
     plt.legend()
-    plt.savefig(f'out/dist_ppidnum-pplen_{file_label}.png')
+    plt.savefig(f'out/hist_ppidnum-pplen_{file_label}.png')
     plt.close()
 
 # Distribution of genes across number of associated polypeptides
@@ -123,25 +123,25 @@ flybase = gnid_ppidnum.loc[gnid_ppidnum['spid'].isin(flybase_spids), 'ppidnum']
 bins = linspace(min(ncbi.min(), flybase.min()), max(ncbi.max(), flybase.max()), 35, endpoint=True)
 fig, axs = plt.subplots(2, 1, sharex=True, figsize=(4.8, 6))
 axs[0].hist(ncbi, bins=bins, label='NCBI', color='C0')
-axs[1].hist(flybase, bins=bins, label='FlyBase', color='C2')
+axs[1].hist(flybase, bins=bins, label='FlyBase', color='C1')
 axs[1].set_xlabel('Number of associated polypeptides')
 fig.suptitle('Distribution of genes across\nnumber of associated polypeptides')
 fig.subplots_adjust(left=0.175)
 for ax in axs:
     ax.set_ylabel('Number of genes')
     ax.legend()
-fig.savefig('out/dist_gnidnum-ppidnum.png')
+fig.savefig('out/hist_gnidnum-ppidnum.png')
 plt.close()
 
 # Individual
 for data, data_label, color, file_label in [(ncbi, 'NCBI', 'C0', 'NCBI'),
-                                            (flybase, 'FlyBase', 'C2', 'FB')]:
+                                            (flybase, 'FlyBase', 'C1', 'FB')]:
     plt.hist(data, bins=35, label=data_label, color=color)
     plt.xlabel('Number of associated polypeptides')
     plt.ylabel('Number of genes')
     plt.title('Distribution of genes across\nnumber of associated polypeptides')
     plt.legend()
-    plt.savefig(f'out/dist_gnidnum-ppidnum_{file_label}.png')
+    plt.savefig(f'out/hist_gnidnum-ppidnum_{file_label}.png')
     plt.close()
 
 """
