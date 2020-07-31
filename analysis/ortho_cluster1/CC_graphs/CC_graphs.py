@@ -7,11 +7,10 @@ from math import exp
 
 # Parse best hits as graph
 ggraph = {}
-with open('../blast2ggraph/out/ggraph.tsv') as file:
+with open('../make_xreciprocal/out/ggraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        if node != 'null':  # Remove None first to prevent recognition later
-            ggraph[node] = adjs.split(',')
+        ggraph[node] = adjs.split(',')
 
 # Parse connected components
 CCs = {}
@@ -27,20 +26,6 @@ if not os.path.exists('out/'):
 CCids = sorted(CCs, key=lambda x: len(CCs[x]), reverse=True)[:50]  # 50 largest CCs
 for i, CCid in enumerate(CCids):
     subggraph = {node: ggraph[node] for node in CCs[CCid]}
-
-    # Remove non-reciprocal hits
-    for node, adjs in subggraph.items():
-        # Search current node for non-reciprocal hits
-        adj_idxs = []
-        for adj_idx, adj in enumerate(adjs):
-            try:  # Cannot test with "in" easily since it assumes the node is in the graph in the first place
-                subggraph[adj].index(node)
-            except (KeyError, ValueError):  # KeyError from adj not in pgraph; ValueError from node not in adjs
-                adj_idxs.append(adj_idx)
-
-        # Remove non-reciprocal hits after initial loop is completed to not modify list during loop
-        for offset, adj_idx in enumerate(adj_idxs):
-            del adjs[adj_idx - offset]
 
     # Create graph and segment nodes by data source
     G = nx.Graph()
@@ -101,8 +86,8 @@ for i, CCid in enumerate(CCids):
 
 """
 DEPENDENCIES
-../blast2ggraph/blast2ggraph.py
-    ../blast2ggraph/out/ggraph.tsv
 ../connect_xgraph/connect_ggraph.py
     ../connect_xgraph/out/gconnect.txt
+../make_xreciprocal/make_greciprocal.py
+    ../make_xreciprocal/out/ggraph.tsv
 """
