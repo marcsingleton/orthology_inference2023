@@ -19,7 +19,7 @@ with open('../blast_dbs/params.tsv') as file:
 
 # Make output directory
 if not os.path.exists(f'out/{query_species}/'):
-    os.makedirs(f'out/{query_species}/')
+    os.makedirs(f'out/{query_species}/')  # Recursive folder creation
 
 # Execute BLASTs
 for db_species, _, _ in params:
@@ -28,7 +28,7 @@ for db_species, _, _ in params:
         input_args = [blast_path, '-query', tcds_path]
         output_args = ['-out', f'out/{query_species}/{db_species}.blast']
         search_args = ['-db', f'../blast_dbs/out/{db_species}_blastdb', '-evalue', '1', '-num_threads', num_threads]
-        format_args = ['-outfmt', '7 qacc sacc length pident nident gaps qlen qstart qend slen sstart send evalue bitscore']
+        format_args = ['-outfmt', '7 qacc sacc length nident gaps qlen qstart qend slen sstart send evalue bitscore']
 
         # Execute command
         t0 = asctime()
