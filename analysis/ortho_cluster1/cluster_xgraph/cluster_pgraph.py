@@ -3,15 +3,30 @@
 import os
 from triDFS import cluster
 
-# Parse best hits as graph
+# Load pgraph
 pgraph = {}
-with open('../make_xreciprocal/out/pgraph.tsv') as file:
+with open('../hsps2pgraph/out/pgraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         pgraph[node] = adjs.split(',')
 
+# Make reciprocal
+rpgraph = {}
+for qppid, sppids in pgraph.items():
+    for sppid in sppids:
+        try:
+            r = qppid in pgraph[sppid]
+        except KeyError:
+            r = False
+
+        if r:
+            try:
+                rpgraph[qppid].add(sppid)
+            except KeyError:
+                rpgraph[qppid] = set([sppid])
+
 # Cluster by triangle criterion
-OGs = cluster(pgraph)
+OGs = cluster(rpgraph)
 
 # Make output directory
 if not os.path.exists('out/'):
@@ -25,7 +40,7 @@ with open('out/pclusters.txt', 'w') as outfile:
 
 """
 DEPENDENCIES
-../make_xreciprocal/make_preciprocal.py
-    ../make_xreciprocal/out/pgraph.tsv
+../hsps2pgraph/hsps2pgraph.py
+    ../hsps2pgraph/out/pgraph.tsv
 ./triDFS.py
 """

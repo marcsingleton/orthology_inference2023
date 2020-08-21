@@ -5,14 +5,29 @@ import os
 from itertools import combinations
 from triDFS import cluster
 
-# Parse best hits as graph
+# Load pgraph
 pgraph = {}
-with open('../make_xreciprocal/out/pgraph.tsv') as file:
+with open('../hsps2pgraph/out/pgraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         pgraph[node] = adjs.split(',')
 
-# Parse connected components
+# Make reciprocal
+rpgraph = {}
+for qppid, sppids in pgraph.items():
+    for sppid in sppids:
+        try:
+            r = qppid in pgraph[sppid]
+        except KeyError:
+            r = False
+
+        if r:
+            try:
+                rpgraph[qppid].add(sppid)
+            except KeyError:
+                rpgraph[qppid] = set([sppid])
+
+# Load connected components
 CCs = []
 with open('../connect_xgraph/out/pconnect.txt') as file:
     for line in file:
@@ -22,7 +37,7 @@ with open('../connect_xgraph/out/pconnect.txt') as file:
 OGs = []
 CCtypes = [{} for _ in range(5)]
 for CC in CCs:
-    subpgraph = {node: pgraph[node] for node in CC}
+    subpgraph = {node: rpgraph[node] for node in CC}
 
     # Cluster by triangle criterion
     subOGs = cluster(subpgraph)
@@ -38,9 +53,9 @@ for CC in CCs:
         else:
             CCtypes[2][len(subnOGs)] = CCtypes[2].get(len(subnOGs), 0) + 1  # Component has single OG which is a subset of the component
     elif any([set.intersection(nOG1, nOG2) for nOG1, nOG2 in combinations(subnOGs, 2)]):
-        CCtypes[3][len(subnOGs)] = CCtypes[4].get(len(subnOGs), 0) + 1  # Component has multiple pairwise disjoint OGs
+        CCtypes[3][len(subnOGs)] = CCtypes[4].get(len(subnOGs), 0) + 1  # Component has multiple non-disjoint OGs
     else:
-        CCtypes[4][len(subnOGs)] = CCtypes[3].get(len(subnOGs), 0) + 1  # Component has multiple non-disjoint OGs
+        CCtypes[4][len(subnOGs)] = CCtypes[3].get(len(subnOGs), 0) + 1  # Component has multiple pairwise disjoint OGs
 
 # Make plots output directory
 if not os.path.exists('out/pgraph/'):
@@ -88,16 +103,16 @@ for i, CCtype in enumerate(CCtypes):
 
 """
 OUTPUT
-Type 0: 484
-Type 1: 13230
-Type 2: 2276
-Type 3: 590
-Type 4: 583
+Type 0: 17602
+Type 1: 11236
+Type 2: 1328
+Type 3: 243
+Type 4: 237
 
 DEPENDENCIES
 ../connect_xgraph/connect_pgraph.py
     ../connect_xgraph/out/pconnect.txt
-../make_xreciprocal/make_preciprocal.py
-    ../make_xreciprocal/out/pgraph.tsv
+../hsps2pgraph/hsps2pgraph.py
+    ../hsps2pgraph/out/pgraph.tsv
 ./triDFS.py
 """

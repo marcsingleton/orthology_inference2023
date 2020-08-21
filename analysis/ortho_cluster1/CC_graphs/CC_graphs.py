@@ -7,7 +7,7 @@ from math import exp
 
 # Parse best hits as graph
 ggraph = {}
-with open('../make_xreciprocal/out/ggraph.tsv') as file:
+with open('../hsps2ggraph/out/ggraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         ggraph[node] = adjs.split(',')
@@ -88,6 +88,6 @@ for i, CCid in enumerate(CCids):
 DEPENDENCIES
 ../connect_xgraph/connect_ggraph.py
     ../connect_xgraph/out/gconnect.txt
-../make_xreciprocal/make_greciprocal.py
-    ../make_xreciprocal/out/ggraph.tsv
+../hsps2ggraph/hsps2ggraph.py
+    ../hsps2ggraph/out/ggraph.tsv
 """

@@ -3,9 +3,9 @@
 import os
 from triDFS import cluster
 
-# Parse best hits as graph
+# Load ggraph
 ggraph = {}
-with open('../make_xreciprocal/out/ggraph.tsv') as file:
+with open('../hsps2ggraph/out/ggraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         ggraph[node] = adjs.split(',')
@@ -25,7 +25,7 @@ with open('out/gclusters.txt', 'w') as outfile:
 
 """
 DEPENDENCIES
-../make_xreciprocal/make_greciprocal.py
-    ../make_xreciprocal/out/ggraph.tsv
+../hsps2ggraph/hsps2ggraph.py
+    ../hsps2ggraph/out/ggraph.tsv
 ./triDFS.py
 """
