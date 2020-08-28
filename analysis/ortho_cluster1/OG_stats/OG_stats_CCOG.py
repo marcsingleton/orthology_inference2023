@@ -37,16 +37,16 @@ if not os.path.exists('out/CCOG/'):
 # Plots
 # Distribution of genes across number of associated OGs
 groups = OGs.groupby('gnid')
-dist = groups.size().value_counts()
-plt.bar(dist.index, dist.values)
+dist1 = groups.size().value_counts()
+plt.bar(dist1.index, dist1.values)
 plt.xlabel('Number of associated OGs')
 plt.ylabel('Number of genes')
 plt.title('Distribution of genes across\nnumber of associated OGs')
 plt.savefig('out/CCOG/hist_gnnum-OGnum_1.png')
 plt.close()
 
-dist = dist.drop(1)
-plt.bar(dist.index, dist.values)
+dist2 = dist1.drop(1)
+plt.bar(dist2.index, dist2.values)
 plt.xlabel('Number of associated OGs')
 plt.ylabel('Number of genes')
 plt.title('Distribution of genes across\nnumber of associated OGs')
@@ -130,7 +130,7 @@ plt.close()
 
 CCgn_pairs = OGs[['CCid', 'gnid']].drop_duplicates()
 gn_OGnum = OGs.groupby('gnid')['OGid'].nunique().rename('gn_OGnum')
-hitnum = pd.read_csv('../blast_stats/out/hitnum_reciprocal/sgnids.tsv', sep='\t', header=0, names=['gnid', 'hitnum', 'spid'], index_col=0)
+hitnum = pd.read_csv('../hsp_stats/out/hits_reciprocal/sgnids.tsv', sep='\t', header=0, names=['gnid', 'hitnum', 'spid'], index_col=0)
 df = CCgn_pairs.join(gn_OGnum, on='gnid').join(CC_CCgnnum, on='CCid').join(CC_OGnum, on='CCid').join(hitnum, on='gnid')
 
 # Correlation of number of associated OGs with number of genes in CC for gene
@@ -158,8 +158,8 @@ plt.close()
 DEPENDENCIES
 ../connect_xgraph/connect_ggraph.py
     ../connect_xgraph/out/gconnect.txt
-../blast_stats/blast_stats.py
-    ../blast_stats/out/hitnum_reciprocal/sgnids.tsv
+../hsp_stats/hsp_stats.py
+    ../hsp_stats/out/hits_reciprocal/sgnids.tsv
 ../ppid2meta/ppid2meta.py
     ../ppid2meta/out/ppid2meta.tsv
 ../subcluster_xgraph/subcluster_ggraph.py
