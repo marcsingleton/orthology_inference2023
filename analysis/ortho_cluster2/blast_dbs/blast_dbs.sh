@@ -9,7 +9,7 @@ fi
 cat params.tsv | while read species taxid tcds_path;
 do
   if [[ $species != \#* ]]; then  # Double brackets is expanded syntax for tests
-    ../../../bin/ncbi-blast-2.10.0+/bin/makeblastdb -in "$tcds_path" -dbtype prot -title "${taxid}_${species}_blastdb" -parse_seqids -out "out/${species}_blastdb" -taxid "$taxid" -logfile "out/${species}_blastdb.out"
+    ../../../bin/ncbi-blast-2.10.1+/bin/makeblastdb -in "$tcds_path" -dbtype prot -title "${taxid}_${species}_blastdb" -parse_seqids -out "out/${species}_blastdb" -taxid "$taxid" -logfile "out/${species}_blastdb.out"
   fi
 done
 

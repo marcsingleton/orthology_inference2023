@@ -5,7 +5,7 @@ from sys import argv
 from subprocess import run
 from time import asctime
 
-num_threads = str(os.environ['SLURM_NTASKS'])
+num_threads = str(os.environ['SLURM_CPUS_ON_NODE'])
 query_species = argv[1]
 tcds_path = argv[2]
 blast_path = argv[3]
