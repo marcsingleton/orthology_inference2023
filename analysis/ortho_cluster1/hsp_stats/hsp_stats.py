@@ -232,9 +232,9 @@ for data_label, df in [('all', df0), ('reciprocal', df1)]:
     ax_label = 'reciprocal ' if data_label == 'reciprocal' else ''
 
     # Correlation of gene hits with number of associated polypeptides
-    gnid_ppidnum = pd.read_csv('../genome_stats/out/gnid_ppidnum.tsv', sep='\t',
+    gnid_nums = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t',
                                index_col='gnid', dtype={'gnid': 'string'})
-    corr = sgnid_hitnum.join(gnid_ppidnum)
+    corr = sgnid_hitnum.join(gnid_nums)
     yo_gns = corr['spid'].isin(['dpse', 'dyak'])
 
     plt.scatter(corr['ppidnum'], corr['sgnid_hitnum'],
@@ -278,7 +278,7 @@ DEPENDENCIES
 ../blast2hsps/blast2hsps.py
     ../blast2hsps/hsps.tsv
 ../genome_stats/genome_stats.py
-    ../genome_stats/out/gnid_ppidnum.tsv
+    ../genome_stats/out/gnid_nums.tsv
 ../hsps2reciprocal/hsps2reciprocal.py
     ../hsps2reciprocal/out/hsps.tsv
 """

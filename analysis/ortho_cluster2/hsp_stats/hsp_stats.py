@@ -256,9 +256,9 @@ if __name__ == '__main__':
         ax_label = 'reciprocal ' if data_label == 'reciprocal' else ''
 
         # 2.3.1 Correlation of gene hits with number of associated polypeptides
-        gnid_ppidnum = pd.read_csv('../genome_stats/out/gnid_ppidnum.tsv', sep='\t',
+        gnid_nums = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t',
                                    index_col='gnid', dtype={'gnid': 'string'})
-        corr = sgnid_hitnum.join(gnid_ppidnum)
+        corr = sgnid_hitnum.join(gnid_nums)
 
         plt.scatter(corr['ppidnum'], corr['sgnid_hitnum'],
                     alpha=0.5, s=10, edgecolors='none')
@@ -284,7 +284,7 @@ DEPENDENCIES
 ../blast2hsps/blast2hsps.py
     ../blast2hsps/out/hsps/*/*.tsv
 ../genome_stats/genome_stats.py
-    ../genome_stats/out/gnid_ppidnum.tsv
+    ../genome_stats/out/gnid_nums.tsv
 ../hsps2reciprocal/hsps2reciprocal.py
     ../hsps2reciprocal/out/*/*.tsv
 """

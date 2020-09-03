@@ -32,12 +32,12 @@ for spid, (source, tcds_path) in params.items():
                 gnid = re.search(gn_regex[source], line).group(1)
                 line = file.readline()
 
-            pplen = 0
+            sqlen = 0
             while line and not line.startswith('>'):
-                pplen += len(line.rstrip())
+                sqlen += len(line.rstrip())
                 line = file.readline()
 
-            rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'pplen': pplen})
+            rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqlen': sqlen})
 
 # Make plots output directory
 if not os.path.exists('out/'):
@@ -49,7 +49,7 @@ ncbi_spids = [spid for spid in params if params[spid][0] == 'NCBI']
 yo_spids = [spid for spid in params if params[spid][0] == 'YO']
 flybase_spids = [spid for spid in params if params[spid][0] == 'FlyBase']
 
-# Distribution of polypeptides across associated species
+# 1.1 Distribution of polypeptides across associated species
 spid_ppidnum = df['spid'].value_counts()
 ncbi = {spid: spid_ppidnum[spid] for spid in ncbi_spids}
 yo = {spid: spid_ppidnum[spid] for spid in yo_spids}
@@ -60,7 +60,7 @@ plt.bar(range(0, len(ncbi)),
 plt.bar(range(len(ncbi), len(ncbi) + len(yo)),
         yo.values(), label=r'Yang $et\ al.$')
 plt.bar(range(len(ncbi) + len(yo), len(ncbi) + len(yo) + len(flybase)),
-        flybase.values(), label=r'FlyBase')
+        flybase.values(), label='FlyBase')
 plt.xticks(list(range(len(ncbi) + len(yo) + len(flybase))), list(ncbi.keys()) + list(yo.keys()) + list(flybase.keys()))
 plt.xlabel('Associated species')
 plt.ylabel('Number of polypeptides')
@@ -72,7 +72,7 @@ plt.close()
 plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI')
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
-        flybase.values(), label=r'FlyBase', color='C2')
+        flybase.values(), label='FlyBase', color='C2')
 plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()))
 plt.xlabel('Associated species')
 plt.ylabel('Number of polypeptides')
@@ -81,7 +81,7 @@ plt.legend()
 plt.savefig('out/bar_ppidnum-species_NCBI-FB.png')
 plt.close()
 
-# Distribution of number of genes across associated species
+# 1.2 Distribution of number of genes across associated species
 spid_gnidnum = df.groupby('spid')['gnid'].nunique()
 ncbi = {spid: spid_gnidnum[spid] for spid in ncbi_spids}
 yo = {spid: spid_gnidnum[spid] for spid in yo_spids}
@@ -92,7 +92,7 @@ plt.bar(range(0, len(ncbi)),
 plt.bar(range(len(ncbi), len(ncbi) + len(yo)),
         yo.values(), label=r'Yang $et\ al.$')
 plt.bar(range(len(ncbi) + len(yo), len(ncbi) + len(yo) + len(flybase)),
-        flybase.values(), label=r'FlyBase')
+        flybase.values(), label='FlyBase')
 plt.xticks(list(range(len(ncbi) + len(yo) + len(flybase))), list(ncbi.keys()) + list(yo.keys()) + list(flybase.keys()))
 plt.xlabel('Associated species')
 plt.ylabel('Number of genes')
@@ -102,13 +102,13 @@ plt.legend()
 plt.savefig('out/bar_gnidnum-species.png')
 plt.close()
 
-# Distribution of polypeptides across length
-ncbi = df.loc[df['spid'].isin(ncbi_spids), 'pplen']
-yo = df.loc[df['spid'].isin(yo_spids), 'pplen']
-flybase = df.loc[df['spid'].isin(flybase_spids), 'pplen']
+# 2 Distribution of polypeptides across length
+ncbi = df.loc[df['spid'].isin(ncbi_spids), 'sqlen']
+yo = df.loc[df['spid'].isin(yo_spids), 'sqlen']
+flybase = df.loc[df['spid'].isin(flybase_spids), 'sqlen']
 
 # All
-bins = linspace(min(df['pplen']), max(df['pplen']), 150, endpoint=True)
+bins = linspace(min(df['sqlen']), max(df['sqlen']), 150, endpoint=True)
 fig, axs = plt.subplots(3, 1, sharex=True, figsize=(4.8, 6))
 axs[0].hist(ncbi, bins=bins, label='NCBI', color='C0')
 axs[1].hist(yo, bins=bins, label=r'Yang $et\ al.$', color='C1')
@@ -119,7 +119,7 @@ fig.suptitle('Distribution of polypeptides across length')
 fig.subplots_adjust(left=0.175)
 for ax in axs:
     ax.legend()
-fig.savefig('out/hist_ppidnum-pplen_all.png')
+fig.savefig('out/hist_ppidnum-sqlen_all.png')
 plt.close()
 
 # NCBI and FlyBase
@@ -133,7 +133,7 @@ fig.subplots_adjust(left=0.175)
 for ax in axs:
     ax.set_ylabel('Number of polypeptides')
     ax.legend()
-fig.savefig('out/hist_ppidnum-pplen_NCBI-FB.png')
+fig.savefig('out/hist_ppidnum-sqlen_NCBI-FB.png')
 plt.close()
 
 # Individual
@@ -145,13 +145,15 @@ for data, data_label, color, file_label in [(ncbi, 'NCBI', 'C0', 'NCBI'),
     plt.ylabel('Number of polypeptides')
     plt.title('Distribution of polypeptides across length')
     plt.legend()
-    plt.savefig(f'out/hist_ppidnum-pplen_{file_label}.png')
+    plt.savefig(f'out/hist_ppidnum-sqlen_{file_label}.png')
     plt.close()
 
-# Distribution of genes across number of associated polypeptides
+# Calculate counts grouped by gene
 spidgnid_pairs = df[['spid', 'gnid']].drop_duplicates()
 gnid_ppidnum = spidgnid_pairs.join(df.groupby('gnid').size().rename('ppidnum'), on='gnid')
-gnid_ppidnum.to_csv('out/gnid_ppidnum.tsv', sep='\t', index=False)
+gnid_ppidnum.to_csv('out/gnid_nums.tsv', sep='\t', index=False)
+
+# 3.1 Distribution of genes across number of associated polypeptides
 ncbi = gnid_ppidnum.loc[gnid_ppidnum['spid'].isin(ncbi_spids), 'ppidnum']
 yo = gnid_ppidnum.loc[gnid_ppidnum['spid'].isin(yo_spids), 'ppidnum']
 flybase = gnid_ppidnum.loc[gnid_ppidnum['spid'].isin(flybase_spids), 'ppidnum']
