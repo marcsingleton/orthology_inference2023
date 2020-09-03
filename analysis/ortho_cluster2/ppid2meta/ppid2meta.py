@@ -50,8 +50,8 @@ print('Unique IDs:', len(ppid_counts))
 
 """
 OUTPUT
-Total headers: 520452
-Unique IDs: 520452
+Total headers: 715919
+Unique IDs: 715919
 
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
