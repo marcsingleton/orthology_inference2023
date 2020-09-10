@@ -12,7 +12,7 @@ blast_path = argv[3]
 
 # Parse parameters
 params = []
-with open('../blast_dbs/params.tsv') as file:
+with open('params.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
         params.append(line.split())
