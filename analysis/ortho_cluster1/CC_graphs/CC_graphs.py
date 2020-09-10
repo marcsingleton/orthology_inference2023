@@ -5,14 +5,14 @@ import networkx as nx
 import os
 from math import exp
 
-# Parse best hits as graph
+# Load ggraph
 ggraph = {}
 with open('../hsps2ggraph/out/ggraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         ggraph[node] = adjs.split(',')
 
-# Parse connected components
+# Load connected components
 CCs = {}
 with open('../connect_xgraph/out/gconnect.txt') as file:
     for line in file:
@@ -29,9 +29,9 @@ for i, CCid in enumerate(CCids):
 
     # Create graph and segment nodes by data source
     G = nx.Graph()
-    for node in subggraph:
+    for node, adjs in subggraph.items():
         G.add_node(node)
-        for adj in subggraph[node]:
+        for adj in adjs:
             G.add_edge(node, adj)
     FB = [node for node in G.nodes if node.startswith('FBgn')]
     YO = [node for node in G.nodes if node.startswith('YOgn')]

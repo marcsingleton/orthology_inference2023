@@ -8,14 +8,14 @@ from math import exp
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from numpy import linspace
 
-# Parse best hits as graph
+# Load ggraph
 ggraph = {}
 with open('../hits2ggraph/out/ggraph1.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         ggraph[node] = [adj.split(':') for adj in adjs.split(',')]
 
-# Parse connected components
+# Load connected components
 CCs = {}
 with open('../connect_ggraph/out/gconnect1.txt') as file:
     for line in file:
