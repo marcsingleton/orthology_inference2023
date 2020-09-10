@@ -114,12 +114,12 @@ OG_spidnum = OGs['qspid'].nunique()
 OG_gnidnum = OGs['qgnid'].nunique()
 gn_OGidnum = gns['OGid'].nunique()
 
-OGs_23sps = OG_spidnum[OG_spidnum == 23].index
-OGs_23gns = OG_gnidnum[OG_gnidnum == 23].index
+OGs_31sps = OG_spidnum[OG_spidnum == 31].index
+OGs_31gns = OG_gnidnum[OG_gnidnum == 31].index
 gns_gn1OG = gn_OGidnum[gn_OGidnum > 1].index
 OGs_gn1OG = hits0.loc[hits0['qgnid'].isin(gns_gn1OG), 'OGid'].unique()
 
-OGs1 = set(OGs_23sps) & set(OGs_23gns)
+OGs1 = set(OGs_31sps) & set(OGs_31gns)
 OGs2 = OGs1 - set(OGs_gn1OG)
 
 hits1 = hits0[hits0['OGid'].isin(OGs1)]
@@ -319,7 +319,7 @@ scatter2(gnidnums[0], edgenums[0], 'edgenum-OGgnnum_all', 'Number of edges in OG
 scatter2(gnidnums[0], edgefracs[0], 'edgefrac-OGgnnum_all', 'Fraction of possible edges in OG')
 
 # 12.2 Excluding His OGs
-hits3 = hits0[~hits0['OGid'].isin(['09cf', '0a47', '0a44', '0a48', '0a45'])]
+hits3 = hits0[~hits0['OGid'].isin(['0a55', '0ad7', '0ad5', '0ad8', '0ad6'])]
 OG3 = hits3.groupby('OGid')
 edgenum = hits3[['qgnid', 'sgnid', 'OGid']].drop_duplicates().groupby('OGid').size() / 2
 gnidnum = OG3['qgnid'].nunique()

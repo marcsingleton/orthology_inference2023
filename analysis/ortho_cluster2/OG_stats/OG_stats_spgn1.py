@@ -24,7 +24,7 @@ OGs = pd.DataFrame(rows)
 groups = OGs.groupby('OGid')
 OGnum = OGs['OGid'].nunique()
 ugnnum = OGs['gnid'].nunique()
-u10num = len(groups.filter(lambda x: len(x) == 23 and x['spid'].nunique() == 23)) // 23
+u31num = len(groups.filter(lambda x: len(x) == 31 and x['spid'].nunique() == 31)) // 31
 
 # Make output directory
 if not os.path.exists('out/ggraph1/spgn/'):
@@ -42,7 +42,7 @@ x = list(range(1, len(labels) + 1))
 fig, ax1 = plt.subplots()
 ax1.bar(x, h_OG)
 ax1.set_xticks(x)
-ax1.set_xticklabels(labels, rotation=60)
+ax1.set_xticklabels(labels, rotation=60, fontsize=8)
 ax1.set_xlabel('Species')
 ax1.set_ylabel('Number of associated OGs')
 ax1.set_title('Number of associated OGs for each species')
@@ -63,7 +63,7 @@ x = list(range(1, len(labels) + 1))
 fig, ax1 = plt.subplots()
 ax1.bar(x, h_gn)
 ax1.set_xticks(x)
-ax1.set_xticklabels(labels, rotation=60)
+ax1.set_xticklabels(labels, rotation=60, fontsize=8)
 ax1.set_xlabel('Associated species')
 ax1.set_ylabel('Number of genes')
 ax1.set_title('Distribution of genes across associated species')
@@ -84,7 +84,7 @@ x = list(range(1, len(labels) + 1))
 fig, ax1 = plt.subplots()
 ax1.bar(x, h_ugn)
 ax1.set_xticks(x)
-ax1.set_xticklabels(labels, rotation=60)
+ax1.set_xticklabels(labels, rotation=60, fontsize=8)
 ax1.set_xlabel('Associated species')
 ax1.set_ylabel('Number of unique genes')
 ax1.set_title('Distribution of unique genes across associated species')
@@ -99,19 +99,31 @@ fig.savefig('out/ggraph1/spgn/bar_ugnnum-species.png')
 plt.close()
 
 # Number of exclusions for each species
-spids = set(OGs['spid'].drop_duplicates())
-spid_counts = {spid: 0 for spid in sorted(spids)}
-for spid, in [spids - set(group['spid'].drop_duplicates()) for _, group in groups if group['spid'].nunique() == 22]:
-    spid_counts[spid] += 1
-labels, h = zip(*spid_counts.items())
-x = list(range(1, len(labels) + 1))
-fig, ax1 = plt.subplots()
-ax1.bar(x, h)
-ax1.set_xticks(x)
-ax1.set_xticklabels(labels, rotation=60)
-ax1.set_xlabel('Species')
-ax1.set_ylabel('Number of OGs')
-ax1.set_title('Number of exclusions for each species in OGs with 22 species')
+for i in range(21, 31):
+    spids = set(OGs['spid'].drop_duplicates())
+    spid_counts = {spid: 0 for spid in sorted(spids)}
+    for spids in [spids - set(group['spid'].drop_duplicates()) for _, group in groups if group['spid'].nunique() == i]:
+        for spid in spids:
+            spid_counts[spid] += 1
+    labels, h = zip(*spid_counts.items())
+    x = list(range(1, len(labels) + 1))
+    fig, ax1 = plt.subplots()
+    ax1.bar(x, h)
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(labels, rotation=60, fontsize=8)
+    ax1.set_xlabel('Species')
+    ax1.set_ylabel('Number of OGs')
+    ax1.set_title(f'Number of exclusions for each species in OGs with {i} species')
+
+    ax2 = ax1.twinx()
+    mn, mx = ax1.get_ylim()
+    OG_num = sum(h) / (31 - i)
+    ax2.set_ylim(mn / OG_num, mx / OG_num)
+    ax2.set_ylabel(f'Fraction of total OGs with {i} species')
+
+    fig.tight_layout()
+    fig.savefig(f'out/ggraph2/spgn/bar_OGexclusion{i}-species.png')
+    plt.close()
 
 ax2 = ax1.twinx()
 mn, mx = ax1.get_ylim()
@@ -199,33 +211,33 @@ plt.close()
 # Print counts
 print('number of OGs:', OGnum)
 print()
-print('number of OGs with 23 species:', dist_species[23])
-print('fraction of OGs with 23 species:', dist_species[23] / OGnum)
+print('number of OGs with 31 species:', dist_species[31])
+print('fraction of OGs with 31 species:', dist_species[31] / OGnum)
 print()
-print('number of OGs with 23 genes:', dist_seq[23])
-print('fraction of OGs with 23 genes:', dist_seq[23] / OGnum)
+print('number of OGs with 31 genes:', dist_seq[31])
+print('fraction of OGs with 31 genes:', dist_seq[31] / OGnum)
 print()
-print('number of OGs with 23 species and 23 genes:', u10num)
-print('fraction of OGs with 23 species and 23 genes:', u10num / OGnum)
+print('number of OGs with 31 species and 31 genes:', u31num)
+print('fraction of OGs with 31 species and 31 genes:', u31num / OGnum)
 print()
 print('number of OGs with duplicates:', OGnum - dist_dup[0])
 print('fraction of OGs with duplicates', (OGnum - dist_dup[0]) / OGnum)
 
 """
 OUTPUT
-number of OGs: 15208
+number of OGs: 16242
 
-number of OGs with 23 species: 9715
-fraction of OGs with 23 species: 0.6388085218306154
+number of OGs with 31 species: 9311
+fraction of OGs with 31 species: 0.5732668390592291
 
-number of OGs with 23 genes: 7709
-fraction of OGs with 23 genes: 0.5069042609153077
+number of OGs with 31 genes: 6612
+fraction of OGs with 31 genes: 0.40709272257111195
 
-number of OGs with 23 species and 23 genes: 7497
-fraction of OGs with 23 species and 23 genes: 0.4929642293529721
+number of OGs with 31 species and 31 genes: 6302
+fraction of OGs with 31 species and 31 genes: 0.38800640315232116
 
-number of OGs with duplicates: 3295
-fraction of OGs with duplicates 0.21666228300894266
+number of OGs with duplicates: 4920
+fraction of OGs with duplicates 0.30291835980790544
 
 NOTES
 These plots are largely based off those in analysis/EggNOGv5_validation/ali_stats/ali_stats.py

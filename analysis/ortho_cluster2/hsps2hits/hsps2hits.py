@@ -82,7 +82,7 @@ def has_overlap(ihsp, ohsps, query=True):
 
 icolumns = {'qppid': str, 'qgnid': str, 'qspid': str,
             'sppid': str, 'sgnid': str, 'sspid': str,
-            'length': int, 'pident': float, 'nident': int, 'gaps': int,
+            'length': int, 'nident': int, 'gaps': int,
             'qlen': int, 'qstart': int, 'qend': int,
             'slen': int, 'sstart': int, 'send': int,
             'evalue': float, 'bitscore': float,

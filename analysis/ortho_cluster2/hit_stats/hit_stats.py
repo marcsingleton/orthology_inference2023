@@ -284,8 +284,8 @@ if __name__ == '__main__':
     counts = sgnid_hitnum['sgnid_hitnum'].value_counts().to_dict()
 
     bar_hits(counts, 'all')
-    bar_hits({key: val for key, val in counts.items() if key > 23}, '23+')
-    bar_hits({key: val for key, val in counts.items() if key <= 23}, '23-')
+    bar_hits({key: val for key, val in counts.items() if key > 31}, '31+')
+    bar_hits({key: val for key, val in counts.items() if key <= 31}, '31-')
 
 """
 DEPENDENCIES
