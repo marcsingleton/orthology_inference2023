@@ -9,22 +9,15 @@ def load_hit(qspid, sspid):
     df = pd.read_csv(f'../hsps2hits/out/{qspid}/{sspid}', sep='\t',
                      usecols=dtypes.keys(), dtype=dtypes, memory_map=True)
     r = pd.read_csv(f'../hits2reciprocal/out/{qspid}/{sspid}', sep='\t',
-                    usecols=['reciprocal1', 'reciprocal2'], memory_map=True)
+                    usecols=['reciprocal2'], memory_map=True)
     dfr = df.join(r)
 
-    return dfr[dfr['reciprocal1'] | dfr['reciprocal2']]
-
-
-def add_edge(qgnid, sgnid, r, ggraph):
-    if r:
-        try:
-            ggraph[qgnid].add(sgnid)
-        except KeyError:
-            ggraph[qgnid] = set([sgnid])
+    return dfr[dfr['reciprocal2']].groupby(['qgnid', 'sgnid'])['bitscore'].mean()
 
 
 dtypes = {'qppid': 'string', 'qgnid': 'string',
-          'sppid': 'string', 'sgnid': 'string'}
+          'sppid': 'string', 'sgnid': 'string',
+          'bitscore': float}
 num_processes = 2
 
 if __name__ == '__main__':
@@ -34,26 +27,21 @@ if __name__ == '__main__':
                 for sspid in os.listdir(f'../hsps2hits/out/{qspid}/')]
         hits = pd.concat(pool.starmap(load_hit, tsvs))
 
-    ggraph1 = {}
-    ggraph2 = {}
-    for row in hits.itertuples():
-        qgnid, sgnid = row.qgnid, row.sgnid
-        r1, r2 = row.reciprocal1, row.reciprocal2
-
-        add_edge(qgnid, sgnid, r1, ggraph1)
-        add_edge(qgnid, sgnid, r2, ggraph2)
+    ggraph = {}
+    for (qgnid, sgnid), bitscore in hits.iteritems():
+        try:
+            ggraph[qgnid].append((sgnid, round(bitscore)))
+        except KeyError:
+            ggraph[qgnid] = [(sgnid, round(bitscore))]
 
     # Make output directory
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
     # Write to file
-    with open('out/ggraph1.tsv', 'w') as file:
-        for qgnid, sgnids in ggraph1.items():
-            file.write(qgnid + '\t' + ','.join(sgnids) + '\n')
     with open('out/ggraph2.tsv', 'w') as file:
-        for qgnid, sgnids in ggraph2.items():
-            file.write(qgnid + '\t' + ','.join(sgnids) + '\n')
+        for qgnid, edges in ggraph.items():
+            file.write(qgnid + '\t' + ','.join([sgnid + ':' + str(bitscore) for sgnid, bitscore in edges]) + '\n')
 
 """
 DEPENDENCIES

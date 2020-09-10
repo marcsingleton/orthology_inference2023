@@ -10,7 +10,7 @@ ggraph = {}
 with open('../hits2ggraph/out/ggraph1.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        ggraph[node] = adjs.split(',')
+        ggraph[node] = [adj.split(':')[0] for adj in adjs.split(',')]
 
 # Load connected components
 CCs = []
@@ -101,7 +101,7 @@ Type 4: 786
 DEPENDENCIES
 ../connect_ggraph/connect_ggraph1.py
     ../connect_ggraph/out/gconnect1.txt
-../hits2ggraph/hits2ggraph.py
+../hits2ggraph/hits2ggraph1.py
     ../hits2ggraph/out/ggraph1.tsv
 ./triDFS.py
 """
