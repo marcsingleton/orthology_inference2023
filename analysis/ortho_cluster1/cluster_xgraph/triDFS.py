@@ -22,7 +22,7 @@ def cluster(graph):
             node1, node2 = edge
             for node3 in graph[node1]:
                 if node3 in graph[node2]:  # Assumes undirected
-                    edges = [frozenset([label1, label2]) for label1, label2 in combinations([node1, node2, node3], 2)]
+                    edges = [frozenset([node1, node3]), frozenset([node2, node3])]
                     OG |= set(edges)  # Sets check membership in constant time
                     expand_stack.extend(edges)
             marked.add(edge)
