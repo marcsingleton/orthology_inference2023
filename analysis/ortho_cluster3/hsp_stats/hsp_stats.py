@@ -5,15 +5,16 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 import os
 import pandas as pd
+from itertools import permutations
 from math import log10
 from numpy import linspace
 
 
 # Load functions
 def load_hsp(qspid, sspid):
-    df = pd.read_csv(f'../blast2hsps/out/hsps/{qspid}/{sspid}', sep='\t',
+    df = pd.read_csv(f'../../ortho_cluster2/blast2hsps/out/hsps/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=dtypes.keys(), dtype=dtypes, memory_map=True)
-    r = pd.read_csv(f'../hsps2reciprocal/out/{qspid}/{sspid}', sep='\t',
+    r = pd.read_csv(f'../../ortho_cluster2/hsps2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal'], memory_map=True)
 
     df['pident'] = df['nident'] / df['length']
@@ -77,11 +78,16 @@ dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
 num_processes = 2
 
 if __name__ == '__main__':
+    # Parse parameters
+    spids = []
+    with open('params.tsv') as file:
+        fields = file.readline().split()  # Skip header
+        for line in file:
+            spids.append(line.split()[0])
+
     # Load data
     with mp.Pool(processes=num_processes) as pool:
-        tsvs = [(qspid, sspid) for qspid in os.listdir('../blast2hsps/out/hsps/')
-                for sspid in os.listdir(f'../blast2hsps/out/hsps/{qspid}/')]
-        hsps0 = pd.concat(pool.starmap(load_hsp, tsvs))
+        hsps0 = pd.concat(pool.starmap(load_hsp, permutations(spids, 2)))
         hsps1 = hsps0[hsps0['index_hsp']]
 
     # 0 BEST AND DISJOINT SIZES
@@ -281,10 +287,11 @@ Fraction of best HSPs reciprocal: 0.9252319741539392
 Fraction of disjoint HSPs reciprocal: 0.9273366102210822
 
 DEPENDENCIES
-../blast2hsps/blast2hsps.py
-    ../blast2hsps/out/hsps/*/*.tsv
+../../ortho_cluster2/blast2hsps/blast2hsps.py
+    ../../ortho_cluster2/blast2hsps/out/hsps/*/*.tsv
+../../ortho_cluster2/hsps2reciprocal/hsps2reciprocal.py
+    ../../ortho_cluster2/hsps2reciprocal/out/*/*.tsv
 ../genome_stats/genome_stats.py
     ../genome_stats/out/gnid_nums.tsv
-../hsps2reciprocal/hsps2reciprocal.py
-    ../hsps2reciprocal/out/*/*.tsv
+./params.tsv
 """

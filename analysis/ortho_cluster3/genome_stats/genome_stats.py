@@ -83,7 +83,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
 plt.xlabel('Associated species')
 plt.ylabel('Number of polypeptides')
 plt.title('Distribution of polypeptides across associated species')
@@ -101,7 +101,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
 plt.xlabel('Associated species')
 plt.ylabel('Number of unique sequences')
 plt.title('Distribution of unique sequences across associated species')
@@ -119,7 +119,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
 plt.xlabel('Associated species')
 plt.ylabel('Number of redundant sequences')
 plt.title('Distribution of redundant sequences across associated species')
@@ -137,7 +137,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label='FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
 plt.xlabel('Associated species')
 plt.ylabel('Number of genes')
 plt.ylim((0, 1.1 * plt.ylim()[1]))  # Increase y-axis span to prevent overlap with legend
@@ -306,7 +306,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
 plt.xlabel('Associated species')
 plt.ylabel('Number of unique sequences with unknown amino acids')
 plt.title('Distribution of unique sequences with\nunknown amino acids across associated species')
@@ -324,7 +324,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
 plt.xlabel('Associated species')
 plt.ylabel('Number of genes with unknown amino acids')
 plt.title('Distribution of genes with \nunknown amino acids across associated species')
@@ -344,7 +344,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
 plt.xlabel('Associated species')
 plt.ylabel('Number of genes with unknown amino acids')
 plt.title('Distribution of genes with \nunknown amino acids across associated species')
@@ -383,20 +383,20 @@ print('Fraction (genes with unknown amino acids):', s3 / s2)
 
 """
 OUTPUT
-Fraction of sequences with unknown amino acids: 0.00811963364570573
+Fraction of sequences with unknown amino acids: 0.005894556069545204
 
 Genes with at least one sequence without unknown amino acids
-Number: 443454
-Fraction: 0.9896693246563695
+Number: 350927
+Fraction: 0.9921936848295673
 
 Genes with at least one sequence with unknown amino acids
-Number: 5158
-Fraction: 0.011511260190634325
+Number: 3184
+Fraction: 0.009002284499332745
 
 Genes with at least one sequence without unknown amino acids and at least one sequence with unknown amino acids
-Number: 529
-Fraction (all genes): 0.0011805848470037917
-Fraction (genes with unknown amino acids): 0.10255913144629701
+Number: 423
+Fraction (all genes): 0.0011959693289000475
+Fraction (genes with unknown amino acids): 0.13285175879396985
 
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
