@@ -32,16 +32,14 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
 
     # Create graph and segment nodes by data source
     G = nx.Graph()
-    for node in subggraph:
+    for node, adjs in subggraph.items():
         G.add_node(node)
-        for adj, w in subggraph[node]:
+        for adj, w in adjs:
             if (node, adj) in G.edges:
                 edge_data = G.get_edge_data(node, adj)
                 edge_data['weight'] = edge_data.get('weight', 0) + int(w)  # Sum edge weights
             else:
                 G.add_edge(node, adj, weight=int(w))
-    FB = [node for node in G.nodes if node.startswith('FBgn')]
-    NCBI = G.nodes - FB
 
     # Get positions and canvas limits
     pos = nx.kamada_kawai_layout(G, weight=None)  # Weight is None as otherwise is used for layout
@@ -77,7 +75,9 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
         locs.remove(loc)
 
     # Draw graph labeled by source
-    node_size = 35/(1 + exp(0.01*(len(subggraph)-400))) + 10  # Adjust node size
+    node_size = 25/(1 + exp(0.01*(len(subggraph)-400))) + 10  # Adjust node size
+    FB = [node for node in G.nodes if node.startswith('FBgn')]
+    NCBI = G.nodes - FB
 
     fig, ax = plt.subplots(figsize=figsize, dpi=300)
     nx.draw_networkx_edges(G, pos, alpha=0.25, width=0.5)

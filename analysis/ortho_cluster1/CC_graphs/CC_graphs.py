@@ -33,9 +33,6 @@ for i, CCid in enumerate(CCids):
         G.add_node(node)
         for adj in adjs:
             G.add_edge(node, adj)
-    FB = [node for node in G.nodes if node.startswith('FBgn')]
-    YO = [node for node in G.nodes if node.startswith('YOgn')]
-    NCBI = G.nodes - (FB + YO)
 
     # Get positions and canvas limits
     pos = nx.kamada_kawai_layout(G)
@@ -52,7 +49,6 @@ for i, CCid in enumerate(CCids):
         figsize = (max_dim, max_dim * ylen/xlen)
     else:
         figsize = (max_dim * xlen/ylen, max_dim)
-    node_size = 35/(1 + exp(0.01*(len(subggraph)-400))) + 10  # Adjust node size
 
     # Determine best position for legend
     locs = ['lower left', 'lower right', 'upper left', 'upper right']
@@ -72,6 +68,11 @@ for i, CCid in enumerate(CCids):
         locs.remove(loc)
 
     # Draw graph
+    node_size = 25/(1 + exp(0.01*(len(subggraph)-400))) + 10  # Adjust node size
+    FB = [node for node in G.nodes if node.startswith('FBgn')]
+    YO = [node for node in G.nodes if node.startswith('YOgn')]
+    NCBI = G.nodes - (FB + YO)
+
     fig, ax = plt.subplots(figsize=figsize, dpi=300)
     nx.draw_networkx_edges(G, pos, alpha=0.25, width=0.5)
     nx.draw_networkx_nodes(NCBI, pos, node_size=node_size, linewidths=0, node_color='C0', label='NCBI')
