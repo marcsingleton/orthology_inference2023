@@ -8,7 +8,7 @@ ggraph = {}
 with open('../hsps2ggraph/out/ggraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        ggraph[node] = adjs.split(',')
+        ggraph[node] = set(adjs.split(','))
 
 # Cluster by triangle criterion
 OGs = cluster(ggraph)

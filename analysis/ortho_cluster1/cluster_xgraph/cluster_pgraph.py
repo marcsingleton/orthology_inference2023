@@ -8,7 +8,7 @@ pgraph = {}
 with open('../hsps2pgraph/out/pgraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        pgraph[node] = adjs.split(',')
+        pgraph[node] = set(adjs.split(','))
 
 # Make reciprocal
 rpgraph = {}
