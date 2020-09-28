@@ -56,13 +56,16 @@ hsp_dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
               'length': int, 'nident': int,
               'qlen': int, 'qstart': int, 'qend': int,
               'evalue': float, 'bitscore': float}
-id_dtypes = {'CCid': 'string', 'OGid': 'string'}
+id_dtypes = {'qgnid': 'string', 'sgnid': 'string',
+             'CCid': 'string', 'OGid': 'string'}
 
 # Load data
 df = pd.read_csv('../blast2hsps/out/hsps.tsv', sep='\t', usecols=hsp_dtypes.keys(), dtype=hsp_dtypes)
+r = pd.read_csv('../hsps2reciprocal/out/hsps.tsv', sep='\t', usecols=['reciprocal'], memory_map=True)
 ids = pd.read_csv('../OGs2hsps/out/hsps.tsv', sep='\t', usecols=id_dtypes.keys(), dtype=id_dtypes)
 
-hsps0 = df.join(ids).dropna()
+dfr = df.join(r)
+hsps0 = dfr[dfr['reciprocal']].merge(ids, how='left', on=['qgnid', 'sgnid']).dropna()
 hsps0['pident'] = hsps0['nident'] / hsps0['length']
 hsps0['nqa'] = hsps0['qend'] - hsps0['qstart'] + 1
 hsps0['fqa'] = hsps0['nqa'] / hsps0['qlen']
@@ -253,6 +256,8 @@ scatter2(gnidnum, edgefrac, 'edgefrac-OGgnnum_his', 'Fraction of possible edges 
 DEPENDENCIES
 ../blast2hsps/blast2hsps.py
     ../blast2hsps/out/hsps.tsv
+../hits2reciprocal/hits2reciprocal.py
+    ../hits2reciprocal/out/hsps.tsv
 ../OGs2hsps/OGs2hsps.py
     ../OGs2hsps/out/hsps.tsv
 """

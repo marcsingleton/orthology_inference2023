@@ -23,14 +23,17 @@ def parse_hit(qspid, sspid):
     dfr = df.join(r)
 
     orows = []
+    gnids = set()
     for irow in dfr.itertuples():
-        qppid, sppid = irow.qppid, irow.sppid
         qgnid, sgnid = irow.qgnid, irow.sgnid
+        if (qgnid, sgnid) in gnids:
+            continue
 
         CCid1, OGid1 = get_ids(qgnid, sgnid, edge2ids1)
         CCid2, OGid2 = get_ids(qgnid, sgnid, edge2ids2)
 
-        orows.append((qppid, sppid, CCid1, OGid1, CCid2, OGid2))
+        orows.append((qgnid, sgnid, CCid1, OGid1, CCid2, OGid2))
+        gnids.add((qgnid, sgnid))
 
     # Make output directory
     if not os.path.exists(f'out/{qspid}/'):
@@ -38,13 +41,12 @@ def parse_hit(qspid, sspid):
 
     # Write to file
     with open(f'out/{qspid}/{sspid}', 'w') as file:
-        file.write('qppid\tsppid\tCCid1\tOGid1\tCCid2\tOGid2\n')
+        file.write('qgnid\tsgnid\tCCid1\tOGid1\tCCid2\tOGid2\n')
         for orow in orows:
             file.write('\t'.join(orow) + '\n')
 
 
-dtypes = {'qppid': 'string', 'qgnid': 'string',
-          'sppid': 'string', 'sgnid': 'string'}
+dtypes = {'qgnid': 'string', 'sgnid': 'string'}
 num_processes = 2
 
 if __name__ == '__main__':

@@ -4,22 +4,19 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 import os
 import pandas as pd
+from itertools import permutations
 from numpy import linspace
 
 
 # Load functions
 def load_hit(qspid, sspid):
-    df = pd.read_csv(f'../hsps2hits/out/{qspid}/{sspid}', sep='\t',
+    df = pd.read_csv(f'../../ortho_cluster2/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=hit_dtypes.keys(), dtype=hit_dtypes, memory_map=True)
-    r = pd.read_csv(f'../hits2reciprocal/out/{qspid}/{sspid}', sep='\t',
+    r = pd.read_csv(f'../../ortho_cluster2/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal2'], memory_map=True)
     dfr = df.join(r)
 
-    ids = pd.read_csv(f'../OGs2hits/out/{qspid}/{sspid}', sep='\t',
-                      usecols=id_dtypes.keys(), dtype=id_dtypes, memory_map=True)
-    ids = ids.rename(columns={'CCid2': 'CCid', 'OGid2': 'OGid'})
-
-    return dfr[dfr['reciprocal2']].merge(ids, how='left', on=['qgnid', 'sgnid']).dropna()
+    return dfr[dfr['reciprocal2']]
 
 
 # Plot functions
@@ -96,16 +93,30 @@ hit_dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
               'qlen': int, 'nqa': int, 'cnqa': int,
               'slen': int, 'nsa': int, 'cnsa': int,
               'bitscore': float}
-id_dtypes = {'qgnid': 'string', 'sgnid': 'string',
-             'CCid2': 'string', 'OGid2': 'string'}
 num_processes = 4
 
 if __name__ == '__main__':
+    # Parse parameters
+    spids = []
+    with open('params.tsv') as file:
+        fields = file.readline().split()  # Skip header
+        for line in file:
+            spids.append(line.split()[0])
+
     # Load data
+    rows = []
+    with open('../clique5+_community/out/ggraph2/6clique/gclusters.txt') as file:
+        for line in file:
+            CCid, OGid, edges = line.rstrip().split(':')
+            for edge in edges.split('\t'):
+                node1, node2 = edge.split(',')
+                rows.append({'CCid': CCid, 'OGid': OGid, 'qgnid': node1, 'sgnid': node2})
+                rows.append({'CCid': CCid, 'OGid': OGid, 'qgnid': node2, 'sgnid': node1})
+    edges = pd.DataFrame(rows)
+
     with mp.Pool(processes=num_processes) as pool:
-        tsvs = [(qspid, sspid) for qspid in os.listdir('../hsps2hits/out/')
-                for sspid in os.listdir(f'../hsps2hits/out/{qspid}/')]
-        hits0 = pd.concat(pool.starmap(load_hit, tsvs))
+        hits0 = pd.concat(pool.starmap(load_hit, permutations(spids, 2)))
+        hits0 = edges.merge(hits0, how='left', on=['qgnid', 'sgnid'])
         hits0['xhspnum'] = hits0['chspnum'] - hits0['hspnum']
         hits0['fqa'] = hits0['nqa'] / hits0['qlen']
         hits0['cfqa'] = hits0['cnqa'] / hits0['qlen']
@@ -119,12 +130,12 @@ if __name__ == '__main__':
     OG_gnidnum = OGs['qgnid'].nunique()
     gn_OGidnum = gns['OGid'].nunique()
 
-    OGs_31sps = OG_spidnum[OG_spidnum == 31].index
-    OGs_31gns = OG_gnidnum[OG_gnidnum == 31].index
+    OGs_25sps = OG_spidnum[OG_spidnum == 25].index
+    OGs_25gns = OG_gnidnum[OG_gnidnum == 25].index
     gns_gn1OG = gn_OGidnum[gn_OGidnum > 1].index
     OGs_gn1OG = hits0.loc[hits0['qgnid'].isin(gns_gn1OG), 'OGid'].unique()
 
-    OGs1 = set(OGs_31sps) & set(OGs_31gns)
+    OGs1 = set(OGs_25sps) & set(OGs_25gns)
     OGs2 = OGs1 - set(OGs_gn1OG)
 
     hits1 = hits0[hits0['OGid'].isin(OGs1)]
@@ -324,7 +335,7 @@ if __name__ == '__main__':
     scatter2(gnidnums[0], edgefracs[0], 'edgefrac-OGgnnum_all', 'Fraction of possible edges in OG')
 
     # 12.2 Excluding His OGs
-    hits3 = hits0[~hits0['OGid'].isin(['09e7', '0a60', '0a5d', '0a61', '0a5e'])]
+    hits3 = hits0[~hits0['OGid'].isin(['0926', '0989', '0987', '098a', '0988'])]
     OG3 = hits3.groupby('OGid')
     edgenum = hits3[['qgnid', 'sgnid', 'OGid']].drop_duplicates().groupby('OGid').size() / 2
     gnidnum = OG3['qgnid'].nunique()
@@ -337,10 +348,8 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../blast2hits/blast2hits.py
-    ../blast2hsps/out/*/*.tsv
-../hits2reciprocal/hits2reciprocal.py
-    ../hits2reciprocal/out/*/*.tsv
-../OGs2hits/OGs2hits.py
-    ../OGs2hsps/out/*/*.tsv
+../../ortho_cluster2/blast2hits/blast2hits.py
+    ../../ortho_cluster2/blast2hsps/out/*/*.tsv
+../../ortho_cluster2/hits2reciprocal/hits2reciprocal.py
+    ../../ortho_cluster2/hits2reciprocal/out/*/*.tsv
 """

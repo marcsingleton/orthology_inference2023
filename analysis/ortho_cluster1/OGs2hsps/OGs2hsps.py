@@ -14,8 +14,7 @@ def get_ids(qgnid, sgnid, edge2ids):
             return 'NA', 'NA'
 
 
-dtypes = {'qppid': 'string', 'qgnid': 'string',
-          'sppid': 'string', 'sgnid': 'string'}
+dtypes = {'qgnid': 'string', 'sgnid': 'string'}
 
 # Load OG edges
 edge2ids = {}
@@ -32,13 +31,16 @@ r = pd.read_csv('../hsps2reciprocal/out/hsps.tsv', sep='\t',
 dfr = df.join(r)
 
 orows = []
+gnids = set()
 for irow in dfr.itertuples():
-    qppid, sppid = irow.qppid, irow.sppid
     qgnid, sgnid = irow.qgnid, irow.sgnid
+    if (qgnid, sgnid) in gnids:
+        continue
 
     CCid, OGid = get_ids(qgnid, sgnid, edge2ids)
 
-    orows.append((qppid, sppid, CCid, OGid))
+    orows.append((qgnid, sgnid, CCid, OGid))
+    gnids.add((qgnid, sgnid))
 
 # Make output directory
 if not os.path.exists('out/'):
@@ -46,7 +48,7 @@ if not os.path.exists('out/'):
 
 # Write to file
 with open('out/hsps.tsv', 'w') as file:
-    file.write('qppid\tsppid\tCCid\tOGid\n')
+    file.write('qgnid\tsgnid\tCCid\tOGid\n')
     for orow in orows:
         file.write('\t'.join(orow) + '\n')
 
