@@ -56,6 +56,7 @@ if __name__ == '__main__':
 
     # Save results
     with open('out/times.tsv', 'w') as file:
+        file.write('aligner\tref\tfasta\ttime_ns\n')
         for row in rows:
             file.write('\t'.join(row) + '\n')
 
