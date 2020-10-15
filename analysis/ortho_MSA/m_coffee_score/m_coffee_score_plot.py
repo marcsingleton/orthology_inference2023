@@ -20,6 +20,7 @@ def pca_plots(df, metric):
     plt.legend()
     plt.xlabel('PC1')
     plt.ylabel('PC2')
+    plt.title(metric[:-1] + ' score')
     plt.savefig(f'out/scatter_pca12_{metric}.png')
     plt.close()
 
@@ -45,6 +46,7 @@ def pca_plots(df, metric):
     plt.legend()
     plt.xlabel('PC2')
     plt.ylabel('PC3')
+    plt.title(metric[:-1] + ' score')
     plt.savefig(f'out/scatter_pca23_{metric}.png')
     plt.close()
 
@@ -62,7 +64,8 @@ def scatter_matrix(df, metric):
             if i == len(S.columns)-2:
                 axs[i, j].set_xlabel(S.columns[j], size='small')
             axs[i, j].scatter(S[S.columns[i+1]], S[S.columns[j]], s=5, alpha=0.5, edgecolors='none')
-    plt.savefig(f'out/scatter_matrix_{metric}.png')
+    fig.suptitle(metric[:-1] + ' score')
+    fig.savefig(f'out/scatter_matrix_{metric}.png')
     plt.close()
 
 
