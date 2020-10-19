@@ -54,6 +54,10 @@ def pca_plots(df, metric):
 def scatter_matrix(df, metric):
     S = df.drop(['clustalo2', 'clustalo3'], level=2)[metric].unstack(2)
     fig, axs = plt.subplots(len(S.columns)-1, len(S.columns)-1, sharex=True, sharey=True)
+    axs[0, 0].set_xlim(-0.1, 1.1)
+    axs[0, 0].set_xticks([0, 1])
+    axs[0, 0].set_ylim(-0.1, 1.1)
+    axs[0, 0].set_yticks([0, 1])
     for i in range(len(S.columns)-1):
         for j in range(len(S.columns)-1):
             if j > i:
