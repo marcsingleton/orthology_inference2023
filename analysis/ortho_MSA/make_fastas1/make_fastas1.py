@@ -11,16 +11,16 @@ gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
             'NCBI': r'db_xref=GeneID:([0-9]+)'}
 
 # Parse parameters
-params = {}
+params = []
 with open('params.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
         spid, _, source, tcds_path = line.split()
-        params[spid] = (source, tcds_path)
+        params.append((spid, source, tcds_path))
 
 # Load seqs
 gnid2seqs = {}
-for spid, (source, tcds_path) in params.items():
+for spid, source, tcds_path in params:
     with open(tcds_path) as file:
         line = file.readline()
         while line:
