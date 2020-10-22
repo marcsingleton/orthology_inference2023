@@ -2,9 +2,10 @@
 
 import os
 import re
+import sys
 
 
-def translate(nt_seq, aa_seq):
+def get_codons(nt_seq, aa_seq):
     delta = len(nt_seq) // 3 - len(aa_seq)
     if abs(delta) > 1:
         print('File:', file_id)
@@ -15,27 +16,27 @@ def translate(nt_seq, aa_seq):
         return
     num_codon = (len(nt_seq) - 3 * max(0, delta)) // 3  # Exclude last codon only if delta == 1
 
-    tr_syms = []  # Translated symbols
+    codons = []  # Translated symbols
     for i in range(0, num_codon):
-        codon = nt_seq[3 * i:3 * i + 3]
+        codon = nt_seq[3*i:3*i+3]
         tr = 'X' if 'N' in codon else ttable[codon]
         aa = aa_seq[i]
         if tr != aa:
             if i == 0 and aa == 'M':  # Correct non-standard start codon
-                tr_syms.append(aa)
+                codons.append(codon)
                 print('File:', file_id)
                 print('PPID:', ppid)
                 print('Warning: Non-standard start codon detected. '
-                      f'Translated residue {ttable[nt_seq[i:i + 3]]} converted to observed residue {aa}.')
+                      f'Translated residue {ttable[nt_seq[i:i+3]]} converted to observed residue {aa}.')
                 print()
             elif tr == 'X':  # Correct unknown amino acid
-                tr_syms.append(aa)
+                codons.append(codon)
                 print('File:', file_id)
                 print('PPID:', ppid)
                 print(f'Warning: Converted unknown translated residue to observed residue {aa}.')
                 print()
             elif tr == '*':
-                tr_syms.append(aa)
+                codons.append(codon)
                 print('File:', file_id)
                 print('PPID:', ppid)
                 print(f'Warning: Converted stop codon {num_codon-i-1} residues from C-terminus to observed residue {aa}.')
@@ -47,14 +48,14 @@ def translate(nt_seq, aa_seq):
                 print()
                 return
         else:
-            tr_syms.append(aa)
+            codons.append(codon)
     if delta == -1:
-        tr_syms.append(aa_seq[-1])
+        codons.append(nt_seq[3*(i+1):] + (3-len(nt_seq) % 3) * '-')
         print('File:', file_id)
         print('PPID:', ppid)
         print(f'Warning: Missing final residue {aa_seq[-1]} appended to translated sequence.')
         print()
-    return tr_syms
+    return codons
 
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
@@ -96,6 +97,7 @@ for spid, source, cds_path in params:
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
+sys.stdout = open('out/out.txt', 'w')  # Redirect stdout to file
 for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_fastas1/out/')):
     # Load alignments
     aa_aligns = []
@@ -104,18 +106,37 @@ for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_fastas1
         while line:
             if line.startswith('>'):
                 header = line
-                ppid = re.search('ppid=([NXYPFBpp0-9_\.]+)\|', header)[1]
                 line = file.readline()
 
             seqlines = []
             while line and not line.startswith('>'):
                 seqlines.append(line.rstrip())
                 line = file.readline()
-            aa_aligns.append((ppid, header, ''.join(seqlines)))
+            aa_aligns.append((header, ''.join(seqlines)))
 
-    # Translate CDS
+    # Translate and write CDS
     nt_aligns = []
-    for ppid, header, aa_align in aa_aligns:
+    for header, aa_align in aa_aligns:
+        ppid = re.search('ppid=([NXYPFBpp0-9_\.]+)\|', header)[1]
         aa_seq = aa_align.replace('-', '')
         nt_seq = ppid2cds[ppid]
-        tr_syms = translate(nt_seq, aa_seq)
+
+        codons = get_codons(nt_seq, aa_seq)
+        if not codons:
+            print(f'Conversion of {file_id} failed due to {ppid}.')
+            print()
+            break
+
+        nt_align = []
+        for aa in aa_align:
+            if aa == '-':
+                nt_align.append('---')
+            else:
+                nt_align.append(codons.pop(0))
+        nt_aligns.append((header, ''.join(nt_align)))
+    else:
+        with open('out/' + file_id, 'w') as file:
+            for header, nt_align in nt_aligns:
+                alignstring = '\n'.join(nt_align[i:i+80] for i in range(0, len(nt_align), 80)) + '\n'
+                file.write(header + alignstring)
+sys.stdout.close()
