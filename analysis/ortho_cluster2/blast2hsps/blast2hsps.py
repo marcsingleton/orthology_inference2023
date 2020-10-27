@@ -114,7 +114,7 @@ def has_overlap(ihsp, ohsps, query=True):
 
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
+            'NCBI': r'([NXY]P_[0-9]+)'}
 columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'sppid': str, 'sgnid': str, 'sspid': str,
            'length': int, 'nident': int, 'gaps': int,
