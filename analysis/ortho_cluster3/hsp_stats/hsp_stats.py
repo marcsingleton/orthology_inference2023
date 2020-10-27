@@ -19,7 +19,9 @@ def load_hsp(qspid, sspid):
 
     df['pident'] = df['nident'] / df['length']
     df['nqa'] = df['qend'] - df['qstart'] + 1
-    df['fqa'] = (df['qend'] - df['qstart'] + 1) / df['qlen']
+    df['fqa'] = df['nqa'] / df['qlen']
+    df['nsa'] = df['send'] - df['sstart'] + 1
+    df['fsa'] = df['nsa'] / df['slen']
     df['logevalue'] = df['evalue'].apply(lambda x: log10(x) if x > 0 else -180)
     return df[df['disjoint']].join(r)
 
@@ -73,6 +75,7 @@ dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
           'sppid': 'string', 'sgnid': 'string', 'sspid': 'string',
           'length': int, 'nident': int,
           'qlen': int, 'qstart': int, 'qend': int,
+          'slen': int, 'sstart': int, 'send': int,
           'evalue': float, 'bitscore': float,
           'index_hsp': bool, 'disjoint': bool}
 num_processes = 2
@@ -147,11 +150,18 @@ if __name__ == '__main__':
         hist1(evalue1, 200, data_label, 'evalue_reciprocal', 'log10(E-value)', labels[1], colors[1], capital=False)
 
         # 1.2.1.3 Scatters of E-value with other metrics
+        plt.hist2d(df0['logevalue'], df0['fqa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
+        plt.xlabel('log10(E-value)')
+        plt.ylabel('Fraction of query aligned')
+        plt.colorbar()
+        plt.savefig(f'out/blast_{data_label}/hist2d_fqa-evalue_all.png')
+        plt.close()
+
         plt.hist2d(df1['logevalue'], df1['fqa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
         plt.xlabel('log10(E-value)')
         plt.ylabel('Fraction of query aligned')
         plt.colorbar()
-        plt.savefig(f'out/blast_{data_label}/hist2d_fqa-evalue.png')
+        plt.savefig(f'out/blast_{data_label}/hist2d_fqa-evalue_reciprocal.png')
         plt.close()
 
         g0 = df0.groupby('logevalue')
@@ -232,6 +242,21 @@ if __name__ == '__main__':
         hist1(df1['fqa'], 50, data_label, 'fqa_reciprocal', 'fraction of query aligned',
               labels[1], colors[1], wrap=True)
 
+        # 1.2.6 FQA-FSA scatters
+        plt.hist2d(df0['fqa'], df0['fsa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
+        plt.xlabel('Fraction of query aligned')
+        plt.ylabel('Fraction of subject aligned')
+        plt.colorbar()
+        plt.savefig(f'out/blast_{data_label}/hist2d_fsa-fqa_all.png')
+        plt.close()
+
+        plt.hist2d(df1['fqa'], df1['fsa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
+        plt.xlabel('Fraction of query aligned')
+        plt.ylabel('Fraction of subject aligned')
+        plt.colorbar()
+        plt.savefig(f'out/blast_{data_label}/hist2d_fsa-fqa_reciprocal.png')
+        plt.close()
+
     # 2 HIT METRICS
     for data_label, hsps in [('all', hsps1), ('reciprocal', hsps1[hsps1['reciprocal']])]:
         # Make hits output directory
@@ -283,8 +308,8 @@ if __name__ == '__main__':
 
 """
 OUTPUT
-Fraction of best HSPs reciprocal: 0.9252319741539392
-Fraction of disjoint HSPs reciprocal: 0.9273366102210822
+Fraction of best HSPs reciprocal: 0.9405063446593553
+Fraction of disjoint HSPs reciprocal: 0.942655602594836
 
 DEPENDENCIES
 ../../ortho_cluster2/blast2hsps/blast2hsps.py
