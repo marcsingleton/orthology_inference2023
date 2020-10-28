@@ -17,7 +17,7 @@ def get_Xmax(seq):
 
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
+            'NCBI': r'([NXY]P_[0-9]+)'}
 
 # Load pp metadata
 ppid2gnid = {}
