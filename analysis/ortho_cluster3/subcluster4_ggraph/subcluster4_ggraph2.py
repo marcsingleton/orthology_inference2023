@@ -152,11 +152,11 @@ for i, CCtype in enumerate(CCtypes):
 
 """
 OUTPUT
-Type 0: 1291
-Type 1: 11144
-Type 2: 1562
-Type 3: 237
-Type 4: 657
+Type 0: 1290
+Type 1: 11130
+Type 2: 1586
+Type 3: 233
+Type 4: 656
 
 DEPENDENCIES
 ../connect_ggraph/connect_ggraph.py

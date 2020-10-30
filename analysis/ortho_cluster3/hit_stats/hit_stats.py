@@ -1,5 +1,6 @@
 """Plot various statistics of hits."""
 
+import matplotlib.colors as mpl_colors
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import os
@@ -123,10 +124,11 @@ if __name__ == '__main__':
         hsps1 = hsps0[hsps0['bitscore'] >= 50]
 
         hits0 = pd.concat(pool.starmap(load_hit, permutations(spids, 2)))
-        hits0['xhspnum'] = hits0['chspnum'] - hits0['hspnum']
         hits0['fqa'] = hits0['nqa'] / hits0['qlen']
+        hits0['fsa'] = hits0['nsa'] / hits0['slen']
         hits0['cfqa'] = hits0['cnqa'] / hits0['qlen']
         hits0['xfqa'] = hits0['cfqa'] - hits0['fqa']
+        hits0['xhspnum'] = hits0['chspnum'] - hits0['hspnum']
 
         hits1 = hits0[hits0['cfqa'] >= 0.5]
         hits2 = hits1[hits1['reciprocal2']]
@@ -253,6 +255,15 @@ if __name__ == '__main__':
     hist1(hits0['xfqa'], 50, 'xfqa_bs50', 'excess fraction of query aligned', labels[0], colors[0], wrap=True)
     hist1(hits1['xfqa'], 50, 'xfqa_cfqa50', 'excess fraction of query aligned', labels[1], colors[1], wrap=True)
     hist1(hits2['xfqa'], 50, 'xfqa_reciprocal', 'excess fraction of query aligned', labels[2], colors[2], wrap=True)
+
+    # 1.3.10 FQA-FSA scatters
+    for label, hit in zip(['bs50', 'cfqa50', 'reciprocal'], hits):
+        plt.hist2d(hit['fqa'], hit['fsa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
+        plt.xlabel('Fraction of query aligned')
+        plt.ylabel('Fraction of subject aligned')
+        plt.colorbar()
+        plt.savefig(f'out/blast/hist2d_fsa-fqa_{label}.png')
+        plt.close()
 
     # 2 HIT METRICS
     # Make hits output directory

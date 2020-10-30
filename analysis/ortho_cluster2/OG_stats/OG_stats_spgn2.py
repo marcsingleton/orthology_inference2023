@@ -218,17 +218,17 @@ print('fraction of OGs with duplicates', (OGnum - dist_dup[0]) / OGnum)
 OUTPUT
 number of OGs: 16665
 
-number of OGs with 31 species: 8657
-fraction of OGs with 31 species: 0.5194719471947195
+number of OGs with 31 species: 8656
+fraction of OGs with 31 species: 0.5194119411941194
 
-number of OGs with 31 genes: 6458
-fraction of OGs with 31 genes: 0.38751875187518753
+number of OGs with 31 genes: 6435
+fraction of OGs with 31 genes: 0.38613861386138615
 
-number of OGs with 31 species and 31 genes: 6108
-fraction of OGs with 31 species and 31 genes: 0.3665166516651665
+number of OGs with 31 species and 31 genes: 6088
+fraction of OGs with 31 species and 31 genes: 0.3653165316531653
 
-number of OGs with duplicates: 4510
-fraction of OGs with duplicates 0.2706270627062706
+number of OGs with duplicates: 4531
+fraction of OGs with duplicates 0.2718871887188719
 
 NOTES
 These plots are largely based off those in analysis/EggNOGv5_validation/ali_stats/ali_stats.py

@@ -22,14 +22,14 @@ CCs = pd.DataFrame(rows)
 
 # Load OGs
 rows = []
-with open('../clique5+_community/out/ggraph1/6clique/gclusters.txt') as file:
+with open('../clique5+_community/out/ggraph1/5clique/gclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
         for gnid in gnids:
             rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid, 'spid': gnid2spid[gnid]})
 OGs = pd.DataFrame(rows)
-OGs = OGs[OGs['CCid'] != '2ff2']  # Drop outlier OG
+OGs = OGs[OGs['CCid'] != '2ff6']  # Drop outlier OG
 
 # Make output directory
 if not os.path.exists('out/ggraph1/CCOG/'):
@@ -134,7 +134,7 @@ plt.close()
 """
 DEPENDENCIES
 ../clique5+_community/clique5+_community1.py
-    ../clique5+_community/out/ggraph1/6clique/gclusters.txt
+    ../clique5+_community/out/ggraph1/5clique/gclusters.txt
 ../connect_ggraph/connect_ggraph1.py
     ../connect_ggraph/out/gconnect1.txt
 ../hsp_stats/hsp_stats.py

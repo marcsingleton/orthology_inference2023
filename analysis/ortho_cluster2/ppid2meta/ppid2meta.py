@@ -4,7 +4,7 @@ import os
 import re
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
+            'NCBI': r'([NXY]P_[0-9]+)'}
 gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
             'NCBI': r'db_xref=GeneID:([0-9]+)'}
 

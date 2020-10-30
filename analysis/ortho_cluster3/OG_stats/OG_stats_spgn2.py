@@ -13,7 +13,7 @@ with open('../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../clique5+_community/out/ggraph2/6clique/gclusters.txt') as file:
+with open('../clique5+_community/out/ggraph2/5clique/gclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -216,26 +216,26 @@ print('fraction of OGs with duplicates', (OGnum - dist_dup[0]) / OGnum)
 
 """
 OUTPUT
-number of OGs: 14391
+number of OGs: 14864
 
-number of OGs with 25 species: 9305
-fraction of OGs with 25 species: 0.6465846709749149
+number of OGs with 25 species: 9385
+fraction of OGs with 25 species: 0.6313912809472552
 
-number of OGs with 25 genes: 8269
-fraction of OGs with 25 genes: 0.5745952331318185
+number of OGs with 25 genes: 8242
+fraction of OGs with 25 genes: 0.5544940796555436
 
-number of OGs with 25 species and 25 genes: 8141
-fraction of OGs with 25 species and 25 genes: 0.5657007852129803
+number of OGs with 25 species and 25 genes: 8102
+fraction of OGs with 25 species and 25 genes: 0.545075349838536
 
-number of OGs with duplicates: 1758
-fraction of OGs with duplicates 0.12215968313529289
+number of OGs with duplicates: 1975
+fraction of OGs with duplicates 0.1328713670613563
 
 NOTES
 These plots are largely based off those in analysis/EggNOGv5_validation/ali_stats/ali_stats.py
 
 DEPENDENCIES
-../subcluster_ggraph/subcluster_ggraph2.py
-    ../subcluster_ggraph/ggraph2/out/gclusters.tsv
+../clique5+_community/clique5+_community2.py
+    ../clique5+_community/out/ggraph2/5clique/gclusters.txt
 ../../ortho_cluster2/ppid2meta/ppid2meta.py
     ../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv
 """

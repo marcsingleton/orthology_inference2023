@@ -17,29 +17,34 @@ def get_Xmax(seq):
 
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
-gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
-            'NCBI': r'db_xref=GeneID:([0-9]+)'}
+            'NCBI': r'([NXY]P_[0-9]+)'}
+
+# Load pp metadata
+ppid2gnid = {}
+with open('../ppid2meta/out/ppid2meta.tsv') as file:
+    for line in file:
+        ppid, gnid, _ = line.split()
+        ppid2gnid[ppid] = gnid
 
 # Parse parameters
 params = {}
 with open('params.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        spid, _, source, tcds_path = line.split()
-        params[spid] = (source, tcds_path)
+        spid, _, source, prot_path = line.split()
+        params[spid] = (source, prot_path)
 
 # Parse polypeptides
 sqid0 = 0
 sqids = {}
 rows = []
-for spid, (source, tcds_path) in params.items():
-    with open(tcds_path) as file:
+for spid, (source, prot_path) in params.items():
+    with open(prot_path) as file:
         line = file.readline()
         while line:
             if line.startswith('>'):
                 ppid = re.search(pp_regex[source], line).group(1)
-                gnid = re.search(gn_regex[source], line).group(1)
+                gnid = ppid2gnid[ppid]
                 line = file.readline()
 
             seqlines = []
@@ -383,23 +388,23 @@ print('Fraction (genes with unknown amino acids):', s3 / s2)
 
 """
 OUTPUT
-Fraction of sequences with unknown amino acids: 0.00811963364570573
+Fraction of sequences with unknown amino acids: 0.014257199487651535
 
 Genes with at least one sequence without unknown amino acids
-Number: 443454
-Fraction: 0.9896693246563695
+Number: 438969
+Fraction: 0.9796600183448155
 
 Genes with at least one sequence with unknown amino acids
-Number: 5158
-Fraction: 0.011511260190634325
+Number: 9643
+Fraction: 0.02152056650218821
 
 Genes with at least one sequence without unknown amino acids and at least one sequence with unknown amino acids
 Number: 529
 Fraction (all genes): 0.0011805848470037917
-Fraction (genes with unknown amino acids): 0.10255913144629701
+Fraction (genes with unknown amino acids): 0.05485844654153272
 
 DEPENDENCIES
-../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
+../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ./params.tsv
 """
