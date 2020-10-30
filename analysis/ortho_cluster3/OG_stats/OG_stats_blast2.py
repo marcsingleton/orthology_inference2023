@@ -1,5 +1,6 @@
 """Plot various statistics of OGs relating to their BLAST parameters."""
 
+import matplotlib.colors as mpl_colors
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import os
@@ -105,7 +106,7 @@ if __name__ == '__main__':
 
     # Load data
     rows = []
-    with open('../clique5+_community/out/ggraph2/6clique/gclusters.txt') as file:
+    with open('../clique5+_community/out/ggraph2/5clique/gclusters.txt') as file:
         for line in file:
             CCid, OGid, edges = line.rstrip().split(':')
             for edge in edges.split('\t'):
@@ -117,10 +118,11 @@ if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
         hits0 = pd.concat(pool.starmap(load_hit, permutations(spids, 2)))
         hits0 = edges.merge(hits0, how='left', on=['qgnid', 'sgnid'])
-        hits0['xhspnum'] = hits0['chspnum'] - hits0['hspnum']
         hits0['fqa'] = hits0['nqa'] / hits0['qlen']
+        hits0['fsa'] = hits0['nsa'] / hits0['slen']
         hits0['cfqa'] = hits0['cnqa'] / hits0['qlen']
         hits0['xfqa'] = hits0['cfqa'] - hits0['fqa']
+        hits0['xhspnum'] = hits0['chspnum'] - hits0['hspnum']
 
     # Segment OGs
     OGs = hits0.groupby('OGid')
@@ -310,32 +312,41 @@ if __name__ == '__main__':
     scatter1(OGs[1]['xfqa'].mean(), OGs[1]['xfqa'].var(), 'xfqavar-xfqamean_filter1.png', 'xFQA', labels[1], colors[1])
     scatter1(OGs[2]['xfqa'].mean(), OGs[2]['xfqa'].var(), 'xfqavar-xfqamean_filter2.png', 'xFQA', labels[2], colors[2])
 
-    # 11 EDGES
+    # 11 FQA-FSA SCATTERS
+    for label, hit in zip(labels, hits):
+        plt.hist2d(hit['fqa'], hit['fsa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
+        plt.xlabel('Fraction of query aligned')
+        plt.ylabel('Fraction of subject aligned')
+        plt.colorbar()
+        plt.savefig(f'out/ggraph2/blast/hist2d_fsa-fqa_{label}.png')
+        plt.close()
+
+    # 12 EDGES
     edgenums = [hit[['qgnid', 'sgnid', 'OGid']].drop_duplicates().groupby('OGid').size() / 2 for hit in hits]
     gnidnums = [OG['qgnid'].nunique() for OG in OGs]
     edgefracs = [2*edgenum / (gnidnum*(gnidnum-1)) for edgenum, gnidnum in zip(edgenums, gnidnums)]
 
-    # 11.1 Edge number histograms
+    # 12.1 Edge number histograms
     hist3(edgenums, 100, 'OGnum-edgenum', 'OGs', 'number of edges', labels, colors)
     hist1(edgenums[0], 100, 'OGnum-edgenum_all', 'OGs', 'number of edges', labels[0], colors[0])
     hist1(edgenums[1], 50, 'OGnum-edgenum_filter1', 'OGs', 'number of edges', labels[1], colors[1])
     hist1(edgenums[2], 50, 'OGnum-edgenum_filter2', 'OGs', 'number of edges', labels[2], colors[2])
 
-    # 11.2 Edge fraction histograms
+    # 12.2 Edge fraction histograms
     hist3(edgefracs, 50, 'OGnum-edgefrac', 'OGs', 'fraction of possible edges', labels, colors)
     hist1(edgefracs[0], 50, 'OGnum-edgefrac_all', 'OGs', 'fraction of possible edges', labels[0], colors[0])
     hist1(edgefracs[1], 50, 'OGnum-edgefrac_filter1', 'OGs', 'fraction of possible edges', labels[1], colors[1])
     hist1(edgefracs[2], 50, 'OGnum-edgefrac_filter2', 'OGs', 'fraction of possible edges', labels[1], colors[1])
 
-    # 12 CORRELATIONS
-    # 12.1 Including His OGs
+    # 13 CORRELATIONS
+    # 13.1 Including His OGs
     scatter2(gnidnums[0], OGs[0]['bitscore'].mean(), 'bitscore-OGgnnum_all', 'Mean bitscore of hits in OG')
     scatter2(gnidnums[0], OGs[0]['fqa'].mean(), 'fqa-OGgnnum_all', 'Mean fraction of query aligned of hits in OG')
     scatter2(gnidnums[0], edgenums[0], 'edgenum-OGgnnum_all', 'Number of edges in OG')
     scatter2(gnidnums[0], edgefracs[0], 'edgefrac-OGgnnum_all', 'Fraction of possible edges in OG')
 
-    # 12.2 Excluding His OGs
-    hits3 = hits0[~hits0['OGid'].isin(['0926', '0989', '0987', '098a', '0988'])]
+    # 13.2 Excluding His OGs
+    hits3 = hits0[~hits0['OGid'].isin(['094d', '09bc', '09ba', '09bd', '09bb'])]
     OG3 = hits3.groupby('OGid')
     edgenum = hits3[['qgnid', 'sgnid', 'OGid']].drop_duplicates().groupby('OGid').size() / 2
     gnidnum = OG3['qgnid'].nunique()
@@ -352,4 +363,6 @@ DEPENDENCIES
     ../../ortho_cluster2/blast2hsps/out/*/*.tsv
 ../../ortho_cluster2/hits2reciprocal/hits2reciprocal.py
     ../../ortho_cluster2/hits2reciprocal/out/*/*.tsv
+../clique5+_community/clique5+_community2.py
+    ../clique5+_community/out/ggraph2/5clique/gclusters.txt
 """

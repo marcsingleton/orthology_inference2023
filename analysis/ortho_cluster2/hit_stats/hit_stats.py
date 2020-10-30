@@ -259,7 +259,7 @@ if __name__ == '__main__':
         plt.xlabel('Fraction of query aligned')
         plt.ylabel('Fraction of subject aligned')
         plt.colorbar()
-        plt.savefig(f'out/blast/hist2d_fsa-fqa_all.png')
+        plt.savefig(f'out/blast/hist2d_fsa-fqa_{label}.png')
         plt.close()
 
     # 2 HIT METRICS
