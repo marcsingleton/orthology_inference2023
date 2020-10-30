@@ -20,7 +20,7 @@ with open('../../ortho_cluster3/genome_stats/out/gnid_nums.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../../ortho_cluster3/clique5+_community/out/ggraph2/6clique/gclusters.txt') as file:
+with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -48,10 +48,10 @@ OGs.to_csv('out/OGid2meta.tsv', sep='\t', index=False)
 
 """
 OUTPUT 
-Total OGs: 14391
-OGs with 25 genes: 8269
-OGs with 25 genes and species: 8141
-OGs with 25 genes, species, and sequences: 2691
+Total OGs: 14864
+OGs with 25 genes: 8242
+OGs with 25 genes and species: 8102
+OGs with 25 genes, species, and sequences: 2682
 
 DEPENDENCIES
 ../../ortho_cluster2/ppid2meta/ppid2meta.py
@@ -59,5 +59,5 @@ DEPENDENCIES
 ../../ortho_cluster3/genome_stats/genome_stats.py
     ../../ortho_cluster3/genome_stats/out/gnid_nums.tsv
 ../../ortho_cluster3/clique5+_community/clique5+_community2.py
-    ../../ortho_cluster3/clique5+_community/out/ggraph2/6clique/gclusters.txt
+    ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
 """
