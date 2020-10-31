@@ -46,7 +46,7 @@ for spid, source, tcds_path in params:
 
 # Load OGs and OG metadata
 OGs = {}
-with open('../../ortho_cluster3/clique5+_community/out/ggraph2/6clique/gclusters.txt') as file:
+with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt') as file:
     for line in file:
         _, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -76,7 +76,7 @@ DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../../ortho_cluster3/clique5+_community/clique5+_community.py
-    ../../ortho_cluster3/clique5+_community/out/ggraph2/6clique/gclusters.txt
+    ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
 ../OGid2meta/OGid2meta.py
     ../OGid2meta/out/OGid2meta.tsv
 ./params.tsv
