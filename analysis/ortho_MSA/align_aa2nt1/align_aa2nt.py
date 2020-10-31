@@ -140,3 +140,9 @@ for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_fastas1
                 alignstring = '\n'.join(nt_align[i:i+80] for i in range(0, len(nt_align), 80)) + '\n'
                 file.write(header + alignstring)
 sys.stdout.close()
+
+"""
+DEPENDENCIES
+../align_fastas1/align_fastas.py
+    ../align_fastas1/out/*.mfa
+"""
