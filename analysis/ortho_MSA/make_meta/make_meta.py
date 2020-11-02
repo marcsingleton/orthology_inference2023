@@ -1,6 +1,7 @@
 """Make meta alignments from nucleotide alignments of genes."""
 
 import os
+from collections import namedtuple
 from random import randrange
 
 import Bio.AlignIO as AlignIO
@@ -8,24 +9,44 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Align import MultipleSeqAlignment
 
+
+def is_redundant(col, cutoff):
+    gapnum = 0
+    for _, sym in col:
+        if sym in ['-', 'N']:
+            gapnum += 1
+    return gapnum <= (1 - cutoff) * len(col)
+
+
+def is_invariant(col):
+    for i, (_, sym) in enumerate(col):
+        if sym not in ['-', 'N']:
+            break
+    for _, sym in col[i+1:]:
+        if sym not in ['-', 'N', col[i].sym]:
+            return False
+    return True
+
+
+Column = namedtuple('Column', ['spid', 'sym'])
+
 # Extract column pools
-colpools = {'100red1': [], '100red2': [], '50red': [], '0red': []}
+colpools = {'100red': (lambda col: is_redundant(col, 1), []),
+            '100red_ni': (lambda col: is_redundant(col, 1) and not is_invariant(col), []),
+            '50red': (lambda col: is_redundant(col, 0.5), []),
+            '50red_ni': (lambda col: is_redundant(col, 0.5) and not is_invariant(col), []),
+            '0red': (lambda col: is_redundant(col, 0), []),
+            '0red_ni': (lambda col: is_redundant(col, 0) and not is_invariant(col), [])}
 for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_aa2nt1/out/')):
     align = AlignIO.read(f'../align_aa2nt1/out/{file_id}', 'fasta')
     for i in range(len(align[0])):
-        col = [(seq.description[-4:], seq[i]) for seq in align]
-        gapnum = [seq[i] for seq in align].count('-')
-        if gapnum <= 0 * len(align):
-            colpools['100red1'].append(col)
-        if gapnum <= 0 * len(align) and any([col[0][1] != sym[1] for sym in col]):
-            colpools['100red2'].append(col)
-        if gapnum <= 0.5 * len(align):
-            colpools['50red'].append(col)
-        if gapnum <= 1 * len(align):
-            colpools['0red'].append(col)
+        col = [Column(seq.description[-4:], seq[i]) for seq in align]
+        for condition, colpool in colpools.values():
+            if condition(col):
+                colpool.append(col)
 
 # Make meta alignments
-for label, colpool in colpools.items():
+for label, (_, colpool) in colpools.items():
     if not os.path.exists(f'out/{label}/'):
         os.makedirs(f'out/{label}/')
 
@@ -47,10 +68,12 @@ for label, colpool in colpools.items():
 
 """
 OUTPUT
-100red1: 3085154
-100red2: 1612236
-50red: 3328845
+100red: 3084469
+100red_ni: 1611551
+50red: 3328841
+50red_ni: 1808489
 0red: 3780294
+0red_ni: 1926641
 
 DEPENDENCIES
 ../align_aa2nt1/align_aa2nt1.py
