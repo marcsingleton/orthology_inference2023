@@ -97,15 +97,31 @@ for label in os.listdir('../phyml_GTR/out/'):
         tree = Phylo.read(f'../phyml_GTR/out/{label}/{file}', 'newick')
         for clade in tree.find_clades():
             clade.confidence = None
-        tree.root_with_outgroup('dwil')
+        path = tree.get_path('dwil')
+        if len(path) == 1:
+            outgroup = tree.clade
+        else:
+            outgroup = path[-2]
+        tree.root_with_outgroup(outgroup)
         trees.append(tree)
     ctree = majority_consensus(trees)
     ctree.ladderize()
-    ctree.root
     Phylo.write(ctree, f'out/{label}.txt', 'newick')
 
-    Phylo.draw(ctree, do_show=False)
+    # Save image as PNG
+    Phylo.draw(ctree, show_confidence=False, do_show=False)
+    plt.gca().yaxis.set_visible(False)
+    plt.gca().spines['left'].set_visible(False)
+    plt.xlabel('')
     plt.savefig(f'out/{label}.png')
+    plt.close()
+
+    # Save image as SVG (with confidences)
+    Phylo.draw(ctree, do_show=False)
+    plt.gca().yaxis.set_visible(False)
+    plt.gca().spines['left'].set_visible(False)
+    plt.xlabel('')
+    plt.savefig(f'out/{label}.svg')
     plt.close()
 
 """
