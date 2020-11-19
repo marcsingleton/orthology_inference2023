@@ -6,27 +6,32 @@ import re
 import pandas as pd
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
-gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
-            'NCBI': r'db_xref=GeneID:([0-9]+)'}
+            'NCBI': r'([NXY]P_[0-9]+)'}
 
 # Parse parameters
 params = []
 with open('params.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        spid, _, source, tcds_path = line.split()
-        params.append((spid, source, tcds_path))
+        spid, _, source, prot_path = line.split()
+        params.append((spid, source, prot_path))
+
+# Load pp metadata
+ppid2gnid = {}
+with open('../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv') as file:
+    for line in file:
+        ppid, gnid, _ = line.split()
+        ppid2gnid[ppid] = gnid
 
 # Load seqs
 gnid2seqs = {}
-for spid, source, tcds_path in params:
-    with open(tcds_path) as file:
+for spid0, source, prot_path in params:
+    with open(prot_path) as file:
         line = file.readline()
         while line:
             if line.startswith('>'):
-                ppid = re.search(pp_regex[source], line).group(1)
-                gnid = re.search(gn_regex[source], line).group(1)
+                ppid0 = re.search(pp_regex[source], line).group(1)
+                gnid0 = ppid2gnid[ppid0]
                 line = file.readline()
 
             seqlines = []
@@ -36,13 +41,13 @@ for spid, source, tcds_path in params:
             seq0 = ''.join(seqlines)
 
             try:
-                for _, _, seq in gnid2seqs[gnid]:
-                    if seq0 == seq:
+                for _, _, seq1 in gnid2seqs[gnid0]:
+                    if seq0 == seq1:
                         break
                 else:
-                    gnid2seqs[gnid].append((ppid, spid, seq0))
+                    gnid2seqs[gnid0].append((ppid0, spid0, seq0))
             except KeyError:
-                gnid2seqs[gnid] = [(ppid, spid, seq0)]
+                gnid2seqs[gnid0] = [(ppid0, spid0, seq0)]
 
 # Load OGs and OG metadata
 OGs = {}
@@ -73,8 +78,10 @@ for OGid in OGids:
 
 """
 DEPENDENCIES
-../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
+../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
+../../ortho_cluster2/ppid2meta/ppid2meta.py
+    ../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv
 ../../ortho_cluster3/clique5+_community/clique5+_community.py
     ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
 ../OGid2meta/OGid2meta.py
