@@ -27,24 +27,24 @@ def get_codons(nt_seq, aa_seq):
                 print('File:', file_id)
                 print('PPID:', ppid)
                 print('Warning: Non-standard start codon detected. '
-                      f'Translated residue {ttable[nt_seq[i:i+3]]} converted to observed residue {aa}.')
+                      f'Translated residue M{i+1} converted to observed residue {aa}.')
                 print()
             elif tr == 'X':  # Correct unknown amino acid
                 codons.append(codon)
                 print('File:', file_id)
                 print('PPID:', ppid)
-                print(f'Warning: Converted unknown translated residue to observed residue {aa}.')
+                print(f'Warning: Converted unknown translated residue X{i+1} to observed residue {aa}.')
                 print()
             elif tr == '*':
                 codons.append(codon)
                 print('File:', file_id)
                 print('PPID:', ppid)
-                print(f'Warning: Converted stop codon {num_codon-i-1} residues from C-terminus to observed residue {aa}.')
+                print(f'Warning: Converted stop codon *{i+1} to observed residue {aa}.')
                 print()
             else:  # Mismatch
                 print('File:', file_id)
                 print('PPID:', ppid)
-                print(f'Error: Mismatched translated ({tr}) and observed ({aa}) residues.')
+                print(f'Error: Mismatched translated residue {tr}{i+1} and observed residue {aa}.')
                 print()
                 return
         else:
@@ -59,7 +59,7 @@ def get_codons(nt_seq, aa_seq):
 
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
+            'NCBI': r'([NXY]P_[0-9]+)'}
 
 # Parse parameters
 params = []
@@ -143,6 +143,10 @@ sys.stdout.close()
 
 """
 DEPENDENCIES
+../../../data/ncbi_annotations/*/*/*/*_cds_from_genomic.fna
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-CDS-r6.34.fasta
 ../align_fastas1/align_fastas.py
     ../align_fastas1/out/*.mfa
+./params.tsv
+./ttable.txt
 """
