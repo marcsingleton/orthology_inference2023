@@ -117,7 +117,7 @@ for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_fastas1
     # Translate and write CDS
     nt_aligns = []
     for header, aa_align in aa_aligns:
-        ppid = re.search('ppid=([NXYPFBpp0-9_\.]+)\|', header)[1]
+        ppid = re.search('ppid=([NXYPFBp0-9_.]+)\|', header)[1]
         aa_seq = aa_align.replace('-', '')
         nt_seq = ppid2cds[ppid]
 
