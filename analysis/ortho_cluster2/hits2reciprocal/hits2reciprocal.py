@@ -23,12 +23,12 @@ pgraph1 = {}
 with open('../hits2pgraph/out/pgraph1.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        pgraph1[node] = adjs.split(',')
+        pgraph1[node] = [adj.split(':')[0] for adj in adjs.split(',')]
 pgraph2 = {}
 with open('../hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        pgraph2[node] = adjs.split(',')
+        pgraph2[node] = [adj.split(':')[0] for adj in adjs.split(',')]
 
 # Check reciprocity
 for qspid in os.listdir('../hsps2hits/out/'):

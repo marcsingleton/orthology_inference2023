@@ -3,11 +3,11 @@
 import os
 
 
-def add_edge(qppid, sppid, pgraph):
+def add_edge(qppid, sppid, bitscore, pgraph):
     try:
-        pgraph[qppid].add(sppid)
+        pgraph[qppid].add((sppid, bitscore))
     except KeyError:
-        pgraph[qppid] = set([sppid])
+        pgraph[qppid] = set([(sppid, bitscore)])
 
 
 columns = {'qppid': str, 'qgnid': str, 'qspid': str,
@@ -28,10 +28,11 @@ for qspid in os.listdir('../hsps2hits/out/'):
                 d = {column: f(field) for (column, f), field in zip(columns.items(), line.split())}
                 qppid, sppid = d['qppid'], d['sppid']
                 qlen, cnqa = d['qlen'], d['cnqa']
+                bitscore = d['bitscore']
 
-                add_edge(qppid, sppid, pgraph1)
+                add_edge(qppid, sppid, bitscore, pgraph1)
                 if cnqa / qlen >= 0.5:
-                    add_edge(qppid, sppid, pgraph2)
+                    add_edge(qppid, sppid, bitscore, pgraph2)
 
 # Make output directory
 if not os.path.exists('out/'):
@@ -39,11 +40,11 @@ if not os.path.exists('out/'):
 
 # Write to file
 with open('out/pgraph1.tsv', 'w') as file:
-    for qppid, sppids in pgraph1.items():
-        file.write(qppid + '\t' + ','.join(sppids) + '\n')
+    for qppid, edges in pgraph1.items():
+        file.write(qppid + '\t' + ','.join([sppid + ':' + str(bitscore) for sppid, bitscore in edges]) + '\n')
 with open('out/pgraph2.tsv', 'w') as file:
-    for qppid, sppids in pgraph2.items():
-        file.write(qppid + '\t' + ','.join(sppids) + '\n')
+    for qppid, edges in pgraph2.items():
+        file.write(qppid + '\t' + ','.join([sppid + ':' + str(bitscore) for sppid, bitscore in edges]) + '\n')
 
 """
 DEPENDENCIES
