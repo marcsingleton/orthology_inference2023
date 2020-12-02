@@ -31,7 +31,7 @@ for spid0, source, prot_path in params:
         while line:
             if line.startswith('>'):
                 ppid0 = re.search(pp_regex[source], line).group(1)
-                gnid0 = ppid2gnid[ppid0]
+                gnid = ppid2gnid[ppid0]
                 line = file.readline()
 
             seqlines = []
@@ -41,13 +41,13 @@ for spid0, source, prot_path in params:
             seq0 = ''.join(seqlines)
 
             try:
-                for _, _, seq1 in gnid2seqs[gnid0]:
+                for _, _, seq1 in gnid2seqs[gnid]:
                     if seq0 == seq1:
                         break
                 else:
-                    gnid2seqs[gnid0].append((ppid0, spid0, seq0))
+                    gnid2seqs[gnid].append((ppid0, spid0, seq0))
             except KeyError:
-                gnid2seqs[gnid0] = [(ppid0, spid0, seq0)]
+                gnid2seqs[gnid] = [(ppid0, spid0, seq0)]
 
 # Load OGs and OG metadata
 OGs = {}

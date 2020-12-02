@@ -31,7 +31,7 @@ for _, source, prot_path in params:
         while line:
             if line.startswith('>'):
                 ppid0 = re.search(pp_regex[source], line).group(1)
-                gnid0 = ppid2gnid[ppid0]
+                gnid = ppid2gnid[ppid0]
                 line = file.readline()
 
             seqlines = []
@@ -41,15 +41,15 @@ for _, source, prot_path in params:
             seq0 = ''.join(seqlines)
 
             try:
-                for ppid1, seq1 in gnid2seqs[gnid0]:
+                for ppid1, seq1 in gnid2seqs[gnid]:
                     if seq0 == seq1:
                         repr2cons[ppid1].append(ppid0)
                         break
                 else:
-                    gnid2seqs[gnid0].append((ppid0, seq0))
+                    gnid2seqs[gnid].append((ppid0, seq0))
                     repr2cons[ppid0] = []
             except KeyError:
-                gnid2seqs[gnid0] = [(ppid0, seq0)]
+                gnid2seqs[gnid] = [(ppid0, seq0)]
                 repr2cons[ppid0] = []
 
 # Save clusters

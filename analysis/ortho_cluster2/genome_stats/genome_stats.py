@@ -43,8 +43,8 @@ for spid, (source, prot_path) in params.items():
         line = file.readline()
         while line:
             if line.startswith('>'):
-                ppid = re.search(pp_regex[source], line).group(1)
-                gnid = ppid2gnid[ppid]
+                ppid0 = re.search(pp_regex[source], line).group(1)
+                gnid = ppid2gnid[ppid0]
                 line = file.readline()
 
             seqlines = []
@@ -54,19 +54,19 @@ for spid, (source, prot_path) in params.items():
             seq0 = ''.join(seqlines)
 
             try:
-                for sqid, seq in sqids[gnid]:
-                    if seq0 == seq:
-                        rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqid': sqid,
-                                     'sqlen': len(seq), 'Xnum': seq.upper().count('X'), 'Xmax': get_Xmax(seq)})
+                for sqid1, seq1 in sqids[gnid]:
+                    if seq0 == seq1:
+                        rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': sqid1,
+                                     'sqlen': len(seq1), 'Xnum': seq1.upper().count('X'), 'Xmax': get_Xmax(seq1)})
                         break
                 else:
                     sqids[gnid].append((str(sqid0).zfill(8), seq0))
-                    rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
+                    rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
                                  'sqlen': len(seq0), 'Xnum': seq0.upper().count('X'), 'Xmax': get_Xmax(seq0)})
                     sqid0 += 1
             except KeyError:
                 sqids[gnid] = [(str(sqid0).zfill(8), seq0)]
-                rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
+                rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
                              'sqlen': len(seq0), 'Xnum': seq0.upper().count('X'), 'Xmax': get_Xmax(seq0)})
                 sqid0 += 1
 
@@ -406,5 +406,7 @@ Fraction (genes with unknown amino acids): 0.05485844654153272
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
+../ppid2meta/ppid2meta.py
+    ../ppid2meta/out/ppid2meta.tsv
 ./params.tsv
 """
