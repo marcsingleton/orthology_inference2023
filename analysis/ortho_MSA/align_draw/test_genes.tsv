@@ -1,0 +1,21 @@
+gnid	name	symbol	group	orthology
+FBgn0000166	bicoid	bcd	1	all
+FBgn0259789	zelda	zld	1	all
+FBgn0260642	Antennapedia	Antp	1	all
+FBgn0001150	giant	gt	1	all
+FBgn0001180	hunchback	hb	1	all
+FBgn0000606	even skipped	eve	1	all
+FBgn0001077	fushi tarazu	ftz	1	all
+FBgn0000577	engrailed	en	1	all
+FBgn0010825	Grunge	Gug	1	all
+FBgn0261617	nejire	nej	1	all
+FBgn0004867	Ribosomal protein S2	RpS2	2	all
+FBgn0051618	Histone H2A	His2A	2	all
+FBgn0003277	RNA polymerase II 215kD subunit	RpII215	2	all
+FBgn0000064	Aldolase 1	Ald1	2	all
+FBgn0000042	Actin 5C	Act5C	2	all
+FBgn0039378	"alpha1,4-galactosyltransferase 2"	alpha4GT2	3	melanogaster group
+FBgn0004592	Ecdysone-induced gene 71Ee	Eig71Ee	3	melanogaster group
+FBgn0045442	methuselah-like 12	mthl12	3	melanogaster subgroup
+FBgn0042173	-	CG18853	3	melanogaster only
+FBgn0051864	Quetzalcoatl	Qtzl	3	melanogaster only
