@@ -107,6 +107,10 @@ for row in df.dropna().itertuples():
 DEPENDENCIES
 ../../ortho_cluster3/clique5+_community/clique5+_community2.py
     ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
+../align_fastas1/align_fastas1.py
+    ../align_fastas1/out/*.mfa
+../align_fastas2/align_fastas2.py
+    ../align_fastas2/out/*.mfa
 ../consensus_tree/consensus_tree.py
     ../consensus_tree/out/100red_ni.txt
 ../OGid2meta/OGid2meta.py
