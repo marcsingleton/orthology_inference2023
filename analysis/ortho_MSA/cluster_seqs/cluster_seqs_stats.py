@@ -34,6 +34,8 @@ plt.bar(x.index, x.values)
 plt.xlabel('Number of unique sequences')
 plt.ylabel('Number of genes')
 plt.savefig('out/bar_gnnum-reprnum.png')
+plt.yscale('log')
+plt.savefig('out/bar_gnnum-reprnum_log.png')
 plt.close()
 
 # 1.2 Distribution of genes over number of clusters
@@ -42,6 +44,8 @@ plt.bar(x.index, x.values)
 plt.xlabel('Number of sequence clusters')
 plt.ylabel('Number of genes')
 plt.savefig('out/bar_gnnum-clusternum.png')
+plt.yscale('log')
+plt.savefig('out/bar_gnnum-clusternum_log.png')
 plt.close()
 
 # 2 Correlation of number of unique sequences with number of clusters
@@ -69,6 +73,8 @@ plt.hist(x, bins=75)
 plt.xlabel('Number of unique sequences in OG')
 plt.ylabel('Number of OGs')
 plt.savefig('out/hist_OGnum-reprnum.png')
+plt.yscale('log')
+plt.savefig('out/hist_OGnum-reprnum_log.png')
 plt.close()
 
 # 3.1.2 Distribution of OGs over number of unique sequences per gene
@@ -85,6 +91,8 @@ plt.hist(x, bins=75)
 plt.xlabel('Number of unique sequences in OG')
 plt.ylabel('Number of OGs')
 plt.savefig('out/hist_OGnum-reprnum_25.png')
+plt.yscale('log')
+plt.savefig('out/hist_OGnum-reprnum_25_log.png')
 plt.close()
 
 # 3.2.1 Distribution of OGs over number of clusters
@@ -93,6 +101,8 @@ plt.hist(x, bins=75)
 plt.xlabel('Number of sequence clusters in OG')
 plt.ylabel('Number of OGs')
 plt.savefig('out/hist_OGnum-clusternum.png')
+plt.yscale('log')
+plt.savefig('out/hist_OGnum-clusternum_log.png')
 plt.close()
 
 # 3.2.2 Distribution of OGs over number of clusters per gene
@@ -109,6 +119,8 @@ plt.hist(x, bins=75)
 plt.xlabel('Number of sequence clusters in OG')
 plt.ylabel('Number of OGs')
 plt.savefig('out/hist_OGnum-clusternum_25.png')
+plt.yscale('log')
+plt.savefig('out/hist_OGnum-clusternum_25_log.png')
 plt.close()
 
 # 4.1 Correlation of number of unique sequences for gene with number of unique sequences in OG
