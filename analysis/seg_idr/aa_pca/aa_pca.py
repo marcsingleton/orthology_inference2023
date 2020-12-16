@@ -6,7 +6,6 @@ import os
 import pandas as pd
 import re
 from sklearn.decomposition import PCA
-from sys import argv
 
 
 def fracs(seq):
@@ -14,14 +13,18 @@ def fracs(seq):
 
 
 # Input variables
-segment_dir = argv[1]  # Segment directory must end in /
-type_name = argv[2]  # Name of column denoting segment type
-T_name = argv[3]  # Name of True type in sentence case
-F_name = argv[4]  # Name of False type in sentence case
+segment_dir = '../sample_segs/out/'  # Segment directory must end in /
+type_name = 'ordered'  # Name of column denoting segment type
+T_name = 'Ordered'  # Name of True type in sentence case
+F_name = 'Disordered'  # Name of False type in sentence case
 
 # Constants
 alphabet = 'DEHKRNQSTAILMVFWYCGP'
 n_components = 5
+
+# Make output directory
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 pcas = {}
 paths = filter(lambda x: re.match('segments_[0-9]+\.tsv', x), os.listdir(segment_dir))
@@ -62,7 +65,7 @@ for path in paths:
     leg = fig.legend(bbox_to_anchor=(0.5, 0), loc='lower center', ncol=2, markerscale=2.5)
     for lh in leg.legendHandles:
         lh.set_alpha(1)
-    plt.savefig(f'aa_pca{i}_combined.png')
+    plt.savefig(f'out/aa_pca{i}_combined.png')
 
     # Two panels
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(5, 7.5), sharex=True, sharey=True)
@@ -76,9 +79,30 @@ for path in paths:
     leg = fig.legend(bbox_to_anchor=(0.525, 0), loc='lower center', ncol=2, markerscale=2.5)
     for lh in leg.legendHandles:
         lh.set_alpha(1)
-    plt.savefig(f'aa_pca{i}_separate.png')
+    plt.savefig(f'out/aa_pca{i}_separate.png')
 
 # Print explained variance of components
 print(f'Explained variance ratio of first {n_components} components by length cutoff')
 for i, pca in sorted(pcas.items()):
     print(i, pca.explained_variance_ratio_, sep=': ')
+
+"""
+OUTPUT
+Explained variance ratio of first 5 components by length cutoff
+1: [0.11051914 0.0970163  0.07686716 0.07622957 0.07247313]
+2: [0.11356423 0.10164706 0.08359128 0.0787637  0.0717176 ]
+4: [0.12260539 0.10260207 0.08730236 0.08021261 0.07131195]
+8: [0.13289551 0.10234792 0.09325454 0.0820337  0.07541747]
+16: [0.14425587 0.11004906 0.09992752 0.08386489 0.07628767]
+32: [0.1644331  0.12567238 0.09494454 0.08828389 0.07491024]
+
+NOTES
+Spokes are much less prevalent in the IDR PCA than in the conserved/diverged PCA
+    This is likely an effect of the average longer subsequence lengths in the IDR set; longer lengths results in fewer di or tri peptide sequences
+At higher length cutoffs, the disordered sequences appear to slightly separate from the ordered sequences
+    Perhaps at higher cutoffs, their intrinsic amino acid preferences begin to overcome the noise inherent in small sequences
+
+DEPENDENCIES
+../sample_segs/sample_segs.py
+    ../segment_iupred2a/out/segments_*.tsv
+"""
