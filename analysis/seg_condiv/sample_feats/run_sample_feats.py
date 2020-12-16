@@ -7,6 +7,6 @@ run('python ../../../src/sample_feats.py 3 conserved', shell=True)
 """
 DEPENDENCIES
 ../../src/sample_feats.py
-../sample_segs/run_sample_segs.py
-    ../sample_segs/segments_*.tsv
+../sample_segs/sample_segs.py
+    ../sample_segs/out/segments_*.tsv
 """

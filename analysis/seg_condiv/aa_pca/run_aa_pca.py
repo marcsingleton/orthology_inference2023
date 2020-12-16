@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/aa_pca.py ../sample_segs/ conserved Conserved Diverged', shell=True)
+run('python ../../../src/aa_pca.py ../sample_segs/out/ conserved Conserved Diverged', shell=True)
 
 """
 OUTPUT
@@ -22,6 +22,6 @@ At higher cutoffs, the plots are largely the same, though the spokes are more pr
 
 DEPENDENCIES
 ../../../src/aa_pca.py
-../sample_segs/run_sample_segs.py
-    ../segment_iupred2a/segments_*.tsv
+../sample_segs/sample_segs.py
+    ../segment_iupred2a/out/segments_*.tsv
 """

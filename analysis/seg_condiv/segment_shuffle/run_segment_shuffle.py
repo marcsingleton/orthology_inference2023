@@ -2,11 +2,11 @@
 
 from subprocess import run
 
-run('python ../../../src/segment_shuffle.py ../sample_segs/ conserved', shell=True)
+run('python ../../../src/segment_shuffle.py ../sample_segs/out/ conserved', shell=True)
 
 """
 DEPENDENCIES
 ../../../src/segment_shuffle.py
 ../sample_segs/sample_seg.py
-    ../sample_segs/segments_*.tsv
+    ../sample_segs/out/segments_*.tsv
 """

@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/aa_pca.py ../sample_segs/ ordered Ordered Disordered', shell=True)
+run('python ../../../src/aa_pca.py ../sample_segs/out/ ordered Ordered Disordered', shell=True)
 
 """
 OUTPUT
@@ -22,6 +22,6 @@ At higher length cutoffs, the disordered sequences appear to slightly separate f
 
 DEPENDENCIES
 ../../../src/aa_pca.py
-../sample_segs/run_sample_segs.py
-    ../segment_iupred2a/segments_*.tsv
+../sample_segs/sample_segs.py
+    ../segment_iupred2a/out/segments_*.tsv
 """

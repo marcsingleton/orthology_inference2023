@@ -10,7 +10,7 @@ num_idx = int(argv[1])  # Number of index columns
 type_name = argv[2]  # Name of column denoting segment type
 
 # Constants
-segment_dir = '../sample_segs/'
+segment_dir = '../sample_segs/out/'
 features_path = '../feature_calc/features.tsv'
 
 features = pd.read_csv(features_path, sep='\t', index_col=list(range(num_idx)))
