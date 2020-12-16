@@ -7,7 +7,6 @@ import pandas as pd
 import pickle
 import re
 from sklearn.manifold import TSNE
-from sys import argv
 
 
 def fracs(seq):
@@ -15,14 +14,18 @@ def fracs(seq):
 
 
 # Input variables
-segment_dir = argv[1]  # Segment directory must end in /
-type_name = argv[2]  # Name of column denoting segment type
-T_name = argv[3]  # Name of True type in sentence case
-F_name = argv[4]  # Name of False type in sentence case
+segment_dir = '../sample_segs/out/'  # Segment directory must end in /
+type_name = 'ordered'  # Name of column denoting segment type
+T_name = 'Ordered'  # Name of True type in sentence case
+F_name = 'Disordered'  # Name of False type in sentence case
 
 # Constants
 alphabet = 'DEHKRNQSTAILMVFWYCGP'
 n_components = 5
+
+# Make output directory
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 paths = filter(lambda x: re.match('segments_[0-9]+\.tsv', x), os.listdir(segment_dir))
 for path in paths:
@@ -46,7 +49,7 @@ for path in paths:
     array = np.concatenate((T_array, F_array), axis=0)
 
     # Make output directories for feature sets
-    cur_dir = f'{i}/'
+    cur_dir = f'out/{i}/'
     if not os.path.exists(cur_dir):
         os.makedirs(cur_dir)  # Recursive folder creation
 
@@ -92,3 +95,9 @@ for path in paths:
         file.write('#perplexity\tKL_divergence\n')
         for perp, kl_div in kl_divs:
             file.write(f'{perp}\t{kl_div}\n')
+
+"""
+DEPENDENCIES
+../sample_segs/sample_segs.py
+    ../segment_iupred2a/out/segments_*.tsv
+"""
