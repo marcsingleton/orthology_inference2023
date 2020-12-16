@@ -11,7 +11,7 @@ def counts(seq):
 
 
 # Input variables
-path = '../segment_iupred2a/segment_iupred2a.tsv'  # Path to segmented sequences .tsv
+path = '../segment_iupred2a/out/segment_iupred2a.tsv'  # Path to segmented sequences .tsv
 type_name = 'ordered'  # Name of column denoting segment type
 T_name = 'Ordered'  # Name of True type in sentence case
 F_name = 'Disordered'  # Name of False type in sentence case
@@ -67,5 +67,5 @@ Number of disordered amino acids: 7683150
 
 DEPENDENCIES
 ../segment_iupred2a/segment_iupred2a.py
-    ../segment_iupred2a/segment_iupred2a.tsv
+    ../segment_iupred2a/out/segment_iupred2a.tsv
 """

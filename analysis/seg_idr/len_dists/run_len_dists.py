@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/len_dists.py ../segment_iupred2a/segment_iupred2a.tsv ordered Ordered Disordered', shell=True)
+run('python ../../../src/len_dists.py ../segment_iupred2a/out/segment_iupred2a.tsv ordered Ordered Disordered', shell=True)
 
 """
 OUTPUT
@@ -39,5 +39,5 @@ The ordered and disordered length distributions have heavier tails than their co
 DEPENDENCIES
 ../../../src/len_dists.py
 ../segment_iupred2a/segment_iupred2a.py
-    ../segment_iupred2a/segment_iupred2a.tsv
+    ../segment_iupred2a/out/segment_iupred2a.tsv
 """

@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/len_dists.py ../segment_aliscore/segment_aliscore.tsv conserved Conserved Diverged', shell=True)
+run('python ../../../src/len_dists.py ../segment_aliscore/out/segment_aliscore.tsv conserved Conserved Diverged', shell=True)
 
 """
 OUTPUT
@@ -35,5 +35,5 @@ Name: seq, dtype: int64
 DEPENDENCIES
 ../../../src/len_dists.py
 ../segment_aliscore/segment_aliscore.py
-    ../segment_aliscore/segment_aliscore_ungap.tsv
+    ../segment_aliscore/out/segment_aliscore.tsv
 """

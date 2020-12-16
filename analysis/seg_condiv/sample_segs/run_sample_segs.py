@@ -2,11 +2,11 @@
 
 from subprocess import run
 
-run('python ../../../src/sample_segs.py ../segment_aliscore/segment_aliscore.tsv conserved', shell=True)
+run('python ../../../src/sample_segs.py ../segment_aliscore/out/segment_aliscore.tsv conserved', shell=True)
 
 """
 DEPENDENCIES
 ../../../src/sample_segs.py
 ../segment_aliscore/segment_aliscore.py
-    ../segment_aliscore/segment_aliscore.tsv
+    ../segment_aliscore/out/segment_aliscore.tsv
 """

@@ -11,7 +11,7 @@ def counts(seq):
 
 
 # Input variables
-path = '../segment_aliscore/segment_aliscore.tsv'  # Path to segmented sequences .tsv
+path = '../segment_aliscore/out/segment_aliscore.tsv'  # Path to segmented sequences .tsv
 type_name = 'conserved'  # Name of column denoting segment type
 T_name = 'Conserved'  # Name of True type in sentence case
 F_name = 'Diverged'  # Name of False type in sentence case
@@ -67,5 +67,5 @@ Number of diverged amino acids: 1960082
 
 DEPENDENCIES
 ../segment_aliscore/segment_aliscore.py
-    ../segment_aliscore/segment_aliscore_ungap.tsv
+    ../segment_aliscore/out/segment_aliscore.tsv
 """
