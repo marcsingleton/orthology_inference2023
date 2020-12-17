@@ -29,10 +29,10 @@ max_idx = int(max_percentile * len(pics_lt)) - 1  # Subtract 1 due to 0 indexing
 x = [i / len(pics_lt) for i in range(size + 1, max_idx - size + 1)]
 for feature in pics_lt:
     sort = pics_lt[feature].sort_values()
-    for pic_id in range(9):
-        ltail = sort[:max_idx].index.get_level_values('pic_id') == pic_id
-        rtail = sort[:-max_idx - 1: -1].index.get_level_values('pic_id') == pic_id
-        tail = np.convolve(ltail, np.ones(2 * size + 1), 'valid') + np.convolve(rtail, np.ones(2 * size + 1), 'valid')
+    for pic_id in range(num_contrasts):
+        lcount = sort[:max_idx].index.get_level_values('pic_id') == pic_id
+        rcount = sort[:-max_idx - 1: -1].index.get_level_values('pic_id') == pic_id
+        tail = np.convolve(lcount, np.ones(2 * size + 1), 'valid') + np.convolve(rcount, np.ones(2 * size + 1), 'valid')
         plt.plot(x, tail, label=pic_id, linewidth=1)
 
     plt.title(f'{feature}:\nContrast Counts in 1% Sliding Windows')
