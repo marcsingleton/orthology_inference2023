@@ -1,14 +1,17 @@
-"""Create shuffled subsequences with identical amino acid composition and length distirbutions as the original classes."""
+"""Create shuffled subsequences with identical amino acid composition and length distributions as the original classes."""
 
 import os
 import pandas as pd
 import re
 from itertools import accumulate
 from random import shuffle
-from sys import argv
 
-segment_dir = argv[1]  # Segment directory must end in /
-type_name = argv[2]  # Name of column denoting segment type
+segment_dir = '../sample_segs/out/'  # Segment directory must end in /
+type_name = 'conserved'  # Name of column denoting segment type
+
+if not os.path.exists('out/'):
+    os.mkdir('out/')
+
 paths = filter(lambda x: re.match('segments_[0-9]+\.tsv', x), os.listdir(segment_dir))
 for path in paths:
     # Load data and split into subsets
@@ -39,4 +42,10 @@ for path in paths:
 
     # Convert to dataframe and save
     shuffseq = pd.DataFrame({type_name: segs[type_name], 'seq': shuffseq_T + shuffseq_F})
-    shuffseq.to_csv(f'shuffseq_{i}.tsv', sep='\t', index=False)
+    shuffseq.to_csv(f'out/shuffseq_{i}.tsv', sep='\t', index=False)
+
+"""
+DEPENDENCIES
+../sample_segs/sample_seg.py
+    ../sample_segs/out/segments_*.tsv
+"""
