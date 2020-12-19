@@ -271,7 +271,7 @@ for CCid, CC in CCs:
     try:
         # Handle cliques
         signal.signal(signal.SIGALRM, clique_handler)
-        if CCid in ['086a', '08a7', '08a8', '08a9', '08aa']:
+        if CCid in ['0869', '08a6', '08a7', '08a8', '08a9']:
             raise CliqueError
         signal.alarm(30)
         cliques = list(find_cliques(G))
@@ -312,28 +312,29 @@ save_results(OG6s, CCtypes6, 6)
 
 """
 OUTPUT
-CliqueError: 086a
+CliqueError: 0869
+CliqueError: 08a6
 CliqueError: 08a7
 CliqueError: 08a8
 CliqueError: 08a9
-CliqueError: 08aa
-PercolateError: 0cf7
-PercolateError: 2bc3
-PercolateError: 2ff6
+PercolateError: 0cf3
+PercolateError: 2baa
+PercolateError: 2d68
+PercolateError: 2fdc
 
 5-CLIQUE
-Type 0: 1676
-Type 1: 10489
-Type 2: 1470
-Type 3: 241
-Type 4: 592
+Type 0: 1622
+Type 1: 10488
+Type 2: 1656
+Type 3: 266
+Type 4: 625
 
 6-CLIQUE
-Type 0: 2001
-Type 1: 10166
-Type 2: 1506
-Type 3: 245
-Type 4: 550
+Type 0: 2135
+Type 1: 10044
+Type 2: 1665
+Type 3: 240
+Type 4: 573
 
 DEPENDENCIES
 ../connect_ggraph/connect_ggraph.py

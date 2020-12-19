@@ -303,13 +303,13 @@ if __name__ == '__main__':
         counts = sgnid_hitnum['sgnid_hitnum'].value_counts().to_dict()
 
         bar_hits(counts, data_label, 'all', ax_label)
-        bar_hits({key: val for key, val in counts.items() if key > 31}, data_label, '31+', ax_label)
-        bar_hits({key: val for key, val in counts.items() if key <= 31}, data_label, '31-', ax_label)
+        bar_hits({key: val for key, val in counts.items() if key > 26}, data_label, '26+', ax_label)
+        bar_hits({key: val for key, val in counts.items() if key <= 26}, data_label, '26-', ax_label)
 
 """
 OUTPUT
-Fraction of best HSPs reciprocal: 0.9405063446593553
-Fraction of disjoint HSPs reciprocal: 0.942655602594836
+Fraction of best HSPs reciprocal: 0.9377310456504264
+Fraction of disjoint HSPs reciprocal: 0.9397926358798487
 
 DEPENDENCIES
 ../../ortho_cluster2/blast2hsps/blast2hsps.py

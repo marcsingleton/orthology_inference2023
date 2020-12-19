@@ -321,24 +321,25 @@ CliqueError: 08b2
 CliqueError: 08b3
 CliqueError: 08b4
 CliqueError: 08b5
-PercolateError: 0d22
-CliqueError: 2c16
-PercolateError: 2c8d
-PercolateError: 30d2
+PercolateError: 0d20
+CliqueError: 2c04
+PercolateError: 2c7b
+PercolateError: 2e45
+PercolateError: 30c0
 
 5-CLIQUE
-Type 0: 1964
-Type 1: 10390
-Type 2: 1747
-Type 3: 215
-Type 4: 579
+Type 0: 1985
+Type 1: 10403
+Type 2: 1911
+Type 3: 240
+Type 4: 621
 
 6-CLIQUE
-Type 0: 2296
-Type 1: 9978
-Type 2: 1887
-Type 3: 210
-Type 4: 524
+Type 0: 2514
+Type 1: 9867
+Type 2: 2010
+Type 3: 206
+Type 4: 563
 
 DEPENDENCIES
 ../connect_ggraph/connect_ggraph.py

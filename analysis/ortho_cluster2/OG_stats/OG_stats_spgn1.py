@@ -122,17 +122,8 @@ for i in range(21, 31):
     ax2.set_ylabel(f'Fraction of total OGs with {i} species')
 
     fig.tight_layout()
-    fig.savefig(f'out/ggraph2/spgn/bar_OGexclusion{i}-species.png')
+    fig.savefig(f'out/ggraph1/spgn/bar_OGexclusion{i}-species.png')
     plt.close()
-
-ax2 = ax1.twinx()
-mn, mx = ax1.get_ylim()
-ax2.set_ylim(mn / sum(h), mx / sum(h))
-ax2.set_ylabel('Fraction of total OGs with 22 species')
-
-fig.tight_layout()
-fig.savefig('out/ggraph1/spgn/bar_OGexclusion-species.png')
-plt.close()
 
 # Correlation of number of genes and associated OGs
 fig, ax = plt.subplots()

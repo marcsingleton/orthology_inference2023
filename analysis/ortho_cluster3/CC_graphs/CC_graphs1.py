@@ -153,7 +153,7 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
     norm = mpl.colors.Normalize(min(ws), max(ws))
 
     fig, ax = plt.subplots(figsize=figsize, dpi=300)
-    nx.draw_networkx_edges(G, pos, edges=edges, alpha=0.375, width=0.75, edge_color=ws, edge_cmap=cmap1)
+    nx.draw_networkx_edges(G, pos, edgelist=edges, alpha=0.375, width=0.75, edge_color=ws, edge_cmap=cmap1)
     nx.draw_networkx_nodes(G, pos, node_size=node_size, linewidths=0, node_color='#333333')
 
     cax = inset_axes(ax, width=1, height=0.1, loc=locs[-1])

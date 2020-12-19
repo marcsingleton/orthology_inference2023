@@ -29,7 +29,7 @@ with open('../clique5+_community/out/ggraph2/5clique/gclusters.txt') as file:
         for gnid in gnids:
             rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid, 'spid': gnid2spid[gnid]})
 OGs = pd.DataFrame(rows)
-OGs = OGs[OGs['CCid'] != '30d2']  # Drop outlier OG
+OGs = OGs[OGs['CCid'] != '2e45']  # Drop outlier OG
 
 # Make output directory
 if not os.path.exists('out/ggraph2/CCOG/'):

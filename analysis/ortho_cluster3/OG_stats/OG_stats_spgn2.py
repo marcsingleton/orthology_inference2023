@@ -24,7 +24,7 @@ OGs = pd.DataFrame(rows)
 groups = OGs.groupby('OGid')
 OGnum = OGs['OGid'].nunique()
 ugnnum = OGs['gnid'].nunique()
-u25num = len(groups.filter(lambda x: len(x) == 25 and x['spid'].nunique() == 25)) // 25
+u26num = len(groups.filter(lambda x: len(x) == 26 and x['spid'].nunique() == 26)) // 26
 
 # Make output directory
 if not os.path.exists('out/ggraph2/spgn/'):
@@ -99,7 +99,7 @@ fig.savefig('out/ggraph2/spgn/bar_ugnnum-species.png')
 plt.close()
 
 # Number of exclusions for each species
-for i in range(15, 25):
+for i in range(16, 26):
     spids = set(OGs['spid'].drop_duplicates())
     spid_counts = {spid: 0 for spid in sorted(spids)}
     for spids in [spids - set(group['spid'].drop_duplicates()) for _, group in groups if group['spid'].nunique() == i]:
@@ -117,7 +117,7 @@ for i in range(15, 25):
 
     ax2 = ax1.twinx()
     mn, mx = ax1.get_ylim()
-    OG_num = sum(h) / (25 - i)
+    OG_num = sum(h) / (26 - i)
     ax2.set_ylim(mn / OG_num, mx / OG_num)
     ax2.set_ylabel(f'Fraction of total OGs with {i} species')
 
@@ -202,33 +202,33 @@ plt.close()
 # Print counts
 print('number of OGs:', OGnum)
 print()
-print('number of OGs with 25 species:', dist_species[25])
-print('fraction of OGs with 25 species:', dist_species[25] / OGnum)
+print('number of OGs with 26 species:', dist_species[26])
+print('fraction of OGs with 26 species:', dist_species[26] / OGnum)
 print()
-print('number of OGs with 25 genes:', dist_seq[25])
-print('fraction of OGs with 25 genes:', dist_seq[25] / OGnum)
+print('number of OGs with 26 genes:', dist_seq[26])
+print('fraction of OGs with 26 genes:', dist_seq[26] / OGnum)
 print()
-print('number of OGs with 25 species and 25 genes:', u25num)
-print('fraction of OGs with 25 species and 25 genes:', u25num / OGnum)
+print('number of OGs with 26 species and 26 genes:', u26num)
+print('fraction of OGs with 26 species and 26 genes:', u26num / OGnum)
 print()
 print('number of OGs with duplicates:', OGnum - dist_dup[0])
 print('fraction of OGs with duplicates', (OGnum - dist_dup[0]) / OGnum)
 
 """
 OUTPUT
-number of OGs: 14864
+number of OGs: 16757
 
-number of OGs with 25 species: 9385
-fraction of OGs with 25 species: 0.6313912809472552
+number of OGs with 26 species: 9366
+fraction of OGs with 26 species: 0.5589305961687653
 
-number of OGs with 25 genes: 8242
-fraction of OGs with 25 genes: 0.5544940796555436
+number of OGs with 26 genes: 7904
+fraction of OGs with 26 genes: 0.4716834755624515
 
-number of OGs with 25 species and 25 genes: 8102
-fraction of OGs with 25 species and 25 genes: 0.545075349838536
+number of OGs with 26 species and 26 genes: 7733
+fraction of OGs with 26 species and 26 genes: 0.46147878498537925
 
-number of OGs with duplicates: 1975
-fraction of OGs with duplicates 0.1328713670613563
+number of OGs with duplicates: 2482
+fraction of OGs with duplicates 0.1481172047502536
 
 NOTES
 These plots are largely based off those in analysis/EggNOGv5_validation/ali_stats/ali_stats.py

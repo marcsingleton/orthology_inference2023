@@ -298,8 +298,8 @@ if __name__ == '__main__':
     counts = sgnid_hitnum['sgnid_hitnum'].value_counts().to_dict()
 
     bar_hits(counts, 'all')
-    bar_hits({key: val for key, val in counts.items() if key > 25}, '25+')
-    bar_hits({key: val for key, val in counts.items() if key <= 25}, '25-')
+    bar_hits({key: val for key, val in counts.items() if key > 26}, '26+')
+    bar_hits({key: val for key, val in counts.items() if key <= 26}, '26-')
 
 """
 DEPENDENCIES
@@ -309,5 +309,7 @@ DEPENDENCIES
     ../../ortho_cluster2/hsps2hits/out/*/*.tsv
 ../../ortho_cluster2/hits2reciprocal/hits2reciprocal.py
     ../../ortho_cluster2/hits2reciprocal/out/*/*.tsv
+../genome_stats/genome_stats.py
+    ../genome_stats/out/gnid_nums.tsv
 ./params.tsv
 """
