@@ -5,22 +5,22 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 import os
 import pandas as pd
-from itertools import repeat
+from itertools import permutations, repeat
 from numpy import linspace
 
 
 # Load functions
 def load_hsp(qspid, sspid):
-    df = pd.read_csv(f'../blast2hsps/out/hsps/{qspid}/{sspid}', sep='\t',
+    df = pd.read_csv(f'../../ortho_search/blast2hsps/out/hsps/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=hsp_dtypes.keys(), dtype=hsp_dtypes, memory_map=True)
 
     return df[df['disjoint']]
 
 
 def load_hit(qspid, sspid):
-    df = pd.read_csv(f'../hsps2hits/out/{qspid}/{sspid}', sep='\t',
+    df = pd.read_csv(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=hit_dtypes.keys(), dtype=hit_dtypes, memory_map=True)
-    r = pd.read_csv(f'../hits2reciprocal/out/{qspid}/{sspid}', sep='\t',
+    r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal2'], memory_map=True)
 
     return df.join(r)
@@ -111,16 +111,19 @@ hit_dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
 num_processes = int(os.environ['SLURM_NTASKS'])
 
 if __name__ == '__main__':
+    # Parse parameters
+    spids = []
+    with open('params.tsv') as file:
+        fields = file.readline().split()  # Skip header
+        for line in file:
+            spids.append(line.split()[0])
+
     # Load data
     with mp.Pool(processes=num_processes) as pool:
-        tsvs = [(qspid, sspid) for qspid in os.listdir('../blast2hsps/out/hsps/')
-                for sspid in os.listdir(f'../blast2hsps/out/hsps/{qspid}/')]
-        hsps0 = pd.concat(pool.starmap(load_hsp, tsvs))
+        hsps0 = pd.concat(pool.starmap(load_hsp, permutations(spids, 2)))
         hsps1 = hsps0[hsps0['bitscore'] >= 50]
 
-        tsvs = [(qspid, sspid) for qspid in os.listdir('../hsps2hits/out/')
-                for sspid in os.listdir(f'../hsps2hits/out/{qspid}/')]
-        hits0 = pd.concat(pool.starmap(load_hit, tsvs))
+        hits0 = pd.concat(pool.starmap(load_hit, permutations(spids, 2)))
         hits0['fqa'] = hits0['nqa'] / hits0['qlen']
         hits0['fsa'] = hits0['nsa'] / hits0['slen']
         hits0['cfqa'] = hits0['cnqa'] / hits0['qlen']
@@ -300,12 +303,13 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../blast2hsps/blast2hsps.py
-    ../blast2hsps/out/hsps/*/*.tsv
+../../ortho_search/blast2hsps/blast2hsps.py
+    ../../ortho_search/blast2hsps/out/hsps/*/*.tsv
+../../ortho_search/hsps2hits/hsps2hits.py
+    ../../ortho_search/hsps2hits/out/*/*.tsv
+../../ortho_search/hits2reciprocal/hits2reciprocal.py
+    ../../ortho_search/hits2reciprocal/out/*/*.tsv
 ../genome_stats/genome_stats.py
     ../genome_stats/out/gnid_nums.tsv
-../hsps2hits/hsps2hits.py
-    ../hsps2hits/out/*/*.tsv
-../hits2reciprocal/hits2reciprocal.py
-    ../hits2reciprocal/out/*/*.tsv
+./params.tsv
 """

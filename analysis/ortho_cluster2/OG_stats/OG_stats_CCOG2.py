@@ -6,7 +6,7 @@ import pandas as pd
 
 # Load gn metadata
 gnid2spid = {}
-with open('../ppid2meta/out/ppid2meta.tsv') as file:
+with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
     for line in file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
@@ -132,12 +132,12 @@ plt.close()
 
 """
 DEPENDENCIES
+../../ortho_search/ppid2meta/ppid2meta.py
+    ../../ortho_search/ppid2meta/out/ppid2meta.tsv
 ../connect_ggraph/connect_ggraph2.py
     ../connect_ggraph/out/gconnect2.txt
 ../hit_stats/hit_stats.py
     ../hit_stats/out/hits/sgnids.tsv
-../ppid2meta/ppid2meta.py
-    ../ppid2meta/out/ppid2meta.tsv
 ../subcluster_ggraph/subcluster_ggraph2.py
     ../subcluster_ggraph/out/ggraph2/gclusters.txt
 """

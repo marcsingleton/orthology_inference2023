@@ -5,14 +5,15 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 import os
 import pandas as pd
+from itertools import permutations
 from numpy import linspace
 
 
 # Load functions
 def load_hit(qspid, sspid):
-    df = pd.read_csv(f'../hsps2hits/out/{qspid}/{sspid}', sep='\t',
+    df = pd.read_csv(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=hit_dtypes.keys(), dtype=hit_dtypes, memory_map=True)
-    r = pd.read_csv(f'../hits2reciprocal/out/{qspid}/{sspid}', sep='\t',
+    r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal1'], memory_map=True)
     dfr = df.join(r)
 
@@ -96,6 +97,13 @@ hit_dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
 num_processes = 4
 
 if __name__ == '__main__':
+    # Parse parameters
+    spids = []
+    with open('params.tsv') as file:
+        fields = file.readline().split()  # Skip header
+        for line in file:
+            spids.append(line.split()[0])
+
     # Load data
     rows = []
     with open('../subcluster_ggraph/out/ggraph1/gclusters.txt') as file:
@@ -108,9 +116,7 @@ if __name__ == '__main__':
     edges = pd.DataFrame(rows)
 
     with mp.Pool(processes=num_processes) as pool:
-        tsvs = [(qspid, sspid) for qspid in os.listdir('../hsps2hits/out/')
-                for sspid in os.listdir(f'../hsps2hits/out/{qspid}/')]
-        hits0 = pd.concat(pool.starmap(load_hit, tsvs))
+        hits0 = pd.concat(pool.starmap(load_hit, permutations(spids, 2)))
         hits0 = edges.merge(hits0, how='left', on=['qgnid', 'sgnid'])
         hits0['fqa'] = hits0['nqa'] / hits0['qlen']
         hits0['fsa'] = hits0['nsa'] / hits0['slen']
@@ -353,10 +359,10 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../blast2hits/blast2hits.py
-    ../blast2hsps/out/*/*.tsv
-../hits2reciprocal/hits2reciprocal.py
-    ../hits2reciprocal/out/*/*.tsv
+../../ortho_search/blast2hits/blast2hits.py
+    ../../ortho_search/blast2hsps/out/*/*.tsv
+../../ortho_search/hits2reciprocal/hits2reciprocal.py
+    ../../ortho_search/hits2reciprocal/out/*/*.tsv
 ../subcluster_ggraph/subcluster_ggraph1.py
     ../subcluster_ggraph/out/ggraph1/gclusters.txt
 """
