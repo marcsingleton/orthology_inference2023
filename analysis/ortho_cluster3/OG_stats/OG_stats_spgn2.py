@@ -6,7 +6,7 @@ import pandas as pd
 
 # Load gn metadata
 gnid2spid = {}
-with open('../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv') as file:
+with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
     for line in file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
@@ -236,6 +236,6 @@ These plots are largely based off those in analysis/EggNOGv5_validation/ali_stat
 DEPENDENCIES
 ../clique5+_community/clique5+_community2.py
     ../clique5+_community/out/ggraph2/5clique/gclusters.txt
-../../ortho_cluster2/ppid2meta/ppid2meta.py
-    ../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv
+../../ortho_search/ppid2meta/ppid2meta.py
+    ../../ortho_search/ppid2meta/out/ppid2meta.tsv
 """

@@ -7,9 +7,9 @@ from itertools import permutations
 
 
 def load_hit(qspid, sspid):
-    df = pd.read_csv(f'../../ortho_cluster2/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
+    df = pd.read_csv(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=dtypes.keys(), dtype=dtypes, memory_map=True)
-    r = pd.read_csv(f'../../ortho_cluster2/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
+    r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal2'], memory_map=True)
     dfr = df.join(r)
 
@@ -51,9 +51,9 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../../ortho_cluster2/hsps2hits/hsps2hits.py
-    ../../ortho_cluster2/hsps2hits/out/*/*.tsv
-../../ortho_cluster2/hits2reciprocal/hits2reciprocal.py
-    ../../ortho_cluster2/hits2reciprocal/out/*/*.tsv
+../../ortho_search/hsps2hits/hsps2hits.py
+    ../../ortho_search/hsps2hits/out/*/*.tsv
+../../ortho_search/hits2reciprocal/hits2reciprocal.py
+    ../../ortho_search/hits2reciprocal/out/*/*.tsv
 ./params.tsv
 """

@@ -7,7 +7,7 @@ from numpy import linspace
 
 # Load gn metadata
 gnid2spid = {}
-with open('../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv') as file:
+with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
     for line in file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
@@ -105,8 +105,8 @@ for (qspid, sspid), group in g:
 
 """
 DEPENDENCIES
-../../ortho_cluster2/ppid2meta/ppid2meta.py
-    ../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv
+../../ortho_search/ppid2meta/ppid2meta.py
+    ../../ortho_search/ppid2meta/out/ppid2meta.tsv
 ../hits2ggraph/out/hits2ggraph1.py
     ../hits2ggraph/out/ggraph1.tsv
 ../subcluster_ggraph/subcluster_ggraph1.py

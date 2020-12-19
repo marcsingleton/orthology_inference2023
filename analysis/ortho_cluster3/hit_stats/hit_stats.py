@@ -11,16 +11,16 @@ from numpy import linspace
 
 # Load functions
 def load_hsp(qspid, sspid):
-    df = pd.read_csv(f'../../ortho_cluster2/blast2hsps/out/hsps/{qspid}/{sspid}.tsv', sep='\t',
+    df = pd.read_csv(f'../../ortho_search/blast2hsps/out/hsps/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=hsp_dtypes.keys(), dtype=hsp_dtypes, memory_map=True)
 
     return df[df['disjoint']]
 
 
 def load_hit(qspid, sspid):
-    df = pd.read_csv(f'../../ortho_cluster2/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
+    df = pd.read_csv(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=hit_dtypes.keys(), dtype=hit_dtypes, memory_map=True)
-    r = pd.read_csv(f'../../ortho_cluster2/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
+    r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal2'], memory_map=True)
 
     return df.join(r)
@@ -303,12 +303,12 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../../ortho_cluster2/blast2hsps/blast2hsps.py
-    ../../ortho_cluster2/blast2hsps/out/hsps/*/*.tsv
-../../ortho_cluster2/hsps2hits/hsps2hits.py
-    ../../ortho_cluster2/hsps2hits/out/*/*.tsv
-../../ortho_cluster2/hits2reciprocal/hits2reciprocal.py
-    ../../ortho_cluster2/hits2reciprocal/out/*/*.tsv
+../../ortho_search/blast2hsps/blast2hsps.py
+    ../../ortho_search/blast2hsps/out/hsps/*/*.tsv
+../../ortho_search/hsps2hits/hsps2hits.py
+    ../../ortho_search/hsps2hits/out/*/*.tsv
+../../ortho_search/hits2reciprocal/hits2reciprocal.py
+    ../../ortho_search/hits2reciprocal/out/*/*.tsv
 ../genome_stats/genome_stats.py
     ../genome_stats/out/gnid_nums.tsv
 ./params.tsv

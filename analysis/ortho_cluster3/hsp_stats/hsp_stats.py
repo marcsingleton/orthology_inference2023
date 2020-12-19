@@ -12,9 +12,9 @@ from numpy import linspace
 
 # Load functions
 def load_hsp(qspid, sspid):
-    df = pd.read_csv(f'../../ortho_cluster2/blast2hsps/out/hsps/{qspid}/{sspid}.tsv', sep='\t',
+    df = pd.read_csv(f'../../ortho_search/blast2hsps/out/hsps/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=dtypes.keys(), dtype=dtypes, memory_map=True)
-    r = pd.read_csv(f'../../ortho_cluster2/hsps2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
+    r = pd.read_csv(f'../../ortho_search/hsps2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal'], memory_map=True)
 
     df['pident'] = df['nident'] / df['length']
@@ -312,10 +312,10 @@ Fraction of best HSPs reciprocal: 0.9377310456504264
 Fraction of disjoint HSPs reciprocal: 0.9397926358798487
 
 DEPENDENCIES
-../../ortho_cluster2/blast2hsps/blast2hsps.py
-    ../../ortho_cluster2/blast2hsps/out/hsps/*/*.tsv
-../../ortho_cluster2/hsps2reciprocal/hsps2reciprocal.py
-    ../../ortho_cluster2/hsps2reciprocal/out/*/*.tsv
+../../ortho_search/blast2hsps/blast2hsps.py
+    ../../ortho_search/blast2hsps/out/hsps/*/*.tsv
+../../ortho_search/hsps2reciprocal/hsps2reciprocal.py
+    ../../ortho_search/hsps2reciprocal/out/*/*.tsv
 ../genome_stats/genome_stats.py
     ../genome_stats/out/gnid_nums.tsv
 ./params.tsv

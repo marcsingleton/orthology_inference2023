@@ -11,9 +11,9 @@ from numpy import linspace
 
 # Load functions
 def load_hit(qspid, sspid):
-    df = pd.read_csv(f'../../ortho_cluster2/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
+    df = pd.read_csv(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=hit_dtypes.keys(), dtype=hit_dtypes, memory_map=True)
-    r = pd.read_csv(f'../../ortho_cluster2/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
+    r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal2'], memory_map=True)
     dfr = df.join(r)
 
@@ -359,10 +359,10 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../../ortho_cluster2/blast2hits/blast2hits.py
-    ../../ortho_cluster2/blast2hsps/out/*/*.tsv
-../../ortho_cluster2/hits2reciprocal/hits2reciprocal.py
-    ../../ortho_cluster2/hits2reciprocal/out/*/*.tsv
+../../ortho_search/blast2hits/blast2hits.py
+    ../../ortho_search/blast2hsps/out/*/*.tsv
+../../ortho_search/hits2reciprocal/hits2reciprocal.py
+    ../../ortho_search/hits2reciprocal/out/*/*.tsv
 ../clique5+_community/clique5+_community2.py
     ../clique5+_community/out/ggraph2/5clique/gclusters.txt
 """

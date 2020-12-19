@@ -29,7 +29,7 @@ with open('params.tsv') as file:
 pgraph1 = {}
 pgraph2 = {}
 for qspid, sspid in permutations(spids, 2):
-    with open(f'../../ortho_cluster2/hsps2hits/out/{qspid}/{sspid}.tsv') as file:
+    with open(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv') as file:
         file.readline()  # Skip header
         for line in file:
             d = {column: f(field) for (column, f), field in zip(columns.items(), line.split())}
@@ -55,7 +55,7 @@ with open('out/pgraph2.tsv', 'w') as file:
 
 """
 DEPENDENCIES
-../../ortho_cluster2/hsps2hits/hsps2hits.py
-    ../../ortho_cluster2/hsps2hits/out/*/*.tsv
+../../ortho_search/hsps2hits/hsps2hits.py
+    ../../ortho_search/hsps2hits/out/*/*.tsv
 ./params.tsv
 """
