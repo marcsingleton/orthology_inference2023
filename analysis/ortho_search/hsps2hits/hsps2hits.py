@@ -98,9 +98,9 @@ num_processes = 2
 
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        tsvs = [(qspid, sspid) for qspid in os.listdir('../blast2hsps/out/hsps/')
-                for sspid in os.listdir(f'../blast2hsps/out/hsps/{qspid}')]
-        pool.starmap(parse_hsp, tsvs)
+        spids = [(qspid, sspid) for qspid in os.listdir('../blast2hsps/out/hsps/')
+                 for sspid in os.listdir(f'../blast2hsps/out/hsps/{qspid}')]
+        pool.starmap(parse_hsp, spids)
 
 """
 DEPENDENCIES
