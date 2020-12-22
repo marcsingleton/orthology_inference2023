@@ -16,6 +16,7 @@ dmel	7227	FlyBase	../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.
 dmoj	7230	NCBI	../../../data/ncbi_annotations/7230/101/GCF_000005175.2_dmoj_caf1/GCF_000005175.2_dmoj_caf1_cds_from_genomic.fna
 dnav	7232	NCBI	../../../data/ncbi_annotations/7232/101/GCF_001654015.2_UFRJ_Dnav_4.2/GCF_001654015.2_UFRJ_Dnav_4.2_cds_from_genomic.fna
 dnov	47314	NCBI	../../../data/ncbi_annotations/47314/100/GCF_003285875.2_DnovRS2.1/GCF_003285875.2_DnovRS2.1_cds_from_genomic.fna
+dobs	7282	NCBI	../../../data/ncbi_annotations/7282/100/GCF_002217835.1_Dobs_1.0/GCF_002217835.1_Dobs_1.0_cds_from_genomic.fna
 dper	7234	NCBI	../../../data/ncbi_annotations/7234/101/GCF_003286085.1_DperRS2/GCF_003286085.1_DperRS2_cds_from_genomic.fna
 dpse	7237	NCBI	../../../data/ncbi_annotations/7237/104/GCF_009870125.1_UCI_Dpse_MV25/GCF_009870125.1_UCI_Dpse_MV25_cds_from_genomic.fna
 dsec	7238	NCBI	../../../data/ncbi_annotations/7238/101/GCF_004382195.1_ASM438219v1/GCF_004382195.1_ASM438219v1_cds_from_genomic.fna
@@ -24,3 +25,4 @@ dsub	7241	NCBI	../../../data/ncbi_annotations/7241/100/GCF_008121235.1_UCBerk_Ds
 dtak	29030	NCBI	../../../data/ncbi_annotations/29030/101/GCF_000224235.1_Dtak_2.0/GCF_000224235.1_Dtak_2.0_cds_from_genomic.fna
 dvir	7244	NCBI	../../../data/ncbi_annotations/7244/103/GCF_003285735.1_DvirRS2/GCF_003285735.1_DvirRS2_cds_from_genomic.fna
 dwil	7260	NCBI	../../../data/ncbi_annotations/7260/101/GCF_000005925.1_dwil_caf1/GCF_000005925.1_dwil_caf1_cds_from_genomic.fna
+sleb	7225	NCBI	../../../data/ncbi_annotations/7225/100/GCF_003285725.1_SlebRS2/GCF_003285725.1_SlebRS2_cds_from_genomic.fna

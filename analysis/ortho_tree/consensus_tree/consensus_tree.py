@@ -97,7 +97,7 @@ for label in os.listdir('../phyml_GTR/out/'):
         tree = Phylo.read(f'../phyml_GTR/out/{label}/{file}', 'newick')
         for clade in tree.find_clades():
             clade.confidence = None
-        path = tree.get_path('dwil')
+        path = tree.get_path('sleb')
         if len(path) == 1:
             outgroup = tree.clade
         else:

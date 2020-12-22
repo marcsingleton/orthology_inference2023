@@ -98,10 +98,10 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 sys.stdout = open('out/out.txt', 'w')  # Redirect stdout to file
-for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_fastas1/out/')):
+for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_fastas/out/')):
     # Load alignments
     aa_aligns = []
-    with open('../align_fastas1/out/' + file_id) as file:
+    with open('../align_fastas/out/' + file_id) as file:
         line = file.readline()
         while line:
             if line.startswith('>'):
@@ -145,8 +145,8 @@ sys.stdout.close()
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_cds_from_genomic.fna
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-CDS-r6.34.fasta
-../align_fastas1/align_fastas.py
-    ../align_fastas1/out/*.mfa
+../align_fastas/align_fastas.py
+    ../align_fastas/out/*.mfa
 ./params.tsv
 ./ttable.txt
 """

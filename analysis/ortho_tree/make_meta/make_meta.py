@@ -37,8 +37,8 @@ colpools = {'100red': (lambda col: is_redundant(col, 1), []),
             '50red_ni': (lambda col: is_redundant(col, 0.5) and not is_invariant(col), []),
             '0red': (lambda col: is_redundant(col, 0), []),
             '0red_ni': (lambda col: is_redundant(col, 0) and not is_invariant(col), [])}
-for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_aa2nt1/out/')):
-    align = AlignIO.read(f'../align_aa2nt1/out/{file_id}', 'fasta')
+for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_aa2nt/out/')):
+    align = AlignIO.read(f'../align_aa2nt/out/{file_id}', 'fasta')
     for i in range(len(align[0])):
         col = [Column(seq.description[-4:], seq[i]) for seq in align]
         for condition, colpool in colpools.values():
@@ -68,14 +68,14 @@ for label, (_, colpool) in colpools.items():
 
 """
 OUTPUT
-100red: 2460073
-100red_ni: 1273799
-50red: 2646503
-50red_ni: 1424250
-0red: 3002523
-0red_ni: 1515908
+100red: 2143612
+100red_ni: 1135297
+50red: 2315412
+50red_ni: 1277192
+0red: 2665407
+0red_ni: 1367474
 
 DEPENDENCIES
-../align_aa2nt1/align_aa2nt1.py
-    ../align_aa2nt1/out/*.mfa
+../align_aa2nt/align_aa2nt.py
+    ../align_aa2nt/out/*.mfa
 """
