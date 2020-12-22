@@ -1,7 +1,9 @@
-"""Get PPIDs of the representative polypeptides for each gene."""
+"""Make FASTAs of OGs with one unique sequence per gene."""
 
 import os
 import re
+
+import pandas as pd
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
             'NCBI': r'([NXY]P_[0-9]+)'}
@@ -14,7 +16,7 @@ with open('params.tsv') as file:
         spid, _, source, prot_path = line.split()
         params.append((spid, source, prot_path))
 
-# Load gn and pp metadata
+# Load pp metadata
 ppid2gnid = {}
 with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
     for line in file:
@@ -23,7 +25,7 @@ with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
 
 # Load seqs
 gnid2seqs = {}
-for _, source, prot_path in params:
+for spid0, source, prot_path in params:
     with open(prot_path) as file:
         line = file.readline()
         while line:
@@ -39,27 +41,50 @@ for _, source, prot_path in params:
             seq0 = ''.join(seqlines)
 
             try:
-                for ppid1, seq1 in gnid2seqs[gnid]:
+                for _, _, seq1 in gnid2seqs[gnid]:
                     if seq0 == seq1:
                         break
                 else:
-                    gnid2seqs[gnid].append((ppid0, seq0))
+                    gnid2seqs[gnid].append((ppid0, spid0, seq0))
             except KeyError:
-                gnid2seqs[gnid] = [(ppid0, seq0)]
+                gnid2seqs[gnid] = [(ppid0, spid0, seq0)]
+
+# Load OGs and OG metadata
+OGs = {}
+with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt') as file:
+    for line in file:
+        _, OGid, edges = line.rstrip().split(':')
+        gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
+        OGs[OGid] = gnids
+
+OGs_meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv')
+
+# Write sequences
+gn26 = OGs_meta['gnidnum'] == 26
+sp26 = OGs_meta['spidnum'] == 26
+sq26 = OGs_meta['sqidnum'] == 26
+OGids = OGs_meta.loc[gn26 & sp26 & sq26, 'OGid']
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-with open('out/reprs.tsv', 'w') as file:
-    for gnid, seqs in gnid2seqs.items():
-        ppidstring = ','.join([ppid for ppid, _ in seqs])
-        file.write(f'{gnid}\t{ppidstring}\n')
+for OGid in OGids:
+    with open(f'out/{OGid}.tfa', 'w') as file:
+        for gnid in OGs[OGid]:
+            ppid, spid, seq = gnid2seqs[gnid][0]
+            seqstring = '\n'.join(seq[i:i+80] for i in range(0, len(seq), 80)) + '\n'
+            file.write(f'>ppid={ppid}|gnid={gnid}|spid={spid}\n')
+            file.write(seqstring)
 
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
+../../ortho_cluster3/clique5+_community/clique5+_community.py
+    ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
 ../../ortho_search/ppid2meta/ppid2meta.py
     ../../ortho_search/ppid2meta/out/ppid2meta.tsv
+../OGid2meta/OGid2meta.py
+    ../OGid2meta/out/OGid2meta.tsv
 ./params.tsv
 """

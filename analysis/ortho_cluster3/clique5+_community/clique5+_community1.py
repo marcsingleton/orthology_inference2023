@@ -204,7 +204,7 @@ def save_results(OGs, CCtypes, k):
     plt.ylabel('Number of connected components')
     plt.title('Distribution of connected components across number of OGs')
     plt.legend()
-    plt.savefig(F'out/ggraph1/{k}clique/connectnum-OGnum_type_dist1-1.png')
+    plt.savefig(f'out/ggraph1/{k}clique/connectnum-OGnum_type_dist1-1.png')
     plt.xlim((-1, 17))  # Adjust axis to truncate outliers
     plt.savefig(f'out/ggraph1/{k}clique/connectnum-OGnum_type_dist1-2.png')
     plt.close()
@@ -318,6 +318,8 @@ CliqueError: 08a7
 CliqueError: 08a8
 CliqueError: 08a9
 PercolateError: 0cf3
+PercolateError: 1970
+PercolateError: 28a9
 PercolateError: 2baa
 PercolateError: 2d68
 PercolateError: 2fdc
