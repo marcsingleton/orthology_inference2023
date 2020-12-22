@@ -18,7 +18,7 @@ with open('params.tsv') as file:
 
 # Load pp metadata
 ppid2gnid = {}
-with open('../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv') as file:
+with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
     for line in file:
         ppid, gnid, _ = line.split()
         ppid2gnid[ppid] = gnid
@@ -51,7 +51,7 @@ for spid0, source, prot_path in params:
 
 # Load OGs and OG metadata
 OGs = {}
-with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt') as file:
+with open('../clique5+_community/out/5clique/gclusters.txt') as file:
     for line in file:
         _, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -60,10 +60,10 @@ with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters
 OGs_meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv')
 
 # Write sequences
-gn25 = OGs_meta['gnidnum'] == 25
-sp25 = OGs_meta['spidnum'] == 25
-sq25 = OGs_meta['sqidnum'] == 25
-OGids = OGs_meta.loc[gn25 & sp25 & sq25, 'OGid']
+gn27 = OGs_meta['gnidnum'] == 27
+sp27 = OGs_meta['spidnum'] == 27
+sq27 = OGs_meta['sqidnum'] == 27
+OGids = OGs_meta.loc[gn27 & sp27 & sq27, 'OGid']
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -80,10 +80,10 @@ for OGid in OGids:
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-../../ortho_cluster2/ppid2meta/ppid2meta.py
-    ../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv
-../../ortho_cluster3/clique5+_community/clique5+_community.py
-    ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
+../../ortho_search/ppid2meta/ppid2meta.py
+    ../../ortho_search/ppid2meta/out/ppid2meta.tsv
+../clique5+_community/clique5+_community.py
+    ../clique5+_community/out/5clique/gclusters.txt
 ../OGid2meta/OGid2meta.py
     ../OGid2meta/out/OGid2meta.tsv
 ./params.tsv

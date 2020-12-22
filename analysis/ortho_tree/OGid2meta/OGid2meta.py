@@ -5,14 +5,14 @@ import pandas as pd
 
 # Load gn metadata
 gnid2spid = {}
-with open('../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv') as file:
+with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
     for line in file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
 
 # Load sqid counts
 gnid2sqidnum = {}
-with open('../../ortho_cluster3/genome_stats/out/gnid_nums.tsv') as file:
+with open('../genome_stats/out/gnid_nums.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         _, gnid, _, sqidnum = line.split()
@@ -20,7 +20,7 @@ with open('../../ortho_cluster3/genome_stats/out/gnid_nums.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt') as file:
+with open('../clique5+_community/out/5clique/gclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -31,14 +31,14 @@ with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters
 OGs = pd.DataFrame(rows)
 
 # Print counts
-gn25 = OGs['gnidnum'] == 25
-sp25 = OGs['spidnum'] == 25
-sq25 = OGs['sqidnum'] == 25
+gn27 = OGs['gnidnum'] == 27
+sp27 = OGs['spidnum'] == 27
+sq27 = OGs['sqidnum'] == 27
 
 print('Total OGs:', len(OGs))
-print('OGs with 25 genes:', len(OGs[gn25]))
-print('OGs with 25 genes and species:', len(OGs[gn25 & sp25]))
-print('OGs with 25 genes, species, and sequences:', len(OGs[gn25 & sp25 & sq25]))
+print('OGs with 27 genes:', len(OGs[gn27]))
+print('OGs with 27 genes and species:', len(OGs[gn27 & sp27]))
+print('OGs with 27 genes, species, and sequences:', len(OGs[gn27 & sp27 & sq27]))
 
 # Make output directory
 if not os.path.exists('out/'):
@@ -48,16 +48,16 @@ OGs.to_csv('out/OGid2meta.tsv', sep='\t', index=False)
 
 """
 OUTPUT 
-Total OGs: 14864
-OGs with 25 genes: 8242
-OGs with 25 genes and species: 8102
-OGs with 25 genes, species, and sequences: 2682
+Total OGs: 21198
+OGs with 27 genes: 7717
+OGs with 27 genes and species: 7525
+OGs with 27 genes, species, and sequences: 2333
 
 DEPENDENCIES
-../../ortho_cluster2/ppid2meta/ppid2meta.py
-    ../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv
-../../ortho_cluster3/genome_stats/genome_stats.py
-    ../../ortho_cluster3/genome_stats/out/gnid_nums.tsv
-../../ortho_cluster3/clique5+_community/clique5+_community2.py
-    ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
+../../ortho_search/ppid2meta/ppid2meta.py
+    ../../ortho_search/ppid2meta/out/ppid2meta.tsv
+../clique5+_community/clique5+_community.py
+    ../clique5+_community/out/5clique/gclusters.txt
+../genome_stats/genome_stats.py
+    ../genome_stats/out/gnid_nums.tsv
 """
