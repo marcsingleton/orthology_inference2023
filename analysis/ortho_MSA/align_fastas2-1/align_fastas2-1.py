@@ -7,14 +7,14 @@ from time import time_ns
 
 
 def run_cmd(file_id):
-    aligners = [('probalign', f'../../../bin/probalign ../make_fastas2/out/{file_id}.tfa '
+    aligners = [('probalign', f'../../../bin/probalign ../make_fastas2-1/out/{file_id}.tfa '
                               f'1> out/{file_id}.mfa 2> out/{file_id}.err'),
-                ('probcons', f'../../../bin/probcons ../make_fastas2/out/{file_id}.tfa '
+                ('probcons', f'../../../bin/probcons ../make_fastas2-1/out/{file_id}.tfa '
                              f'1> out/{file_id}.mfa 2> out/{file_id}.err'),
                 ('mafft', f'../../../bin/mafft --genafpair --maxiterate 1000 --thread 1 '
-                          f'../make_fastas2/out/{file_id}.tfa '
+                          f'../make_fastas2-1/out/{file_id}.tfa '
                           f'1> out/{file_id}.mfa 2> out/{file_id}.err'),
-                ('clustalo', f'../../../bin/clustalo -i ../make_fastas2/out/{file_id}.tfa '
+                ('clustalo', f'../../../bin/clustalo -i ../make_fastas2-1/out/{file_id}.tfa '
                              f'--threads=1 -o out/{file_id}.mfa')]
     for (aligner, cmd) in aligners:
         try:
@@ -35,7 +35,7 @@ if __name__ == '__main__':
         os.mkdir('out/')
 
     with mp.Pool(processes=num_processes) as pool:
-        file_ids = [file[:-4] for file in os.listdir('../make_fastas2/out/')]
+        file_ids = [file[:-4] for file in os.listdir('../make_fastas2-1/out/')]
         rows = pool.map(run_cmd, file_ids)
 
     with open('out/times.tsv', 'w') as file:
@@ -45,6 +45,6 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../make_fastas2/make_fastas2.py
-    ../make_fastas2/out/*.tfa
+../make_fastas2-1/make_fastas2-1.py
+    ../make_fastas2-1/out/*.tfa
 """

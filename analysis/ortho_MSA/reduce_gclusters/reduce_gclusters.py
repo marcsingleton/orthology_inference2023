@@ -78,7 +78,7 @@ def get_distances(node, d0=0):
 
 # Load gn and pp metadata
 gnid2spid = {}
-with open('../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv') as file:
+with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
     for line in file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
@@ -114,7 +114,9 @@ with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters
     for line in file:
         _, OGid, edges = line.rstrip().split(':')
         OGs[OGid] = set([node for edge in edges.split('\t') for node in edge.split(',')])
-tree_template = Phylo.read('../consensus_tree/out/100red_ni.txt', 'newick')
+
+tree_template = Phylo.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick')
+tree_template.prune('sleb')
 
 rOGs = {}
 for OGid, OG in OGs.items():
@@ -152,16 +154,16 @@ with open('out/rclusters.tsv', 'w') as outfile:
 
 """
 DEPENDENCIES
-../../ortho_cluster2/ppid2meta/ppid2meta.py
-    ../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv
 ../../ortho_cluster3/clique5+_community/clique5+_community2.py
     ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
 ../../ortho_cluster3/hits2ggraph/hits2ggraph2.py
     ../../ortho_cluster3/hits2ggraph/out/ggraph2.tsv
 ../../ortho_cluster3/hits2pgraph/hits2pgraph.py
     ../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv
-../consensus_tree/consensus_tree.py
-    ../consensus_tree/out/100red_ni.txt
+../../ortho_search/ppid2meta/ppid2meta.py
+    ../../ortho_search/ppid2meta/out/ppid2meta.tsv
+../../ortho_tree/consensus_tree/consensus_tree.py
+    ../../ortho_tree/consensus_tree/out/100red_ni.txt
 ../get_reprs/get_reprs.py
     ../get_reprs/out/reprs.tsv
 """

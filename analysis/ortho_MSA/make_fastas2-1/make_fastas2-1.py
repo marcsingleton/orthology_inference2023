@@ -1,4 +1,4 @@
-"""Make FASTAs of remaining OGs."""
+"""Make FASTAs of remaining OGs using pairwise reduction strategy."""
 
 import os
 import re
@@ -37,10 +37,10 @@ OGs_meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv')
 rclusters = pd.read_table('../reduce_gclusters/out/rclusters.tsv').groupby('OGid')
 
 # Write sequences
-gn25 = OGs_meta['gnidnum'] == 25
-sp25 = OGs_meta['spidnum'] == 25
-sq25 = OGs_meta['sqidnum'] == 25
-OGids = OGs_meta.loc[~(gn25 & sp25 & sq25), 'OGid']
+gn26 = OGs_meta['gnidnum'] == 26
+sp26 = OGs_meta['spidnum'] == 26
+sq26 = OGs_meta['sqidnum'] == 26
+OGids = OGs_meta.loc[~(gn26 & sp26 & sq26), 'OGid']
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
