@@ -52,21 +52,21 @@ def load_alignment(path):
     return MSA
 
 
-tree_template = Phylo.read('../consensus_tree/out/100red_ni.txt', 'newick')
-tree_template.root_at_midpoint()  # Removes multifurcation at dwil
+tree_template = Phylo.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick')
+tree_template.prune('sleb')
 
 OGid2meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv').drop(['CCid', 'edgenum'], axis=1)
-df = OGid2meta[(OGid2meta['gnidnum'] == 25) & (OGid2meta['spidnum'] == 25)]
+df = OGid2meta[(OGid2meta['gnidnum'] == 26) & (OGid2meta['spidnum'] == 26)]
 
 if not os.path.exists('out/'):
-    os.makedirs('out/contrasts')
+    os.mkdir('out/')
 
 rows = []
 for record in df.itertuples():
-    if record.sqidnum == 25:
+    if record.sqidnum == 26:
         MSA = load_alignment(f'../align_fastas1/out/{record.OGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2/out/{record.OGid}.mfa')
+        MSA = load_alignment(f'../align_fastas2-1/out/{record.OGid}.mfa')
 
     tree = deepcopy(tree_template)
     for terminal in tree.get_terminals():
@@ -74,30 +74,26 @@ for record in df.itertuples():
         terminal.value = gap_vector
 
     contrasts, _, _ = get_contrasts(tree.root)
-    contrasts = np.asarray(contrasts)  # Convert to 2D array
-    with open(f'out/contrasts/{record.OGid}.npy', 'wb') as file:
-        np.save(file, contrasts)
-
     row_sums = list(np.abs(contrasts).sum(axis=1))
     gap_matrix = np.asarray([[0 if sym == '-' else 1 for sym in seq] for seq in MSA.values()])
     len1 = len(MSA['dmel'])  # Total length of alignment
-    len2 = (gap_matrix / 25).sum()  # Adjusted length of alignment
+    len2 = (gap_matrix / 26).sum()  # Adjusted length of alignment
     rows.append([record.OGid, str(len1), str(len2)] + [str(row_sum) for row_sum in row_sums])
 
 with open('out/row_sums.tsv', 'w') as file:
-    header = '\t'.join(['OGid', 'len1', 'len2'] + [f'c{i}' for i in range(24)]) + '\n'
+    header = '\t'.join(['OGid', 'len1', 'len2'] + [f'c{i}' for i in range(25)]) + '\n'
     file.writelines(header)
     for row in rows:
         file.writelines('\t'.join(row) + '\n')
 
 """
 DEPENDENCIES
+../ortho_tree/consensus_tree/consensus_tree.py
+    ../ortho_tree/consensus_tree/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
-../align_fastas2/align_fastas2.py
-    ../align_fastas2/out/*.mfa
-../consensus_tree/consensus_tree.py
-    ../consensus_tree/out/100red_ni.txt
+../align_fastas2-2/align_fastas2-1.py
+    ../align_fastas2-2/out/*.mfa
 ../OGid2meta/OGid2meta.py
     ../OGid2meta/out/OGid2meta.tsv
 """

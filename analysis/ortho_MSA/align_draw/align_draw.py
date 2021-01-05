@@ -12,7 +12,7 @@ import pandas as pd
 
 def draw_alignment(OGid, MSA):
     # Parameters
-    cols_im = 140  # Number of columns in output
+    ratio = 2.5  # Aspect ratio (length:height)
     spacing = 25  # Spacing between blocks
     sym_length = 7  # Length of a symbol rectangle
     sym_height = 7  # Height of a symbol rectangle
@@ -27,11 +27,35 @@ def draw_alignment(OGid, MSA):
 
     # Calculated parameters
     rows_MSA, cols_MSA = len(MSA), len(MSA[0][1])
-    length_im = sym_length * cols_im  # Length of final image
-    blocks_im = cols_MSA // cols_im  # Number of blocks in addition to the first
-    height_im = (sym_height * rows_MSA + spacing) * blocks_im + sym_height * rows_MSA  # Height of final image
+
+    def get_dims(cols_im):
+        length_im = sym_length * cols_im  # Length of final image
+        blocks_im = cols_MSA // cols_im - (1 if cols_MSA % cols_im == 0 else 0)  # Number of blocks in addition to the first
+        height_im = (sym_height * rows_MSA + spacing) * blocks_im + sym_height * rows_MSA  # Height of final image
+        return length_im, height_im
+
+    def get_aspect(cols_im):
+        length_im, height_im = get_dims(cols_im)
+        return length_im / height_im
+
+    # Get interval
+    interval = (1, cols_MSA)
+    while interval[1] - interval[0] > 1:
+        i1 = (interval[0], (interval[0] + interval[1]) // 2)
+        i2 = ((interval[0] + interval[1]) // 2, interval[1])
+        if (get_aspect(i1[0]) - ratio) * (get_aspect(i1[1]) - ratio) < 0:
+            interval = i1
+        elif (get_aspect(i2[0]) - ratio) * (get_aspect(i2[1]) - ratio) < 0:
+            interval = i2
+        else:
+            break
+    cols_im = min(interval, key=lambda x: abs(get_aspect(x) - ratio))
+    if cols_MSA % cols_im < 0.5 * cols_im:  # Guarantees at least two blocks
+        blocks_im = cols_MSA // cols_im  # Total blocks minus 1
+        cols_im += ceil((cols_MSA % cols_im) / blocks_im)  # Distribute excess to other blocks
 
     # Instantiate array and fill with values
+    length_im, height_im = get_dims(cols_im)
     im = np.full((height_im, length_im, 3), 255, dtype='uint8')
     for i, record in enumerate(MSA):
         for j, sym in enumerate(record[1]):
@@ -81,9 +105,10 @@ with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters
             rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid})
 OGs = pd.DataFrame(rows)
 
-test_genes = pd.read_table('test_genes.tsv').drop('name', axis=1)
+test_genes = pd.read_table('test_genes.tsv')
 OGid2meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv').drop(['CCid', 'edgenum'], axis=1)
-tree = Phylo.read('../consensus_tree/out/100red_ni.txt', 'newick')
+tree = Phylo.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick')
+tree.prune('sleb')
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -94,10 +119,10 @@ df.to_csv('out/OGids.tsv', sep='\t', index=False)
 for row in df.dropna().itertuples():
     OGid = row.OGid
     gnidnum, spidnum, sqidnum = row.gnidnum, row.spidnum, row.sqidnum
-    if gnidnum == spidnum == sqidnum == 25:
+    if gnidnum == spidnum == sqidnum == 26:
         MSA = load_alignment(f'../align_fastas1/out/{OGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2/out/{OGid}.mfa')
+        MSA = load_alignment(f'../align_fastas2-1/out/{OGid}.mfa')
 
     order = {terminal.name: i for i, terminal in enumerate(tree.get_terminals())}
     MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
@@ -107,12 +132,12 @@ for row in df.dropna().itertuples():
 DEPENDENCIES
 ../../ortho_cluster3/clique5+_community/clique5+_community2.py
     ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
+../ortho_tree/consensus_tree/consensus_tree.py
+    ../ortho_tree/consensus_tree/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
-../align_fastas2/align_fastas2.py
-    ../align_fastas2/out/*.mfa
-../consensus_tree/consensus_tree.py
-    ../consensus_tree/out/100red_ni.txt
+../align_fastas2-1/align_fastas2-2.py
+    ../align_fastas2-1/out/*.mfa
 ../OGid2meta/OGid2meta.py
     ../OGid2meta/out/OGid2meta.tsv
 ./test_genes.tsv
