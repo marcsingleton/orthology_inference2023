@@ -11,7 +11,7 @@ type_name = argv[2]  # Name of column denoting segment type
 
 # Constants
 segment_dir = '../sample_segs/out/'
-features_path = '../feature_calc/features.tsv'
+features_path = '../feature_calc/out/features.tsv'
 
 features = pd.read_csv(features_path, sep='\t', index_col=list(range(num_idx)))
 
