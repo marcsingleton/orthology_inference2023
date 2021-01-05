@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/pca_joint.py ../sample_feats/ 3 conserved Conserved Diverged', shell=True)
+run('python ../../../src/seg_scripts/plot/pca_joint.py ../sample_feats/out/ 3 conserved Conserved Diverged', shell=True)
 
 """
 NOTES
@@ -44,7 +44,7 @@ It is also worthwhile investigating other clustering algorithms even if they are
 Regardless future analyses should focus on IDRs; there is no hypothesis that there are classes of conserved or diverged subsequences
 
 DEPENDENCIES
-../../../src/feature_plot_scripts/pca_joint.py
+../../../src/seg_scripts/plot/pca_joint.py
 ../sample_feats/run_sample_feats.py
-    ../sample_feats/features_*.tsv
+    ../sample_feats/out/features_*.tsv
 """

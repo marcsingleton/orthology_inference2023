@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/pca_joint.py ../feature_calc_shuffle/ 1 ordered Ordered Disordered', shell=True)
+run('python ../../../src/seg_scripts/plot/pca_joint.py ../feature_calc_shuffle/out/ 1 ordered Ordered Disordered', shell=True)
 
 """
 NOTES
@@ -37,7 +37,7 @@ In future experiments, the data should be displayed using "cross" transformation
     This will normalize for the effect of the analyses having dramatically different "views" of the data.
 
 DEPENDENCIES
-../../../src/feature_plot_scripts/pca_joint.py
+../../../src/seg_scripts/plot/pca_joint.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
-    ../feature_calc_shuffle/features_*.tsv
+    ../feature_calc_shuffle/out/features_*.tsv
 """

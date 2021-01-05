@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/tsne_separate.py ../feature_calc_shuffle/ 1 conserved Conserved Diverged', shell=True)
+run('python ../../../src/seg_scripts/plot/tsne_separate.py ../feature_calc_shuffle/out/ 1 conserved Conserved Diverged', shell=True)
 
 """
 NOTES
@@ -26,7 +26,7 @@ ZNORM
         However, within these periphery clusters, the distribution is uniform in contrast to the highly concentrated vertices.
 
 DEPENDENCIES
-../../../src/feature_plot_scripts/tsne_separate.py
+../../../src/seg_scripts/plot/tsne_separate.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
-    ../feature_calc_shuffle/features_*.tsv
+    ../feature_calc_shuffle/out/features_*.tsv
 """
