@@ -3,7 +3,7 @@
 import multiprocessing as mp
 import os
 import pandas as pd
-import seqfeat
+import src.seg_scripts.seqfeat as seqfeat
 
 # Input variables
 path = '../segment_avg/out/segment_avg.tsv'  # Path to segmented sequences
