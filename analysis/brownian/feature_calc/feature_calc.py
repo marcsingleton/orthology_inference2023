@@ -1,14 +1,14 @@
 """Calculate features for all non-empty sequences."""
 
 import multiprocessing as mp
+import os
 import pandas as pd
 import seqfeat
-from os import environ
 
 # Input variables
-path = '../segment_avg/segment_avg.tsv'  # Path to segmented sequences
+path = '../segment_avg/out/segment_avg.tsv'  # Path to segmented sequences
 type_name = 'ordered'  # Name of column denoting block class
-num_processes = int(environ['SLURM_NTASKS'])
+num_processes = int(os.environ['SLURM_NTASKS'])
 
 if __name__ == '__main__':  # Multiprocessing can only occur in top-level script (likely to prevent recursion)
     # Clean data by removing gaps and empty sequences
@@ -27,12 +27,16 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
     with mp.Pool(processes=num_processes) as pool:
         results = pd.DataFrame(pool.imap(seqfeat.feat_all, segs_lt['seq'], chunksize=50))
 
+    # Make output directory
+    if not os.path.exists('out/'):
+        os.mkdir('out/')
+
     # Merge subsets and save
     results.set_index([block_ids, species, seg_ids, types, lengths], inplace=True)
-    results.to_csv('features.tsv', sep='\t')
+    results.to_csv('out/features.tsv', sep='\t')
 
 """
 DEPENDENCIES
 ../segment_avg/segment_avg.py
-    ../segment_avg/segment_avg.tsv
+    ../segment_avg/out/segment_avg.tsv
 """

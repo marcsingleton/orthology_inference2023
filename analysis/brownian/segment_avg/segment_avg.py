@@ -2,6 +2,7 @@
 
 import gzip
 import numpy as np
+import os
 import pandas as pd
 import subprocess
 import tempfile
@@ -67,7 +68,7 @@ with open(path) as file:
 
                 # Fill IUPRED array with scores
                 for coord_gap, coord_ungap in coords:
-                    if coord_ungap is ():
+                    if coord_ungap == ():
                         MSA_iupred[idx, coord_gap[0]:coord_gap[1]] = -1
                     else:
                         MSA_iupred[idx, coord_gap[0]:coord_gap[1]] = scores[coord_ungap[0]:coord_ungap[1]]
@@ -97,6 +98,9 @@ with open(path) as file:
                                        'seq': record.seq[bound[0]:bound[1]]})
                     seg_num += 1
                 block_num += 1
+
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 df = pd.DataFrame(block_data)
 df.to_csv('segment_avg.tsv', sep='\t', index=False)

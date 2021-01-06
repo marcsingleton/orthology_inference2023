@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 # Input variables
-path = '../segment_union/segment_union.tsv'  # Path to segmented sequences .tsv
+path = '../segment_union/out/segment_union.tsv'  # Path to segmented sequences .tsv
 type_name = 'ordered'  # Name of column denoting segment type
 T_name = 'Ordered'  # Name of True type in sentence case
 F_name = 'Disordered'  # Name of False type in sentence case
@@ -89,6 +89,7 @@ Disordered First Ten Counts
 7     8237
 8     7725
 9     6808
+Name: seq, dtype: int64
 
 NOTES
 Compared to segmentation by average, segmentation by union creates more short sequences, particularly for disordered regions.

@@ -7,7 +7,7 @@ import pandas as pd
 from math import ceil
 
 # Input variables
-path = '../pic_calc/pics.tsv'
+path = '../pic_calc/out/pics.tsv'
 num_contrasts = 9
 max_percentile = 0.20
 lt = 32  # Length threshold
@@ -18,10 +18,9 @@ pics_lt = pics[pics.index.get_level_values('min_length') >= lt]
 pics_lt.insert(0, 'pic_id', list(range(num_contrasts)) * (len(pics_lt) // num_contrasts))
 pics_lt.set_index('pic_id', append=True, inplace=True)
 
-# Make output directories for length thresholds
-cur_dir = 'out/'
-if not os.path.exists(cur_dir):
-    os.makedirs(cur_dir)  # Recursive folder creation
+# Make output directory
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # Sort and count representation in tails
 size = ceil(0.005 * len(pics_lt))
@@ -40,13 +39,13 @@ for feature in pics_lt:
     plt.ylabel('Count')
     plt.legend(title='Contrast ID', bbox_to_anchor=(1.025, 0.5), loc='center left')
     plt.subplots_adjust(right=0.8)
-    plt.savefig(cur_dir + f'{feature}.png')
+    plt.savefig(f'out/{feature}.png')
     plt.close()
 
 """
 DEPENDENCIES
 ../pic_calc/pic_calc.py
-    ../pic_calc/pics.tsv
+    ../pic_calc/out/pics.tsv
 
 NOTES
 The counts are taken in non-overlapping windows rather than cumulatively to accurately represent each fraction of the tail.

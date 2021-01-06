@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 # Input variables
-path = '../segment_avg/segment_avg.tsv'  # Path to segmented sequences .tsv
+path = '../segment_avg/out/segment_avg.tsv'  # Path to segmented sequences .tsv
 type_name = 'ordered'  # Name of column denoting segment type
 T_name = 'Ordered'  # Name of True type in sentence case
 F_name = 'Disordered'  # Name of False type in sentence case
@@ -93,5 +93,5 @@ Name: seq, dtype: int64
 
 DEPENDENCIES
 ../segment_avg/segment_avg.py
-    ../segment_avg/segment_avg.tsv
+    ../segment_avg/out/segment_avg.tsv
 """

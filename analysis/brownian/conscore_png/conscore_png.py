@@ -19,11 +19,11 @@ def to_dict(path, dtype):
 
 
 # Path variables
-path_blosum_scores = '../meta_conscore/scores_blosum.tsv'
-path_match_scores = '../meta_conscore/scores_match.tsv'
-path_block_len = '../meta_block_len/block_len.tsv'
-path_ordered = '../meta_ordered/ordered.tsv'
-path_segs = '../segment_avg/segment_avg.tsv'
+path_blosum_scores = '../meta_conscore/out/scores_blosum.tsv'
+path_match_scores = '../meta_conscore/out/scores_match.tsv'
+path_block_len = '../meta_block_len/out/block_len.tsv'
+path_ordered = '../meta_ordered/out/ordered.tsv'
+path_segs = '../segment_avg/out/segment_avg.tsv'
 
 # Filter and sampling variables
 lt = 32
@@ -128,12 +128,12 @@ MATCH
 
 DEPENDENCIES
 ../meta_block_len/meta_block_len.py
-    ../meta_block_len/block_len.tsv
+    ../meta_block_len/out/block_len.tsv
 ../meta_conscore/meta_conscore.py
-    ../meta_conscore/scores_blosum.tsv
-    ../meta_conscore/scores_match.tsv
+    ../meta_conscore/out/scores_blosum.tsv
+    ../meta_conscore/out/scores_match.tsv
 ../meta_ordered/meta_ordered.py
-    ../meta_ordered/ordered.tsv
+    ../meta_ordered/out/ordered.tsv
 ../segment_avg/segment_avg.py
-    ../segment_avg/segment_avg.tsv
+    ../segment_avg/out/segment_avg.tsv
 """

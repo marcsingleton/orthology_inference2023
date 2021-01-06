@@ -2,9 +2,9 @@
 
 import Bio.Phylo as Phylo
 import multiprocessing as mp
+import os
 import pandas as pd
 from copy import deepcopy
-from os import environ
 
 
 def get_contrasts(node, results):
@@ -55,9 +55,9 @@ def block_contrasts(grouptree):
 
 
 # Input variables
-path_features = '../feature_calc/features.tsv'
+path_features = '../feature_calc/out/features.tsv'
 path_tree = '../prune_tree_25/out/drosophila-10spec-tree.nwk'
-num_processes = int(environ['SLURM_NTASKS'])
+num_processes = int(os.environ['SLURM_NTASKS'])
 taxon_ids = {'ananassae': 7217,
              'erecta': 7220,
              'grimshawi': 7222,
@@ -81,8 +81,12 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
         blocks_pics = pool.imap(block_contrasts, zip(groups, trees), chunksize=50)  # Dataframe of PICs for each block
         pics = pd.concat(blocks_pics)
 
+    # Make output directory
+    if not os.path.exists('out/'):
+        os.mkdir('out/')
+
     # Concatenate block dataframes and save
-    pics.to_csv('pics.tsv', sep='\t')
+    pics.to_csv('out/pics.tsv', sep='\t')
 
 """
 NOTES
@@ -95,7 +99,7 @@ The somewhat awkward zipping of the group and trees lists is due to a limitation
 
 DEPENDENCIES
 ../feature_calc/feature_calc.py
-    ../feature_calc/features.tsv
+    ../feature_calc/out/features.tsv
 ../prune_tree_25/prune_tree_25.py
     ../prune_tree_25/out/drosophila-10spec-tree.nwk
 """

@@ -9,7 +9,7 @@ import scipy.stats as stats
 from pymix.mixture import MixtureModel
 
 # Input variables
-path = '../pic_calc/pics.tsv'
+path = '../pic_calc/out/pics.tsv'
 lt = 32
 thresh = 0.95
 dists_dict = {'laplace': stats.laplace}
@@ -27,9 +27,9 @@ with open('../mixture_pic/out/models.tsv') as file:
         fields = line.rstrip().split('\t')
         model_paths[fields[0]] = fields[1]
 
-# Create subdirectory to save plots
-if not os.path.exists('out'):
-    os.makedirs('out')  # Recursive folder creation
+# Make output directory
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 rates = {}
 counts = {}
@@ -94,5 +94,5 @@ DEPENDENCIES
     ../mixture_pic/out/models.tsv
     ../mixture_pic/out/*/model_*.json
 ../pic_calc/pic_calc.py
-    ../pic_calc/pics.tsv
+    ../pic_calc/out/pics.tsv
 """
