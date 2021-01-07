@@ -17,5 +17,6 @@
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
-module load python
+source /global/home/users/singleton/.bashrc
+conda activate IDREvoDevo
 python pic_calc.py
