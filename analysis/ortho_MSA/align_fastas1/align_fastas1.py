@@ -7,25 +7,15 @@ from time import time_ns
 
 
 def run_cmd(file_id):
-    aligners = [('probalign', f'../../../bin/probalign ../make_fastas1/out/{file_id}.tfa '
-                              f'1> out/{file_id}.mfa 2> out/{file_id}.err'),
-                ('probcons', f'../../../bin/probcons ../make_fastas1/out/{file_id}.tfa '
-                             f'1> out/{file_id}.mfa 2> out/{file_id}.err'),
-                ('mafft', f'../../../bin/mafft --genafpair --maxiterate 1000 --thread 1 '
-                          f'../make_fastas1/out/{file_id}.tfa '
-                          f'1> out/{file_id}.mfa 2> out/{file_id}.err'),
-                ('clustalo', f'../../../bin/clustalo -i ../make_fastas1/out/{file_id}.tfa '
-                             f'--threads=1 -o out/{file_id}.mfa')]
-    for (aligner, cmd) in aligners:
-        try:
-            t0 = time_ns()
-            run(cmd, shell=True, check=True)
-            t1 = time_ns()
-            return file_id, aligner, str(t1-t0)
-        except CalledProcessError:
-            pass
-    else:
-        return file_id, 'ALIGN_ERROR', 'NaN'
+    cmd = (f'../../../bin/clustalo -i ../make_fastas1/out/{file_id}.tfa '
+           f'--iterations 1 --threads=1 -o out/{file_id}.mfa')
+    try:
+        t0 = time_ns()
+        run(cmd, shell=True, check=True)
+        t1 = time_ns()
+        return file_id, str(t1-t0)
+    except CalledProcessError:
+        return file_id, 'NaN'
 
 
 num_processes = int(os.environ['SLURM_NTASKS'])
@@ -39,7 +29,7 @@ if __name__ == '__main__':
         rows = pool.map(run_cmd, file_ids)
 
     with open('out/times.tsv', 'w') as file:
-        file.write('file_id\taligner\ttime_ns\n')
+        file.write('file_id\ttime_ns\n')
         for row in rows:
             file.write('\t'.join(row) + '\n')
 
