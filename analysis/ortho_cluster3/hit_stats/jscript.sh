@@ -18,5 +18,5 @@
 #
 # Command(s) to run:
 source /global/home/users/singleton/.bashrc
-conda activate
+conda activate IDREvoDevo
 python hit_stats.py
