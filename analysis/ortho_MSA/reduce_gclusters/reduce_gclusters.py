@@ -1,6 +1,7 @@
 """Reduce gene clusters to representative polypeptides."""
 
 import os
+import re
 from copy import deepcopy
 from itertools import chain, product, combinations
 
@@ -31,7 +32,7 @@ def reduce_terminal(terminals, nonterminals, distances):
     gnids_list = [terminal.gnids for terminal in terminals]
 
     # Get sets of proteins corresponding to list of genes for each species
-    ppid_sets_list = [[set(gnid2ppids[gnid]) for gnid in gnids] for gnids in gnids_list]
+    ppid_sets_list = [[set([ppid for ppid, _, _, in gnid2seqs[gnid]]) for gnid in gnids] for gnids in gnids_list]
 
     # Get all combinations of proteins with each gene represented once for each species
     ppid_prods_list = [product(*ppid_sets) for ppid_sets in ppid_sets_list]
@@ -76,19 +77,51 @@ def get_distances(node, d0=0):
     return distances
 
 
+pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
+            'NCBI': r'([NXY]P_[0-9]+)'}
+
+# Parse parameters
+params = []
+with open('params.tsv') as file:
+    fields = file.readline().split()  # Skip header
+    for line in file:
+        spid, _, source, prot_path = line.split()
+        params.append((spid, source, prot_path))
+
 # Load gn and pp metadata
 gnid2spid = {}
+ppid2gnid = {}
 with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
     for line in file:
-        _, gnid, spid = line.split()
+        ppid, gnid, spid = line.split()
         gnid2spid[gnid] = spid
+        ppid2gnid[ppid] = gnid
 
-# Load representative pps
-gnid2ppids = {}
-with open('../get_reprs/out/reprs.tsv') as file:
-    for line in file:
-        gnid, ppids = line.rstrip().split('\t')
-        gnid2ppids[gnid] = ppids.split(',')
+# Load seqs
+gnid2seqs = {}
+for spid0, source, prot_path in params:
+    with open(prot_path) as file:
+        line = file.readline()
+        while line:
+            if line.startswith('>'):
+                ppid0 = re.search(pp_regex[source], line).group(1)
+                gnid = ppid2gnid[ppid0]
+                line = file.readline()
+
+            seqlines = []
+            while line and not line.startswith('>'):
+                seqlines.append(line.rstrip())
+                line = file.readline()
+            seq0 = ''.join(seqlines)
+
+            try:
+                for _, _, seq1 in gnid2seqs[gnid]:
+                    if seq0 == seq1:
+                        break
+                else:
+                    gnid2seqs[gnid].append((ppid0, spid0, seq0))
+            except KeyError:
+                gnid2seqs[gnid] = [(ppid0, spid0, seq0)]
 
 # Load ggraph
 ggraph = {}
@@ -154,6 +187,8 @@ with open('out/rclusters.tsv', 'w') as outfile:
 
 """
 DEPENDENCIES
+../../../data/ncbi_annotations/*/*/*/*_protein.faa
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../../ortho_cluster3/clique5+_community/clique5+_community2.py
     ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
 ../../ortho_cluster3/hits2ggraph/hits2ggraph2.py
@@ -164,6 +199,5 @@ DEPENDENCIES
     ../../ortho_search/ppid2meta/out/ppid2meta.tsv
 ../../ortho_tree/consensus_tree/consensus_tree.py
     ../../ortho_tree/consensus_tree/out/100red_ni.txt
-../get_reprs/get_reprs.py
-    ../get_reprs/out/reprs.tsv
+./params.tsv
 """
