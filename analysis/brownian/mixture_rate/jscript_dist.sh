@@ -17,4 +17,5 @@
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
+module load python
 python mixture_rate_dist.py
