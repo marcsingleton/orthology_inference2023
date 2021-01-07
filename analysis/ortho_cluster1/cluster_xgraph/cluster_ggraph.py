@@ -1,7 +1,7 @@
 """Cluster ggraph on triangle criterion."""
 
 import os
-from triDFS import cluster
+from src.ortho_cluster.triDFS import cluster
 
 # Load ggraph
 ggraph = {}
@@ -25,7 +25,7 @@ with open('out/gclusters.txt', 'w') as outfile:
 
 """
 DEPENDENCIES
+../../../src/ortho_cluster/triDFS.py
 ../hsps2ggraph/hsps2ggraph.py
     ../hsps2ggraph/out/ggraph.tsv
-./triDFS.py
 """

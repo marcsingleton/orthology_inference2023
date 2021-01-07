@@ -1,7 +1,7 @@
 """Find connected components of ggraph."""
 
 import os
-from DFS import connect
+from src.ortho_cluster.DFS import connect
 
 # Load ggraph
 ggraph = {}
@@ -25,7 +25,7 @@ with open('out/gconnect1.txt', 'w') as outfile:
 
 """
 DEPENDENCIES
+../../../src/ortho_cluster/DFS.py
 ../hits2ggraph/hits2ggraph.py
     ../hits2ggraph/out/ggraph1.tsv
-./DFS.py
 """

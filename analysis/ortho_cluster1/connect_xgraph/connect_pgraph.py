@@ -1,7 +1,7 @@
 """Find connected components of pgraph."""
 
 import os
-from DFS import connect
+from src.ortho_cluster.DFS import connect
 
 # Load pgraph
 pgraph = {}
@@ -40,7 +40,7 @@ with open('out/pconnect.txt', 'w') as outfile:
 
 """
 DEPENDENCIES
+../../../src/ortho_cluster/DFS.py
 ../hsps2pgraph/hsps2pgraph.py
     ../hsps2pgraph/out/pgraph.tsv
-./DFS.py
 """

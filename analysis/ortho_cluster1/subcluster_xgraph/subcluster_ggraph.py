@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 import os
 from itertools import combinations
-from triDFS import cluster
+from src.ortho_cluster.triDFS import cluster
 
 # Load ggraph
 ggraph = {}
@@ -99,9 +99,9 @@ Type 3: 748
 Type 4: 878
 
 DEPENDENCIES
+../../../src/ortho_cluster/triDFS.py
 ../connect_xgraph/connect_ggraph.py
     ../connect_xgraph/out/gconnect.txt
 ../hsps2ggraph/hsps2ggraph.py
     ../hsps2ggraph/out/ggraph.tsv
-./triDFS.py
 """

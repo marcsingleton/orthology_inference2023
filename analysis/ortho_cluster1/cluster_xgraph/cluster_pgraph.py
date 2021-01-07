@@ -1,7 +1,7 @@
 """Cluster pgraph on triangle criterion."""
 
 import os
-from triDFS import cluster
+from src.ortho_cluster.triDFS import cluster
 
 # Load pgraph
 pgraph = {}
@@ -40,7 +40,7 @@ with open('out/pclusters.txt', 'w') as outfile:
 
 """
 DEPENDENCIES
+../../../src/ortho_cluster/triDFS.py
 ../hsps2pgraph/hsps2pgraph.py
     ../hsps2pgraph/out/pgraph.tsv
-./triDFS.py
 """
