@@ -1,6 +1,7 @@
 """Segment alignments by alignment score and write subsequences to dataframe."""
 
 import gzip
+import os
 import pandas as pd
 from Bio import AlignIO
 from Bio.SubsMat import MatrixInfo
@@ -54,8 +55,11 @@ with open(path) as file:
                                  'bound': bound, 'conserved': conserved, 'seq': seq_raw})
                     seg_num += 1
 
+if not os.path.exists('out/'):
+    os.mkdir('out/')
+
 df = pd.DataFrame(segs)
-df.to_csv('segment_aliscore.tsv', sep='\t', index=False)
+df.to_csv('out/segment_aliscore.tsv', sep='\t', index=False)
 
 """
 DEPENDENCIES

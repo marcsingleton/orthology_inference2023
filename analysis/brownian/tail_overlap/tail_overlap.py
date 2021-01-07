@@ -6,11 +6,11 @@ import pandas as pd
 from numpy import linspace
 
 # Make output directory
-if not os.path.exists('out'):
-    os.mkdir('out')
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # Read data and filter
-pics = pd.read_csv('../pic_calc/pics.tsv', sep='\t', index_col=list(range(3)))
+pics = pd.read_csv('../pic_calc/out/pics.tsv', sep='\t', index_col=list(range(3)))
 for lt in [2 ** x for x in range(6)]:
     pics_lt = pics[(pics.index.get_level_values('min_length') >= lt) & (~pics.index.get_level_values('ordered').array.astype(bool))]
 
@@ -70,5 +70,5 @@ A cutoff of 0.0002 balances removing the extremes without inflating to block rem
 
 DEPENDENCIES
 ../pic_calc/pic_calc.py
-    ../pic_calc/pics.tsv
+    ../pic_calc/out/pics.tsv
 """

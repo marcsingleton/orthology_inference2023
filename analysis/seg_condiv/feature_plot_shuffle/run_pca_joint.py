@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/pca_joint.py ../feature_calc_shuffle/ 1 conserved Conserved Diverged', shell=True)
+run('python ../../../src/seg_scripts/plot/pca_joint.py ../feature_calc_shuffle/out/ 1 conserved Conserved Diverged', shell=True)
 
 """
 NOTES
@@ -35,7 +35,7 @@ In conclusion, the presence of prolines or charged residues appears non-random, 
     Previous studies have suggested that charge (either its presence or its patterning) is a conserved feature of IDRs
 
 DEPENDENCIES
-../../../src/feature_plot_scripts/pca_joint.py
+../../../src/seg_scripts/plot/pca_joint.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
-    ../feature_calc_shuffle/features_*.tsv
+    ../feature_calc_shuffle/out/features_*.tsv
 """

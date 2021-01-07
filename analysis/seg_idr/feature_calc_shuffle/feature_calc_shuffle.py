@@ -1,18 +1,21 @@
 """Calculate features of set of shuffled sequences."""
 
 import multiprocessing as mp
+import os
 import pandas as pd
-import seqfeat
-from os import environ, listdir
-from sys import argv
+import src.seg_scripts.seqfeat as seqfeat
 
 # Input variables
-segment_dir = argv[1]  # Directory of segmented sequences must end in /
-type_name = argv[2]  # Name of column denoting segment type
-num_processes = int(environ['SLURM_NTASKS'])
+segment_dir = '../segment_shuffle/out/'  # Directory of segmented sequences must end in /
+type_name = 'ordered'  # Name of column denoting segment type
+num_processes = int(os.environ['SLURM_NTASKS'])
+
+# Make output directory
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 if __name__ == '__main__':  # Multiprocessing can only occur in top-level script (likely to prevent recursion)
-    paths = filter(lambda x: x.endswith('.tsv'), listdir(segment_dir))
+    paths = filter(lambda x: x.endswith('.tsv'), os.listdir(segment_dir))
     for path in paths:
         # Load data and subset
         segs = pd.read_csv(segment_dir + path, sep='\t', keep_default_na=False)
@@ -32,4 +35,11 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
         # Merge subsets and save
         features = pd.concat([T_features, F_features])
         features.set_index(segs[type_name], inplace=True)
-        features.to_csv(f'features_{i}.tsv', sep='\t')
+        features.to_csv(f'out/features_{i}.tsv', sep='\t')
+
+"""
+DEPENDENCIES
+../../../src/seg_scripts/seqfeat.py
+../segment_shuffle/segment_shuffle.py
+    ../segment_shuffle/out/shuffseq_*.tsv
+"""

@@ -1,9 +1,9 @@
 """Calculate and plot amino acid compositions."""
 
 import matplotlib.pyplot as plt
+import os
 import pandas as pd
 from numpy import arange
-from sys import argv
 
 
 def counts(seq):
@@ -11,10 +11,10 @@ def counts(seq):
 
 
 # Input variables
-path = argv[1]  # Path to segmented sequences .tsv
-type_name = argv[2]  # Name of column denoting segment type
-T_name = argv[3]  # Name of True type in sentence case
-F_name = argv[4]  # Name of False type in sentence case
+path = '../segment_iupred2a/out/segment_iupred2a.tsv'  # Path to segmented sequences .tsv
+type_name = 'ordered'  # Name of column denoting segment type
+T_name = 'Ordered'  # Name of True type in sentence case
+F_name = 'Disordered'  # Name of False type in sentence case
 
 # Constants
 bar_width = 0.35
@@ -35,6 +35,10 @@ F_sum = F_counts.agg('sum')
 T_fracs = T_counts / T_sum
 F_fracs = F_counts / F_sum
 
+# Make output directory
+if not os.path.exists('out/'):
+    os.mkdir('out/')
+
 # Plot as double bar graph
 plt.figure(figsize=(8, 4))
 plt.subplots_adjust(right=0.8)
@@ -46,10 +50,22 @@ plt.ylabel('Fraction')
 plt.xticks(index + bar_width, T_fracs.index)
 plt.title(f'Amino Acid Fractions in {T_name} and {F_name} Subsets')
 plt.legend(bbox_to_anchor=(1.025, 0.5), loc='center left')
-plt.savefig('aa_fraction.png')
+plt.savefig('out/aa_fraction.png')
 
 # Print output metrics
 print(f'Number of {T_name.lower()} subsequences:', len(T_segs))
 print(f'Number of {F_name.lower()} subsequences:', len(F_segs))
 print(f'Number of {T_name.lower()} amino acids:', T_sum)
 print(f'Number of {F_name.lower()} amino acids:', F_sum)
+
+"""
+OUTPUT
+Number of ordered subsequences: 222324
+Number of disordered subsequences: 200185
+Number of ordered amino acids: 20401660
+Number of disordered amino acids: 7683150
+
+DEPENDENCIES
+../segment_iupred2a/segment_iupred2a.py
+    ../segment_iupred2a/out/segment_iupred2a.tsv
+"""

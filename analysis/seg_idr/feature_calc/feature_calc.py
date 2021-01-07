@@ -1,4 +1,4 @@
-"""Calculate features for all non-empty sequences."""
+"""Calculate features for all non-empty sequences"""
 
 import multiprocessing as mp
 import os
@@ -6,8 +6,8 @@ import pandas as pd
 import src.seg_scripts.seqfeat as seqfeat
 
 # Input variables
-path = '../segment_avg/out/segment_avg.tsv'  # Path to segmented sequences
-type_name = 'ordered'  # Name of column denoting block class
+path = '../segment_iupred2a/out/segment_iupred2a.tsv'  # Path to segmented sequences
+type_name = 'ordered'  # Name of column denoting segment type
 num_processes = int(os.environ['SLURM_NTASKS'])
 
 if __name__ == '__main__':  # Multiprocessing can only occur in top-level script (likely to prevent recursion)
@@ -17,26 +17,25 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
     segs_lt = segs[segs['seq'].map(lambda x: len(x) >= 1)]  # Select entries where sequence is non-empty
 
     # Extract indices
-    block_ids = segs_lt['block_id']
-    species = segs_lt['seq_id'].map(lambda x: x[0:4]).rename('species_id')
     seg_ids = segs_lt['seg_id']
     types = segs_lt[type_name]
     lengths = segs_lt['seq'].map(len).rename('length')
 
     # Compute features
     with mp.Pool(processes=num_processes) as pool:
-        results = pd.DataFrame(pool.imap(seqfeat.feat_all, segs_lt['seq'], chunksize=50))
+        features = pd.DataFrame(pool.imap(seqfeat.feat_all, segs_lt['seq'], chunksize=50))
 
     # Make output directory
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
-    # Merge subsets and save
-    results.set_index([block_ids, species, seg_ids, types, lengths], inplace=True)
-    results.to_csv('out/features.tsv', sep='\t')
+    # Set index and save
+    features.set_index([seg_ids, types, lengths], inplace=True)
+    features.to_csv('out/features.tsv', sep='\t')
 
 """
 DEPENDENCIES
-../segment_avg/segment_avg.py
-    ../segment_avg/out/segment_avg.tsv
+../../../src/seg_scripts/seqfeat.py
+../segment_iupred2a/segment_iupred2a.py
+    ../segment_iupred2a/out/segment_iupred2a.tsv
 """

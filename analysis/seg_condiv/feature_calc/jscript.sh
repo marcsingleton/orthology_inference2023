@@ -11,11 +11,12 @@
 #SBATCH --cpus-per-task=1
 #
 # Reporting parameters
-#SBATCH --job-name=run_feature_calc
-#SBATCH --output=run_feature_calc.out
+#SBATCH --job-name=feature_calc
+#SBATCH --output=feature_calc.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
-module load python
-python run_feature_calc.py
+source /global/home/users/singleton/.bashrc
+conda activate IDREvoDevo
+python feature_calc.py

@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/pca_separate.py ../feature_calc_shuffle/ 1 ordered Ordered Disordered', shell=True)
+run('python ../../../src/seg_scripts/plot/pca_separate.py ../feature_calc_shuffle/out/ 1 ordered Ordered Disordered', shell=True)
 
 """
 NOTES
@@ -28,7 +28,7 @@ ZNORM
     At high cutoffs, the shuffled projections are more uniform and Gaussian whereas the observed projections are angular and compressed.
 
 DEPENDENCIES
-../../../src/feature_plot_scripts/pca_separate.py
+../../../src/seg_scripts/plot/pca_separate.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
-    ../feature_calc_shuffle/features_*.tsv
+    ../feature_calc_shuffle/out/features_*.tsv
 """

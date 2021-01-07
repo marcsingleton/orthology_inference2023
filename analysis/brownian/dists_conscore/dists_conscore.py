@@ -15,10 +15,10 @@ def to_dict(path, dtype):
 
 
 # Input variables
-path_blosum_score = '../meta_conscore/scores_blosum.tsv'
-path_match_score = '../meta_conscore/scores_match.tsv'
-path_block_len = '../meta_block_len/block_len.tsv'
-path_ordered = '../meta_ordered/ordered.tsv'
+path_blosum_score = '../meta_conscore/out/scores_blosum.tsv'
+path_match_score = '../meta_conscore/out/scores_match.tsv'
+path_block_len = '../meta_block_len/out/block_len.tsv'
+path_ordered = '../meta_ordered/out/ordered.tsv'
 
 # Load dictionaries
 scores_blosum = to_dict(path_blosum_score, float)
@@ -62,10 +62,10 @@ for lt in [2 ** x for x in range(6)]:
 """
 DEPENDENCIES
 ../meta_block_len/meta_block_len.py
-    ../meta_block_len/block_len.tsv
+    ../meta_block_len/out/block_len.tsv
 ../meta_conscore/meta_conscore.py
-    ../meta_conscore/scores_blosum.tsv
-    ../meta_conscore/scores_match.tsv
+    ../meta_conscore/out/scores_blosum.tsv
+    ../meta_conscore/out/scores_match.tsv
 ../meta_ordered/meta_ordered.py
-    ../meta_ordered/ordered.tsv
+    ../meta_ordered/out/ordered.tsv
 """

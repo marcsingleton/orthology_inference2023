@@ -6,7 +6,7 @@ import pandas as pd
 from numpy import log
 
 # Input variables
-path = '../pic_calc/pics.tsv'
+path = '../pic_calc/out/pics.tsv'
 lt = 32
 
 # Read data and filter
@@ -16,8 +16,8 @@ pics_lt = pics[(pics.index.get_level_values('min_length') >= lt) &
 rates = (pics_lt ** 2).groupby('block_id').mean()
 
 # Make output directory
-if not os.path.exists('out'):
-    os.mkdir('out')
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 for feature in pics_lt:
     data = rates.loc[rates[feature] != 0, feature].sort_values()
@@ -41,5 +41,5 @@ for feature in pics_lt:
 """
 DEPENDENCIES
 ../pic_calc/pic_calc.py
-    ../pic_calc/pics.tsv
+    ../pic_calc/out/pics.tsv
 """

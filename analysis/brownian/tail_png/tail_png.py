@@ -7,8 +7,8 @@ import pandas as pd
 from math import ceil
 
 # Input variables
-path_pics = '../pic_calc/pics.tsv'
-path_segs = '../segment_avg/segment_avg.tsv'
+path_pics = '../pic_calc/out/pics.tsv'
+path_segs = '../segment_avg/out/segment_avg.tsv'
 lt = 32  # Length threshold
 idx = 25  # Number of contrasts at each tail
 
@@ -71,7 +71,7 @@ for feature in pics:
 """
 DEPENDENCIES
 ../pic_calc/pic_calc.py
-    ../pic_calc/pics.tsv
+    ../pic_calc/out/pics.tsv
 ../segment_avg/segment_avg.py
-    ../segment_avg/segment_avg.tsv
+    ../segment_avg/out/segment_avg.tsv
 """

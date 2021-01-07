@@ -58,7 +58,7 @@ def make_plots(pics_lt, dirpath, filename):
 
 
 # Input variables
-path = '../pic_calc/pics.tsv'
+path = '../pic_calc/out/pics.tsv'
 num_processes = int(os.environ['SLURM_NTASKS'])
 lt = 32
 dists_dict = {'laplace': stats.laplace,
@@ -82,7 +82,7 @@ features necessarily resulted in the scale of one of the components approaching 
 
 DEPENDENCIES
 ../pic_calc/pic_calc.py
-    ../pic_calc/pics.tsv
+    ../pic_calc/out/pics.tsv
 ./mixture_pic_calc.py
     ./out/*/*.json
 """

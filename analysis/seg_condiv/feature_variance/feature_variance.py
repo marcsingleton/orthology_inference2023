@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import re
 from matplotlib import cm
-from sys import argv
 
 
 def merge(s_in, thresh):
@@ -19,11 +18,11 @@ def merge(s_in, thresh):
 
 
 # Input variables
-feature_dir = argv[1]  # Feature directory must end in /
-num_idx = int(argv[2])  # Number of index columns
-type_name = argv[3]  # Name of column denoting segment type
-T_name = argv[4]  # Name of True type in sentence case
-F_name = argv[5]  # Name of False type in sentence case
+feature_dir = '../sample_feats/out/'  # Feature directory must end in /
+num_idx = 3  # Number of index columns
+type_name = 'conserved'  # Name of column denoting segment type
+T_name = 'Conserved'  # Name of True type in sentence case
+F_name = 'Diverged'  # Name of False type in sentence case
 
 paths = filter(lambda x: re.match('features_[0-9]+\.tsv', x), os.listdir(feature_dir))
 for path in paths:
@@ -64,3 +63,13 @@ for path in paths:
         # Save vars and vars_frac to tsv
         variances = pd.DataFrame({'var': vars, 'var_frac': vars / sum(vars)}).sort_values(by='var', ascending=False)
         variances.to_csv(cur_dir + f'var_{i}.tsv', sep='\t')
+
+"""
+NOTES
+As the cutoff increases, net_charge, net_charge_P, and SCD increase as a proportion of overall variance
+    Unlike other features which are intrinsically length normalized or restricted to a certain range, these features can scale arbitrarily with length.
+
+DEPENDENCIES
+../sample_feats/sample_feats.py
+    ../sample_feats/out/features_*.tsv
+"""

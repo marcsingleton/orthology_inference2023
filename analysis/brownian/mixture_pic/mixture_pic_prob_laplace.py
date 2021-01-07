@@ -10,7 +10,7 @@ import matplotlib.cm as cm
 from pymix.mixture import MixtureModel
 
 # Input variables
-path = '../pic_calc/pics.tsv'
+path = '../pic_calc/out/pics.tsv'
 lt = 32
 dists_dict = {'laplace': stats.laplace}
 height = 250
@@ -62,7 +62,7 @@ for feature in os.listdir('out'):
 """
 DEPENDENCIES
 ../pic_calc/pic_calc.py
-    ../pic_calc/pics.tsv
+    ../pic_calc/out/pics.tsv
 ./mixture_pic_calc.py
     ./out/*/*.json
 """

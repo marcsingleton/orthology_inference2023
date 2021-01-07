@@ -68,7 +68,7 @@ def fit_model(pics_lt, feature, model):
 
 
 # Input variables
-path = '../pic_calc/pics.tsv'
+path = '../pic_calc/out/pics.tsv'
 num_processes = int(os.environ['SLURM_NTASKS'])
 num_init = 10  # Number of initializations for each model
 num_std = 20  # Number of standard deviations above mean for max of the random initials
@@ -93,5 +93,5 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
 """
 DEPENDENCIES
 ../pic_calc/pic_calc.py
-    ../pic_calc/pics.tsv
+    ../pic_calc/out/pics.tsv
 """

@@ -1,6 +1,7 @@
 """Segment alignments by IUPRED2a and combine by union."""
 
 import gzip
+import os
 import numpy as np
 import pandas as pd
 import subprocess
@@ -69,7 +70,7 @@ with open(path) as file:
 
                 # Fill IUPRED array with bools reflecting scores
                 for coord_gap, coord_ungap in coords:
-                    if coord_ungap is ():
+                    if coord_ungap == ():
                         MSA_iupred[idx, coord_gap[0]:coord_gap[1]] = -1
                     else:
                         MSA_iupred[idx, coord_gap[0]:coord_gap[1]] = scores[coord_ungap[0]:coord_ungap[1]]
@@ -96,8 +97,11 @@ with open(path) as file:
                     seg_num += 1
                 block_num += 1
 
+if not os.path.exists('out/'):
+    os.mkdir('out/')
+
 df = pd.DataFrame(block_data)
-df.to_csv('segment_union.tsv', sep='\t', index=False)
+df.to_csv('out/segment_union.tsv', sep='\t', index=False)
 
 """
 DEPENDENCIES

@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 
-path = '../pic_calc/pics.tsv'
+path = '../pic_calc/out/pics.tsv'
 lt = 32
-params = {'s': 2.5, 'color': 'black', 'edgecolors': 'none', 'alpha': '0.25'}
+params = {'s': 2.5, 'color': 'black', 'edgecolors': 'none', 'alpha': 0.25}
 
 pics = pd.read_csv(path, sep='\t', index_col=list(range(3)))
 pics_lt = pics[(pics.index.get_level_values('min_length') >= lt) &
@@ -51,5 +51,5 @@ for feature in pics_lt:
 """
 DEPENDENCIES
 ../pic_calc/pic_calc.py
-    ../pic_calc/pics.tsv
+    ../pic_calc/out/pics.tsv
 """

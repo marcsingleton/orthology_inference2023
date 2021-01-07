@@ -2,7 +2,6 @@
 
 import json
 import matplotlib.pyplot as plt
-import re
 import os
 import pandas as pd
 import scipy.stats as stats
@@ -23,7 +22,7 @@ height = 250
 rates = pd.read_csv(path, sep='\t', index_col=0).dropna()
 
 for feature in os.listdir('out'):
-    model_paths = model_paths = [x for x in os.listdir('out/' + feature) if x.endswith('.json')]
+    model_paths = [x for x in os.listdir('out/' + feature) if x.endswith('.json')]
     fig, axs = plt.subplots(len(model_paths), 1, figsize=(6, 6))
     fig.subplots_adjust(top=0.875, bottom=0.075)
     fig.suptitle(f'{feature}:\nPosterior Probabilities of Mixture Model Components', y=0.95, size=10)

@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/tsne_separate.py ../sample_feats/ 3 conserved Conserved Diverged', shell=True)
+run('python ../../../src/seg_scripts/plot/tsne_separate.py ../sample_feats/out/ 3 conserved Conserved Diverged', shell=True)
 
 """
 NOTES
@@ -31,7 +31,7 @@ ZNORM
         Additionally, the diverged projections are less punctate and more diffuse, similar to the conserved projections.            
 
 DEPENDENCIES
-../../../src/feature_plot_scripts/tsne_separate.py
+../../../src/seg_scripts/plot/tsne_separate.py
 ../sample_feats/run_sample_feats.py
-    ../sample_feats/features_*.tsv
+    ../sample_feats/out/features_*.tsv
 """

@@ -93,5 +93,5 @@ DEPENDENCIES
 ../mixture_filter/mixture_filter.py
     ../mixture_filter/out/rates_filter.tsv
 ../pic_calc/pic_calc.py
-    ../pic_calc/pics.tsv
+    ../pic_calc/out/pics.tsv
 """
