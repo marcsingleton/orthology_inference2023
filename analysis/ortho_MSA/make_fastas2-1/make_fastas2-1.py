@@ -1,4 +1,4 @@
-"""Make FASTAs of remaining OGs using pairwise reduction strategy."""
+"""Make FASTAs of remaining OGs using pairwise comparisons."""
 
 import os
 import re
@@ -34,7 +34,7 @@ for spid0, source, prot_path in params:
             ppid2seq[ppid] = seq
 
 OGs_meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv')
-rclusters = pd.read_table('../reduce_gclusters/out/rclusters.tsv').groupby('OGid')
+rclusters = pd.read_table('../reduce_pairwise/out/rclusters.tsv').groupby('OGid')
 
 # Write sequences
 gn26 = OGs_meta['gnidnum'] == 26
@@ -59,7 +59,7 @@ DEPENDENCIES
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../OGid2meta/OGid2meta.py
     ../OGid2meta/out/OGid2meta.tsv
-../reduce_gclusters/reduce_gclusters.py
-    ../reduce_gclusters/out/rclusters.tsv
+../reduce_pairwise/reduce_pairwise.py
+    ../reduce_pairwise/out/rclusters.tsv
 ./params.tsv
 """

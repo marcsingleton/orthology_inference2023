@@ -1,4 +1,4 @@
-"""Reduce gene clusters to representative polypeptides."""
+"""Reduce gene clusters to representative polypeptides using pairwise comparisons."""
 
 import os
 import re
