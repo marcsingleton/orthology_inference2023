@@ -1,16 +1,114 @@
 """Drawing functions for specialized data."""
 
+from math import ceil
+
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.collections import LineCollection
 from matplotlib import rcParams
 
 
+def draw_alignment(MSA, file, ratio=2.5,
+                   spacing=25, sym_length=7, sym_height=7,
+                   cols_im=None, aa2color=None):
+    """Draw alignment as PNG.
+
+    Parameters
+    ----------
+    MSA: list of strings
+    file: string
+        Pathname of the file for the image to be saved as.
+    ratio: float
+        Aspect ratio (length:height) of image. The function will calculate the
+        number of columns in each block that yields an image that best matches
+        this aspect ratio.
+    spacing: int
+        Number of pixels between blocks.
+    sym_length: int
+        Number of pixels in length of symbol rectangle.
+    sym_height: int
+        Number of pixels in height of symbol rectangle.
+    cols_im: int
+        Number of columns in each block. Will override ratio if is not None.
+    aa2color: dict
+        Mapping of symbols to color hex codes.
+    """
+    # Define functions and globals
+    ROWS, COLS = len(MSA), len(MSA[0][1])
+
+    def get_dims(cols_im):
+        length_im = sym_length * cols_im  # Length of final image
+        blocks_im = COLS // cols_im - (1 if COLS % cols_im == 0 else 0)  # Number of blocks in addition to the first
+        height_im = (sym_height * ROWS + spacing) * blocks_im + sym_height * ROWS  # Height of final image
+        return length_im, height_im
+
+    def get_aspect(cols_im):
+        length_im, height_im = get_dims(cols_im)
+        return length_im / height_im
+
+    def get_cols_im():
+        # Use binary search to find interval containing optimal cols_im
+        interval = (1, COLS)
+        while interval[1] - interval[0] > 1:
+            i1 = (interval[0], (interval[0] + interval[1]) // 2)
+            i2 = ((interval[0] + interval[1]) // 2, interval[1])
+            if (get_aspect(i1[0]) - ratio) * (get_aspect(i1[1]) - ratio) < 0:
+                interval = i1
+            elif (get_aspect(i2[0]) - ratio) * (get_aspect(i2[1]) - ratio) < 0:
+                interval = i2
+            else:
+                break
+        cols_im = min(interval, key=lambda x: abs(get_aspect(x) - ratio))  # Choose value that minimizes difference
+
+        # Ensure last block is at least 50% of cols_im
+        if COLS % cols_im < 0.5 * cols_im:  # Guarantees at least two blocks
+            blocks_im = COLS // cols_im  # Total blocks minus 1
+            cols_im += ceil((COLS % cols_im) / blocks_im)  # Distribute excess to other blocks
+        return cols_im
+
+    # Set options
+    if cols_im is None:
+        cols_im = get_cols_im()
+    if aa2color is None:
+        aa2color = {'A': '6dd7a1', 'I': '55c08c', 'L': '55c08c', 'V': '55c08c', 'M': '55c08c',
+                    'F': 'b897ec', 'Y': 'b897ec', 'W': 'a180d2',
+                    'S': 'ffbe74', 'T': 'ffbe74',
+                    'N': '77eaf4', 'Q': '77eaf4',
+                    'D': 'ee8485', 'E': 'ee8485',
+                    'H': '96c4ff', 'K': '7fadea', 'R': '7fadea',
+                    'C': 'faed70', 'G': 'e2dedd', 'P': 'ffb1f1',
+                    'X': '93908f', '-': 'ffffff'}
+
+    # Instantiate array and fill with values
+    length_im, height_im = get_dims(cols_im)
+    im = np.full((height_im, length_im, 3), 255, dtype='uint8')
+    for i, record in enumerate(MSA):
+        for j, sym in enumerate(record[1]):
+            # Position of symbol rectangle
+            block = j // cols_im
+            y = (sym_height * ROWS + spacing) * block + sym_height * i
+            x = j % cols_im * sym_length
+
+            # Create color tuple
+            hex = aa2color[sym]
+            color = [int(hex[i:i+2], 16) for i in (0, 2, 4)]
+
+            # Fill slice with color
+            im[slice(y, y + sym_height), slice(x, x + sym_length), :] = color
+            if sym == '-':
+                color = [int('3f3f3f'[i:i+2], 16) for i in (0, 2, 4)]
+                y1, y2 = y + ceil((sym_height - 2) / 2), y + ceil((sym_height + 1) / 2)
+                x1, x2 = x + ceil((sym_length - 2) / 2), x + ceil((sym_length + 1) / 2)
+                im[slice(y1, y2), slice(x1, x2), :] = color
+    plt.imsave(file, im)
+
+
 def draw_tree(tree, tip_labels=True, support_labels=False,
-         color=None, linewidth=None,
-         tip_fontsize=None, tip_fontcolor=None, tip_offset=0,
-         support_fontsize=None, support_fontcolor=None,
-         support_ha='center', support_va='top',
-         support_hoffset=0, support_voffset=0):
+              color=None, linewidth=None,
+              tip_fontsize=None, tip_fontcolor=None, tip_offset=0,
+              support_fontsize=None, support_fontcolor=None,
+              support_ha='center', support_va='top',
+              support_hoffset=0, support_voffset=0):
     """Draw tree using matplotlib.
 
     Parameters
@@ -37,6 +135,11 @@ def draw_tree(tree, tip_labels=True, support_labels=False,
             The vertical offset of the support label relative to its alignment.
         support_hoffset: float
             The horizontal offset of the support label relative to its alignment.
+
+    Returns
+    -------
+        fig: Figure (matplotlib)
+        ax: Axes (matplotlib)
     """
     # Set options
     if color is None:
