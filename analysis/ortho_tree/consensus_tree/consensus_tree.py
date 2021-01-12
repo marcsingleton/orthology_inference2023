@@ -2,90 +2,90 @@
 
 import os
 
-import Bio.Phylo as Phylo
 import matplotlib.pyplot as plt
+import skbio
+from src.draw import draw_tree
 
 
 def majority_consensus(trees, cutoff=0.5):
-    # Count clades
+    # Count nodes
     counts = {}
     for tree in trees:
-        for clade in tree.find_clades(terminal=False):
-            terminal_set = frozenset([terminal.name for terminal in clade.get_terminals()])
-            counts[terminal_set] = counts.get(terminal_set, 0) + 1
+        for node in tree.traverse():
+            if not node.is_tip():
+                tip_set = frozenset([tip.name for tip in node.tips()])
+                counts[tip_set] = counts.get(tip_set, 0) + 1
 
-    # Make count list and clade dictionary
-    # This uses the top-level clade that includes all taxon labels and is equivalent to initiating the algorithm with a
+    # Make count list and node dictionary
+    # This uses the top-level node that includes all taxon labels and is equivalent to initiating the algorithm with a
     # single node containing said labels
     counts = sorted(counts.items(), key=lambda x: (x[1], len(x[0])), reverse=True)
-    consensus_clades = {frozenset([name]): Phylo.BaseTree.Clade(name=name) for name in counts[0][0]}
+    consensus_nodes = {frozenset([name]): skbio.TreeNode(name=name) for name in counts[0][0]}
 
     # Make root
-    root = Phylo.BaseTree.Clade()
-    root.clades = list(consensus_clades.values())
-    consensus_clades[frozenset([clade.name for clade in root.clades])] = root
+    root = skbio.TreeNode(children=list(consensus_nodes.values()))
+    consensus_nodes[frozenset([node.name for node in root.children])] = root
 
-    # Add clades
-    for terminal_set1, count in counts[1:]:
+    # Add nodes
+    for tip_set1, count in counts[1:]:
         if count / len(trees) < cutoff:
             break
 
         # Find parent
-        for terminal_set2 in sorted(consensus_clades, key=lambda x: len(x), reverse=True):
-            compatible = (terminal_set1 <= terminal_set2 or
-                          terminal_set2 <= terminal_set1 or
-                          not (terminal_set1 & terminal_set2))
+        for tip_set2 in sorted(consensus_nodes, key=lambda x: len(x), reverse=True):
+            compatible = (tip_set1 <= tip_set2 or
+                          tip_set2 <= tip_set1 or
+                          not (tip_set1 & tip_set2))
             if not compatible:
                 break
-            if terminal_set2 >= terminal_set1:
-                parent_set = terminal_set2  # Smallest superset since sorted by size
+            if tip_set2 >= tip_set1:
+                parent_set = tip_set2  # Smallest superset since sorted by size
         if not compatible:
             continue
-        parent_clade = consensus_clades[parent_set]
+        parent_node = consensus_nodes[parent_set]
 
-        # Construct current clade
-        child_clades = []
-        for clade in parent_clade.clades:
-            for terminal in clade.get_terminals():
-                if terminal.name in terminal_set1:
-                    child_clades.append(clade)
+        # Construct current node
+        children = []
+        for node in parent_node.children:
+            for tip in node.tips(include_self=True):
+                if tip.name in tip_set1:
+                    children.append(node)
                     break
-        clade = Phylo.BaseTree.Clade(clades=child_clades, confidence=count/len(trees))
-        consensus_clades[terminal_set1] = clade
-
-        # Remove clades from parent
-        parent_clade.clades.append(clade)  # Add current clade
-        parent_clade.clades = [clade for clade in parent_clade.clades if clade not in child_clades]
+        node = skbio.TreeNode(children=children, support=count/len(trees))  # Instantiation automatically updates parents
+        consensus_nodes[tip_set1] = node
+        parent_node.append(node)
 
     # Get branch lengths
     bl_sums = {}
     for tree in trees:
-        for clade in tree.find_clades(terminal=False):
-            terminal_set = frozenset([terminal.name for terminal in clade.get_terminals()])
+        for node in tree.traverse():
+            if node.is_tip():
+                continue
+            tip_set = frozenset([tip.name for tip in node.tips()])
 
             # Add clade
-            if terminal_set in consensus_clades:
-                count, bl_sum = bl_sums.get(terminal_set, (0, 0))
-                count, bl_sum = count + 1, bl_sum + clade.branch_length if clade.branch_length else None
-                bl_sums[terminal_set] = (count, bl_sum)
+            if tip_set in consensus_nodes:
+                count, bl_sum = bl_sums.get(tip_set, (0, 0))
+                count, bl_sum = count + 1, bl_sum + node.length if node.length else None
+                bl_sums[tip_set] = (count, bl_sum)
 
                 # Add terminal children of clade
-                for child_clade in filter(lambda x: not x.is_terminal(), clade.clades):
-                    if not frozenset([terminal.name for terminal in child_clade.get_terminals()]) in consensus_clades:
+                for child_node in filter(lambda x: not x.is_tip(), node.children):
+                    if not frozenset([tip.name for tip in child_node.tips()]) in consensus_nodes:
                         break
                 else:
-                    for child_terminal in filter(lambda x: x.is_terminal(), clade.clades):
-                        terminal_set = frozenset([child_terminal.name])
-                        count, bl_sum = bl_sums.get(terminal_set, (0, 0))
-                        count, bl_sum = count + 1, bl_sum + child_terminal.branch_length if child_terminal.branch_length else None
-                        bl_sums[terminal_set] = (count, bl_sum)
+                    for child_tip in filter(lambda x: x.is_tip(), node.children):
+                        tip_set = frozenset([child_tip.name])
+                        count, bl_sum = bl_sums.get(tip_set, (0, 0))
+                        count, bl_sum = count + 1, bl_sum + child_tip.length if child_tip.length else None
+                        bl_sums[tip_set] = (count, bl_sum)
 
     # Set branch lengths
-    for terminal_set, (count, bl_sum) in bl_sums.items():
-        clade = consensus_clades[terminal_set]
-        clade.branch_length = bl_sum / count if bl_sum else None
+    for tip_set, (count, bl_sum) in bl_sums.items():
+        node = consensus_nodes[tip_set]
+        node.length = bl_sum / count if bl_sum else None
 
-    return Phylo.BaseTree.Tree(root=root)
+    return root
 
 
 if not os.path.exists('out/'):
@@ -94,34 +94,33 @@ if not os.path.exists('out/'):
 for label in os.listdir('../phyml_GTR/out/'):
     trees = []
     for file in filter(lambda x: x.endswith('.phy_phyml_tree.txt'), os.listdir(f'../phyml_GTR/out/{label}/')):
-        tree = Phylo.read(f'../phyml_GTR/out/{label}/{file}', 'newick')
-        for clade in tree.find_clades():
-            clade.confidence = None
-        path = tree.get_path('sleb')
-        if len(path) == 1:
-            outgroup = tree.clade
-        else:
-            outgroup = path[-2]
-        tree.root_with_outgroup(outgroup)
+        tree = skbio.read(f'../phyml_GTR/out/{label}/{file}', 'newick', skbio.TreeNode)
+        outgroup = tree.find('sleb').ancestors()[0]
+        tree = tree.root_at(outgroup)
         trees.append(tree)
     ctree = majority_consensus(trees)
-    ctree.ladderize()
-    Phylo.write(ctree, f'out/{label}.txt', 'newick')
+    for node in ctree.traverse():
+        node.children = sorted(node.children, key=lambda x: len(list(x.tips())))
+    skbio.write(ctree, 'newick', f'out/{label}.txt')
 
     # Save image as PNG
-    Phylo.draw(ctree, show_confidence=False, do_show=False)
-    plt.gca().yaxis.set_visible(False)
-    plt.gca().spines['left'].set_visible(False)
-    plt.xlabel('')
+    fig, ax = draw_tree(ctree)
+    ax.yaxis.set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.set_xlabel('')
     plt.savefig(f'out/{label}.png')
     plt.close()
 
-    # Save image as SVG (with confidences)
-    Phylo.draw(ctree, do_show=False)
-    plt.gca().yaxis.set_visible(False)
-    plt.gca().spines['left'].set_visible(False)
-    plt.xlabel('')
-    plt.savefig(f'out/{label}.svg')
+    # Save image as with supports
+    for node in ctree.traverse():
+        if node.support == 1:
+            node.support = None
+    fig, ax = draw_tree(ctree, support_labels=True, support_fontsize=8.5,
+                        support_ha='right', support_hoffset=-0.005, support_voffset=0.25)
+    ax.yaxis.set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.set_xlabel('')
+    plt.savefig(f'out/{label}_supports.png')
     plt.close()
 
 """
@@ -148,6 +147,7 @@ From here we move the labels in the parent associated with the blue MST to the n
 execution is slightly involved since we first have to copy over the labels and then delete them.
 
 DEPENDENCIES
+../../../src/draw.py
 ../phyml_GTR/phyml_GTR.py
     ../phyml_GTR/out/*/meta_*.phy_phyml_tree.txt
 """
