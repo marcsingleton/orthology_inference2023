@@ -4,10 +4,10 @@ import os
 import re
 from math import ceil
 
-import Bio.Phylo as Phylo
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import skbio
 
 
 def draw_alignment(path, MSA):
@@ -96,8 +96,8 @@ def load_alignment(path):
     return MSA
 
 
-tree = Phylo.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick')
-tree.prune('sleb')
+tree = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree = tree.shear([tip.name for tip in tree.tips() if tip.name != 'sleb'])
 
 OGid2meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv').drop(['CCid', 'edgenum'], axis=1)
 df = pd.read_table('out/row_sums.tsv').merge(OGid2meta, on='OGid', how='left')
@@ -168,7 +168,7 @@ for i, row in enumerate((head1.itertuples())):
     else:
         MSA = load_alignment(f'../align_fastas2-2/out/{row.OGid}.mfa')
 
-    order = {terminal.name: i for i, terminal in enumerate(tree.get_terminals())}
+    order = {tip.name: i for i, tip in enumerate(tree.tips())}
     MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
     draw_alignment(f'out/sum/{i}_{row.OGid}.png', MSA)
 
@@ -183,7 +183,7 @@ for i, row in enumerate((head1.itertuples())):
     else:
         MSA = load_alignment(f'../align_fastas2-2/out/{row.OGid}.mfa')
 
-    order = {terminal.name: i for i, terminal in enumerate(tree.get_terminals())}
+    order = {tip.name: i for i, tip in enumerate(tree.tips())}
     MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
     draw_alignment(f'out/avg/{i}_{row.OGid}.png', MSA)
 

@@ -4,10 +4,10 @@ import os
 import re
 from math import ceil
 
-import Bio.Phylo as Phylo
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import skbio
 
 
 def draw_alignment(OGid, MSA):
@@ -107,8 +107,8 @@ OGs = pd.DataFrame(rows)
 
 test_genes = pd.read_table('test_genes.tsv')
 OGid2meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv').drop(['CCid', 'edgenum'], axis=1)
-tree = Phylo.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick')
-tree.prune('sleb')
+tree = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree = tree.shear([tip.name for tip in tree.tips() if tip.name != 'sleb'])
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -124,7 +124,7 @@ for row in df.dropna().itertuples():
     else:
         MSA = load_alignment(f'../align_fastas2-1/out/{OGid}.mfa')
 
-    order = {terminal.name: i for i, terminal in enumerate(tree.get_terminals())}
+    order = {tip.name: i for i, tip in enumerate(tree.tips())}
     MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
     draw_alignment(OGid, MSA)
 

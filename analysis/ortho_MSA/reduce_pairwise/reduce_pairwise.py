@@ -2,34 +2,33 @@
 
 import os
 import re
-from copy import deepcopy
 from itertools import chain, product, combinations
 
-import Bio.Phylo as Phylo
+import skbio
 
 
 def reduce_node(node):
     """Return representative ppids for all gnids associated with terminals in node."""
-    is_terminal = [leaf.is_terminal() for leaf in node.clades]
+    is_tip = [child.is_tip() for child in node.children]
 
-    if any(is_terminal):
+    if any(is_tip):
         distances = get_distances(node)
-        terminals = [leaf for leaf in node.clades if leaf.is_terminal()]
-        nonterminals = [ppid for leaf in node.clades for ppid in reduce_node(leaf) if not leaf.is_terminal()]
-        rOG = reduce_terminal(terminals, nonterminals, distances)
+        tips = [child for child in node.children if child.is_tip()]
+        nontips = [ppid for child in node.children for ppid in reduce_node(child) if not child.is_tip()]
+        rOG = reduce_terminal(tips, nontips, distances)
     else:
-        rOG = [ppid for leaf in node.clades for ppid in reduce_node(leaf)]
+        rOG = [ppid for child in node.children for ppid in reduce_node(child)]
 
     return rOG
 
 
-def reduce_terminal(terminals, nonterminals, distances):
+def reduce_terminal(tips, nontips, distances):
     """Return list of tuples containing genes at least one terminal node."""
     # Get lists of species ids
-    spids_list = [[terminal.name for _ in terminal.gnids] for terminal in terminals]
+    spids_list = [[tip.name for _ in tip.gnids] for tip in tips]
 
     # Get lists of genes in OG for each species
-    gnids_list = [terminal.gnids for terminal in terminals]
+    gnids_list = [tip.gnids for tip in tips]
 
     # Get sets of proteins corresponding to list of genes for each species
     ppid_sets_list = [[set([ppid for ppid, _, _, in gnid2seqs[gnid]]) for gnid in gnids] for gnids in gnids_list]
@@ -47,7 +46,7 @@ def reduce_terminal(terminals, nonterminals, distances):
         ppid_pairs1 = [ppid_pair for spid_pair in spid_pairs for ppid_pair in product(*spid_pair)]
 
         # Get ppid combinations with nonterminals
-        ppid_pairs2 = product([ppid for z in zs for ppid in z], nonterminals)
+        ppid_pairs2 = product([ppid for z in zs for ppid in z], nontips)
 
         score = 0
         for (spid1, gnid1, ppid1), (spid2, gnid2, ppid2) in chain(ppid_pairs1, ppid_pairs2):
@@ -60,7 +59,7 @@ def reduce_terminal(terminals, nonterminals, distances):
                 score += pgraph[ppid2][ppid1] / weight
             except KeyError:
                 pass
-        scores.append((score, [ppid for z in zs for ppid in z] + nonterminals))
+        scores.append((score, [ppid for z in zs for ppid in z] + nontips))
 
     return max(scores)[1]
 
@@ -68,11 +67,11 @@ def reduce_terminal(terminals, nonterminals, distances):
 def get_distances(node, d0=0):
     """Return distances to terminals from current node."""
     distances = {}
-    for leaf in node.clades:
-        if leaf.is_terminal():
-            distances[leaf.name] = d0 + leaf.branch_length
+    for child in node.children:
+        if child.is_tip():
+            distances[child.name] = d0 + child.length
         else:
-            distances.update(get_distances(leaf, d0 + leaf.branch_length))
+            distances.update(get_distances(child, d0 + child.length))
 
     return distances
 
@@ -148,30 +147,26 @@ with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters
         _, OGid, edges = line.rstrip().split(':')
         OGs[OGid] = set([node for edge in edges.split('\t') for node in edge.split(',')])
 
-tree_template = Phylo.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick')
-tree_template.prune('sleb')
+tree_template = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree_template.shear([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
 
 rOGs = {}
 for OGid, OG in OGs.items():
     # Add genes to leaves of tree
-    tree = deepcopy(tree_template)
-    terminals = {terminal.name: terminal for terminal in tree.get_terminals()}
+    tree = tree_template.deepcopy()
+    tips = {tip.name: tip for tip in tree.tips()}
     remain = set()
     for gnid in OG:
         spid = gnid2spid[gnid]
         remain.add(spid)
         try:
-            terminals[spid].gnids.append(gnid)
+            tips[spid].gnids.append(gnid)
         except AttributeError:
-            terminals[spid].gnids = [gnid]
-
-    # Remove unused terminals
-    remove = set(terminals) - remain
-    for terminal in remove:
-        tree.prune(terminal)
+            tips[spid].gnids = [gnid]
+    tree = tree.shear(remain)
 
     # Reduce OG
-    rOG = reduce_node(tree.root)  # Pass root since tree object has no clades attribute
+    rOG = reduce_node(tree)
     rOGs[OGid] = rOG
 
 # Make output directory

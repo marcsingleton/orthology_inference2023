@@ -2,8 +2,8 @@
 
 import os
 
-import Bio.AlignIO as AlignIO
 import matplotlib.pyplot as plt
+import skbio
 
 
 def grouped_bar(groups, group_width, bar_width, file_label, bar_labels=None, bar_colors=None):
@@ -34,10 +34,11 @@ def grouped_bar(groups, group_width, bar_width, file_label, bar_labels=None, bar
 # Count nucleotides
 counts = {}
 for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_aa2nt/out/')):
-    align = AlignIO.read(f'../align_aa2nt/out/{file_id}', 'fasta')
-    for seq in align:
-        spid = seq.description[-4:]
-        for sym in seq:
+    MSA = skbio.read(f'../align_aa2nt/out/{file_id}', 'fasta')
+    for seq in MSA:
+        spid = seq.metadata['id'][-4:]
+        for sym in str(seq):
+
             if sym != '-':
                 try:
                     counts[spid][sym] = counts[spid].get(sym, 0) + 1
