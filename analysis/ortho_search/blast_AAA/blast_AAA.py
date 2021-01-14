@@ -6,28 +6,28 @@ from subprocess import run
 from time import asctime
 
 num_threads = str(os.environ['SLURM_CPUS_ON_NODE'])
-query_species = argv[1]
+query_spid = argv[1]
 prot_path = argv[2]
 blast_path = argv[3]
 
-# Parse parameters
-params = []
-with open('params.tsv') as file:
+# Parse genomes
+spids = []
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        params.append(line.split())
+        spids.append(line.split()[0])
 
 # Make output directory
-if not os.path.exists(f'out/{query_species}/'):
-    os.makedirs(f'out/{query_species}/')  # Recursive folder creation
+if not os.path.exists(f'out/{query_spid}/'):
+    os.makedirs(f'out/{query_spid}/')  # Recursive folder creation
 
 # Execute BLASTs
-for db_species, _, _ in params:
-    if not os.path.exists(f'out/{query_species}/{db_species}.blast'):
+for subject_spid in spids:
+    if not os.path.exists(f'out/{query_spid}/{subject_spid}.blast'):
         # Generate args
         input_args = [blast_path, '-query', prot_path]
-        output_args = ['-out', f'out/{query_species}/{db_species}.blast']
-        search_args = ['-db', f'../blast_dbs/out/{db_species}_blastdb', '-evalue', '1', '-num_threads', num_threads]
+        output_args = ['-out', f'out/{query_spid}/{subject_spid}.blast']
+        search_args = ['-db', f'../blast_dbs/out/{subject_spid}_blastdb', '-evalue', '1', '-num_threads', num_threads]
         format_args = ['-outfmt', '7 qacc sacc length nident gaps qlen qstart qend slen sstart send evalue bitscore']
 
         # Execute command
@@ -37,13 +37,13 @@ for db_species, _, _ in params:
 
         # Manually write output to file since direction while in background does not immediately write to file
         with open('out/blast_AAA.out', 'a') as outfile:
-            outfile.write('\t'.join([query_species, db_species, t0, t1 + '\n']))
+            outfile.write('\t'.join([query_spid, subject_spid, t0, t1 + '\n']))
 
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
+../config/genomes.tsv
 ../blast_dbs/blast_dbs.py
     ../blast_dbs/out/*
-./params.tsv
 """

@@ -18,11 +18,11 @@
 #
 # Command(s) to run:
 if [ ! -d out ]; then
-  out_dir=/global/scratch/singleton/IDREvoDevo/analysis/ortho_cluster2/blast2hsps/out
-  if [ ! -d $out_dir ]; then
-    mkdir -p $out_dir  # -p makes intermediate directory if they do not exist
+  out_dir=/global/scratch/singleton/IDREvoDevo/analysis/ortho_cluster2/blast2hsps/out/
+  if [ ! -d ${out_dir} ]; then
+    mkdir -p ${out_dir}  # -p makes intermediate directory if they do not exist
   fi
-  ln -s $out_dir out
+  ln -s ${out_dir} out
 fi
 
 module load python

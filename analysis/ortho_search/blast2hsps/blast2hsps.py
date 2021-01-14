@@ -6,29 +6,29 @@ import re
 from itertools import groupby, permutations
 
 
-def parse_blast(query_species, subject_species):
+def parse_blast(query_spid, subject_spid):
     ohsps = []
     nulls = []
-    with open(f'../blast_AAA/out/{query_species}/{subject_species}.blast') as file:
+    with open(f'../blast_AAA/out/{query_spid}/{subject_spid}.blast') as file:
         query_ppid, ihsps = None, []
         line = file.readline()
         while line:
             # Record query
             while line.startswith('#'):
                 if line == '# BLASTP 2.10.1+\n' and query_ppid is not None:  # Only add if previous search returned no hits
-                    nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_species, 'sspid': subject_species})
+                    nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_spid, 'sspid': subject_spid})
                 elif line.startswith('# Query:'):
-                    query_ppid = re.search(pp_regex[params[query_species]], line).group(1)
+                    query_ppid = re.search(pp_regex[genomes[query_spid]], line).group(1)
                     query_gnid = ppid2gnid[query_ppid]
                 line = file.readline()
 
             # Record hits
             while line and not line.startswith('#'):
                 fields = line.split()
-                subject_ppid = re.search(pp_regex[params[subject_species]], fields[1]).group(1)
+                subject_ppid = re.search(pp_regex[genomes[subject_spid]], fields[1]).group(1)
                 subject_gnid = ppid2gnid[subject_ppid]
-                values = [query_ppid, query_gnid, query_species,
-                          subject_ppid, subject_gnid, subject_species,
+                values = [query_ppid, query_gnid, query_spid,
+                          subject_ppid, subject_gnid, subject_spid,
                           *fields[2:],
                           False, False]
                 ihsps.append({column: f(value) for (column, f), value in zip(columns.items(), values)})
@@ -38,24 +38,24 @@ def parse_blast(query_species, subject_species):
             if ihsps:
                 ohsps.extend(get_bhsps(ihsps))
             else:
-                nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_species, 'sspid': subject_species})
+                nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_spid, 'sspid': subject_spid})
 
             if line.startswith('# BLAST processed'):
                 break
             query_ppid, ihsps = None, []  # Signals current search was successfully recorded
 
     # Make output directories
-    if not os.path.exists(f'out/hsps/{query_species}/'):
-        os.makedirs(f'out/hsps/{query_species}/')  # Recursive folder creation
-    if not os.path.exists(f'out/nulls/{query_species}/'):
-        os.makedirs(f'out/nulls/{query_species}/')  # Recursive folder creation
+    if not os.path.exists(f'out/hsps/{query_spid}/'):
+        os.makedirs(f'out/hsps/{query_spid}/')  # Recursive folder creation
+    if not os.path.exists(f'out/nulls/{query_spid}/'):
+        os.makedirs(f'out/nulls/{query_spid}/')  # Recursive folder creation
 
     # Write HSPs and nulls to file
-    with open(f'out/hsps/{query_species}/{subject_species}.tsv', 'w') as file:
+    with open(f'out/hsps/{query_spid}/{subject_spid}.tsv', 'w') as file:
         file.write('\t'.join(columns) + '\n')
         for ohsp in ohsps:
             file.write('\t'.join([str(ohsp[column]) for column in columns]) + '\n')
-    with open(f'out/nulls/{query_species}/{subject_species}.tsv', 'w') as file:
+    with open(f'out/nulls/{query_spid}/{subject_spid}.tsv', 'w') as file:
         file.write('\t'.join(['qppid', 'qgnid', 'qspid', 'sspid']) + '\n')
         for null in nulls:
             file.write('\t'.join([null[column] for column in ['qppid', 'qgnid', 'qspid', 'sspid']]) + '\n')
@@ -131,18 +131,18 @@ with open('../ppid2meta/out/ppid2meta.tsv') as file:
         ppid, gnid, _ = line.split()
         ppid2gnid[ppid] = gnid
 
-# Parse parameters
-params = {}
-with open('params.tsv') as file:
+# Parse genomes
+genomes = {}
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        species, _, source = line.split()
-        params[species] = source
+        spid, _, source, _, _ = line.split()
+        genomes[spid] = source
 
 # Parse BLAST results
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        pool.starmap(parse_blast, permutations(params.keys(), 2))
+        pool.starmap(parse_blast, permutations(genomes, 2))
 
 """
 NOTES
@@ -165,9 +165,9 @@ exclude some polypeptides that are associated with the best gene, but since thes
 polypeptides in other genes, they should not be included since other stronger hits are discarded.
 
 DEPENDENCIES
+../config/genomes.tsv
 ../blast_AAA/blast_AAA.py
     ../blast_AAA/out/*
 ../ppid2meta/ppid2meta.py
     ../ppid2meta/out/ppid2meta.tsv
-./params.tsv
 """

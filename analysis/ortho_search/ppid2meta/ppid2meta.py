@@ -8,18 +8,19 @@ pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
 gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
             'NCBI': r'db_xref=GeneID:([0-9]+)'}
 
-# Parse parameters
-params = []
-with open('params.tsv') as file:
+# Parse genomes
+genomes = []
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        params.append(line.split())
+        spid, _, source, _, tcds_path = line.split()
+        genomes.append((spid, source, tcds_path))
 
 # Extract and count polypeptide IDs
 ppid_counts = {}  # Counts for each PPID to find duplicates
 ppid2meta = {}  # PPID to gene and species
 num_headers = 0
-for species, _, source, tcds_path in params:
+for spid, source, tcds_path in genomes:
     with open(tcds_path) as file:
         for line in file:
             if line.startswith('>'):
@@ -31,7 +32,7 @@ for species, _, source, tcds_path in params:
                     gnid = gn_match.group(1)
                     ppid = pp_match.group(1)
 
-                    ppid2meta[ppid] = (gnid, species)
+                    ppid2meta[ppid] = (gnid, spid)
                     ppid_counts[ppid] = ppid_counts.get(ppid, 0) + 1
                 except AttributeError:
                     print(line)
@@ -56,5 +57,5 @@ Unique IDs: 735719
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-./params.tsv
+../config/genomes.tsv
 """
