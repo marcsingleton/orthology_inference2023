@@ -1,5 +1,6 @@
 """Reduce gene clusters to representative polypeptides using trees."""
 
+import multiprocessing as mp
 import os
 import re
 from itertools import combinations, product
@@ -7,17 +8,6 @@ from itertools import combinations, product
 import numpy as np
 import skbio.stats.distance as distance
 import skbio.tree
-
-
-def get_distance_sum(tree, spids, dm):
-    spid2idx = {spid: i for i, spid in enumerate(spids)}
-    dm_spid = np.zeros((len(spid2idx), len(spid2idx)))
-    for tip1, tip2 in product(tree.tips(), repeat=2):
-        idx1 = (spid2idx[tip1.name.split(':')[0]], spid2idx[tip2.name.split(':')[0]])
-        idx2 = (f"'{tip1.name}'", f"'{tip2.name}'")  # Wrap in quotes for consistency with dm
-        dm_spid[idx1] = max(dm_spid[idx1], dm[idx2])
-    np.fill_diagonal(dm_spid, 0)  # Set diagonal to 0
-    return dm_spid.sum()
 
 
 def get_ktuples(seq, k):
@@ -41,6 +31,67 @@ def get_ktuple_distance(seq1, seq2, k, p=1):
     return d
 
 
+def get_sum(tree, spids, dm):
+    spid2idx = {spid: i for i, spid in enumerate(spids)}
+    dm_spid = np.zeros((len(spid2idx), len(spid2idx)))
+    for tip1, tip2 in product(tree.tips(), repeat=2):
+        idx1 = (spid2idx[tip1.name.split(':')[0]], spid2idx[tip2.name.split(':')[0]])
+        idx2 = (f"'{tip1.name}'", f"'{tip2.name}'")  # Wrap in quotes for consistency with dm
+        dm_spid[idx1] = max(dm_spid[idx1], dm[idx2])
+    np.fill_diagonal(dm_spid, 0)  # Set diagonal to 0
+    return dm_spid.sum()
+
+
+def reduce(OGid, OG):
+    seqs = [seq for gnid in OG for seq in gnid2seqs[gnid]]
+    spids = set([seq[1] for seq in seqs])
+
+    # Make tree
+    k, p = 4, 2  # Tuple size and power
+    i, j = 0, 1  # Matrix indices
+    dm = np.zeros((len(seqs), len(seqs)))
+    for (ppid1, _, seq1), (ppid2, _, seq2) in combinations(seqs, 2):
+        # Calculate distance and store in matrix
+        d = get_ktuple_distance(seq1.translate(table), seq2.translate(table), k, p)
+        dm[i, j] = d
+        dm[j, i] = d
+
+        # Calculate indices
+        j += 1
+        if j > len(seqs) - 1:
+            i += 1
+            j = i + 1
+    dm = distance.DistanceMatrix(dm, ids=[f"'{spid}:{ppid}'" for ppid, spid, _ in seqs])
+    tree = skbio.tree.nj(dm)
+
+    # Split tree into subtrees
+    while len(list(tree.tips())) > len(spids):
+        # Mark node with tips
+        for node in tree.traverse():
+            node.tip_names = set([tip.name for tip in node.tips(include_self=True)])
+
+        # Record subtrees
+        subtrees = []
+        for node in tree.traverse(include_self=False):
+            tip_spids1 = set([tip_name.split(':')[0] for tip_name in node.tip_names])
+            tip_spids2 = set([tip_name.split(':')[0] for tip_name in (tree.tip_names - node.tip_names)])
+
+            if tip_spids2 == spids:
+                subtree = tree.shear(tree.tip_names - node.tip_names)
+                subtrees.append(subtree)
+            if tip_spids1 == spids:
+                subtree = tree.shear(node.tip_names)
+                subtrees.append(subtree)
+        tree = min(subtrees, key=lambda t: get_sum(t, spids, dm))
+
+    # Extract sequences from tree
+    rOG = []
+    for tip in tree.tips():
+        spid, ppid = tip.name.split(':')
+        rOG.append((spid, ppid2gnid[ppid], ppid))
+    return OGid, rOG
+
+
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
             'NCBI': r'([NXY]P_[0-9]+)'}
 table = {ord('I'): '!', ord('L'): '!', ord('M'): '!', ord('V'): '!',
@@ -51,6 +102,7 @@ table = {ord('I'): '!', ord('L'): '!', ord('M'): '!', ord('V'): '!',
          ord('C'): '^',
          ord('P'): '&',
          ord('G'): '~'}
+num_processes = int(os.environ['SLURM_NTASKS'])
 
 # Parse genomes
 genomes = []
@@ -101,76 +153,28 @@ with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
         OGs[OGid] = gnids
 
+if __name__ == '__main__':
+    with mp.Pool(processes=num_processes) as pool:
+        rOGs = pool.starmap(reduce, OGs.items())
 
-rOGs = {}
-for OGid, OG in list(OGs.items()):
-    # Make tree
-    seqs = [seq for gnid in OGs[OGid] for seq in gnid2seqs[gnid]]
-    spids = set([seq[1] for seq in seqs])
+    # Make output directory
+    if not os.path.exists('out/'):
+        os.mkdir('out/')
 
-    k = 6  # Tuple size
-    i, j = 0, 1  # Matrix indices
-    dm = np.zeros((len(seqs), len(seqs)))
-    for (ppid1, _, seq1), (ppid2, _, seq2) in combinations(seqs, 2):
-        # Calculate distance and store in matrix
-        d = get_ktuple_distance(seq1.translate(table), seq2.translate(table), 4, 2)
-        dm[i, j] = d
-        dm[j, i] = d
-
-        # Calculate indices
-        j += 1
-        if j > len(seqs) - 1:
-            i += 1
-            j = i + 1
-    dm = distance.DistanceMatrix(dm, ids=[f"'{spid}:{ppid}'" for ppid, spid, _ in seqs])
-    tree = skbio.tree.nj(dm)
-
-    # Split tree into subtrees
-    while len(list(tree.tips())) > len(spids):
-        print(OGid, len(list(tree.tips())))
-        # Mark node with tips
-        for node in tree.traverse():
-            node.tip_names = set([tip.name for tip in node.tips(include_self=True)])
-
-        # Record subtrees
-        subtrees = []
-        for node in tree.traverse(include_self=False):
-            tip_spids1 = set([tip_name.split(':')[0] for tip_name in node.tip_names])
-            tip_spids2 = set([tip_name.split(':')[0] for tip_name in (tree.tip_names - node.tip_names)])
-
-            if tip_spids2 == spids:
-                subtree = tree.shear(tree.tip_names - node.tip_names)
-                subtrees.append(subtree)
-            if tip_spids1 == spids:
-                subtree = tree.shear(node.tip_names)
-                subtrees.append(subtree)
-        tree = min(subtrees, key=lambda t: get_distance_sum(t, spids, dm))
-
-    # Record rOG
-    rOG = []
-    for tip in tree.tips():
-        spid, ppid = tip.name.split(':')
-        rOG.append((spid, ppid2gnid[ppid], ppid))
-    rOGs[OGid] = rOG
-
-# Make output directory
-if not os.path.exists('out/'):
-    os.mkdir('out/')
-
-# Write reduced clusters to file
-with open('out/rclusters.tsv', 'w') as outfile:
-    outfile.write('OGid\tspid\tgnid\tppid\n')
-    for OGid, rOG in rOGs.items():
-        for entry in rOG:
-            outfile.write(OGid + '\t' + '\t'.join(entry) + '\n')
+    # Write reduced clusters to file
+    with open('out/rclusters.tsv', 'w') as outfile:
+        outfile.write('OGid\tspid\tgnid\tppid\n')
+        for OGid, rOG in rOGs:
+            for entry in rOG:
+                outfile.write(OGid + '\t' + '\t'.join(entry) + '\n')
 
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-../config/genomes.tsv
 ../../ortho_cluster3/clique5+_community/clique5+_community2.py
     ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
 ../../ortho_search/ppid2meta/ppid2meta.py
     ../../ortho_search/ppid2meta/out/ppid2meta.tsv
+../config/genomes.tsv
 """
