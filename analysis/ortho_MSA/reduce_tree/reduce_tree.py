@@ -52,13 +52,13 @@ table = {ord('I'): '!', ord('L'): '!', ord('M'): '!', ord('V'): '!',
          ord('P'): '&',
          ord('G'): '~'}
 
-# Parse parameters
-params = []
-with open('params.tsv') as file:
+# Parse genomes
+genomes = []
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
         spid, _, source, prot_path = line.split()
-        params.append((spid, source, prot_path))
+        genomes.append((spid, source, prot_path))
 
 # Load pp metadata
 ppid2gnid = {}
@@ -69,7 +69,7 @@ with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
 
 # Load seqs
 gnid2seqs = {}
-for spid0, source, prot_path in params:
+for spid0, source, prot_path in genomes:
     with open(prot_path) as file:
         line = file.readline()
         while line:
@@ -168,9 +168,9 @@ with open('out/rclusters.tsv', 'w') as outfile:
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
+../config/genomes.tsv
 ../../ortho_cluster3/clique5+_community/clique5+_community2.py
     ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
 ../../ortho_search/ppid2meta/ppid2meta.py
     ../../ortho_search/ppid2meta/out/ppid2meta.tsv
-./params.tsv
 """

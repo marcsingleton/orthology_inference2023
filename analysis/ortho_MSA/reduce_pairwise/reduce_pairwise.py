@@ -79,13 +79,13 @@ def get_distances(node, d0=0):
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
             'NCBI': r'([NXY]P_[0-9]+)'}
 
-# Parse parameters
-params = []
-with open('params.tsv') as file:
+# Parse genomes
+genomes = []
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
         spid, _, source, prot_path = line.split()
-        params.append((spid, source, prot_path))
+        genomes.append((spid, source, prot_path))
 
 # Load gn and pp metadata
 gnid2spid = {}
@@ -98,7 +98,7 @@ with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
 
 # Load seqs
 gnid2seqs = {}
-for spid0, source, prot_path in params:
+for spid0, source, prot_path in genomes:
     with open(prot_path) as file:
         line = file.readline()
         while line:
@@ -184,6 +184,7 @@ with open('out/rclusters.tsv', 'w') as outfile:
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
+../config/genomes.tsv
 ../../ortho_cluster3/clique5+_community/clique5+_community2.py
     ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
 ../../ortho_cluster3/hits2ggraph/hits2ggraph2.py
@@ -194,5 +195,4 @@ DEPENDENCIES
     ../../ortho_search/ppid2meta/out/ppid2meta.tsv
 ../../ortho_tree/consensus_tree/consensus_tree.py
     ../../ortho_tree/consensus_tree/out/100red_ni.txt
-./params.tsv
 """
