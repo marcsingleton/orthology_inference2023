@@ -1,4 +1,4 @@
-"""Align FASTAs of remaining OGs."""
+"""Align FASTAs of remaining OGs using pairwise comparisons."""
 
 import multiprocessing as mp
 import os

@@ -114,7 +114,7 @@ for i, row in enumerate((head1.itertuples())):
     if row.sqidnum == 26:
         MSA = load_alignment(f'../align_fastas1/out/{row.OGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2-2/out/{row.OGid}.mfa')
+        MSA = load_alignment(f'../align_fastas2-1/out/{row.OGid}.mfa')
 
     order = {tip.name: i for i, tip in enumerate(tree.tips())}
     MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
@@ -126,8 +126,8 @@ for i, row in enumerate((head1.itertuples())):
     ../../ortho_tree/consensus_tree/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
-../align_fastas2-2/align_fastas2-2.py
-    ../align_fastas2-2/out/*.mfa
+../align_fastas2-1/align_fastas2-1.py
+    ../align_fastas2-1/out/*.mfa
 ../OGid2meta/OGid2meta.py
     ../OGid2meta/out/OGid2meta.tsv
 ./align_contrasts_calc.py

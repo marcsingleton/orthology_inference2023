@@ -1,4 +1,4 @@
-"""Align FASTAs of remaining OGs."""
+"""Align FASTAs of remaining OGs using longest isoforms."""
 
 import multiprocessing as mp
 import os
@@ -7,7 +7,7 @@ from time import time_ns
 
 
 def run_cmd(file_id):
-    cmd = (f'../../../bin/clustalo -i ../make_fastas2-2/out/{file_id}.tfa '
+    cmd = (f'../../../bin/clustalo -i ../make_fastas2-0/out/{file_id}.tfa '
            f'--iterations 1 --threads=1 -o out/{file_id}.mfa')
     try:
         t0 = time_ns()
@@ -25,7 +25,7 @@ if __name__ == '__main__':
         os.mkdir('out/')
 
     with mp.Pool(processes=num_processes) as pool:
-        file_ids = [file[:-4] for file in os.listdir('../make_fastas2-2/out/')]
+        file_ids = [file[:-4] for file in os.listdir('../make_fastas2-0/out/')]
         rows = pool.map(run_cmd, file_ids)
 
     with open('out/times.tsv', 'w') as file:
@@ -35,6 +35,6 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../make_fastas2-2/make_fastas2-2.py
-    ../make_fastas2-2/out/*.tfa
+../make_fastas2-0/make_fastas2-0.py
+    ../make_fastas2-0/out/*.tfa
 """

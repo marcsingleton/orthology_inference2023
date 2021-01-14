@@ -92,8 +92,8 @@ DEPENDENCIES
     ../ortho_tree/consensus_tree/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
-../align_fastas2-2/align_fastas2-1.py
-    ../align_fastas2-2/out/*.mfa
+../align_fastas2-1/align_fastas2-1.py
+    ../align_fastas2-1/out/*.mfa
 ../OGid2meta/OGid2meta.py
     ../OGid2meta/out/OGid2meta.tsv
 """
