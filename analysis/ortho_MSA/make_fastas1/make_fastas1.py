@@ -56,18 +56,13 @@ with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters
         _, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
         OGs[OGid] = gnids
-
-OGs_meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv')
+OGid2meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv')
 
 # Write sequences
-gn26 = OGs_meta['gnidnum'] == 26
-sp26 = OGs_meta['spidnum'] == 26
-sq26 = OGs_meta['sqidnum'] == 26
-OGids = OGs_meta.loc[gn26 & sp26 & sq26, 'OGid']
-
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
+OGids = OGid2meta.loc[OGid2meta['gnidnum'] == OGid2meta['sqidnum'], 'OGid']
 for OGid in OGids:
     with open(f'out/{OGid}.tfa', 'w') as file:
         for gnid in OGs[OGid]:

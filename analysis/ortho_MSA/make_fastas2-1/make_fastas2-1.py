@@ -33,18 +33,15 @@ for spid0, source, prot_path in params:
             seq = ''.join(seqlines)
             ppid2seq[ppid] = seq
 
-OGs_meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv')
+# Load clusters and OG metadata
 rclusters = pd.read_table('../reduce_pairwise/out/rclusters.tsv').groupby('OGid')
+OGid2meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv')
 
 # Write sequences
-gn26 = OGs_meta['gnidnum'] == 26
-sp26 = OGs_meta['spidnum'] == 26
-sq26 = OGs_meta['sqidnum'] == 26
-OGids = OGs_meta.loc[~(gn26 & sp26 & sq26), 'OGid']
-
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
+OGids = OGid2meta.loc[~(OGid2meta['gnidnum'] == OGid2meta['sqidnum']), 'OGid']
 for OGid in OGids:
     with open(f'out/{OGid}.tfa', 'w') as file:
         for row in rclusters.get_group(OGid).itertuples():
