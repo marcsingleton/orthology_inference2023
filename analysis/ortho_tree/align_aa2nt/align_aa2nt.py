@@ -61,13 +61,13 @@ def get_codons(nt_seq, aa_seq):
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
             'NCBI': r'([NXY]P_[0-9]+)'}
 
-# Parse parameters
-params = []
-with open('params.tsv') as file:
+# Parse genomes
+genomes = []
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        spid, _, source, cds_path = line.split()
-        params.append((spid, source, cds_path))
+        spid, _, source, _, cds_path = line.split()
+        genomes.append((spid, source, cds_path))
 
 # Load translation table
 ttable = {}
@@ -80,7 +80,7 @@ with open('ttable.txt') as file:
 
 # Load CDSs
 ppid2cds = {}
-for spid, source, cds_path in params:
+for spid, source, cds_path in genomes:
     with open(cds_path) as file:
         line = file.readline()
         while line:
@@ -145,8 +145,8 @@ sys.stdout.close()
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_cds_from_genomic.fna
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-CDS-r6.34.fasta
+../config/genomes.tsv
 ../align_fastas/align_fastas.py
     ../align_fastas/out/*.mfa
-./params.tsv
 ./ttable.txt
 """

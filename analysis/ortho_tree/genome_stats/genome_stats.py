@@ -26,19 +26,19 @@ with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
         ppid, gnid, _ = line.split()
         ppid2gnid[ppid] = gnid
 
-# Parse parameters
-params = {}
-with open('params.tsv') as file:
+# Parse genomes
+genomes = {}
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        spid, _, source, prot_path = line.split()
-        params[spid] = (source, prot_path)
+        spid, _, source, prot_path, _ = line.split()
+        genomes[spid] = (source, prot_path)
 
 # Parse polypeptides
 sqid0 = 0
 sqids = {}
 rows = []
-for spid, (source, prot_path) in params.items():
+for spid, (source, prot_path) in genomes.items():
     with open(prot_path) as file:
         line = file.readline()
         while line:
@@ -76,8 +76,8 @@ if not os.path.exists('out/'):
 
 # Define dataframe and groups
 df = pd.DataFrame(rows)
-ncbi_spids = [spid for spid in params if params[spid][0] == 'NCBI']
-flybase_spids = [spid for spid in params if params[spid][0] == 'FlyBase']
+ncbi_spids = [spid for spid in genomes if genomes[spid][0] == 'NCBI']
+flybase_spids = [spid for spid in genomes if genomes[spid][0] == 'FlyBase']
 
 # 1.1 Distribution of polypeptides across associated species
 spid_ppidnum = df['spid'].value_counts()
@@ -408,5 +408,5 @@ DEPENDENCIES
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../../ortho_search/ppid2meta/ppid2meta.py
     ../../ortho_search/ppid2meta/out/ppid2meta.tsv
-./params.tsv
+../config/genomes.tsv
 """

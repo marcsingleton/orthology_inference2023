@@ -8,13 +8,13 @@ import pandas as pd
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
             'NCBI': r'([NXY]P_[0-9]+)'}
 
-# Parse parameters
-params = []
-with open('params.tsv') as file:
+# Parse genomes
+genomes = []
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        spid, _, source, prot_path = line.split()
-        params.append((spid, source, prot_path))
+        spid, _, source, prot_path, _ = line.split()
+        genomes.append((spid, source, prot_path))
 
 # Load pp metadata
 ppid2gnid = {}
@@ -25,7 +25,7 @@ with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
 
 # Load seqs
 gnid2seqs = {}
-for spid0, source, prot_path in params:
+for spid0, source, prot_path in genomes:
     with open(prot_path) as file:
         line = file.readline()
         while line:
@@ -82,9 +82,9 @@ DEPENDENCIES
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../../ortho_search/ppid2meta/ppid2meta.py
     ../../ortho_search/ppid2meta/out/ppid2meta.tsv
+../config/genomes.tsv
 ../clique5+_community/clique5+_community.py
     ../clique5+_community/out/5clique/gclusters.txt
 ../OGid2meta/OGid2meta.py
     ../OGid2meta/out/OGid2meta.tsv
-./params.tsv
 """
