@@ -111,9 +111,9 @@ hit_dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
 num_processes = int(os.environ['SLURM_NTASKS'])
 
 if __name__ == '__main__':
-    # Parse parameters
+    # Parse genomes
     spids = []
-    with open('params.tsv') as file:
+    with open('../config/genomes.tsv') as file:
         fields = file.readline().split()  # Skip header
         for line in file:
             spids.append(line.split()[0])
@@ -309,7 +309,7 @@ DEPENDENCIES
     ../../ortho_search/hsps2hits/out/*/*.tsv
 ../../ortho_search/hits2reciprocal/hits2reciprocal.py
     ../../ortho_search/hits2reciprocal/out/*/*.tsv
+../config/genomes.tsv
 ../genome_stats/genome_stats.py
     ../genome_stats/out/gnid_nums.tsv
-./params.tsv
 """

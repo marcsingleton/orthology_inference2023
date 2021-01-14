@@ -18,9 +18,9 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'slen': int, 'nsa': int, 'cnsa': int,
            'bitscore': float}
 
-# Parse parameters
+# Parse genomes
 spids = []
-with open('params.tsv') as file:
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
         spids.append(line.split()[0])
@@ -57,5 +57,5 @@ with open('out/pgraph2.tsv', 'w') as file:
 DEPENDENCIES
 ../../ortho_search/hsps2hits/hsps2hits.py
     ../../ortho_search/hsps2hits/out/*/*.tsv
-./params.tsv
+../config/genomes.tsv
 """

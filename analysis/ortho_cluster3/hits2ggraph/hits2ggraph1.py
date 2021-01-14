@@ -22,9 +22,9 @@ dtypes = {'qppid': 'string', 'qgnid': 'string',
 num_processes = 2
 
 if __name__ == '__main__':
-    # Parse parameters
+    # Parse genomes
     spids = []
-    with open('params.tsv') as file:
+    with open('../config/genomes.tsv') as file:
         fields = file.readline().split()  # Skip header
         for line in file:
             spids.append(line.split()[0])
@@ -55,5 +55,5 @@ DEPENDENCIES
     ../../ortho_search/hsps2hits/out/*/*.tsv
 ../../ortho_search/hits2reciprocal/hits2reciprocal.py
     ../../ortho_search/hits2reciprocal/out/*/*.tsv
-./params.tsv
+../config/genomes.tsv
 """

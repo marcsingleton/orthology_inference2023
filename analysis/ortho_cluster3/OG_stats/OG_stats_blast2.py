@@ -97,9 +97,9 @@ hit_dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
 num_processes = 4
 
 if __name__ == '__main__':
-    # Parse parameters
+    # Parse genomes
     spids = []
-    with open('params.tsv') as file:
+    with open('../config/genomes.tsv') as file:
         fields = file.readline().split()  # Skip header
         for line in file:
             spids.append(line.split()[0])
@@ -363,6 +363,7 @@ DEPENDENCIES
     ../../ortho_search/blast2hsps/out/*/*.tsv
 ../../ortho_search/hits2reciprocal/hits2reciprocal.py
     ../../ortho_search/hits2reciprocal/out/*/*.tsv
+../config/genomes.tsv
 ../clique5+_community/clique5+_community2.py
     ../clique5+_community/out/ggraph2/5clique/gclusters.txt
 """

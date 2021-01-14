@@ -81,9 +81,9 @@ dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
 num_processes = 2
 
 if __name__ == '__main__':
-    # Parse parameters
+    # Parse genomes
     spids = []
-    with open('params.tsv') as file:
+    with open('../config/genomes.tsv') as file:
         fields = file.readline().split()  # Skip header
         for line in file:
             spids.append(line.split()[0])
@@ -316,7 +316,7 @@ DEPENDENCIES
     ../../ortho_search/blast2hsps/out/hsps/*/*.tsv
 ../../ortho_search/hsps2reciprocal/hsps2reciprocal.py
     ../../ortho_search/hsps2reciprocal/out/*/*.tsv
+../config/genomes.tsv
 ../genome_stats/genome_stats.py
     ../genome_stats/out/gnid_nums.tsv
-./params.tsv
 """
