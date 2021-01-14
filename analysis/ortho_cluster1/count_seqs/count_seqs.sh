@@ -2,16 +2,20 @@
 # Count sequences in NCBI and FlyBase genomes
 
 cd "$(dirname "$0")"
-if [ ! -d out ]; then
-  mkdir out
+if [ ! -d out/ ]; then
+  mkdir out/
 fi
 
-cat fb2ncbi.tsv | while read species ncbi flybase
+if [ -f out/count_seqs.out ]; then
+  rm out/count_seqs.out
+fi
+
+cat fb2ncbi.tsv | while read spid ncbi flybase
 do
-	if [[ $species != \#* ]]; then  # Double brackets is expanded syntax for tests
-		echo "$species"
-		zgrep ">" ../../../data/ncbi_genomes/fna/"$ncbi" | wc
-		zgrep ">" ../../../data/flybase_genomes/"$flybase" | wc
+	if [[ ${spid} != \#* ]]; then  # Double brackets is expanded syntax for tests
+		echo "${spid}" >> out/count_seqs.out
+		zgrep ">" ../../../data/ncbi_genomes/fna/"${ncbi}" | wc >> out/count_seqs.out
+		zgrep ">" ../../../data/flybase_genomes/"${flybase}" | wc >> out/count_seqs.out
 	fi
 done
 

@@ -13,17 +13,17 @@ gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
             'NCBI': r'gene=LOC([0-9]+)',
             'YO': r'>(YOgn[A-Z]{2}[0-9]+)'}
 
-# Parse parameters
-params = {}
-with open('params.tsv') as file:
+# Parse genomes
+genomes = {}
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
         spid, _, source, tcds_path = line.split()
-        params[spid] = (source, tcds_path)
+        genomes[spid] = (source, tcds_path)
 
 # Parse polypeptides
 rows = []
-for spid, (source, tcds_path) in params.items():
+for spid, (source, tcds_path) in genomes.items():
     with open(tcds_path) as file:
         line = file.readline()
         while line:
@@ -45,9 +45,9 @@ if not os.path.exists('out/'):
 
 # Define dataframe and groups
 df = pd.DataFrame(rows)
-ncbi_spids = [spid for spid in params if params[spid][0] == 'NCBI']
-yo_spids = [spid for spid in params if params[spid][0] == 'YO']
-flybase_spids = [spid for spid in params if params[spid][0] == 'FlyBase']
+ncbi_spids = [spid for spid in genomes if genomes[spid][0] == 'NCBI']
+yo_spids = [spid for spid in genomes if genomes[spid][0] == 'YO']
+flybase_spids = [spid for spid in genomes if genomes[spid][0] == 'FlyBase']
 
 # 1.1 Distribution of polypeptides across associated species
 spid_ppidnum = df['spid'].value_counts()
@@ -203,8 +203,8 @@ for data, data_label, color, file_label in [(ncbi, 'NCBI', 'C0', 'NCBI'),
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.32_FB2020_01/fasta/dmel-all-translation-r6.32.fasta
+../config/genomes.tsv
 ../extract_orfs/extract_orfs.py
     ../extract_orfs/out/dpse_translated_orfs.faa
     ../extract_orfs/out/dyak_translated_orfs.faa
-./params.tsv
 """

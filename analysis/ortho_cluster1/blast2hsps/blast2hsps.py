@@ -50,38 +50,38 @@ with open('../ppid2meta/out/ppid2meta.tsv') as file:
         ppid, gnid, _ = line.split()
         ppid2gnid[ppid] = gnid
 
-# Parse parameters
-params = {}
-with open('params.tsv') as file:
+# Parse genomes
+genomes = {}
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        species, _, source = line.split()
-        params[species] = source
+        spid, _, source, _ = line.split()
+        genomes[spid] = source
 
 # Parse BLAST results
 ohsps = []
 nulls = []
-for query_species, subject_species in permutations(params.keys(), 2):
-    with open(f'../blast_AAA/out/{query_species}/{subject_species}.blast') as file:
+for query_spid, subject_spid in permutations(genomes, 2):
+    with open(f'../blast_AAA/out/{query_spid}/{subject_spid}.blast') as file:
         query_ppid, ihsps = None, []
         line = file.readline()
         while line:
             # Record query
             while line.startswith('#'):
                 if line == '# BLASTP 2.10.0+\n' and query_ppid is not None:  # Only add if previous search returned no hits
-                    nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_species, 'sspid': subject_species})
+                    nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_spid, 'sspid': subject_spid})
                 elif line.startswith('# Query:'):
-                    query_ppid = re.search(pp_regex[params[query_species]], line).group(1)
+                    query_ppid = re.search(pp_regex[genomes[query_spid]], line).group(1)
                     query_gnid = ppid2gnid[query_ppid]
                 line = file.readline()
 
             # Record hits
             while line and not line.startswith('#'):
                 fields = line.split()
-                subject_ppid = re.search(pp_regex[params[subject_species]], fields[1]).group(1)
+                subject_ppid = re.search(pp_regex[genomes[subject_spid]], fields[1]).group(1)
                 subject_gnid = ppid2gnid[subject_ppid]
-                values = [query_ppid, query_gnid, query_species,
-                          subject_ppid, subject_gnid, subject_species,
+                values = [query_ppid, query_gnid, query_spid,
+                          subject_ppid, subject_gnid, subject_spid,
                           *fields[2:],
                           False]
                 ihsps.append({column: f(value) for (column, f), value in zip(columns.items(), values)})
@@ -91,7 +91,7 @@ for query_species, subject_species in permutations(params.keys(), 2):
             if ihsps:
                 ohsps.extend(get_bhsps(ihsps))
             else:
-                nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_species, 'sspid': subject_species})
+                nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_spid, 'sspid': subject_spid})
 
             if line.startswith('# BLAST processed'):
                 break
@@ -127,9 +127,9 @@ exclude some polypeptides that are associated with the best gene, but since thes
 polypeptides in other genes, they should not be included since other stronger hits are discarded.
 
 DEPENDENCIES
+../config/genomes.tsv
 ../blast_AAA/blast_AAA.py
     ../blast_AAA/out/*
 ../ppid2meta/ppid2meta.py
     ../ppid2meta/out/ppid2meta.tsv
-./params.tsv
 """

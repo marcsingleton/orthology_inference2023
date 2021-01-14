@@ -1,4 +1,4 @@
-#species	genome_path
+#spid	genome_path
 dana	Drosophila_ananassae/dana_r1.06_FB2018_04/fasta/dana-all-chromosome-r1.06.fasta
 dgri	Drosophila_grimshawi/dgri_r1.05_FB2018_06/fasta/dgri-all-chromosome-r1.05.fasta
 dmel	Drosophila_melanogaster/dmel_r6.32_FB2020_01/fasta/dmel-all-chromosome-r6.32.fasta

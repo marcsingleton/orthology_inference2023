@@ -2,8 +2,8 @@
 # Extract sequence IDs from dsim NCBI and FlyBase genomes and compare
 
 cd "$(dirname "$0")"
-if [ ! -d out ]; then
-  mkdir out
+if [ ! -d out/ ]; then
+  mkdir out/
 fi
 
 zgrep ">" ../../../data/flybase_genomes/Drosophila_simulans/dsim_r2.02_FB2017_04/fasta/dsim-all-chromosome-r2.02.fasta.gz | cut -f 4 -d ';' | cut -c 12- | sort > out/dsim_r2.02_FB2017_04.out
