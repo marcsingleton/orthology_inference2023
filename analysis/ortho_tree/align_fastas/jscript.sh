@@ -18,5 +18,4 @@
 #
 # Command(s) to run:
 module load python
-module load gcc
 python align_fastas.py
