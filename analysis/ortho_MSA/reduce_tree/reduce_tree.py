@@ -31,64 +31,117 @@ def get_ktuple_distance(seq1, seq2, k, p=1):
     return d
 
 
-def get_sum(tree, spids, dm):
-    spid2idx = {spid: i for i, spid in enumerate(spids)}
-    dm_spid = np.zeros((len(spid2idx), len(spid2idx)))
-    for tip1, tip2 in product(tree.tips(), repeat=2):
-        idx1 = (spid2idx[tip1.name.split(':')[0]], spid2idx[tip2.name.split(':')[0]])
-        idx2 = (f"'{tip1.name}'", f"'{tip2.name}'")  # Wrap in quotes for consistency with dm
-        dm_spid[idx1] = max(dm_spid[idx1], dm[idx2])
-    np.fill_diagonal(dm_spid, 0)  # Set diagonal to 0
-    return dm_spid.sum()
+def get_max_gnid_distances(dm):
+    """Return matrix of maximum distances between GNIDs."""
+    gnid2idx = {}
+    name2idx = {}
+    for tip_name in dm.ids:
+        gnid = tip_name.split(':')[1]
+        try:
+            idx = gnid2idx[gnid]
+        except KeyError:
+            idx = len(gnid2idx)
+            gnid2idx[gnid] = idx
+        name2idx[tip_name] = idx
+
+    data = np.zeros((len(gnid2idx), len(gnid2idx)))
+    for tip_name1, tip_name2 in product(dm.ids, repeat=2):
+        idx1 = (name2idx[tip_name1], name2idx[tip_name2])
+        idx2 = (tip_name1, tip_name2)
+        data[idx1] = max(data[idx1], dm[idx2])
+    np.fill_diagonal(data, 0)  # Set diagonal to 0
+    return distance.DistanceMatrix(data, ids=sorted(gnid2idx, key=lambda x: gnid2idx[x]))  # Ensure sort
+
+
+def update_max_gnid_distances(msd, dm, tree, gnids):
+    """Update pairs containing elements of gnids in matrix of maximum distances."""
+    data = -msd.data
+    tip_names1 = [tip.name for tip in tree.tips()]
+    tip_names2 = [tip_name for tip_name in tip_names1 if tip_name.split(':')[1] in gnids]
+    name2idx = {tip_name: msd.index(tip_name.split(':')[1]) for tip_name in tip_names1}
+    for tip_name1, tip_name2 in product(tip_names1, tip_names2):
+        idx1 = (name2idx[tip_name1], name2idx[tip_name2])
+        idx2 = (tip_name1, tip_name2)
+        data[idx1] = max(data[idx1], dm[idx2])
+        data[idx1[::-1]] = max(data[idx1], dm[idx2])
+    np.fill_diagonal(data, 0)  # Set diagonal to 0
+    data = np.abs(data)
+    return distance.DistanceMatrix(data, ids=sorted(msd.ids, key=lambda x: msd.index(x)))  # Ensure sort
+
+
+def update_tip_names(tree):
+    """Cache tip names in internal nodes of tree."""
+    for node in tree.postorder():
+        if node.is_tip():
+            node.tip_names = set([node.name])
+        else:
+            node.tip_names = set().union(*[child.tip_names for child in node.children])
 
 
 def reduce(OGid, OG):
-    seqs = [seq for gnid in OG for seq in gnid2seqs[gnid]]
-    spids = set([seq[1] for seq in seqs])
-
-    # Make tree
+    """Return representative PPIDs for all GNIDs associated with tips in node."""
+    # Make distance matrix
     k, p = 4, 2  # Tuple size and power
     i, j = 0, 1  # Matrix indices
-    dm = np.zeros((len(seqs), len(seqs)))
-    for (ppid1, _, seq1), (ppid2, _, seq2) in combinations(seqs, 2):
+    seqs = [(ppid, gnid, spid, seq) for gnid in OG for ppid, spid, seq in gnid2seqs[gnid]]
+    dm0 = np.zeros((len(seqs), len(seqs)))
+    for (ppid1, _, _, seq1), (ppid2, _, _, seq2) in combinations(seqs, 2):
         # Calculate distance and store in matrix
         d = get_ktuple_distance(seq1.translate(table), seq2.translate(table), k, p)
-        dm[i, j] = d
-        dm[j, i] = d
+        dm0[i, j] = d
+        dm0[j, i] = d
 
         # Calculate indices
         j += 1
         if j > len(seqs) - 1:
             i += 1
             j = i + 1
-    dm = distance.DistanceMatrix(dm, ids=[f"'{spid}:{ppid}'" for ppid, spid, _ in seqs])
-    tree = skbio.tree.nj(dm)
+    dm0 = distance.DistanceMatrix(dm0, ids=[f"'{spid}:{gnid}:{ppid}'" for ppid, gnid, spid, _ in seqs])  # Wrap in quotes to ensure correct parsing
 
-    # Split tree into subtrees
-    while len(list(tree.tips())) > len(spids):
-        # Mark node with tips
-        for node in tree.traverse():
-            node.tip_names = set([tip.name for tip in node.tips(include_self=True)])
+    # Make tree
+    tree = skbio.tree.nj(dm0)
+    update_tip_names(tree)
+    dm = tree.tip_tip_distances()  # Use tree distances for pruning
+    msd = get_max_gnid_distances(dm)
 
-        # Record subtrees
-        subtrees = []
+    # Prune tree
+    while len(tree.tip_names) > len(OG):
+        # Remove non-minimal tips in single-species clades
+        for node in tree.postorder():
+            if node.is_tip():
+                node.min_tips = set([(node.name, node.length)])
+            elif len(set([name.split(':')[1] for child in node.children for name, _ in child.min_tips])) == 1:
+                name, length = min([min_tip for child in node.children for min_tip in child.min_tips], key=lambda x: x[1])
+                node.min_tips = set([(name, length + node.length)])
+            else:
+                node.min_tips = set([min_tip for child in node.children for min_tip in child.min_tips])
+        min_names = set([tip_name for tip_name, _ in tree.min_tips])
+        if min_names < tree.tip_names:
+            tip_gnids = set([tip_name.split(':')[1] for tip_name in (tree.tip_names - min_names)])
+            tree = tree.shear(min_names)
+            update_tip_names(tree)
+            msd = update_max_gnid_distances(msd, dm, tree, tip_gnids)
+
+        # Split tree
+        trees = []
         for node in tree.traverse(include_self=False):
-            tip_spids1 = set([tip_name.split(':')[0] for tip_name in node.tip_names])
-            tip_spids2 = set([tip_name.split(':')[0] for tip_name in (tree.tip_names - node.tip_names)])
+            tip_gnids1 = set([tip_name.split(':')[1] for tip_name in node.tip_names])
+            tip_gnids2 = set([tip_name.split(':')[1] for tip_name in (tree.tip_names - node.tip_names)])
 
-            if tip_spids2 == spids:
-                subtree = tree.shear(tree.tip_names - node.tip_names)
-                subtrees.append(subtree)
-            if tip_spids1 == spids:
-                subtree = tree.shear(node.tip_names)
-                subtrees.append(subtree)
-        tree = min(subtrees, key=lambda t: get_sum(t, spids, dm))
+            if tip_gnids1 == OG:
+                tree1 = tree.shear(node.tip_names)
+                msd1 = update_max_gnid_distances(msd, dm, tree1, tip_gnids2)
+                trees.append((tree1, msd1))
+            if tip_gnids2 == OG:
+                tree2 = tree.shear(tree.tip_names - node.tip_names)
+                msd2 = update_max_gnid_distances(msd, dm, tree2, tip_gnids1)
+                trees.append((tree2, msd2))
+        if trees:
+            tree, msd = min(trees, key=lambda x: x[1].data.sum())
+            update_tip_names(tree)
 
     # Extract sequences from tree
-    rOG = []
-    for tip in tree.tips():
-        spid, ppid = tip.name.split(':')
-        rOG.append((spid, ppid2gnid[ppid], ppid))
+    rOG = [tip_name.split(':') for tip_name in tree.tip_names]
     return OGid, rOG
 
 
@@ -155,7 +208,7 @@ with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters
 
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        rOGs = pool.starmap(reduce, OGs.items())
+        rOGs = pool.starmap(reduce, list(OGs.items()))
 
     # Make output directory
     if not os.path.exists('out/'):
