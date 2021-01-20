@@ -13,7 +13,7 @@ with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../clique5+_community/out/ggraph2/5clique/gclusters.txt') as file:
+with open('../clique4+_community/out/ggraph2/5clique/gclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -234,8 +234,8 @@ NOTES
 These plots are largely based off those in analysis/EggNOGv5_validation/ali_stats/ali_stats.py
 
 DEPENDENCIES
-../clique5+_community/clique5+_community2.py
-    ../clique5+_community/out/ggraph2/5clique/gclusters.txt
+../clique4+_community/clique4+_community2.py
+    ../clique4+_community/out/ggraph2/5clique/gclusters.txt
 ../../ortho_search/ppid2meta/ppid2meta.py
     ../../ortho_search/ppid2meta/out/ppid2meta.tsv
 """

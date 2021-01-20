@@ -13,7 +13,7 @@ with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../clique5+_community/out/ggraph1/5clique/gclusters.txt') as file:
+with open('../clique4+_community/out/ggraph1/5clique/gclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -216,26 +216,26 @@ print('fraction of OGs with duplicates', (OGnum - dist_dup[0]) / OGnum)
 
 """
 OUTPUT
-number of OGs: 16756
+number of OGs: 16754
 
 number of OGs with 26 species: 10001
-fraction of OGs with 26 species: 0.5968608259727859
+fraction of OGs with 26 species: 0.5969320759221678
 
 number of OGs with 26 genes: 8233
-fraction of OGs with 26 genes: 0.4913463833850561
+fraction of OGs with 26 genes: 0.4914050376029605
 
 number of OGs with 26 species and 26 genes: 8077
-fraction of OGs with 26 species and 26 genes: 0.4820362855096682
+fraction of OGs with 26 species and 26 genes: 0.48209382833950104
 
-number of OGs with duplicates: 2765
-fraction of OGs with duplicates 0.16501551682979232
+number of OGs with duplicates: 2763
+fraction of OGs with duplicates 0.16491584099319564
 
 NOTES
 These plots are largely based off those in analysis/EggNOGv5_validation/ali_stats/ali_stats.py
 
 DEPENDENCIES
-../clique5+_community/clique5+_community1.py
-    ../clique5+_community/out/ggraph1/5clique/gclusters.txt
+../clique4+_community/clique4+_community1.py
+    ../clique4+_community/out/ggraph1/5clique/gclusters.txt
 ../../ortho_search/ppid2meta/ppid2meta.py
     ../../ortho_search/ppid2meta/out/ppid2meta.tsv
 """

@@ -22,7 +22,7 @@ with open('../hits2ggraph/out/ggraph2.tsv') as file:
 
 # Extract OG hits
 rows = []
-with open('../subcluster3_ggraph/out/ggraph2/gclusters.txt') as file:
+with open('../subcluster_ggraph/out/ggraph2/gclusters.txt') as file:
     for line in file:
         _, _, edges = line.rstrip().split(':')
         if len(edges.split('\t')) > 3:  # Discard edges in minimal OGs

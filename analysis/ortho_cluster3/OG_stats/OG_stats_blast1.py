@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
     # Load data
     rows = []
-    with open('../clique5+_community/out/ggraph1/5clique/gclusters.txt') as file:
+    with open('../clique4+_community/out/ggraph1/5clique/gclusters.txt') as file:
         for line in file:
             CCid, OGid, edges = line.rstrip().split(':')
             for edge in edges.split('\t'):
@@ -346,7 +346,7 @@ if __name__ == '__main__':
     scatter2(gnidnums[0], edgefracs[0], 'edgefrac-OGgnnum_all', 'Fraction of possible edges in OG')
 
     # 13.2 Excluding His OGs
-    hits3 = hits0[~hits0['OGid'].isin(['09d6', '0a54', '0a51', '0a55', '0a53'])]
+    hits3 = hits0[~hits0['OGid'].isin(['09d6', '0a52', '0a50', '0a53', '0a51'])]
     OG3 = hits3.groupby('OGid')
     edgenum = hits3[['qgnid', 'sgnid', 'OGid']].drop_duplicates().groupby('OGid').size() / 2
     gnidnum = OG3['qgnid'].nunique()
@@ -364,6 +364,6 @@ DEPENDENCIES
 ../../ortho_search/hits2reciprocal/hits2reciprocal.py
     ../../ortho_search/hits2reciprocal/out/*/*.tsv
 ../config/genomes.tsv
-../clique5+_community/clique5+_community1.py
-    ../clique5+_community/out/ggraph1/5clique/gclusters.txt
+../clique4+_community/clique4+_community1.py
+    ../clique4+_community/out/ggraph1/5clique/gclusters.txt
 """

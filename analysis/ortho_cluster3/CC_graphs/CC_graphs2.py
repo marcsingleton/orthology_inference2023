@@ -60,10 +60,10 @@ with open('../connect_ggraph/out/gconnect2.txt') as file:
         CCs[CCid] = set(nodes.split(','))
 
 # Load OGs
-OG3s = load_OGs('../subcluster3_ggraph/out/ggraph2/gclusters.txt')
-OG4s = load_OGs('../subcluster4_ggraph/out/ggraph2/gclusters.txt')
-OG5s = load_OGs('../clique5+_community/out/ggraph2/5clique/gclusters.txt')
-OG6s = load_OGs('../clique5+_community/out/ggraph2/6clique/gclusters.txt')
+OG3s = load_OGs('../subcluster_ggraph/out/ggraph2/gclusters.txt')
+OG4s = load_OGs('../clique4+_community/out/ggraph2/4clique/gclusters.txt')
+OG5s = load_OGs('../clique4+_community/out/ggraph2/5clique/gclusters.txt')
+OG6s = load_OGs('../clique4+_community/out/ggraph2/6clique/gclusters.txt')
 
 # Make output directory
 if not os.path.exists('out/ggraph2/'):
@@ -168,15 +168,14 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
 
 """
 DEPENDENCIES
-../clique5+_community/clique5+_community2.py
-    ../clique5+_community/out/ggraph2/5clique/gclusters.txt
-    ../clique5+_community/out/ggraph2/6clique/gclusters.txt
+../clique4+_community/clique4+_community2.py
+    ../clique4+_community/out/ggraph2/4clique/gclusters.txt
+    ../clique4+_community/out/ggraph2/5clique/gclusters.txt
+    ../clique4+_community/out/ggraph2/6clique/gclusters.txt
 ../connect_ggraph/connect_ggraph2.py
     ../connect_ggraph/out/gconnect2.txt
 ../hits2ggraph/hits2ggraph2.py
     ../hits2ggraph/out/ggraph2.tsv
-../subcluster3_ggraph/subcluster3_ggraph2.py
-    ../subcluster3_ggraph/out/ggraph2/gclusters.txt
-../subcluster4_ggraph/subcluster4_ggraph2.py
-    ../subcluster4_ggraph/out/ggraph2/gclusters.txt
+../subcluster_ggraph/subcluster_ggraph2.py
+    ../subcluster_ggraph/out/ggraph2/gclusters.txt
 """

@@ -20,7 +20,7 @@ with open('../../ortho_cluster3/genome_stats/out/gnid_nums.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt') as file:
+with open('../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -58,6 +58,6 @@ DEPENDENCIES
     ../../ortho_cluster3/genome_stats/out/gnid_nums.tsv
 ../../ortho_search/ppid2meta/ppid2meta.py
     ../../ortho_search/ppid2meta/out/ppid2meta.tsv
-../../ortho_cluster3/clique5+_community/clique5+_community.py
-    ../../ortho_cluster3/clique5+_community/out/ggraph2/5clique/gclusters.txt
+../../ortho_cluster3/clique4+_community/clique4+_community.py
+    ../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt
 """
