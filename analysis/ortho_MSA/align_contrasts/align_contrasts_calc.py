@@ -62,7 +62,7 @@ if not os.path.exists('out/'):
 
 rows = []
 for record in df.itertuples():
-    if record.sqidnum == 26:
+    if record.sqidnum == record.gnidnum:
         MSA = load_alignment(f'../align_fastas1/out/{record.OGid}.mfa')
     else:
         MSA = load_alignment(f'../align_fastas2-1/out/{record.OGid}.mfa')

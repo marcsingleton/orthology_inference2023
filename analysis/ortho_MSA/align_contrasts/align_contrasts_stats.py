@@ -95,30 +95,30 @@ if not os.path.exists('out/sum/'):
 
 # 2.1 Ranked by sum
 head1 = df.sort_values(by='c_sum', ascending=False).head(100)
-for i, row in enumerate((head1.itertuples())):
-    if row.sqidnum == 26:
-        MSA = load_alignment(f'../align_fastas1/out/{row.OGid}.mfa')
+for i, record in enumerate(head1.itertuples()):
+    if record.sqidnum == record.gnidnum:
+        MSA = load_alignment(f'../align_fastas1/out/{record.OGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2-1/out/{row.OGid}.mfa')
+        MSA = load_alignment(f'../align_fastas2-1/out/{record.OGid}.mfa')
 
     order = {tip.name: i for i, tip in enumerate(tree.tips())}
     MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_alignment(MSA, f'out/sum/{i}_{row.OGid}.png')
+    draw_alignment(MSA, f'out/sum/{i}_{record.OGid}.png')
 
 # 2.2 Ranked by avg
 if not os.path.exists('out/avg/'):
     os.mkdir('out/avg/')
 
 head1 = df.sort_values(by='c_avg', ascending=False).head(100)
-for i, row in enumerate((head1.itertuples())):
-    if row.sqidnum == 26:
-        MSA = load_alignment(f'../align_fastas1/out/{row.OGid}.mfa')
+for i, record in enumerate((head1.itertuples())):
+    if record.sqidnum == record.gnidnum:
+        MSA = load_alignment(f'../align_fastas1/out/{record.OGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2-1/out/{row.OGid}.mfa')
+        MSA = load_alignment(f'../align_fastas2-1/out/{record.OGid}.mfa')
 
     order = {tip.name: i for i, tip in enumerate(tree.tips())}
     MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_alignment(MSA, f'out/avg/{i}_{row.OGid}.png')
+    draw_alignment(MSA, f'out/avg/{i}_{record.OGid}.png')
 
 """
 ../../../src/draw.py

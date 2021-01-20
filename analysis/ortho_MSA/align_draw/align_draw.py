@@ -46,17 +46,15 @@ if not os.path.exists('out/'):
 df = OGs.merge(test_genes, on='gnid', how='right').merge(OGid2meta, on='OGid', how='left')
 df.to_csv('out/OGids.tsv', sep='\t', index=False)
 
-for row in df.dropna().itertuples():
-    OGid = row.OGid
-    gnidnum, spidnum, sqidnum = row.gnidnum, row.spidnum, row.sqidnum
-    if gnidnum == spidnum == sqidnum == 26:
-        MSA = load_alignment(f'../align_fastas1/out/{OGid}.mfa')
+for record in df.dropna().itertuples():
+    if record.sqidnum == record.gnidnum:
+        MSA = load_alignment(f'../align_fastas1/out/{record.OGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2-1/out/{OGid}.mfa')
+        MSA = load_alignment(f'../align_fastas2-1/out/{record.OGid}.mfa')
 
     order = {tip.name: i for i, tip in enumerate(tree.tips())}
     MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_alignment(MSA, f'out/{OGid}.png')
+    draw_alignment(MSA, f'out/{record.OGid}.png')
 
 """
 DEPENDENCIES
