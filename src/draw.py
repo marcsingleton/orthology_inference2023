@@ -90,7 +90,11 @@ def draw_alignment(MSA, file, ratio=2.5,
             x = j % cols_im * sym_length
 
             # Create color tuple
-            hex = aa2color[sym]
+            try:
+                hex = aa2color[sym]
+            except KeyError as error:
+                print(f"Warning: Symbol {error} not in dictionary. Using color for symbol 'X' in its place.")
+                hex = aa2color['X']
             color = [int(hex[i:i+2], 16) for i in (0, 2, 4)]
 
             # Fill slice with color
