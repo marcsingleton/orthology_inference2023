@@ -92,7 +92,7 @@ gnid2spid = {}
 ppid2gnid = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        ppid, gnid, spid = line.split()
+        ppid, gnid, spid, _ = line.split()
         gnid2spid[gnid] = spid
         ppid2gnid[ppid] = gnid
 

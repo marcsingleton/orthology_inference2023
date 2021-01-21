@@ -8,7 +8,7 @@ import pandas as pd
 gnid2spid = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        _, gnid, spid = line.split()
+        _, gnid, spid, _ = line.split()
         gnid2spid[gnid] = spid
 
 # Load OGs

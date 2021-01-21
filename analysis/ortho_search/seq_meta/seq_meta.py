@@ -13,14 +13,16 @@ genomes = []
 with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        spid, _, source, _, tcds_path = line.split()
-        genomes.append((spid, source, tcds_path))
+        spid, _, source, prot_path, tcds_path = line.split()
+        genomes.append((spid, source, prot_path, tcds_path))
 
 # Extract and count polypeptide IDs
 ppid_counts = {}  # Counts for each PPID to find duplicates
 ppid2meta = {}  # PPID to gene and species
+gnid2seqs = {}  # GNID to PPIDs with unique sequences
 num_headers = 0
-for spid, source, tcds_path in genomes:
+for spid, source, prot_path, tcds_path in genomes:
+    # Find parent genes in tcds headers
     with open(tcds_path) as file:
         for line in file:
             if line.startswith('>'):
@@ -32,16 +34,42 @@ for spid, source, tcds_path in genomes:
                     gnid = gn_match.group(1)
                     ppid = pp_match.group(1)
 
-                    ppid2meta[ppid] = (gnid, spid)
+                    ppid2meta[ppid] = (gnid, spid, 'False')
                     ppid_counts[ppid] = ppid_counts.get(ppid, 0) + 1
                 except AttributeError:
                     print(line)
+
+    # Find representative sequences in prot files
+    with open(prot_path) as file:
+        line = file.readline()
+        while line:
+            if line.startswith('>'):
+                ppid0 = re.search(pp_regex[source], line).group(1)
+                gnid, spid, _ = ppid2meta[ppid0]
+                line = file.readline()
+
+            seqlines = []
+            while line and not line.startswith('>'):
+                seqlines.append(line.rstrip())
+                line = file.readline()
+            seq0 = ''.join(seqlines)
+
+            try:
+                for _, seq1 in gnid2seqs[gnid]:
+                    if seq0 == seq1:
+                        break
+                else:
+                    gnid2seqs[gnid].append((ppid0, seq0))
+                    ppid2meta[ppid0] = (gnid, spid, 'True')
+            except KeyError:
+                gnid2seqs[gnid] = [(ppid0, seq0)]
+                ppid2meta[ppid0] = (gnid, spid, 'True')
 
 # Make output directory
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-# Write graph as adjacency list to file
+# Write to file
 with open('out/seq_meta.tsv', 'w') as outfile:
     for ppid, meta in ppid2meta.items():
         outfile.write(ppid + '\t' + '\t'.join(meta) + '\n')

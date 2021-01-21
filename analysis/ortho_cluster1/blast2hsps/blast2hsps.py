@@ -47,7 +47,7 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
 ppid2gnid = {}
 with open('../ppid2meta/out/seq_meta.tsv') as file:
     for line in file:
-        ppid, gnid, _ = line.split()
+        ppid, gnid, _, _ = line.split()
         ppid2gnid[ppid] = gnid
 
 # Parse genomes

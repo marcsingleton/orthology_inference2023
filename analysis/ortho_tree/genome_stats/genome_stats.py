@@ -23,7 +23,7 @@ pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
 ppid2gnid = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        ppid, gnid, _ = line.split()
+        ppid, gnid, _, _ = line.split()
         ppid2gnid[ppid] = gnid
 
 # Parse genomes
