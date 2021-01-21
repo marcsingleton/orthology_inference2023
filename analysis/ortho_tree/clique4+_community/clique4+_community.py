@@ -99,7 +99,7 @@ def k_clique_communities_progressive(G, k, cliques=None):
     """Find k-clique communities in graph using the percolation method.
 
     This method differs from the networkx version in two respects. The first is
-    it returns reports rather than nodes. The second, and more important
+    it returns edges rather than nodes. The second, and more important
     difference is that it does not exhaustively find edges in the percolation
     graph. Since in some cases all the cliques are found relatively quickly,
     the bottleneck is calculating the C*(C-1)/2 overlaps between all cliques,
@@ -108,18 +108,18 @@ def k_clique_communities_progressive(G, k, cliques=None):
     this approach is needlessly expensive for large graphs.
 
     This method assumes the number of connected components is small and
-    therefore progressively constructs by checking each subsequent clique
-    against a list of currently known connected components. All components
-    which have at least one clique with sufficient overlap with the current
-    clique are merged. The search can start with an arbitrary clique as the
-    first connected component. This implementation, however, first sorts them
-    by the number of edges associated with each node in the clique which are
-    also not a member of that clique. This begins the search with cliques whose
-    nodes are highly connected to nodes outside of that clique and are thus
-    likely to have sufficient overlap with other cliques. The order of cliques
-    within components reflects the history of merges and thus will contain runs
-    of sorted cliques but will not be sorted globally. Using a priority queue
-    to ensure highly-connected cliques are checked first within each component
+    therefore progressively checks each subsequent clique against a list of
+    currently known connected components. All components which have at least
+    one clique with sufficient overlap with the current clique are merged. The
+    search can start with an arbitrary clique as the first connected component.
+    This implementation, however, first sorts them by the number of edges
+    associated with each node in the clique which are also not a member of that
+    clique. This begins the search with cliques whose nodes are highly
+    connected to nodes outside of that clique and are thus likely to have
+    sufficient overlap with other cliques. The order of cliques within
+    components reflects the history of merges and thus will contain runs of
+    sorted cliques but will not be sorted globally. Using a priority queue to
+    ensure highly-connected cliques are checked first within each component
     could further increase performance.
 
     Additionally, cliques without overlap are inserted at the end of the list
@@ -249,18 +249,10 @@ with open('../connect_ggraph/out/gconnect.txt') as file:
         CCid, nodes = line.rstrip().split(':')
         CCs.append((CCid, set(nodes.split(','))))
 
-# Load OG4s
-OG4s = {}
-with open('../subcluster4_ggraph/out/gclusters.txt') as file:
-    for line in file:
-        CCid, _, edges = line.rstrip().split(':')
-        try:
-            OG4s[CCid].append([edge.split(',') for edge in edges.split('\t')])
-        except KeyError:
-            OG4s[CCid] = [[edge.split(',') for edge in edges.split('\t')]]
-
+OG4s = []
 OG5s = []
 OG6s = []
+CCtypes4 = [{} for _ in range(5)]
 CCtypes5 = [{} for _ in range(5)]
 CCtypes6 = [{} for _ in range(5)]
 for CCid, CC in CCs:
@@ -275,7 +267,7 @@ for CCid, CC in CCs:
     try:
         # Handle cliques
         signal.signal(signal.SIGALRM, clique_handler)
-        if CCid in ['0872', '08b1', '08b2', '08b3']:
+        if CCid in ['0872', '08b1', '08b2', '08b3', '08b4']:
             raise CliqueError
         signal.alarm(30)
         cliques = list(find_cliques(G))
@@ -284,33 +276,40 @@ for CCid, CC in CCs:
         # Handle percolation
         signal.signal(signal.SIGALRM, percolate_handler)
         signal.alarm(30)
+        subOG4s = list(k_clique_communities(G, 4, cliques))
         subOG5s = list(k_clique_communities(G, 5, cliques))
         subOG6s = list(k_clique_communities(G, 6, cliques))
         signal.alarm(0)
     except CliqueError:
         print('CliqueError:', CCid)
+        subOG4s = set()
         subOG5s = set()
         subOG6s = set()
-        for OG4 in OG4s[CCid]:
-            G = nx.Graph(OG4)
 
-            core5 = k_core(G, 5)
-            for component in connected_components(core5):
-                subOG5s.add(frozenset([frozenset(edge) for edge in core5.edges(component)]))
-            core6 = k_core(G, 6)
-            for component in connected_components(core6):
-                subOG6s.add(frozenset([frozenset(edge) for edge in core6.edges(component)]))
+        core4 = k_core(G, 4)
+        for component in connected_components(core4):
+            subOG4s.add(frozenset([frozenset(edge) for edge in core4.edges(component)]))
+        core5 = k_core(G, 5)
+        for component in connected_components(core5):
+            subOG5s.add(frozenset([frozenset(edge) for edge in core5.edges(component)]))
+        core6 = k_core(G, 6)
+        for component in connected_components(core6):
+            subOG6s.add(frozenset([frozenset(edge) for edge in core6.edges(component)]))
     except PercolateError:
         print('PercolateError:', CCid)
+        subOG4s = list(k_clique_communities_progressive(G, 4, cliques))
         subOG5s = list(k_clique_communities_progressive(G, 5, cliques))
         subOG6s = list(k_clique_communities_progressive(G, 6, cliques))
+    OG4s.append(subOG4s)
     OG5s.append(subOG5s)
     OG6s.append(subOG6s)
 
     # Classify CCs
+    classify_CC(CCtypes4, subOG4s)
     classify_CC(CCtypes5, subOG5s)
     classify_CC(CCtypes6, subOG6s)
 
+save_results(OG4s, CCtypes4, 4)
 save_results(OG5s, CCtypes5, 5)
 save_results(OG6s, CCtypes6, 6)
 
@@ -320,26 +319,33 @@ CliqueError: 0872
 CliqueError: 08b1
 CliqueError: 08b2
 CliqueError: 08b3
-PercolateError: 08b4
+CliqueError: 08b4
 PercolateError: 0d11
 CliqueError: 2bc6
 PercolateError: 2c3d
 PercolateError: 2e07
 PercolateError: 3080
 
+4-CLIQUE
+Type 0: 1315
+Type 1: 10927
+Type 2: 1895
+Type 3: 244
+Type 4: 704
+
 5-CLIQUE
 Type 0: 1976
 Type 1: 10245
-Type 2: 1958
-Type 3: 262
-Type 4: 644
+Type 2: 1959
+Type 3: 263
+Type 4: 642
 
 6-CLIQUE
 Type 0: 2498
 Type 1: 9723
 Type 2: 2064
-Type 3: 224
-Type 4: 576
+Type 3: 225
+Type 4: 575
 
 DEPENDENCIES
 ../connect_ggraph/connect_ggraph.py

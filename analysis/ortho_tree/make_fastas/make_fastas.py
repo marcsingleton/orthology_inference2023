@@ -51,7 +51,7 @@ for spid0, source, prot_path in genomes:
 
 # Load OGs and OG metadata
 OGs = {}
-with open('../clique5+_community/out/5clique/gclusters.txt') as file:
+with open('../clique4+_community/out/5clique/gclusters.txt') as file:
     for line in file:
         _, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -83,8 +83,8 @@ DEPENDENCIES
 ../../ortho_search/ppid2meta/ppid2meta.py
     ../../ortho_search/ppid2meta/out/ppid2meta.tsv
 ../config/genomes.tsv
-../clique5+_community/clique5+_community.py
-    ../clique5+_community/out/5clique/gclusters.txt
+../clique4+_community/clique4+_community.py
+    ../clique4+_community/out/5clique/gclusters.txt
 ../OGid2meta/OGid2meta.py
     ../OGid2meta/out/OGid2meta.tsv
 """
