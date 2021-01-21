@@ -68,12 +68,12 @@ for label, (_, colpool) in colpools.items():
 
 """
 OUTPUT
-100red: 2121832
-100red_ni: 1121684
-50red: 2326203
-50red_ni: 1294937
-0red: 2560974
-0red_ni: 1388401
+100red: 2129744
+100red_ni: 1119238
+50red: 2318939
+50red_ni: 1274856
+0red: 2619618
+0red_ni: 1361766
 
 DEPENDENCIES
 ../align_aa2nt/align_aa2nt.py
