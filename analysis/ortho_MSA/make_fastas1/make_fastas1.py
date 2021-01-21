@@ -56,13 +56,13 @@ with open('../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters
         _, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
         OGs[OGid] = gnids
-OGid2meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv')
+OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
 
 # Write sequences
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = OGid2meta.loc[OGid2meta['gnidnum'] == OGid2meta['sqidnum'], 'OGid']
+OGids = OG_meta.loc[OG_meta['gnidnum'] == OG_meta['sqidnum'], 'OGid']
 for OGid in OGids:
     with open(f'out/{OGid}.tfa', 'w') as file:
         for gnid in OGs[OGid]:
@@ -80,6 +80,6 @@ DEPENDENCIES
     ../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
-../OGid2meta/OGid2meta.py
-    ../OGid2meta/out/OGid2meta.tsv
+../OG_meta/OG_meta.py
+    ../OG_meta/out/OG_meta.tsv
 """

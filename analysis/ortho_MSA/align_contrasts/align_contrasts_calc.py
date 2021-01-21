@@ -54,8 +54,8 @@ def load_alignment(path):
 tree_template = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
 tree_template = tree_template.shear([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
 
-OGid2meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv').drop(['CCid', 'edgenum'], axis=1)
-df = OGid2meta[(OGid2meta['gnidnum'] == 26) & (OGid2meta['spidnum'] == 26)]
+OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv').drop(['CCid', 'edgenum'], axis=1)
+df = OG_meta[(OG_meta['gnidnum'] == 26) & (OG_meta['spidnum'] == 26)]
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -94,6 +94,6 @@ DEPENDENCIES
     ../align_fastas1/out/*.mfa
 ../align_fastas2-1/align_fastas2-1.py
     ../align_fastas2-1/out/*.mfa
-../OGid2meta/OGid2meta.py
-    ../OGid2meta/out/OGid2meta.tsv
+../OG_meta/OG_meta.py
+    ../OG_meta/out/OG_meta.tsv
 """

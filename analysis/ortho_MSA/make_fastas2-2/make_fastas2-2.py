@@ -35,13 +35,13 @@ for spid0, source, prot_path in genomes:
 
 # Load clusters and OG metadata
 rclusters = pd.read_table('../reduce_tree/out/rclusters.tsv').groupby('OGid')
-OGid2meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv')
+OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
 
 # Write sequences
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = OGid2meta.loc[~(OGid2meta['gnidnum'] == OGid2meta['sqidnum']), 'OGid']
+OGids = OG_meta.loc[~(OG_meta['gnidnum'] == OG_meta['sqidnum']), 'OGid']
 for OGid in OGids:
     with open(f'out/{OGid}.tfa', 'w') as file:
         for row in rclusters.get_group(OGid).itertuples():
@@ -55,8 +55,8 @@ DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../config/genomes.tsv
-../OGid2meta/OGid2meta.py
-    ../OGid2meta/out/OGid2meta.tsv
+../OG_meta/OG_meta.py
+    ../OG_meta/out/OG_meta.tsv
 ../reduce_tree/reduce_tree.py
     ../reduce_tree/out/rclusters.tsv
 """

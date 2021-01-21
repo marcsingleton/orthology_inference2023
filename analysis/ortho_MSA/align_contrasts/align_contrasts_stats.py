@@ -32,8 +32,8 @@ def load_alignment(path):
 tree = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
 tree = tree.shear([tip.name for tip in tree.tips() if tip.name != 'sleb'])
 
-OGid2meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv').drop(['CCid', 'edgenum'], axis=1)
-df = pd.read_table('out/row_sums.tsv').merge(OGid2meta, on='OGid', how='left')
+OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv').drop(['CCid', 'edgenum'], axis=1)
+df = pd.read_table('out/row_sums.tsv').merge(OG_meta, on='OGid', how='left')
 df['c_sum'] = df[[f'c{i}' for i in range(25)]].sum(axis=1)
 df['c_avg'] = df['c_sum'] / df['len2']
 
@@ -128,8 +128,8 @@ for i, record in enumerate((head1.itertuples())):
     ../align_fastas1/out/*.mfa
 ../align_fastas2-1/align_fastas2-1.py
     ../align_fastas2-1/out/*.mfa
-../OGid2meta/OGid2meta.py
-    ../OGid2meta/out/OGid2meta.tsv
+../OG_meta/OG_meta.py
+    ../OG_meta/out/OG_meta.tsv
 ./align_contrasts_calc.py
     ./out/row_sums.tsv
 """

@@ -57,7 +57,7 @@ with open('../clique4+_community/out/5clique/gclusters.txt') as file:
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
         OGs[OGid] = gnids
 
-OGs_meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv')
+OGs_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
 
 # Write sequences
 gn27 = OGs_meta['gnidnum'] == 27
@@ -85,6 +85,6 @@ DEPENDENCIES
 ../config/genomes.tsv
 ../clique4+_community/clique4+_community.py
     ../clique4+_community/out/5clique/gclusters.txt
-../OGid2meta/OGid2meta.py
-    ../OGid2meta/out/OGid2meta.tsv
+../OG_meta/OG_meta.py
+    ../OG_meta/out/OG_meta.tsv
 """

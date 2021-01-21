@@ -36,14 +36,14 @@ with open('../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters
 OGs = pd.DataFrame(rows)
 
 test_genes = pd.read_table('test_genes.tsv')
-OGid2meta = pd.read_table('../OGid2meta/out/OGid2meta.tsv').drop(['CCid', 'edgenum'], axis=1)
+OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv').drop(['CCid', 'edgenum'], axis=1)
 tree = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
 tree = tree.shear([tip.name for tip in tree.tips() if tip.name != 'sleb'])
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-df = OGs.merge(test_genes, on='gnid', how='right').merge(OGid2meta, on='OGid', how='left')
+df = OGs.merge(test_genes, on='gnid', how='right').merge(OG_meta, on='OGid', how='left')
 df.to_csv('out/OGids.tsv', sep='\t', index=False)
 
 for record in df.dropna().itertuples():
@@ -67,7 +67,7 @@ DEPENDENCIES
     ../align_fastas1/out/*.mfa
 ../align_fastas2-1/align_fastas2-0.py
     ../align_fastas2-1/out/*.mfa
-../OGid2meta/OGid2meta.py
-    ../OGid2meta/out/OGid2meta.tsv
+../OG_meta/OG_meta.py
+    ../OG_meta/out/OG_meta.tsv
 ./test_genes.tsv
 """

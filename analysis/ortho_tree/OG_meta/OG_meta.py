@@ -5,18 +5,13 @@ import pandas as pd
 
 # Load seq metadata
 gnid2spid = {}
+gnid2sqidnum = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        _, gnid, spid = line.split()
+        _, gnid, spid, repr = line.split()
         gnid2spid[gnid] = spid
-
-# Load sqid counts
-gnid2sqidnum = {}
-with open('../genome_stats/out/gnid_nums.tsv') as file:
-    file.readline()  # Skip header
-    for line in file:
-        _, gnid, _, sqidnum = line.split()
-        gnid2sqidnum[gnid] = int(sqidnum)
+        if repr == 'True':
+            gnid2sqidnum[gnid] = gnid2sqidnum.get(gnid, 0) + 1
 
 # Load OGs
 rows = []
@@ -44,7 +39,7 @@ print('OGs with 27 genes, species, and sequences:', len(OGs[gn27 & sp27 & sq27])
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGs.to_csv('out/OGid2meta.tsv', sep='\t', index=False)
+OGs.to_csv('out/OG_meta.tsv', sep='\t', index=False)
 
 """
 OUTPUT 
@@ -58,6 +53,4 @@ DEPENDENCIES
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../clique4+_community/clique4+_community.py
     ../clique4+_community/out/5clique/gclusters.txt
-../genome_stats/genome_stats.py
-    ../genome_stats/out/gnid_nums.tsv
 """
