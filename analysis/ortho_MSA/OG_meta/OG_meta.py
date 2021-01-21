@@ -26,14 +26,15 @@ with open('../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters
 OGs = pd.DataFrame(rows)
 
 # Print counts
-gn26 = OGs['gnidnum'] == 26
-sp26 = OGs['spidnum'] == 26
-sq26 = OGs['sqidnum'] == 26
+num = 26
+gnnum = OGs['gnidnum'] == num
+spnum = OGs['spidnum'] == num
+sqnum = OGs['sqidnum'] == num
 
 print('Total OGs:', len(OGs))
-print('OGs with 26 genes:', len(OGs[gn26]))
-print('OGs with 26 genes and species:', len(OGs[gn26 & sp26]))
-print('OGs with 26 genes, species, and sequences:', len(OGs[gn26 & sp26 & sq26]))
+print(f'OGs with {num} genes:', len(OGs[gnnum]))
+print(f'OGs with {num} genes and species:', len(OGs[gnnum & spnum]))
+print(f'OGs with {num} genes, species, and sequences:', len(OGs[gnnum & spnum & sqnum]))
 
 # Make output directory
 if not os.path.exists('out/'):

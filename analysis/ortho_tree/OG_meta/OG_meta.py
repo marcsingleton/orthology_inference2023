@@ -26,14 +26,15 @@ with open('../clique4+_community/out/5clique/gclusters.txt') as file:
 OGs = pd.DataFrame(rows)
 
 # Print counts
-gn27 = OGs['gnidnum'] == 27
-sp27 = OGs['spidnum'] == 27
-sq27 = OGs['sqidnum'] == 27
+num = 27
+gnnum = OGs['gnidnum'] == num
+spnum = OGs['spidnum'] == num
+sqnum = OGs['sqidnum'] == num
 
 print('Total OGs:', len(OGs))
-print('OGs with 27 genes:', len(OGs[gn27]))
-print('OGs with 27 genes and species:', len(OGs[gn27 & sp27]))
-print('OGs with 27 genes, species, and sequences:', len(OGs[gn27 & sp27 & sq27]))
+print(f'OGs with {num} genes:', len(OGs[gnnum]))
+print(f'OGs with {num} genes and species:', len(OGs[gnnum & spnum]))
+print(f'OGs with {num} genes, species, and sequences:', len(OGs[gnnum & spnum & sqnum]))
 
 # Make output directory
 if not os.path.exists('out/'):

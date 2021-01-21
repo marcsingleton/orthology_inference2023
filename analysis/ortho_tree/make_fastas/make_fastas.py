@@ -60,10 +60,11 @@ with open('../clique4+_community/out/5clique/gclusters.txt') as file:
 OGs_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
 
 # Write sequences
-gn27 = OGs_meta['gnidnum'] == 27
-sp27 = OGs_meta['spidnum'] == 27
-sq27 = OGs_meta['sqidnum'] == 27
-OGids = OGs_meta.loc[gn27 & sp27 & sq27, 'OGid']
+num = 27
+gnnum = OGs_meta['gnidnum'] == num
+spnum = OGs_meta['spidnum'] == num
+sqnum = OGs_meta['sqidnum'] == num
+OGids = OGs_meta.loc[gnnum & spnum & sqnum, 'OGid']
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
