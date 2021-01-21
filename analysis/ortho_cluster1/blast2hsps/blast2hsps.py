@@ -43,9 +43,9 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'slen': int, 'sstart': int, 'send': int,
            'evalue': float, 'bitscore': float}
 
-# Load pp metadata
+# Load seq metadata
 ppid2gnid = {}
-with open('../ppid2meta/out/ppid2meta.tsv') as file:
+with open('../ppid2meta/out/seq_meta.tsv') as file:
     for line in file:
         ppid, gnid, _ = line.split()
         ppid2gnid[ppid] = gnid
@@ -130,6 +130,6 @@ DEPENDENCIES
 ../config/genomes.tsv
 ../blast_AAA/blast_AAA.py
     ../blast_AAA/out/*
-../ppid2meta/ppid2meta.py
-    ../ppid2meta/out/ppid2meta.tsv
+../seq_meta/seq_meta.py
+    ../seq_meta/out/seq_meta.tsv
 """

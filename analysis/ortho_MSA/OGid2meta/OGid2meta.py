@@ -3,9 +3,9 @@
 import os
 import pandas as pd
 
-# Load gn metadata
+# Load seq metadata
 gnid2spid = {}
-with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
+with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
@@ -56,8 +56,8 @@ OGs with 26 genes, species, and sequences: 2492
 DEPENDENCIES
 ../../ortho_cluster3/genome_stats/genome_stats.py
     ../../ortho_cluster3/genome_stats/out/gnid_nums.tsv
-../../ortho_search/ppid2meta/ppid2meta.py
-    ../../ortho_search/ppid2meta/out/ppid2meta.tsv
+../../ortho_search/seq_meta/seq_meta.py
+    ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../../ortho_cluster3/clique4+_community/clique4+_community.py
     ../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt
 """

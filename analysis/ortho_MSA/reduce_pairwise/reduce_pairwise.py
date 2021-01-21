@@ -87,10 +87,10 @@ with open('../config/genomes.tsv') as file:
         spid, _, source, prot_path = line.split()
         genomes.append((spid, source, prot_path))
 
-# Load gn and pp metadata
+# Load seq metadata
 gnid2spid = {}
 ppid2gnid = {}
-with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
+with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
         ppid, gnid, spid = line.split()
         gnid2spid[gnid] = spid
@@ -191,8 +191,8 @@ DEPENDENCIES
     ../../ortho_cluster3/hits2ggraph/out/ggraph2.tsv
 ../../ortho_cluster3/hits2pgraph/hits2pgraph.py
     ../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv
-../../ortho_search/ppid2meta/ppid2meta.py
-    ../../ortho_search/ppid2meta/out/ppid2meta.tsv
+../../ortho_search/seq_meta/seq_meta.py
+    ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../../ortho_tree/consensus_tree/consensus_tree.py
     ../../ortho_tree/consensus_tree/out/100red_ni.txt
 """

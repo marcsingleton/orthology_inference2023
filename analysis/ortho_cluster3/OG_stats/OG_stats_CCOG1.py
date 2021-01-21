@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 
-# Load gn metadata
+# Load seq metadata
 gnid2spid = {}
-with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
+with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
@@ -133,8 +133,8 @@ plt.close()
 
 """
 DEPENDENCIES
-../../ortho_search//ppid2meta.py
-    ../../ortho_search//out/ppid2meta.tsv
+../../ortho_search//seq_meta.py
+    ../../ortho_search//out/seq_meta.tsv
 ../clique4+_community/clique4+_community1.py
     ../clique4+_community/out/ggraph1/5clique/gclusters.txt
 ../connect_ggraph/connect_ggraph1.py

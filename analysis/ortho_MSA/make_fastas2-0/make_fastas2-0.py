@@ -16,9 +16,9 @@ with open('../config/genomes.tsv') as file:
         spid, _, source, prot_path = line.split()
         genomes.append((spid, source, prot_path))
 
-# Load pp metadata
+# Load seq metadata
 ppid2gnid = {}
-with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
+with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
         ppid, gnid, _ = line.split()
         ppid2gnid[ppid] = gnid
@@ -77,8 +77,8 @@ DEPENDENCIES
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../../ortho_cluster3/clique4+_community/clique4+_community.py
     ../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt
-../../ortho_search/ppid2meta/ppid2meta.py
-    ../../ortho_search/ppid2meta/out/ppid2meta.tsv
+../../ortho_search/seq_meta/seq_meta.py
+    ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../OGid2meta/OGid2meta.py
     ../OGid2meta/out/OGid2meta.tsv
 """

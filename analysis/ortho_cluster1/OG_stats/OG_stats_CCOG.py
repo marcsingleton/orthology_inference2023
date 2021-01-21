@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 
-# Load gn metadata
+# Load seq metadata
 gnid2spid = {}
-with open('../ppid2meta/out/ppid2meta.tsv') as file:
+with open('../ppid2meta/out/seq_meta.tsv') as file:
     for line in file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
@@ -160,8 +160,8 @@ DEPENDENCIES
     ../connect_xgraph/out/gconnect.txt
 ../hsp_stats/hsp_stats.py
     ../hsp_stats/out/hits_reciprocal/sgnids.tsv
-../ppid2meta/ppid2meta.py
-    ../ppid2meta/out/ppid2meta.tsv
+../seq_meta/seq_meta.py
+    ../seq_meta/out/seq_meta.tsv
 ../subcluster_xgraph/subcluster_ggraph.py
     ../subcluster_xgraph/out/ggraph/gclusters.txt
 """

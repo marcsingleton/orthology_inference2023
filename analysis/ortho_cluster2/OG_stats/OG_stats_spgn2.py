@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 
-# Load gn metadata
+# Load seq metadata
 gnid2spid = {}
-with open('../../ortho_search/ppid2meta/out/ppid2meta.tsv') as file:
+with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
         _, gnid, spid = line.split()
         gnid2spid[gnid] = spid
@@ -236,6 +236,6 @@ These plots are largely based off those in analysis/EggNOGv5_validation/ali_stat
 DEPENDENCIES
 ../subcluster_ggraph/subcluster_ggraph2.py
     ../subcluster_ggraph/ggraph2/out/gclusters.tsv
-../../ortho_search/ppid2meta/ppid2meta.py
-    ../../ortho_search/ppid2meta/out/ppid2meta.tsv
+../../ortho_search/seq_meta/seq_meta.py
+    ../../ortho_search/seq_meta/out/seq_meta.tsv
 """

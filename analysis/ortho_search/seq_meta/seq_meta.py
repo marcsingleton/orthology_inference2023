@@ -42,7 +42,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Write graph as adjacency list to file
-with open('out/ppid2meta.tsv', 'w') as outfile:
+with open('out/seq_meta.tsv', 'w') as outfile:
     for ppid, meta in ppid2meta.items():
         outfile.write(ppid + '\t' + '\t'.join(meta) + '\n')
 
