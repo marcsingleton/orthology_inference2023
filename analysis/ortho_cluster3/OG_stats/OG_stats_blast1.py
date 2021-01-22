@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
     # Load data
     rows = []
-    with open('../clique4+_community/out/ggraph1/5clique/gclusters.txt') as file:
+    with open('../clique4+_gcommunity/out/ggraph1/5clique/gclusters.txt') as file:
         for line in file:
             CCid, OGid, edges = line.rstrip().split(':')
             for edge in edges.split('\t'):
@@ -364,6 +364,6 @@ DEPENDENCIES
 ../../ortho_search/hits2reciprocal/hits2reciprocal.py
     ../../ortho_search/hits2reciprocal/out/*/*.tsv
 ../config/genomes.tsv
-../clique4+_community/clique4+_community1.py
-    ../clique4+_community/out/ggraph1/5clique/gclusters.txt
+../clique4+_gcommunity/clique4+_gcommunity1.py
+    ../clique4+_gcommunity/out/ggraph1/5clique/gclusters.txt
 """

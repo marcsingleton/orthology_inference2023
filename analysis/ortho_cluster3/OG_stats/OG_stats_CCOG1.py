@@ -22,7 +22,7 @@ CCs = pd.DataFrame(rows)
 
 # Load OGs
 rows = []
-with open('../clique4+_community/out/ggraph1/5clique/gclusters.txt') as file:
+with open('../clique4+_gcommunity/out/ggraph1/5clique/gclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -135,8 +135,8 @@ plt.close()
 DEPENDENCIES
 ../../ortho_search//seq_meta.py
     ../../ortho_search//out/seq_meta.tsv
-../clique4+_community/clique4+_community1.py
-    ../clique4+_community/out/ggraph1/5clique/gclusters.txt
+../clique4+_gcommunity/clique4+_gcommunity1.py
+    ../clique4+_gcommunity/out/ggraph1/5clique/gclusters.txt
 ../connect_ggraph/connect_ggraph1.py
     ../connect_ggraph/out/gconnect1.txt
 ../hsp_stats/hsp_stats.py

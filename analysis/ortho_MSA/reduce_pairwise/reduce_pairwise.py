@@ -112,7 +112,7 @@ with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
 
 # Load OGs and tree
 OGs = {}
-with open('../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt') as file:
+with open('../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt') as file:
     for line in file:
         _, OGid, edges = line.rstrip().split(':')
         OGs[OGid] = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -152,8 +152,8 @@ with open('out/rclusters.tsv', 'w') as outfile:
 
 """
 DEPENDENCIES
-../../ortho_cluster3/clique4+_community/clique4+_community2.py
-    ../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt
+../../ortho_cluster3/clique4+_gcommunity/clique4+_gcommunity2.py
+    ../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt
 ../../ortho_cluster3/hits2ggraph/hits2ggraph2.py
     ../../ortho_cluster3/hits2ggraph/out/ggraph2.tsv
 ../../ortho_cluster3/hits2pgraph/hits2pgraph.py

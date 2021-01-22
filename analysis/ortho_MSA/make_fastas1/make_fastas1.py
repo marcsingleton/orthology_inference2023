@@ -51,7 +51,7 @@ for spid0, source, prot_path in genomes:
 
 # Load OGs and OG metadata
 OGs = {}
-with open('../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt') as file:
+with open('../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt') as file:
     for line in file:
         _, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -76,8 +76,8 @@ DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../config/genomes.tsv
-../../ortho_cluster3/clique4+_community/clique4+_community.py
-    ../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt
+../../ortho_cluster3/clique4+_gcommunity/clique4+_gcommunity.py
+    ../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../OG_meta/OG_meta.py

@@ -1,4 +1,4 @@
-"""Cluster graph of protein BRHs by triangle criterion, implemented as a variant of a depth-first search."""
+"""Clusters graph of protein BRHs by triangle criterion, implemented as a variant of a depth-first search."""
 
 from itertools import combinations
 

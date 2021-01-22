@@ -1,4 +1,4 @@
-"""Implements a depth-first search of a graph."""
+"""Finds connected components of graph, implemented as a depth-first search."""
 
 
 class Node:

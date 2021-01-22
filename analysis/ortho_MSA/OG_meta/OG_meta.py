@@ -15,7 +15,7 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt') as file:
+with open('../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -52,6 +52,6 @@ OGs with 26 genes, species, and sequences: 2492
 DEPENDENCIES
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
-../../ortho_cluster3/clique4+_community/clique4+_community.py
-    ../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt
+../../ortho_cluster3/clique4+_gcommunity/clique4+_gcommunity.py
+    ../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt
 """

@@ -27,7 +27,7 @@ def load_alignment(path):
 
 
 rows = []
-with open('../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt') as file:
+with open('../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
         gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -59,8 +59,8 @@ for record in df.dropna().itertuples():
 """
 DEPENDENCIES
 ../../../src/draw.py
-../../ortho_cluster3/clique4+_community/clique4+_community2.py
-    ../../ortho_cluster3/clique4+_community/out/ggraph2/5clique/gclusters.txt
+../../ortho_cluster3/clique4+_gcommunity/clique4+_gcommunity2.py
+    ../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt
 ../ortho_tree/consensus_tree/consensus_tree.py
     ../ortho_tree/consensus_tree/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
