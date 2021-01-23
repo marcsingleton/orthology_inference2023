@@ -129,7 +129,7 @@ for CCid, CC in CCs:
     for k in ks:
         try:
             signal.signal(signal.SIGALRM, percolate.percolate_handler)
-            signal.alarm(30)
+            signal.alarm(60)
             subOGs = list(percolate.k_clique_communities_progressive(G, k, cliques))
             signal.alarm(0)
         except percolate.PercolateError:

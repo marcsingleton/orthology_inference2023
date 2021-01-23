@@ -44,8 +44,8 @@ OGs.to_csv('out/OG_meta.tsv', sep='\t', index=False)
 
 """
 OUTPUT 
-Total OGs: 16757
-OGs with 26 genes: 7904
+Total OGs: 14533
+OGs with 26 genes: 7903
 OGs with 26 genes and species: 7733
 OGs with 26 genes, species, and sequences: 2492
 
