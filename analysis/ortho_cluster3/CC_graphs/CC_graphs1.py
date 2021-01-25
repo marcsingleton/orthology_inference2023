@@ -13,7 +13,7 @@ def load_OGs(path):
     OGs = {}
     with open(path) as file:
         for line in file:
-            CCid, OGid, edges = line.rstrip().split(':')
+            CCid, _, edges = line.rstrip().split(':')
             gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
             try:
                 OGs[CCid].append(gnids)
@@ -73,16 +73,16 @@ CCids = sorted(CCs, key=lambda x: len(CCs[x]), reverse=True)
 for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
     subggraph = {node: ggraph[node] for node in CCs[CCid]}
 
-    # Create graph and segment nodes by data source
+    # Create graph
     G = nx.Graph()
     for node, adjs in subggraph.items():
         G.add_node(node)
         for adj, w in adjs:
             if (node, adj) in G.edges:
                 edge_data = G.get_edge_data(node, adj)
-                edge_data['weight'] = edge_data.get('weight', 0) + int(w)  # Sum edge weights
+                edge_data['weight'] = edge_data.get('weight', 0) + float(w)  # Sum edge weights
             else:
-                G.add_edge(node, adj, weight=int(w))
+                G.add_edge(node, adj, weight=float(w))
 
     # Get positions and canvas limits
     pos = nx.kamada_kawai_layout(G, weight=None)  # Weight is None as otherwise is used for layout

@@ -1,4 +1,4 @@
-"""Draw largest connected components."""
+"""Draw largest OGs."""
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -9,17 +9,17 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from numpy import linspace
 
 
-def load_OGs(path):
-    OGs = {}
+def load_pOGs(path):
+    pOGs = {}
     with open(path) as file:
         for line in file:
-            CCid, _, edges = line.rstrip().split(':')
+            OGid, _, edges = line.rstrip().split(':')
             gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
             try:
-                OGs[CCid].append(gnids)
+                pOGs[OGid].append(gnids)
             except KeyError:
-                OGs[CCid] = [gnids]
-    return OGs
+                pOGs[OGid] = [gnids]
+    return pOGs
 
 
 def blend_colors(colors):
@@ -45,39 +45,86 @@ def get_node_colors(graph, OGs):
     return node_colors
 
 
-# Load ggraph
-ggraph = {}
-with open('../hits2ggraph/out/ggraph2.tsv') as file:
+# Load seq metadata
+gnid2ppids = {}
+ppid2gnid = {}
+ppid2spid = {}
+with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+    for line in file:
+        ppid, gnid, spid, repr = line.split()
+        ppid2spid[ppid] = spid
+        ppid2gnid[ppid] = gnid
+        if repr == 'True':
+            try:
+                gnid2ppids[gnid].append(ppid)
+            except KeyError:
+                gnid2ppids[gnid] = [ppid]
+
+# Load pgraph
+pgraph = {}
+with open('../hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        ggraph[node] = [adj.split(':') for adj in adjs.split(',')]
-
-# Load connected components
-CCs = {}
-with open('../connect_ggraph/out/gconnect2.txt') as file:
-    for line in file:
-        CCid, nodes = line.rstrip().split(':')
-        CCs[CCid] = set(nodes.split(','))
+        bitscores = {}
+        for adj in adjs.split(','):
+            adj_node, adj_bitscore = adj.split(':')
+            bitscores[adj_node] = float(adj_bitscore)
+        pgraph[node] = bitscores
 
 # Load OGs
-OG3s = load_OGs('../subcluster_ggraph/out/ggraph2/gclusters.txt')
-OG4s = load_OGs('../clique4+_gcommunity/out/ggraph2/4clique/gclusters.txt')
-OG5s = load_OGs('../clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt')
-OG6s = load_OGs('../clique4+_gcommunity/out/ggraph2/6clique/gclusters.txt')
+OGs = {}
+with open('../clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt') as file:
+    for line in file:
+        _, OGid, edges = line.rstrip().split(':')
+        gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
+        OGs[OGid] = gnids
+
+# Load pOGs
+pOG3s = load_pOGs('../subcluster_pgraph/out/pclusters.txt')
+pOG4s = load_pOGs('../clique4+_pcommunity/out/4clique/pclusters.txt')
+pOG5s = load_pOGs('../clique4+_pcommunity/out/5clique/pclusters.txt')
+pOG6s = load_pOGs('../clique4+_pcommunity/out/6clique/pclusters.txt')
 
 # Make output directory
-if not os.path.exists('out/ggraph2/'):
-    os.makedirs('out/ggraph2/')  # Recursive folder creation
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
-CCids = sorted(CCs, key=lambda x: len(CCs[x]), reverse=True)
-for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
-    subggraph = {node: ggraph[node] for node in CCs[CCid]}
+OGids = sorted(OGs, key=lambda x: len(OGs[x]), reverse=True)
+for i, OGid in enumerate(OGids[:50]):  # 50 largest OGs
+    # Make subpgraph
+    subpgraph = {}
+    ppids = set([ppid for gnid in OGs[OGid] for ppid in gnid2ppids[gnid]])
+    for ppid in ppids:
+        # Collect hits by SPID
+        spids = {}
+        for adj_node, adj_bitscore in pgraph.get(ppid, {}).items():  # In case PPID has no hits
+            spid = ppid2spid[adj_node]
+            try:
+                spids[spid][adj_node] = adj_bitscore
+            except KeyError:
+                spids[spid] = {adj_node: adj_bitscore}
+
+        # Find max hits for each SPID
+        d = dict()
+        for spid, adjs in spids.items():
+            max_bitscore = max(adjs.values())
+            d.update({adj_node: adj_bitscore for adj_node, adj_bitscore in adjs.items() if adj_bitscore == max_bitscore})
+        subpgraph[ppid] = d
+
+    # Filter subpgraph by reciprocity
+    for node, adjs in subpgraph.items():
+        del_keys = []
+        for adj in adjs:
+            if not (adj in subpgraph and node in subpgraph[adj]):
+                del_keys.append(adj)
+        for del_key in del_keys:
+            del adjs[del_key]
 
     # Create graph
     G = nx.Graph()
-    for node, adjs in subggraph.items():
+    for node, adjs in subpgraph.items():
         G.add_node(node)
-        for adj, w in adjs:
+        for adj, w in adjs.items():
             if (node, adj) in G.edges:
                 edge_data = G.get_edge_data(node, adj)
                 edge_data['weight'] = edge_data.get('weight', 0) + float(w)  # Sum edge weights
@@ -118,8 +165,8 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
         locs.remove(loc)
 
     # Draw graph labeled by source
-    node_size = 25/(1 + exp(0.01*(len(subggraph)-400))) + 10  # Adjust node size
-    FB = [node for node in G.nodes if node.startswith('FBgn')]
+    node_size = 25/(1 + exp(0.01*(len(subpgraph)-400))) + 10  # Adjust node size
+    FB = [node for node in G.nodes if node.startswith('FBpp')]
     NCBI = G.nodes - FB
 
     fig, ax = plt.subplots(figsize=figsize, dpi=300)
@@ -130,21 +177,21 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
     fig.legend(markerscale=(1 if node_size > 22.5 else 22.5/node_size), loc=locs[-1])
     fig.tight_layout()
     ax.axis('off')
-    fig.savefig(f'out/ggraph2/{i}_{CCid}_source.png')
+    fig.savefig(f'out/{i}_{OGid}_source.png')
     plt.close()
 
     # Draw graph labeled by cluster
-    for j, OGjs in zip(range(3, 7), [OG3s, OG4s, OG5s, OG6s]):
+    for j, OGjs in zip(range(3, 7), [pOG3s, pOG4s, pOG5s, pOG6s]):
         fig, ax = plt.subplots(figsize=figsize, dpi=300)
         nx.draw_networkx_edges(G, pos, alpha=0.25, width=0.5)
-        nx.draw_networkx_nodes(G.nodes, pos, node_size=node_size, linewidths=0, node_color=get_node_colors(G, OGjs[CCid]))
+        nx.draw_networkx_nodes(G.nodes, pos, node_size=node_size, linewidths=0, node_color=get_node_colors(G, OGjs[OGid]))
         fig.tight_layout()
         ax.axis('off')
-        fig.savefig(f'out/ggraph2/{i}_{CCid}_OG{j}.png')
+        fig.savefig(f'out/{i}_{OGid}_OG{j}.png')
         plt.close()
 
     # Draw graph labeled by edge
-    node_size = 20/(1 + exp(0.01*(len(subggraph)-400))) + 10  # Adjust node size
+    node_size = 20/(1 + exp(0.01*(len(subpgraph)-400))) + 10  # Adjust node size
     edges = sorted(G.edges, key=lambda x: G.get_edge_data(*x)['weight'])
 
     ws = [G.get_edge_data(*edge)['weight'] for edge in edges]
@@ -163,19 +210,17 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
 
     fig.tight_layout()
     ax.axis('off')
-    fig.savefig(f'out/ggraph2/{i}_{CCid}_edge.png')
+    fig.savefig(f'out/{i}_{OGid}_edge.png')
     plt.close()
 
 """
 DEPENDENCIES
-../clique4+_gcommunity/clique4+_gcommunity2.py
-    ../clique4+_gcommunity/out/ggraph2/4clique/gclusters.txt
-    ../clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt
-    ../clique4+_gcommunity/out/ggraph2/6clique/gclusters.txt
-../connect_ggraph/connect_ggraph2.py
-    ../connect_ggraph/out/gconnect2.txt
-../hits2ggraph/hits2ggraph2.py
-    ../hits2ggraph/out/ggraph2.tsv
-../subcluster_ggraph/subcluster_ggraph2.py
-    ../subcluster_ggraph/out/ggraph2/gclusters.txt
+../../ortho_search/seq_meta.py
+    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../clique4+_pcommunity/clique4+_pcommunity.py
+    ../clique4+_pcommunity/out/4clique/pclusters.txt
+    ../clique4+_pcommunity/out/5clique/pclusters.txt
+    ../clique4+_pcommunity/out/6clique/pclusters.txt
+../hits2pgraph/hits2pgraph.py
+    ../hits2pgraph/out/pgraph2.tsv
 """
