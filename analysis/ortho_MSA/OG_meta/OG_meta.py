@@ -22,7 +22,7 @@ with open('../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gcluster
         spids = set([gnid2spid[gnid] for gnid in gnids])
         sqidnum = sum([gnid2sqidnum[gnid] for gnid in gnids])
         rows.append({'CCid': CCid, 'OGid': OGid,
-                     'edgenum': len(edges), 'gnidnum': len(gnids), 'spidnum': len(spids), 'sqidnum': sqidnum})
+                     'edgenum': len(edges.split('\t')), 'gnidnum': len(gnids), 'spidnum': len(spids), 'sqidnum': sqidnum})
 OGs = pd.DataFrame(rows)
 
 # Print counts
@@ -52,6 +52,6 @@ OGs with 26 genes, species, and sequences: 2492
 DEPENDENCIES
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
-../../ortho_cluster3/clique4+_gcommunity/clique4+_gcommunity.py
+../../ortho_cluster3/clique4+_gcommunity/clique4+_gcommunity2.py
     ../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt
 """

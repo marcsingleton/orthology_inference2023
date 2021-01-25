@@ -22,7 +22,7 @@ with open('../clique4+_gcommunity/out/5clique/gclusters.txt') as file:
         spids = set([gnid2spid[gnid] for gnid in gnids])
         sqidnum = sum([gnid2sqidnum[gnid] for gnid in gnids])
         rows.append({'CCid': CCid, 'OGid': OGid,
-                     'edgenum': len(edges), 'gnidnum': len(gnids), 'spidnum': len(spids), 'sqidnum': sqidnum})
+                     'edgenum': len(edges.split('\t')), 'gnidnum': len(gnids), 'spidnum': len(spids), 'sqidnum': sqidnum})
 OGs = pd.DataFrame(rows)
 
 # Print counts
