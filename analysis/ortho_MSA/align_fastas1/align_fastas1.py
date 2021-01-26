@@ -7,8 +7,9 @@ from time import time_ns
 
 
 def run_cmd(file_id):
-    cmd = (f'../../../bin/clustalo -i ../make_fastas1/out/{file_id}.tfa '
-           f'--iterations 1 --threads=1 -o out/{file_id}.mfa')
+    cmd = (f'../../../bin/mafft --genafpair --maxiterate 1000 --thread 1 --anysymbol '
+           f'../make_fastas1/out/{file_id}.tfa '
+           f'1> out/{file_id}.mfa 2> out/{file_id}.err')
     try:
         t0 = time_ns()
         run(cmd, shell=True, check=True)
