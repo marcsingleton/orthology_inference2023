@@ -78,14 +78,21 @@ def update_tip_names(tree):
             node.tip_names = set().union(*[child.tip_names for child in node.children])
 
 
-def reduce(OGid, OG):
+def reduce(pOGid, pOG):
     """Return representative PPIDs for all GNIDs associated with tips in node."""
+    # Extract sequences
+    seqs = []
+    ids = []
+    for ppid in pOG:
+        seqs.append(ppid2seq[ppid])
+        gnid, spid = ppid2meta[ppid]
+        ids.append(f"'{spid}:{gnid}:{ppid}'")  # Wrap in quotes to ensure correct parsing
+
     # Make distance matrix
     k, p = 4, 2  # Tuple size and power
     i, j = 0, 1  # Matrix indices
-    seqs = [(ppid, gnid, spid, seq) for gnid in OG for ppid, spid, seq in gnid2seqs[gnid]]
     dm0 = np.zeros((len(seqs), len(seqs)))
-    for (ppid1, _, _, seq1), (ppid2, _, _, seq2) in combinations(seqs, 2):
+    for seq1, seq2 in combinations(seqs, 2):
         # Calculate distance and store in matrix
         d = get_ktuple_distance(seq1.translate(table), seq2.translate(table), k, p)
         dm0[i, j] = d
@@ -96,7 +103,7 @@ def reduce(OGid, OG):
         if j > len(seqs) - 1:
             i += 1
             j = i + 1
-    dm0 = distance.DistanceMatrix(dm0, ids=[f"'{spid}:{gnid}:{ppid}'" for ppid, gnid, spid, _ in seqs])  # Wrap in quotes to ensure correct parsing
+    dm0 = distance.DistanceMatrix(dm0, ids=ids)
 
     # Make tree
     tree = skbio.tree.nj(dm0)
@@ -105,7 +112,8 @@ def reduce(OGid, OG):
     msd = get_max_gnid_distances(dm)
 
     # Prune tree
-    while len(tree.tip_names) > len(OG):
+    gnids = set([ppid2meta[ppid][0] for ppid in pOG])
+    while len(tree.tip_names) > len(gnids):
         # Remove non-minimal tips in single-species clades
         for node in tree.postorder():
             if node.is_tip():
@@ -128,11 +136,11 @@ def reduce(OGid, OG):
             tip_gnids1 = set([tip_name.split(':')[1] for tip_name in node.tip_names])
             tip_gnids2 = set([tip_name.split(':')[1] for tip_name in (tree.tip_names - node.tip_names)])
 
-            if tip_gnids1 == OG:
+            if tip_gnids1 == gnids:
                 tree1 = tree.shear(node.tip_names)
                 msd1 = update_max_gnid_distances(msd, dm, tree1, tip_gnids2)
                 trees.append((tree1, msd1))
-            if tip_gnids2 == OG:
+            if tip_gnids2 == gnids:
                 tree2 = tree.shear(tree.tip_names - node.tip_names)
                 msd2 = update_max_gnid_distances(msd, dm, tree2, tip_gnids1)
                 trees.append((tree2, msd2))
@@ -142,7 +150,7 @@ def reduce(OGid, OG):
 
     # Extract sequences from tree
     rOG = [tip_name.split(':') for tip_name in tree.tip_names]
-    return OGid, rOG
+    return pOGid, rOG
 
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
@@ -166,49 +174,41 @@ with open('../config/genomes.tsv') as file:
         genomes.append((spid, source, prot_path))
 
 # Load seq metadata
-ppid2gnid = {}
+ppid2meta = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        ppid, gnid, _, _ = line.split()
-        ppid2gnid[ppid] = gnid
+        ppid, gnid, spid, _ = line.split()
+        ppid2meta[ppid] = (gnid, spid)
 
 # Load seqs
-gnid2seqs = {}
+ppid2seq = {}
 for spid0, source, prot_path in genomes:
     with open(prot_path) as file:
         line = file.readline()
         while line:
             if line.startswith('>'):
-                ppid0 = re.search(pp_regex[source], line).group(1)
-                gnid = ppid2gnid[ppid0]
+                ppid = re.search(pp_regex[source], line).group(1)
+                gnid = ppid2meta[ppid][0]
                 line = file.readline()
 
             seqlines = []
             while line and not line.startswith('>'):
                 seqlines.append(line.rstrip())
                 line = file.readline()
-            seq0 = ''.join(seqlines)
+            seq = ''.join(seqlines)
+            ppid2seq[ppid] = seq
 
-            try:
-                for _, _, seq1 in gnid2seqs[gnid]:
-                    if seq0 == seq1:
-                        break
-                else:
-                    gnid2seqs[gnid].append((ppid0, spid0, seq0))
-            except KeyError:
-                gnid2seqs[gnid] = [(ppid0, spid0, seq0)]
-
-# Load OGs
-OGs = {}
-with open('../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt') as file:
+# Load pOGs
+pOGs = {}
+with open('../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt') as file:
     for line in file:
-        _, OGid, edges = line.rstrip().split(':')
-        gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
-        OGs[OGid] = gnids
+        _, pOGid, edges = line.rstrip().split(':')
+        ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
+        pOGs[pOGid] = ppids
 
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        rOGs = pool.starmap(reduce, list(OGs.items()))
+        rOGs = pool.starmap(reduce, pOGs.items())
 
     # Make output directory
     if not os.path.exists('out/'):
@@ -216,17 +216,17 @@ if __name__ == '__main__':
 
     # Write reduced clusters to file
     with open('out/rclusters.tsv', 'w') as outfile:
-        outfile.write('OGid\tspid\tgnid\tppid\n')
-        for OGid, rOG in rOGs:
+        outfile.write('pOGid\tspid\tgnid\tppid\n')
+        for pOGid, rOG in rOGs:
             for entry in rOG:
-                outfile.write(OGid + '\t' + '\t'.join(entry) + '\n')
+                outfile.write(pOGid + '\t' + '\t'.join(entry) + '\n')
 
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-../../ortho_cluster3/clique4+_gcommunity/clique4+_gcommunity2.py
-    ../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt
+../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity.py
+    ../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../config/genomes.tsv

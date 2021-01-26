@@ -17,56 +17,56 @@ with open('../config/genomes.tsv') as file:
         genomes.append((spid, source, prot_path))
 
 # Load seq metadata
-ppid2gnid = {}
+ppid2meta = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        ppid, gnid, _, _ = line.split()
-        ppid2gnid[ppid] = gnid
+        ppid, gnid, spid, _ = line.split()
+        ppid2meta[ppid] = (gnid, spid)
 
 # Load seqs
-gnid2seqs = {}
-for spid0, source, prot_path in genomes:
+ppid2seq = {}
+for spid, source, prot_path in genomes:
     with open(prot_path) as file:
         line = file.readline()
         while line:
             if line.startswith('>'):
-                ppid0 = re.search(pp_regex[source], line).group(1)
-                gnid = ppid2gnid[ppid0]
+                ppid = re.search(pp_regex[source], line).group(1)
                 line = file.readline()
 
             seqlines = []
             while line and not line.startswith('>'):
                 seqlines.append(line.rstrip())
                 line = file.readline()
-            seq0 = ''.join(seqlines)
+            seq = ''.join(seqlines)
+            ppid2seq[ppid] = seq
 
-            try:
-                for _, _, seq1 in gnid2seqs[gnid]:
-                    if seq0 == seq1:
-                        break
-                else:
-                    gnid2seqs[gnid].append((ppid0, spid0, seq0))
-            except KeyError:
-                gnid2seqs[gnid] = [(ppid0, spid0, seq0)]
-
-# Load OGs and OG metadata
-OGs = {}
-with open('../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt') as file:
+# Load pOGs and pOG metadata
+pOGs = {}
+with open('../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt') as file:
     for line in file:
-        _, OGid, edges = line.rstrip().split(':')
-        gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
-        OGs[OGid] = gnids
-OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
+        _, pOGid, edges = line.rstrip().split(':')
+        ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
+        pOGs[pOGid] = ppids
+pOG_meta = pd.read_table('../pOG_meta/out/pOG_meta.tsv')
 
 # Write sequences
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = OG_meta.loc[~(OG_meta['gnidnum'] == OG_meta['sqidnum']), 'OGid']
-for OGid in OGids:
-    with open(f'out/{OGid}.tfa', 'w') as file:
-        for gnid in OGs[OGid]:
-            ppid, spid, seq = max(gnid2seqs[gnid], key=lambda x: len(x[2]))
+pOGids = pOG_meta.loc[~(pOG_meta['ppidnum'] == pOG_meta['gnidnum']), 'pOGid']
+for pOGid in pOGids:
+    gnid2ppids = {}
+    for ppid in pOGs[pOGid]:
+        gnid, spid = ppid2meta[ppid]
+        seq = ppid2seq[ppid]
+        try:
+            gnid2ppids[gnid].append((ppid, ppid2seq[ppid]))
+        except KeyError:
+            gnid2ppids[gnid] = [(ppid, ppid2seq[ppid])]
+    with open(f'out/{pOGid}.tfa', 'w') as file:
+        for gnid, ppids in gnid2ppids.items():
+            ppid, seq = max(ppids, key=lambda x: len(x[1]))
+            gnid, spid = ppid2meta[ppid]
             seqstring = '\n'.join(seq[i:i+80] for i in range(0, len(seq), 80)) + '\n'
             file.write(f'>ppid={ppid}|gnid={gnid}|spid={spid}\n')
             file.write(seqstring)
@@ -75,10 +75,11 @@ for OGid in OGids:
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-../../ortho_cluster3/clique4+_gcommunity/clique4+_gcommunity.py
-    ../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt
+../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity.py
+    ../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
-../OG_meta/OG_meta.py
-    ../OG_meta/out/OG_meta.tsv
+../config/genomes.tsv
+../pOG_meta/pOG_meta.py
+    ../pOG_meta/out/pOG_meta.tsv
 """

@@ -27,18 +27,18 @@ def reduce_terminal(tips, nontips, distances):
     # Get lists of species ids
     spids_list = [[tip.name for _ in tip.gnids] for tip in tips]
 
-    # Get lists of genes in OG for each species
-    gnids_list = [tip.gnids for tip in tips]
+    # Get lists of genes in pOG for each species
+    gnids_list = [tip.gnids.keys() for tip in tips]
 
     # Get sets of proteins corresponding to list of genes for each species
-    ppid_sets_list = [[set([ppid for ppid in gnid2ppids[gnid]]) for gnid in gnids] for gnids in gnids_list]
+    ppid_sets_list = [tip.gnids.values() for tip in tips]
 
     # Get all combinations of proteins with each gene represented once for each species
     ppid_prods_list = [product(*ppid_sets) for ppid_sets in ppid_sets_list]
 
     scores = []
     for ppid_prods in product(*ppid_prods_list):  # Separate species to sum only inter-species hits
-        # Add species and gene ids to locate in OG and calculate products to sum hits bidirectionally
+        # Add species and gene ids to locate in pOG and calculate products to sum hits bidirectionally
         zs = [list(zip(spids, gnids, ppid_prod)) for spids, gnids, ppid_prod in zip(spids_list, gnids_list, ppid_prods)]
 
         # Get species combinations then ppid combinations with terminals
@@ -80,24 +80,11 @@ pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
             'NCBI': r'([NXY]P_[0-9]+)'}
 
 # Load seq metadata
-gnid2spid = {}
-gnid2ppids = {}
+ppid2meta = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        ppid, gnid, spid, repr = line.split()
-        gnid2spid[gnid] = spid
-        if repr == 'True':
-            try:
-                gnid2ppids[gnid].append(ppid)
-            except KeyError:
-                gnid2ppids[gnid] = [ppid]
-
-# Load ggraph
-ggraph = {}
-with open('../../ortho_cluster3/hits2ggraph/out/ggraph2.tsv') as file:
-    for line in file:
-        node, adjs = line.rstrip('\n').split('\t')
-        ggraph[node] = set([adj.split(':')[0] for adj in adjs.split(',')])
+        ppid, gnid, spid, _ = line.split()
+        ppid2meta[ppid] = (gnid, spid)
 
 # Load pgraph
 pgraph = {}
@@ -110,34 +97,37 @@ with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
             bitscores[adj_node] = float(adj_bitscore)
         pgraph[node] = bitscores
 
-# Load OGs and tree
-OGs = {}
-with open('../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt') as file:
+# Load pOGs and tree
+pOGs = {}
+with open('../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt') as file:
     for line in file:
-        _, OGid, edges = line.rstrip().split(':')
-        OGs[OGid] = set([node for edge in edges.split('\t') for node in edge.split(',')])
+        _, pOGid, edges = line.rstrip().split(':')
+        ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
+        pOGs[pOGid] = ppids
 
 tree_template = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
 tree_template.shear([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
 
 rOGs = {}
-for OGid, OG in OGs.items():
+for pOGid, pOG in pOGs.items():
     # Add genes to leaves of tree
     tree = tree_template.deepcopy()
     tips = {tip.name: tip for tip in tree.tips()}
     remain = set()
-    for gnid in OG:
-        spid = gnid2spid[gnid]
+    for ppid in pOG:
+        gnid, spid = ppid2meta[ppid]
         remain.add(spid)
         try:
-            tips[spid].gnids.append(gnid)
+            tips[spid].gnids[gnid].append(ppid)
+        except KeyError:
+            tips[spid].gnids[gnid] = [ppid]
         except AttributeError:
-            tips[spid].gnids = [gnid]
+            tips[spid].gnids = {gnid: [ppid]}
     tree = tree.shear(remain)
 
-    # Reduce OG
+    # Reduce pOG
     rOG = reduce_node(tree)
-    rOGs[OGid] = rOG
+    rOGs[pOGid] = rOG
 
 # Make output directory
 if not os.path.exists('out/'):
@@ -145,17 +135,15 @@ if not os.path.exists('out/'):
 
 # Write reduced clusters to file
 with open('out/rclusters.tsv', 'w') as outfile:
-    outfile.write('OGid\tspid\tgnid\tppid\n')
+    outfile.write('pOGid\tspid\tgnid\tppid\n')
     for OGid, rOG in rOGs.items():
         for entry in rOG:
             outfile.write(OGid + '\t' + '\t'.join(entry) + '\n')
 
 """
 DEPENDENCIES
-../../ortho_cluster3/clique4+_gcommunity/clique4+_gcommunity2.py
-    ../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt
-../../ortho_cluster3/hits2ggraph/hits2ggraph2.py
-    ../../ortho_cluster3/hits2ggraph/out/ggraph2.tsv
+../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity.py
+    ../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt
 ../../ortho_cluster3/hits2pgraph/hits2pgraph.py
     ../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv
 ../../ortho_search/seq_meta/seq_meta.py
