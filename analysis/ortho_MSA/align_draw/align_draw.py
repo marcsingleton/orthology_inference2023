@@ -26,48 +26,62 @@ def load_alignment(path):
     return MSA
 
 
-rows = []
-with open('../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt') as file:
+# Load seq metadata
+ppid2gnid = {}
+with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        CCid, OGid, edges = line.rstrip().split(':')
-        gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
-        for gnid in gnids:
-            rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid})
-OGs = pd.DataFrame(rows)
+        ppid, gnid, _, _ = line.split()
+        ppid2gnid[ppid] = gnid
 
+# Load pOGs
+rows = []
+with open('../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt') as file:
+    for line in file:
+        OGid, pOGid, edges = line.rstrip().split(':')
+        ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
+        for ppid in ppids:
+            rows.append({'OGid': OGid, 'pOGid': pOGid, 'ppid': ppid, 'gnid': ppid2gnid[ppid]})
+pOGs = pd.DataFrame(rows)
+
+# Load pOG metadata and test genes
+pOG_meta = pd.read_table('../pOG_meta/out/pOG_meta.tsv')
 test_genes = pd.read_table('test_genes.tsv')
-OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv').drop(['CCid', 'edgenum'], axis=1)
+
+# Load tree
 tree = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
 tree = tree.shear([tip.name for tip in tree.tips() if tip.name != 'sleb'])
+order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
+# Draw alignments
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-df = OGs.merge(test_genes, on='gnid', how='right').merge(OG_meta, on='OGid', how='left')
-df.to_csv('out/OGids.tsv', sep='\t', index=False)
+df = pOGs.drop(['OGid', 'ppid'], axis=1).drop_duplicates().merge(pOG_meta, on='pOGid', how='right').merge(test_genes, on='gnid', how='right')
+df.to_csv('out/pOGids.tsv', sep='\t', index=False)
 
 for record in df.dropna().itertuples():
-    if record.sqidnum == record.gnidnum:
-        MSA = load_alignment(f'../align_fastas1/out/{record.OGid}.mfa')
+    if record.ppidnum == record.gnidnum:
+        MSA = load_alignment(f'../align_fastas1/out/{record.pOGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2-1/out/{record.OGid}.mfa')
+        MSA = load_alignment(f'../align_fastas2-2/out/{record.pOGid}.mfa')
 
-    order = {tip.name: i for i, tip in enumerate(tree.tips())}
     MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_alignment(MSA, f'out/{record.OGid}.png')
+    draw_alignment(MSA, f'out/{record.pOGid}.png')
 
 """
 DEPENDENCIES
 ../../../src/draw.py
+../../ortho_search/seq_meta/seq_meta.py
+    ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../../ortho_cluster3/clique4+_gcommunity/clique4+_gcommunity2.py
     ../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt
 ../ortho_tree/consensus_tree/consensus_tree.py
     ../ortho_tree/consensus_tree/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
-../align_fastas2-1/align_fastas2-0.py
+../align_fastas2-1/align_fastas2-2.py
     ../align_fastas2-1/out/*.mfa
-../OG_meta/OG_meta.py
-    ../OG_meta/out/OG_meta.tsv
+../pOG_meta/pOG_meta.py
+    ../pOG_meta/out/pOG_meta.tsv
 ./test_genes.tsv
 """
