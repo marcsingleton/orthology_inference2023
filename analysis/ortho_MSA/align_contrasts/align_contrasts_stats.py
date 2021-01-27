@@ -31,9 +31,10 @@ def load_alignment(path):
 
 tree = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
 tree = tree.shear([tip.name for tip in tree.tips() if tip.name != 'sleb'])
+order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
-OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv').drop(['CCid', 'edgenum'], axis=1)
-df = pd.read_table('out/row_sums.tsv').merge(OG_meta, on='OGid', how='left')
+pOG_meta = pd.read_table('../pOG_meta/out/pOG_meta.tsv')
+df = pd.read_table('out/row_sums.tsv').merge(pOG_meta, on='pOGid', how='left')
 df['c_sum'] = df[[f'c{i}' for i in range(25)]].sum(axis=1)
 df['c_avg'] = df['c_sum'] / df['len2']
 
@@ -47,7 +48,7 @@ max_idx = int(max_percentile * len(df)) - 1  # Subtract 1 due to 0 indexing
 x = [i / len(df) for i in range(size + 1, max_idx - size + 1)]
 
 contrasts = pd.concat([df[f'c{i}'] for i in range(num_contrasts)], keys=[f'c{i}' for i in range(num_contrasts)],
-                      names=['contrast_id', 'OGid']).sort_values(ascending=False)
+                      names=['contrast_id', 'pOGid']).sort_values(ascending=False)
 counts = [(i, contrasts[:max_idx].index.get_level_values('contrast_id') == f'c{i}') for i in range(num_contrasts)]
 tails = sorted([(i, np.convolve(count, np.ones(2 * size + 1) / (2 * size + 1), 'valid')) for i, count in counts],
                key=lambda y: sum(y[1]), reverse=True)
@@ -73,12 +74,12 @@ plt.savefig('out/hist_contrast_log.png')
 plt.close()
 
 # 1.3 Distribution of averages within OGs
-plt.hist(contrasts.groupby('OGid').mean(), bins=200)
-plt.xlabel('Contrast mean in OG')
+plt.hist(contrasts.groupby('pOGid').mean(), bins=200)
+plt.xlabel('Contrast mean in pOG')
 plt.ylabel('Count')
-plt.savefig('out/hist_contrast_OGmean.png')
+plt.savefig('out/hist_contrast_pOGmean.png')
 plt.yscale('log')
-plt.savefig('out/hist_contrast_OGmean_log.png')
+plt.savefig('out/hist_contrast_pOGmean_log.png')
 plt.close()
 
 # 1.4 Contrast averages across all OGs
@@ -96,14 +97,13 @@ if not os.path.exists('out/sum/'):
 # 2.1 Ranked by sum
 head1 = df.sort_values(by='c_sum', ascending=False).head(100)
 for i, record in enumerate(head1.itertuples()):
-    if record.sqidnum == record.gnidnum:
-        MSA = load_alignment(f'../align_fastas1/out/{record.OGid}.mfa')
+    if record.ppidnum == record.gnidnum:
+        MSA = load_alignment(f'../align_fastas1/out/{record.pOGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2-1/out/{record.OGid}.mfa')
+        MSA = load_alignment(f'../align_fastas2-2/out/{record.pOGid}.mfa')
 
-    order = {tip.name: i for i, tip in enumerate(tree.tips())}
     MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_alignment(MSA, f'out/sum/{i}_{record.OGid}.png')
+    draw_alignment(MSA, f'out/sum/{i}_{record.pOGid}.png')
 
 # 2.2 Ranked by avg
 if not os.path.exists('out/avg/'):
@@ -111,14 +111,13 @@ if not os.path.exists('out/avg/'):
 
 head1 = df.sort_values(by='c_avg', ascending=False).head(100)
 for i, record in enumerate((head1.itertuples())):
-    if record.sqidnum == record.gnidnum:
-        MSA = load_alignment(f'../align_fastas1/out/{record.OGid}.mfa')
+    if record.ppidnum == record.gnidnum:
+        MSA = load_alignment(f'../align_fastas1/out/{record.pOGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2-1/out/{record.OGid}.mfa')
+        MSA = load_alignment(f'../align_fastas2-2/out/{record.pOGid}.mfa')
 
-    order = {tip.name: i for i, tip in enumerate(tree.tips())}
     MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_alignment(MSA, f'out/avg/{i}_{record.OGid}.png')
+    draw_alignment(MSA, f'out/avg/{i}_{record.pOGid}.png')
 
 """
 ../../../src/draw.py
@@ -126,10 +125,10 @@ for i, record in enumerate((head1.itertuples())):
     ../../ortho_tree/consensus_tree/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
-../align_fastas2-1/align_fastas2-1.py
-    ../align_fastas2-1/out/*.mfa
-../OG_meta/OG_meta.py
-    ../OG_meta/out/OG_meta.tsv
+../align_fastas2-2/align_fastas2-2.py
+    ../align_fastas2-2/out/*.mfa
+../pOG_meta/pOG_meta.py
+    ../pOG_meta/out/pOG_meta.tsv
 ./align_contrasts_calc.py
     ./out/row_sums.tsv
 """

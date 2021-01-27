@@ -51,21 +51,30 @@ def load_alignment(path):
     return MSA
 
 
+# Load tree
 tree_template = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
 tree_template = tree_template.shear([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
 
-OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv').drop(['CCid', 'edgenum'], axis=1)
-df = OG_meta[(OG_meta['gnidnum'] == 26) & (OG_meta['spidnum'] == 26)]
+# Load pOGs and extract representatives for each OG
+pOG_meta = pd.read_table('../pOG_meta/out/pOG_meta.tsv')
 
+idxs = []
+for _, group in pOG_meta.groupby(['OGid', 'overlap']):
+    idx = max(group.itertuples(), key=lambda x: (x.spidnum, -x.gnidnum, x.bitscore)).Index  # Most species, least genes, highest bitscore
+    idxs.append(idx)
+df1 = pOG_meta.iloc[idxs]
+df2 = df1[(df1['gnidnum'] == 26) & (df1['spidnum'] == 26)]
+
+# Calculate contrasts
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
 rows = []
-for record in df.itertuples():
-    if record.sqidnum == record.gnidnum:
-        MSA = load_alignment(f'../align_fastas1/out/{record.OGid}.mfa')
+for record in df2.itertuples():
+    if record.ppidnum == record.gnidnum:
+        MSA = load_alignment(f'../align_fastas1/out/{record.pOGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2-1/out/{record.OGid}.mfa')
+        MSA = load_alignment(f'../align_fastas2-2/out/{record.pOGid}.mfa')
 
     tree = tree_template.deepcopy()
     for tip in tree.tips():
@@ -78,10 +87,10 @@ for record in df.itertuples():
     gap_matrix = np.asarray([[0 if sym == '-' else 1 for sym in seq] for seq in MSA.values()])
     len1 = len(MSA['dmel'])  # Total length of alignment
     len2 = (gap_matrix / 26).sum()  # Adjusted length of alignment
-    rows.append([record.OGid, str(len1), str(len2)] + [str(row_sum) for row_sum in row_sums])
+    rows.append([record.pOGid, str(len1), str(len2)] + [str(row_sum) for row_sum in row_sums])
 
 with open('out/row_sums.tsv', 'w') as file:
-    header = '\t'.join(['OGid', 'len1', 'len2'] + [f'c{i}' for i in range(25)]) + '\n'
+    header = '\t'.join(['pOGid', 'len1', 'len2'] + [f'c{i}' for i in range(25)]) + '\n'
     file.writelines(header)
     for row in rows:
         file.writelines('\t'.join(row) + '\n')
@@ -92,8 +101,8 @@ DEPENDENCIES
     ../ortho_tree/consensus_tree/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
-../align_fastas2-1/align_fastas2-1.py
-    ../align_fastas2-1/out/*.mfa
-../OG_meta/OG_meta.py
-    ../OG_meta/out/OG_meta.tsv
+../align_fastas2-2/align_fastas2-2.py
+    ../align_fastas2-2/out/*.mfa
+../pOG_meta/pOG_meta.py
+    ../pOG_meta/out/pOG_meta.tsv
 """
