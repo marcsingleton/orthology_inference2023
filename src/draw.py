@@ -8,14 +8,14 @@ from matplotlib.collections import LineCollection
 from matplotlib import rcParams
 
 
-def draw_alignment(MSA, file, ratio=2.5,
+def draw_msa(msa, file, ratio=2.5,
                    spacing=25, sym_length=7, sym_height=7,
                    cols_im=None, aa2color=None):
     """Draw alignment as PNG.
 
     Parameters
     ----------
-    MSA: list of strings
+    msa: list of strings
     file: string
         Pathname of the file for the image to be saved as.
     ratio: float
@@ -34,7 +34,7 @@ def draw_alignment(MSA, file, ratio=2.5,
         Mapping of symbols to color hex codes.
     """
     # Define functions and globals
-    ROWS, COLS = len(MSA), len(MSA[0][1])
+    ROWS, COLS = len(msa), len(msa[0][1])
 
     def get_dims(cols_im):
         length_im = sym_length * cols_im  # Length of final image
@@ -82,7 +82,7 @@ def draw_alignment(MSA, file, ratio=2.5,
     # Instantiate array and fill with values
     length_im, height_im = get_dims(cols_im)
     im = np.full((height_im, length_im, 3), 255, dtype='uint8')
-    for i, record in enumerate(MSA):
+    for i, record in enumerate(msa):
         for j, sym in enumerate(record[1]):
             # Position of symbol rectangle
             block = j // cols_im

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import skbio
-from src.draw import draw_alignment
+from src.draw import draw_msa
 
 
 def load_msa(path):
@@ -103,7 +103,7 @@ for i, record in enumerate(head1.itertuples()):
         msa = load_msa(f'../align_fastas2-2/out/{record.pOGid}.mfa')
 
     msa = sorted(msa, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_alignment(msa, f'out/sum/{i}_{record.pOGid}.png')
+    draw_msa(msa, f'out/sum/{i}_{record.pOGid}.png')
 
 # 2.2 Ranked by avg
 if not os.path.exists('out/avg/'):
@@ -117,7 +117,7 @@ for i, record in enumerate((head1.itertuples())):
         msa = load_msa(f'../align_fastas2-2/out/{record.pOGid}.mfa')
 
     msa = sorted(msa, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_alignment(msa, f'out/avg/{i}_{record.pOGid}.png')
+    draw_msa(msa, f'out/avg/{i}_{record.pOGid}.png')
 
 """
 ../../../src/draw.py

@@ -5,7 +5,7 @@ import re
 
 import pandas as pd
 import skbio
-from src.draw import draw_alignment
+from src.draw import draw_msa
 
 
 def load_msa(path):
@@ -66,7 +66,7 @@ for record in df.dropna().itertuples():
         msa = load_msa(f'../align_fastas2-2/out/{record.pOGid}.mfa')
 
     msa = sorted(msa, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_alignment(msa, f'out/{record.pOGid}.png')
+    draw_msa(msa, f'out/{record.pOGid}.png')
 
 """
 DEPENDENCIES
