@@ -8,8 +8,8 @@ import skbio
 from src.draw import draw_alignment
 
 
-def load_alignment(path):
-    MSA = []
+def load_msa(path):
+    msa = []
     with open(path) as file:
         line = file.readline()
         while line:
@@ -22,8 +22,8 @@ def load_alignment(path):
                 seqlines.append(line.rstrip())
                 line = file.readline()
             seq = ''.join(seqlines)
-            MSA.append((spid, seq))
-    return MSA
+            msa.append((spid, seq))
+    return msa
 
 
 # Load seq metadata
@@ -61,12 +61,12 @@ df.to_csv('out/pOGids.tsv', sep='\t', index=False)
 
 for record in df.dropna().itertuples():
     if record.ppidnum == record.gnidnum:
-        MSA = load_alignment(f'../align_fastas1/out/{record.pOGid}.mfa')
+        msa = load_msa(f'../align_fastas1/out/{record.pOGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2-2/out/{record.pOGid}.mfa')
+        msa = load_msa(f'../align_fastas2-2/out/{record.pOGid}.mfa')
 
-    MSA = sorted(MSA, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_alignment(MSA, f'out/{record.pOGid}.png')
+    msa = sorted(msa, key=lambda x: order[x[0]])  # Re-order sequences
+    draw_alignment(msa, f'out/{record.pOGid}.png')
 
 """
 DEPENDENCIES

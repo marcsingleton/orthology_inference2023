@@ -33,8 +33,8 @@ def get_contrasts(node):
     return contrasts, value, branch_length
 
 
-def load_alignment(path):
-    MSA = {}
+def load_msa(path):
+    msa = {}
     with open(path) as file:
         line = file.readline()
         while line:
@@ -47,8 +47,8 @@ def load_alignment(path):
                 seqlines.append(line.rstrip())
                 line = file.readline()
             seq = ''.join(seqlines)
-            MSA[spid] = seq
-    return MSA
+            msa[spid] = seq
+    return msa
 
 
 # Load tree
@@ -72,20 +72,20 @@ if not os.path.exists('out/'):
 rows = []
 for record in df2.itertuples():
     if record.ppidnum == record.gnidnum:
-        MSA = load_alignment(f'../align_fastas1/out/{record.pOGid}.mfa')
+        msa = load_msa(f'../align_fastas1/out/{record.pOGid}.mfa')
     else:
-        MSA = load_alignment(f'../align_fastas2-2/out/{record.pOGid}.mfa')
+        msa = load_msa(f'../align_fastas2-2/out/{record.pOGid}.mfa')
 
     tree = tree_template.deepcopy()
     for tip in tree.tips():
-        gap_vector = np.asarray([1 if sym == '-' else 0 for sym in MSA[tip.name]])
+        gap_vector = np.asarray([1 if sym == '-' else 0 for sym in msa[tip.name]])
         tip.value = gap_vector
     tree.length = 0  # Set root length to 0 for convenience
 
     contrasts, _, _ = get_contrasts(tree)
     row_sums = list(np.abs(contrasts).sum(axis=1))
-    gap_matrix = np.asarray([[0 if sym == '-' else 1 for sym in seq] for seq in MSA.values()])
-    len1 = len(MSA['dmel'])  # Total length of alignment
+    gap_matrix = np.asarray([[0 if sym == '-' else 1 for sym in seq] for seq in msa.values()])
+    len1 = len(msa['dmel'])  # Total length of alignment
     len2 = (gap_matrix / 26).sum()  # Adjusted length of alignment
     rows.append([record.pOGid, str(len1), str(len2)] + [str(row_sum) for row_sum in row_sums])
 
