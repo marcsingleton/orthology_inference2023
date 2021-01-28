@@ -129,6 +129,6 @@ for i, record in enumerate((head1.itertuples())):
     ../align_fastas2-2/out/*.mfa
 ../pOG_meta/pOG_meta.py
     ../pOG_meta/out/pOG_meta.tsv
-./align_contrasts_calc.py
+./gap_contrasts_calc.py
     ./out/row_sums.tsv
 """
