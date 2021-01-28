@@ -4,10 +4,7 @@ import os
 from collections import namedtuple
 from random import randrange
 
-import Bio.AlignIO as AlignIO
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
-from Bio.Align import MultipleSeqAlignment
+from skbio import io, TabularMSA, Protein
 
 
 def is_redundant(col, cutoff):
@@ -38,9 +35,9 @@ colpools = {'100red': (lambda col: is_redundant(col, 1), []),
             '0red': (lambda col: is_redundant(col, 0), []),
             '0red_ni': (lambda col: is_redundant(col, 0) and not is_invariant(col), [])}
 for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_aa2nt/out/')):
-    align = AlignIO.read(f'../align_aa2nt/out/{file_id}', 'fasta')
-    for i in range(len(align[0])):
-        col = [Column(seq.description[-4:], seq[i]) for seq in align]
+    msa = io.read(f'../align_aa2nt/out/{file_id}', 'fasta', into=TabularMSA, constructor=Protein)
+    for i in range(msa.shape[1]):
+        col = [Column(seq.metadata['id'][-4:], str(seq)[i]) for seq in msa]
         for condition, colpool in colpools.values():
             if condition(col):
                 colpool.append(col)
@@ -52,7 +49,7 @@ for label, (_, colpool) in colpools.items():
 
     print(f'{label}:', len(colpool))
     for samplenum in range(100):
-        sample = [colpool[randrange(len(colpool))] for _ in range(10000)]
+        sample = [colpool[randrange(len(colpool))] for _ in range(1000)]
         seqs = {}
         for col in sample:
             for spid, sym in col:
@@ -61,10 +58,10 @@ for label, (_, colpool) in colpools.items():
                 except KeyError:
                     seqs[spid] = [sym]
 
-        align = MultipleSeqAlignment([SeqRecord(Seq(''.join(seq)), id=spid, description=f'{label}_{samplenum}')
-                                      for spid, seq in seqs.items()])
-        AlignIO.write(align, f'out/{label}/meta_{samplenum}.fasta', 'fasta')
-        AlignIO.write(align, f'out/{label}/meta_{samplenum}.phy', 'phylip-relaxed')
+        msa = TabularMSA([Protein(''.join(seq), metadata={'id': spid, 'description': f'{label}_{samplenum}'})
+                          for spid, seq in seqs.items()], minter='id')  # Sets index to id (for writing in Phylip)
+        msa.write(f'out/{label}/meta_{samplenum}.fasta', 'fasta', max_width=80)
+        msa.write(f'out/{label}/meta_{samplenum}.phy', 'phylip')
 
 """
 OUTPUT
