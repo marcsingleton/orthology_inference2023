@@ -8,46 +8,49 @@ from matplotlib.collections import LineCollection
 from matplotlib import rcParams
 
 
-def draw_msa(msa, file, ratio=2.5,
-                   spacing=25, sym_length=7, sym_height=7,
-                   cols_im=None, aa2color=None):
+def draw_msa(msa,
+             ratio=2.5, hspace=25, sym_length=7, sym_height=7,
+             im_cols=None, aa2color=None):
     """Draw alignment as PNG.
 
     Parameters
     ----------
     msa: list of strings
-    file: string
-        Pathname of the file for the image to be saved as.
     ratio: float
         Aspect ratio (length:height) of image. The function will calculate the
         number of columns in each block that yields an image that best matches
         this aspect ratio.
-    spacing: int
+    hspace: int
         Number of pixels between blocks.
     sym_length: int
         Number of pixels in length of symbol rectangle.
     sym_height: int
         Number of pixels in height of symbol rectangle.
-    cols_im: int
+    im_cols: int
         Number of columns in each block. Will override ratio if is not None.
     aa2color: dict
         Mapping of symbols to color hex codes.
+
+    Returns
+    -------
+        im: ndarray
+            3 channel array with dimensions (height, length, channels)
     """
     # Define functions and globals
-    ROWS, COLS = len(msa), len(msa[0][1])
+    ROWS, COLS = len(msa), len(msa[0])
 
-    def get_dims(cols_im):
-        length_im = sym_length * cols_im  # Length of final image
-        blocks_im = COLS // cols_im - (1 if COLS % cols_im == 0 else 0)  # Number of blocks in addition to the first
-        height_im = (sym_height * ROWS + spacing) * blocks_im + sym_height * ROWS  # Height of final image
-        return length_im, height_im
+    def get_dims(im_cols):
+        im_length = sym_length * im_cols  # Length of final image
+        block_num = COLS // im_cols - (1 if COLS % im_cols == 0 else 0)  # Number of blocks in addition to the first
+        im_height = (sym_height * ROWS + hspace) * block_num + sym_height * ROWS  # Height of final image
+        return im_length, im_height
 
-    def get_aspect(cols_im):
-        length_im, height_im = get_dims(cols_im)
-        return length_im / height_im
+    def get_aspect(im_cols):
+        im_length, im_height = get_dims(im_cols)
+        return im_length / im_height
 
-    def get_cols_im():
-        # Use binary search to find interval containing optimal cols_im
+    def get_im_cols():
+        # Use binary search to find interval containing optimal im_cols
         interval = (1, COLS)
         while interval[1] - interval[0] > 1:
             i1 = (interval[0], (interval[0] + interval[1]) // 2)
@@ -58,17 +61,17 @@ def draw_msa(msa, file, ratio=2.5,
                 interval = i2
             else:
                 break
-        cols_im = min(interval, key=lambda x: abs(get_aspect(x) - ratio))  # Choose value that minimizes difference
+        im_cols = min(interval, key=lambda x: abs(get_aspect(x) - ratio))  # Choose value that minimizes difference
 
-        # Ensure last block is at least 50% of cols_im
-        if COLS % cols_im < 0.5 * cols_im:  # Guarantees at least two blocks
-            blocks_im = COLS // cols_im  # Total blocks minus 1
-            cols_im += ceil((COLS % cols_im) / blocks_im)  # Distribute excess to other blocks
-        return cols_im
+        # Ensure last block is at least 50% of im_cols
+        if COLS % im_cols < 0.5 * im_cols:  # Guarantees at least two blocks
+            blocks_im = COLS // im_cols  # Total blocks minus 1
+            im_cols += ceil((COLS % im_cols) / blocks_im)  # Distribute excess to other blocks
+        return im_cols
 
     # Set options
-    if cols_im is None:
-        cols_im = get_cols_im()
+    if im_cols is None:
+        im_cols = get_im_cols()
     if aa2color is None:
         aa2color = {'A': '6dd7a1', 'I': '55c08c', 'L': '55c08c', 'V': '55c08c', 'M': '55c08c',
                     'F': 'b897ec', 'Y': 'b897ec', 'W': 'a180d2',
@@ -80,14 +83,14 @@ def draw_msa(msa, file, ratio=2.5,
                     'X': '93908f', '-': 'ffffff'}
 
     # Instantiate array and fill with values
-    length_im, height_im = get_dims(cols_im)
-    im = np.full((height_im, length_im, 3), 255, dtype='uint8')
-    for i, record in enumerate(msa):
-        for j, sym in enumerate(record[1]):
+    im_length, im_height = get_dims(im_cols)
+    im = np.full((im_height, im_length, 3), 255, dtype='uint8')
+    for i, seq in enumerate(msa):
+        for j, sym in enumerate(seq):
             # Position of symbol rectangle
-            block = j // cols_im
-            y = (sym_height * ROWS + spacing) * block + sym_height * i
-            x = j % cols_im * sym_length
+            block = j // im_cols
+            y = (sym_height * ROWS + hspace) * block + sym_height * i
+            x = j % im_cols * sym_length
 
             # Create color tuple
             try:
@@ -104,7 +107,7 @@ def draw_msa(msa, file, ratio=2.5,
                 y1, y2 = y + ceil((sym_height - 2) / 2), y + ceil((sym_height + 1) / 2)
                 x1, x2 = x + ceil((sym_length - 2) / 2), x + ceil((sym_length + 1) / 2)
                 im[slice(y1, y2), slice(x1, x2), :] = color
-    plt.imsave(file, im)
+    return im
 
 
 def draw_tree(tree, tip_labels=True, support_labels=False,

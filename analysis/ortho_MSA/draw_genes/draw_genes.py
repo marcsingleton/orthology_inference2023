@@ -3,6 +3,7 @@
 import os
 import re
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import skbio
 from src.draw import draw_msa
@@ -65,8 +66,9 @@ for record in df.dropna().itertuples():
     else:
         msa = load_msa(f'../align_fastas2-2/out/{record.pOGid}.mfa')
 
-    msa = sorted(msa, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_msa(msa, f'out/{record.pOGid}.png')
+    msa = [seq[1] for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
+    im = draw_msa(msa)
+    plt.imsave(f'out/{record.pOGid}.png', im)
 
 """
 DEPENDENCIES
