@@ -131,8 +131,20 @@ for i, OGid in enumerate(OGids[:50]):  # 50 largest OGs
             else:
                 G.add_edge(node, adj, weight=float(w))
 
+    # Find distance matrix for KK layout
+    # (By default the distances between non-connected components is set extremely large, resulting in overlaps between
+    # components. The minimum distance between non-connected node is therefore set to 4.)
+    spl = dict(nx.shortest_path_length(G))
+    spl_max = max(4, *[v for value in spl.values() for v in value.values()])
+    dist = {}
+    for node in G:
+        d = {}
+        for adj in G:
+            d[adj] = spl[node].get(adj, spl_max)
+        dist[node] = d
+
     # Get positions and canvas limits
-    pos = nx.kamada_kawai_layout(G, weight=None)  # Weight is None as otherwise is used for layout
+    pos = nx.kamada_kawai_layout(G, dist=dist, weight=None)  # Weight is None as otherwise is used for layout
     xs = [xy[0] for xy in pos.values()]
     xmin, xmax = min(xs), max(xs)
     xlen = xmax - xmin
