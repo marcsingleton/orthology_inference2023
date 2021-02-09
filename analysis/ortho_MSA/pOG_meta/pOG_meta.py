@@ -1,9 +1,10 @@
 """Extract metadata from pOGs including numbers of edges, genes, species, and sequences."""
 
 import os
-from itertools import groupby
+from itertools import combinations, groupby
 
 import pandas as pd
+from src.ortho_cluster.DFS import connect
 
 # Load seq metadata
 ppid2meta = {}
@@ -40,12 +41,22 @@ with open('../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt') as file:
                 bitscore += pgraph[node1][node2] + pgraph[node2][node1]
 
             pOGid2gnids[pOGid] = gnids
-            ds[pOGid] = {'OGid': OGid, 'pOGid': pOGid, 'overlap': False, 'bitscore': round(bitscore, 1),
+            ds[pOGid] = {'OGid': OGid, 'pOGid': pOGid, 'pCCid': None, 'bitscore': round(bitscore, 1),
                          'edgenum': len(edges.split('\t')), 'ppidnum': len(ppids), 'gnidnum': len(gnids), 'spidnum': len(spids)}
-        for pOGid in pOGid2gnids:  # Calculate overlap
-            gnids1 = pOGid2gnids[pOGid]
-            gnids2 = set().union(*[value for key, value in pOGid2gnids.items() if key != pOGid])
-            ds[pOGid]['overlap'] = bool(gnids1 & gnids2)
+
+        # Calculate overlaps
+        graph = {pOGid: set() for pOGid in pOGid2gnids}
+        for pOGid1, pOGid2 in combinations(pOGid2gnids, 2):
+            gnids1 = pOGid2gnids[pOGid1]
+            gnids2 = pOGid2gnids[pOGid2]
+            if gnids1 & gnids2:
+                graph[pOGid1].add(pOGid2)
+                graph[pOGid2].add(pOGid1)
+        pCCs = connect(graph)
+        for i, pCC in enumerate(pCCs):
+            pCCid = hex(i)[2:].zfill(4)
+            for pOGid in pCC:
+                ds[pOGid]['pCCid'] = pCCid
         rows.extend(ds.values())
 pOGs = pd.DataFrame(rows)
 
