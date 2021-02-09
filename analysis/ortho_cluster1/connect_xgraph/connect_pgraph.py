@@ -25,7 +25,7 @@ for qppid, sppids in pgraph.items():
             except KeyError:
                 rpgraph[qppid] = set([sppid])
 
-# Cluster by triangle criterion
+# Find connected components
 CCs = connect(rpgraph)
 
 # Make output directory

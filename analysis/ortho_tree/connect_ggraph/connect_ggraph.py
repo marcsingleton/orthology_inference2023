@@ -10,7 +10,7 @@ with open('../hits2ggraph/out/ggraph.tsv') as file:
         node, adjs = line.rstrip('\n').split('\t')
         ggraph[node] = [adj.split(':')[0] for adj in adjs.split(',')]
 
-# Cluster by triangle criterion
+# Find connected components
 CCs = connect(ggraph)
 
 # Make output directory
