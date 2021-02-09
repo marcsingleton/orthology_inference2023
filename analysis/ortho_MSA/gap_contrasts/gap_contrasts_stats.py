@@ -56,7 +56,7 @@ for i, tail in tails[:9]:
     plt.plot(x, tail, label=f'c{i}', linewidth=1)
 plt.plot(x, sum([tail for _, tail in tails[9:]]), label='others', linewidth=1)
 plt.legend()
-plt.title('Contrast Fraction in 3% Sliding Windows')
+plt.title('Contrast Fractions in 3% Sliding Windows')
 plt.xlabel('Right Tail Percentile')
 plt.ylabel('Fraction')
 plt.legend(title='Contrast ID', bbox_to_anchor=(1.025, 0.5), loc='center left')

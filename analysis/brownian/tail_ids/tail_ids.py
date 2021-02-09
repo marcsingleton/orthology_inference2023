@@ -31,12 +31,12 @@ for feature in pics_lt:
     for pic_id in range(num_contrasts):
         lcount = sort[:max_idx].index.get_level_values('pic_id') == pic_id
         rcount = sort[:-max_idx - 1: -1].index.get_level_values('pic_id') == pic_id
-        tail = np.convolve(lcount, np.ones(2 * size + 1), 'valid') + np.convolve(rcount, np.ones(2 * size + 1), 'valid')
+        tail = (np.convolve(lcount, np.ones(2 * size + 1), 'valid') + np.convolve(rcount, np.ones(2 * size + 1), 'valid')) / (4 * size + 2)
         plt.plot(x, tail, label=pic_id, linewidth=1)
 
-    plt.title(f'{feature}:\nContrast Counts in 1% Sliding Windows')
+    plt.title(f'{feature}:\nContrast Fractions in 1% Sliding Windows')
     plt.xlabel('Left and Right Tail Percentiles')
-    plt.ylabel('Count')
+    plt.ylabel('Fraction')
     plt.legend(title='Contrast ID', bbox_to_anchor=(1.025, 0.5), loc='center left')
     plt.subplots_adjust(right=0.8)
     plt.savefig(f'out/{feature}.png')
