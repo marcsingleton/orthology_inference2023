@@ -13,32 +13,31 @@ class Node:
 
 def connect(adj_dict):
     # INITIALIZE
-    OG = None
-    OGs = []
-    expand_stack = list()  # Stack to expand current OG
-    search_stack = sorted(list(adj_dict))  # Stack to search for new OG; sort to ensure consistent order
+    component = None
+    components = []
+    expand_stack = list()  # Stack to expand current component
+    search_stack = sorted(list(adj_dict))  # Stack to search for new component; sort to ensure consistent order
     graph = {label: Node(label, adj_labels) for label, adj_labels in adj_dict.items()}  # Convert adj_dict to graph
 
     # LOOP
-    while expand_stack or search_stack:
+    while expand_stack or search_stack or component is not None:
         # Exhaust expand stack first
         while expand_stack:
             node = graph[expand_stack.pop()]
             if node.marked:
                 continue
-            OG.add(node.label)
+            component.add(node.label)
             expand_stack.extend(node.adj_labels)
             node.marked = True
-        if OG is not None:  # Only record OG if not None; only False in first iteration
-            OGs.append(OG)
-            OG = None
+        if component is not None:  # Only record component if not None; only False in first iteration
+            components.append(component)
+            component = None
 
         # Proceed to search stack when expand stack is empty
-        while search_stack and OG is None:
+        while search_stack and component is None:
             node = graph[search_stack.pop()]
-            if node.marked:  # Skip previously added nodes; necessary to prevent loops and incomplete OGs
+            if node.marked:  # Skip previously added nodes; necessary to prevent loops and incomplete components
                 continue
-            OG = set([node.label])
+            component = set([node.label])
             expand_stack.extend(node.adj_labels)
-
-    return OGs
+    return components
