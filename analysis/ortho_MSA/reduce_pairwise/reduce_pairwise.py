@@ -99,7 +99,7 @@ with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
 
 # Load pOGs and tree
 pOGs = {}
-with open('../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt') as file:
+with open('../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt') as file:
     for line in file:
         _, pOGid, edges = line.rstrip().split(':')
         ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -142,10 +142,10 @@ with open('out/rclusters.tsv', 'w') as outfile:
 
 """
 DEPENDENCIES
-../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity.py
-    ../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt
 ../../ortho_cluster3/hits2pgraph/hits2pgraph.py
     ../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv
+../../ortho_cluster3/subcluster_pgraph/subcluster_pgraph.py
+    ../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../../ortho_tree/consensus_tree/consensus_tree.py

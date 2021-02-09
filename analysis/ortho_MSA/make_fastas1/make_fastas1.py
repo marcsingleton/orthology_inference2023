@@ -42,7 +42,7 @@ for spid, source, prot_path in genomes:
 
 # Load pOGs and pOG metadata
 pOGs = {}
-with open('../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt') as file:
+with open('../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt') as file:
     for line in file:
         _, pOGid, edges = line.rstrip().split(':')
         ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -67,8 +67,8 @@ for pOGid in pOGids:
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity.py
-    ../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt
+../../ortho_cluster3/subcluster_pgraph/subcluster_pgraph.py
+    ../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../config/genomes.tsv

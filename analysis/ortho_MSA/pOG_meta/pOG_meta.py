@@ -25,7 +25,7 @@ with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
 
 # Load pOGs
 rows = []
-with open('../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt') as file:
+with open('../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt') as file:
     for OGid, pOGs in groupby(file, lambda line: line.rstrip().split(':')[0]):
         pOGid2gnids = {}  # Store gnids separately to test for overlaps
         ds = {}  # Store rows by pOGid to modify repr after all GNIDs are collected
@@ -68,16 +68,16 @@ pOGs.to_csv('out/pOG_meta.tsv', sep='\t', index=False)
 
 """
 OUTPUT 
-Total OGs: 20685
-OGs with 26 genes: 7938
-OGs with 26 genes and species: 7748
-OGs with 26 genes, species, and sequences: 5663
+Total pOGs: 21632
+pOGs with 26 genes: 8156
+pOGs with 26 genes and species: 7970
+pOGs with 26 genes, species, and sequences: 5256
 
 DEPENDENCIES
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
-../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity.py
-    ../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt
+../../ortho_cluster3/subcluster_pgraph/subcluster_pgraph.py
+    ../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt
 ../../ortho_cluster3/hits2pgraph/hits2pgraph.py
     ../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv
 """
