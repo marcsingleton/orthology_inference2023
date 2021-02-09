@@ -102,8 +102,9 @@ for i, record in enumerate(head1.itertuples()):
     else:
         msa = load_msa(f'../align_fastas2-2/out/{record.pOGid}.mfa')
 
-    msa = sorted(msa, key=lambda x: order[x[0]])  # Re-order sequences
-    draw_msa(msa, f'out/sum/{i}_{record.pOGid}.png')
+    msa = [seq[1] for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
+    im = draw_msa(msa)
+    plt.imsave(f'out/sum/{i}_{record.pOGid}.png', im)
 
 # 2.2 Ranked by avg
 if not os.path.exists('out/avg/'):

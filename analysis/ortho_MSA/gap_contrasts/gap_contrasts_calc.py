@@ -59,7 +59,7 @@ tree_template = tree_template.shear([tip.name for tip in tree_template.tips() if
 pOG_meta = pd.read_table('../pOG_meta/out/pOG_meta.tsv')
 
 idxs = []
-for _, group in pOG_meta.groupby(['OGid', 'overlap']):
+for _, group in pOG_meta.groupby(['OGid', 'pCCid']):
     idx = max(group.itertuples(), key=lambda x: (x.spidnum, -x.gnidnum, x.bitscore)).Index  # Most species, least genes, highest bitscore
     idxs.append(idx)
 df1 = pOG_meta.iloc[idxs]

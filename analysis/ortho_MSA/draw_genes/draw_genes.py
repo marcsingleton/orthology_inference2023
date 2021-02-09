@@ -36,7 +36,7 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
 
 # Load pOGs
 rows = []
-with open('../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt') as file:
+with open('../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt') as file:
     for line in file:
         OGid, pOGid, edges = line.rstrip().split(':')
         ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
@@ -45,8 +45,8 @@ with open('../../ortho_cluster3/clique4+_pcommunity/out/5clique/pclusters.txt') 
 pOGs = pd.DataFrame(rows)
 
 # Load pOG metadata and test genes
-pOG_meta = pd.read_table('../pOG_meta/out/pOG_meta.tsv')
-test_genes = pd.read_table('test_genes.tsv')
+pOG_meta = pd.read_table('../pOG_meta/out/pOG_meta.tsv', dtype={'pCCid': str})
+genes = pd.read_table('genes.tsv')
 
 # Load tree
 tree = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
@@ -57,7 +57,7 @@ order = {tip.name: i for i, tip in enumerate(tree.tips())}
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-df = pOGs.drop(['OGid', 'ppid'], axis=1).drop_duplicates().merge(pOG_meta, on='pOGid', how='right').merge(test_genes, on='gnid', how='right')
+df = pOGs[['gnid', 'OGid', 'pOGid']].drop_duplicates().merge(pOG_meta.drop('OGid', axis=1), on='pOGid', how='right').merge(genes, on='gnid', how='right')
 df.to_csv('out/pOGids.tsv', sep='\t', index=False)
 
 for record in df.dropna().itertuples():
@@ -75,15 +75,15 @@ DEPENDENCIES
 ../../../src/draw.py
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
-../../ortho_cluster3/clique4+_gcommunity/clique4+_gcommunity2.py
-    ../../ortho_cluster3/clique4+_gcommunity/out/ggraph2/5clique/gclusters.txt
+../../ortho_cluster3/subcluster_pgraph.py
+    ../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt
 ../ortho_tree/consensus_tree/consensus_tree.py
     ../ortho_tree/consensus_tree/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
-../align_fastas2-1/align_fastas2-2.py
-    ../align_fastas2-1/out/*.mfa
+../align_fastas2-2/align_fastas2-2.py
+    ../align_fastas2-2/out/*.mfa
 ../pOG_meta/pOG_meta.py
     ../pOG_meta/out/pOG_meta.tsv
-./test_genes.tsv
+./genes.tsv
 """
