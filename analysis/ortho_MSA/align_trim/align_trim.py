@@ -5,7 +5,7 @@ import re
 from itertools import chain
 
 import skbio
-from trim import trim_msa
+from src.ortho_MSA.trim import trim_msa
 
 # TAXONOMIC CONDITIONS
 conditions = [(set(['dinn', 'dgri']), 1),
