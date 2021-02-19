@@ -4,7 +4,7 @@ import os
 
 import matplotlib.pyplot as plt
 import skbio
-from src.draw import draw_tree
+from src.draw import plot_tree
 
 
 def majority_consensus(trees, cutoff=0.5):
@@ -104,7 +104,7 @@ for label in os.listdir('../phyml_GTR/out/'):
     skbio.write(ctree, 'newick', f'out/{label}.txt')
 
     # Save image as PNG
-    fig, ax = draw_tree(ctree)
+    fig, ax = plot_tree(ctree)
     ax.yaxis.set_visible(False)
     ax.spines['left'].set_visible(False)
     ax.set_xlabel('')
@@ -115,7 +115,7 @@ for label in os.listdir('../phyml_GTR/out/'):
     for node in ctree.traverse():
         if node.support == 1:
             node.support = None
-    fig, ax = draw_tree(ctree, support_labels=True, support_fontsize=8.5,
+    fig, ax = plot_tree(ctree, support_labels=True, support_fontsize=8.5,
                         support_ha='right', support_hoffset=-0.005, support_voffset=0.25)
     ax.yaxis.set_visible(False)
     ax.spines['left'].set_visible(False)

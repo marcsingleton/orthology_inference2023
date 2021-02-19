@@ -4,8 +4,9 @@ from math import ceil
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.collections import LineCollection
 from matplotlib import rcParams
+from matplotlib.collections import LineCollection
+from matplotlib.gridspec import GridSpec
 
 
 def draw_msa(msa,
@@ -110,7 +111,158 @@ def draw_msa(msa,
     return im
 
 
-def draw_tree(tree, tip_labels=True, support_labels=False,
+def plot_msa_lines(msa, lines, figsize=(12, 6),
+                   msa_labels=None, msa_labelsize=6, y_labelsize=6, x_labelsize=6,
+                   msa_height=1, data_height=1, hspace=0.75, sym_length=7, sym_height=7,
+                   lines_min=None, lines_max=None,
+                   block_cols=None, aa2color=None):
+    # Define functions and globals
+    ROWS, COLS = len(msa), len(msa[0])
+    RATIO = figsize[0] / figsize[1]
+
+    def get_dims(block_cols):
+        plot_length = block_cols  # Length of final plot
+        block_num = COLS // block_cols - (1 if COLS % block_cols == 0 else 0)  # Number of blocks in addition to the first
+        plot_height = 2 * (ROWS + hspace) * block_num + (2 + hspace) * ROWS  # Height of final image
+        return plot_length, plot_height
+
+    def get_aspect(block_cols):
+        plot_length, plot_height = get_dims(block_cols)
+        return plot_length / plot_height
+
+    def get_block_cols():
+        # Use binary search to find interval containing optimal block_cols
+        interval = (1, COLS)
+        while interval[1] - interval[0] > 1:
+            i1 = (interval[0], (interval[0] + interval[1]) // 2)
+            i2 = ((interval[0] + interval[1]) // 2, interval[1])
+            if (get_aspect(i1[0]) - RATIO) * (get_aspect(i1[1]) - RATIO) < 0:
+                interval = i1
+            elif (get_aspect(i2[0]) - RATIO) * (get_aspect(i2[1]) - RATIO) < 0:
+                interval = i2
+            else:
+                break
+        block_cols = min(interval, key=lambda x: abs(get_aspect(x) - RATIO))  # Choose value that minimizes difference
+
+        # Ensure last block is at least 50% of block_cols
+        if COLS % block_cols < 0.5 * block_cols:  # Guarantees at least two blocks
+            blocks_im = COLS // block_cols  # Total blocks minus 1
+            block_cols += ceil((COLS % block_cols) / blocks_im)  # Distribute excess to other blocks
+        return block_cols
+
+    # Set options
+    if msa_labels is None:
+        msa_labels = []
+    if block_cols is None:
+        block_cols = get_block_cols()
+        block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
+    if isinstance(lines, list):
+        lines = np.array(lines)
+    if lines.ndim == 1:
+        lines = np.expand_dims(lines, axis=0)
+    if lines_min is None:
+        lines_min = lines.min() - 0.05 * (lines.max() - lines.min())
+    if lines_max is None:
+        lines_max = lines.max() + 0.05 * (lines.max() - lines.min())
+    if lines_min == lines_max:
+        lines_min -= 0.5
+        lines_max += 0.5
+    block_rows = len(msa)
+
+    im = draw_msa(msa, im_cols=len(msa[0]),
+                  sym_length=sym_length, sym_height=sym_height, aa2color=aa2color)
+    fig = plt.figure(figsize=figsize)
+    gs = GridSpec(2*block_num, 1, figure=fig,
+                  height_ratios=[msa_height if i % 2 == 0 else data_height for i in range(2*block_num)],
+                  hspace=hspace)
+    for i in range(block_num):
+        msa_ax = fig.add_subplot(gs[2*i:2*i+1, :])
+        lines_ax = fig.add_subplot(gs[2*i+1:2*(i+1), :], sharex=msa_ax, aspect=block_rows*data_height/(msa_height * (lines_max - lines_min)))
+
+        block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
+        msa_ax.imshow(block, extent=[i*block_cols, i*block_cols + block.shape[1]//sym_length, 0, block_rows], origin='lower')
+        msa_ax.set_yticks([x+0.5 for x in range(ROWS)])
+        msa_ax.set_yticklabels(msa_labels)
+        msa_ax.tick_params(axis='y', length=0, labelsize=msa_labelsize)
+        msa_ax.xaxis.set_visible(False)
+        msa_ax.spines['left'].set_visible(False)
+        msa_ax.spines['bottom'].set_visible(False)
+
+        for line in lines:
+            lines_ax.plot(list(range(i*block_cols, i*block_cols + block.shape[1]//sym_length)),
+                          line[i * block_cols:i * block_cols + block.shape[1] // sym_length])
+        lines_ax.set_ylim(lines_min, lines_max)
+        lines_ax.tick_params(axis='y', labelsize=y_labelsize)
+        lines_ax.tick_params(axis='x', labelsize=x_labelsize)
+    return fig
+
+
+def plot_msa(msa, figsize=(12, 6),
+            msa_labels=None, msa_labelsize=6, x_labelsize=6,
+            hspace=0.5, sym_length=7, sym_height=7,
+            block_cols=None, aa2color=None):
+    # Define functions and globals
+    ROWS, COLS = len(msa), len(msa[0])
+    RATIO = figsize[0] / figsize[1]
+
+    def get_dims(block_cols):
+        plot_length = block_cols  # Length of final plot
+        block_num = COLS // block_cols - (1 if COLS % block_cols == 0 else 0)  # Number of blocks in addition to the first
+        plot_height = (ROWS + hspace) * block_num + (1 + hspace) * ROWS  # Height of final image
+        return plot_length, plot_height
+
+    def get_aspect(block_cols):
+        plot_length, plot_height = get_dims(block_cols)
+        return plot_length / plot_height
+
+    def get_block_cols():
+        # Use binary search to find interval containing optimal block_cols
+        interval = (1, COLS)
+        while interval[1] - interval[0] > 1:
+            i1 = (interval[0], (interval[0] + interval[1]) // 2)
+            i2 = ((interval[0] + interval[1]) // 2, interval[1])
+            if (get_aspect(i1[0]) - RATIO) * (get_aspect(i1[1]) - RATIO) < 0:
+                interval = i1
+            elif (get_aspect(i2[0]) - RATIO) * (get_aspect(i2[1]) - RATIO) < 0:
+                interval = i2
+            else:
+                break
+        block_cols = min(interval, key=lambda x: abs(get_aspect(x) - RATIO))  # Choose value that minimizes difference
+
+        # Ensure last block is at least 50% of block_cols
+        if COLS % block_cols < 0.5 * block_cols:  # Guarantees at least two blocks
+            blocks_im = COLS // block_cols  # Total blocks minus 1
+            block_cols += ceil((COLS % block_cols) / blocks_im)  # Distribute excess to other blocks
+        return block_cols
+
+    # Set options
+    if msa_labels is None:
+        msa_labels = []
+    if block_cols is None:
+        block_cols = get_block_cols()
+        block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
+    block_rows = len(msa)
+
+    im = draw_msa(msa, im_cols=len(msa[0]),
+                  sym_length=sym_length, sym_height=sym_height, aa2color=aa2color)
+    fig = plt.figure(figsize=figsize)
+    gs = GridSpec(block_num, 1, figure=fig,
+                  hspace=hspace)
+    for i in range(block_num):
+        msa_ax = fig.add_subplot(gs[i:i+1, :])
+
+        block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
+        msa_ax.imshow(block, extent=[i*block_cols, i*block_cols + block.shape[1]//sym_length, 0, block_rows], origin='lower')
+        msa_ax.set_yticks([x+0.5 for x in range(ROWS)])
+        msa_ax.set_yticklabels(msa_labels)
+        msa_ax.tick_params(axis='y', length=0, labelsize=msa_labelsize)
+        msa_ax.tick_params(axis='x', labelsize=x_labelsize)
+        msa_ax.spines['left'].set_visible(False)
+        msa_ax.spines['bottom'].set_visible(False)
+    return fig
+
+
+def plot_tree(tree, tip_labels=True, support_labels=False,
               color=None, linewidth=None,
               tip_fontsize=None, tip_fontcolor=None, tip_offset=0,
               support_fontsize=None, support_fontcolor=None,
