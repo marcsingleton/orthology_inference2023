@@ -5,50 +5,29 @@ from math import exp, log
 import numpy as np
 import scipy.ndimage as ndimage
 import skbio
-
-# CONSERVED REGIONS PARAMETERS
-c_fraction = 0.15  # Maximum gap fraction in conserved columns
-c_close = 3  # Size of closing element
-c_length = 15  # Minimum number of columns in conserved regions
-
-# CONSERVED REGIONS TRIMMING PARAMETERS
-tc_rate = 0.15  # Decay rate of trim signal
-tc_threshold = 5  # Minimum number of residues
-tc_cutoff = tc_threshold / 1000  # Minimum increment at which to stop propagating signal
-
-# GAP REGIONS PARAMETERS
-g_fraction = 0.85  # Minimum gap fraction in gap columns
-l_sigma = 2  # Filter size for calculation of local gap bias
-nl_rate = 0.05  # Decay rate of nonlocal gap bias
-nl_cutoff = 0.001  # Minimum increment at which to stop propagating signal
-
-# GAP REGIONS TRIMMING PARAMETERS
-tg_rate = 0.75  # Decay rate of trim signal
-tg_threshold = 1  # Minimum number of residues
-tg_cutoff = tg_threshold / 1000  # Minimum increment at which to stop propagating signal
-
-# LOGISTIC CLASSIFIER PARAMETERS
-w0, w1, w2, w3, w4 = 0, 1, -1, -1, 2
-threshold = 0.5
+from src.ortho_MSA.constants import constants
 
 
-def trim_msa(msa1):
-    """Trim MSA by removing large insertions and segments near indels."""
-    scores = np.zeros(msa1.shape[1])
-    for i, col in enumerate(msa1.iter_positions()):
+def trim_msa(msa):
+    """Trim MSA by removing segments near indels in conserved regions and large insertions."""
+    # 1 Calculate shared variables
+    scores = np.zeros(msa.shape[1])
+    for i, col in enumerate(msa.iter_positions()):
         scores[i] = col.count('-')
+    gaps_array = np.array([[sym == '-' for sym in str(seq)] for seq in msa])
 
-    syms_list1 = trim_conserved(msa1, scores)
-    syms_list2, trims = trim_insertions(msa1, scores)
+    # 2 Get trims (segments and columns)
+    syms_list1 = trim_conserved(msa, scores, gaps_array)
+    syms_list2, trims = trim_insertions(msa, scores, gaps_array)
 
-    # Extract slices
+    # 3.1 Extract slices from column trims
     slices = []
     for trim in trims:
         if trim['trimmed']:
             slices.extend(trim['slices'])
     slices = sorted(slices, key=lambda x: (x.start, x.start - x.stop))  # Start then -length
 
-    # Merge slices
+    # 3.2 Merge slices
     slices_merge = []
     if slices:
         start, stop = slices[0].start, slices[0].stop
@@ -60,59 +39,63 @@ def trim_msa(msa1):
                 stop = s.stop
         slices_merge.append(slice(start, stop))
 
-    # Invert slices
+    # 3.3 Invert slices
     slices_invert = []
     start = 0
     for s in slices_invert:
         slices_invert.append(slice(start, s.start))
         start = s.stop
-    slices_invert.append(slice(start, msa1.shape[1]))
+    slices_invert.append(slice(start, msa.shape[1]))
 
-    # Combine trims (segments and columns) to yield final alignment
+    # 4 Combine trims (segments and columns) to yield final alignment
     seqs = []
-    for seq, syms1, syms2 in zip(msa1, syms_list1, syms_list2):
+    for seq, syms1, syms2 in zip(msa, syms_list1, syms_list2):
         syms = ['-' if sym1 != sym2 else sym1 for sym1, sym2 in zip(syms1, syms2)]  # Will only differ if one is converted to gap
         seqs.append(skbio.Protein(''.join(syms), metadata=seq.metadata))
-    msa2 = skbio.TabularMSA(seqs).loc[:, slices_invert]
-    return msa2
+    return skbio.TabularMSA(seqs).loc[:, slices_invert]
 
 
-def trim_conserved(msa1, scores):
+def trim_conserved(msa1, scores1, gaps_array1):
+    """Trim MSA by removing segments near indels in conserved regions."""
     syms_list = [list(str(seq)) for seq in msa1]   # List of symbols representing alignment with trimmed segments
 
     # 1 Get conserved regions
-    mask = ndimage.label(ndimage.binary_closing(scores / len(msa1) < c_fraction), structure=c_close * [1])[0]
-    regions = [region for region, in ndimage.find_objects(mask) if region.stop - region.start >= c_length]
-    msa2 = msa1.loc[:, regions]
+    binary = ndimage.binary_closing(scores1 <= len(msa1) * constants['CON_FRAC'])
+    mask = ndimage.label(binary, structure=constants['CON_CLOSE'] * [1])[0]
+    regions = [region for region, in ndimage.find_objects(mask) if region.stop - region.start >= constants['CON_MINLEN']]
     trim2full, i = {}, 0  # Trimmed to full MSA coordinates
     for region in regions:
         for j in range(region.start, region.stop):
             trim2full[i] = j
             i += 1
 
+    msa2 = msa1.loc[:, regions]
+    gaps_array2 = np.concatenate([gaps_array1[:, region] for region in regions], axis=1)
+
     # 2 Trim segments near gaps
     for i, seq in enumerate(msa2):
         # 2.1 Get gap segments
-        gaps1 = np.array([sym == '-' for sym in str(seq)])  # Sequence coded as boolean gap or non-gap
-        trim_signal = np.zeros(len(gaps1))  # Deletion signals
-        for region, in ndimage.find_objects(ndimage.label(gaps1)[0]):
+        gaps2 = gaps_array2[i]  # Sequence coded as boolean gap or non-gap
+        trim_signal = np.zeros(len(seq))
+        for region, in ndimage.find_objects(ndimage.label(gaps2)[0]):
             length = region.stop - region.start
-            propagate(region.start, region.stop, length, trim_signal, gaps1, tc_rate, tc_cutoff)
+            propagate(region.start, region.stop, length, trim_signal, gaps2, constants['CON_RATE'])
 
         # 2.2 Trim non-gap segments
-        gaps2 = trim_signal > tc_threshold  # Sequence coded as boolean gap or non-gap after signal propagation
+        gaps3 = trim_signal >= constants['CON_MINSIG']  # Sequence coded as boolean gap or non-gap after signal propagation
         syms = syms_list[i]
-        for region, in ndimage.find_objects(ndimage.label(gaps2)[0]):
+        for region, in ndimage.find_objects(ndimage.label(gaps3)[0]):
             for j in range(region.start, region.stop):  # Iterate over positions to not delete segments between boundaries
                 syms[trim2full[j]] = '-'
     return syms_list
 
 
-def trim_insertions(msa1, scores):
+def trim_insertions(msa1, scores1, gaps_array1, trimmed_dict=None):
+    """Trim MSA by removing large insertions."""
     syms_list = [list(str(seq)) for seq in msa1]   # List of symbols representing alignment with trimmed segments
 
     # 1 Get gap regions
-    mask = ndimage.label(scores / len(msa1) > g_fraction)[0]
+    mask = ndimage.label(len(msa1) - scores1 <= constants['GAP_NUM'])[0]
     regions = [region for region, in ndimage.find_objects(mask)]
 
     # 2 Get segments in regions
@@ -121,27 +104,21 @@ def trim_insertions(msa1, scores):
         segments.extend(get_segments(msa1, region))
     segments = sorted(segments, key=lambda x: sum([s.stop-s.start for s in x['slices']]), reverse=True)
 
-    # 3 Get local gap bias
-    # 3.1 Make MSA of non-gap regions
+    # 3 Make signal vector for local gap bias
     mask = ndimage.label(mask == 0)[0]  # Invert previous mask
     regions = [region for region, in ndimage.find_objects(mask)]
-    msa2 = msa1.loc[:, regions]
     full2trim, i = {}, 0  # Full to trimmed MSA coordinates
     for region in regions:
         for j in range(region.start, region.stop):
             full2trim[j] = i
             i += 1
 
-    # 3.2 Calculate gap scores of non-gap MSA
-    scores = np.zeros(msa2.shape[1])
-    for i, col in enumerate(msa2.iter_positions()):
-        scores[i] = col.count('-')
-    local_signal = ndimage.gaussian_filter1d(scores / len(msa2), sigma=l_sigma, mode='constant', cval=1)
+    scores2 = np.concatenate([scores1[region] for region in regions])
+    local_signal = ndimage.gaussian_filter1d(scores2 / len(msa1), sigma=constants['LOCAL_SIGMA'], mode='constant', cval=1)
 
-    # 4 Make signals arrays (for nonlocal gap bias and trimming near gaps)
-    gap_signals = np.zeros(msa1.shape)
+    # 4 Make signals arrays for nonlocal gap bias and trims near gaps
+    nonlocal_signals = np.zeros(msa1.shape)
     trim_signals = np.zeros(msa1.shape)
-    gaps_array1 = np.array([[sym == '-' for sym in str(seq)] for seq in msa1])  # Sequences coded as boolean gap or non-gap
 
     # 5 Get trim slices
     trims = []
@@ -167,21 +144,24 @@ def trim_insertions(msa1, scores):
         local_bias = (signal1 + signal2) / 2
 
         # 5.3 Get nonlocal gap bias
-        gap_signal = gap_signals[index]
+        nonlocal_signal = nonlocal_signals[index]
         start, stop = min([s.start for s in slices]), max([s.stop for s in slices])
-        nonlocal_bias = gap_signal[start:stop].sum()
+        nonlocal_bias = nonlocal_signal[start:stop].sum()
 
-        # 5.4 Update trims, nonlocal bias, and trim signal
-        trimmed = is_trimmed(length, segment['support'], local_bias, nonlocal_bias)
+        # 5.4 Update trims, nonlocal signal, and trim signal
+        if trimmed_dict is None:
+            trimmed = is_trimmed(length, segment['support'], local_bias, nonlocal_bias)
+        else:
+            trimmed = trimmed_dict.get((region.start, region.stop, index), None)
         trims.append({'region': region, 'index': index, 'slices': slices,
                       'trimmed': trimmed,
                       'length': length, 'support': support, 'local_bias': local_bias, 'nonlocal_bias': nonlocal_bias})
         if trimmed:
-            propagate(start, stop, length, gap_signal, gaps_array1[index], nl_rate, nl_cutoff)  # Nonlocal bias
-            propagate(start, stop, length, trim_signals[index], gaps_array1[index], tg_rate, tg_cutoff)  # Trim signal
+            propagate(start, stop, length, nonlocal_signal, gaps_array1[index], constants['NONLOCAL_RATE'])
+            propagate(start, stop, length, trim_signals[index], gaps_array1[index], constants['GAP_RATE'])
 
     # 6 Trim segments
-    gaps_array2 = trim_signals > tg_threshold
+    gaps_array2 = trim_signals > constants['GAP_MINSIG']
     for i, gaps2 in enumerate(gaps_array2):
         syms = syms_list[i]
         for region, in ndimage.find_objects(ndimage.label(gaps2)[0]):
@@ -189,25 +169,25 @@ def trim_insertions(msa1, scores):
     return syms_list, trims
 
 
-def propagate(start, stop, length, signal, gaps, rate, cutoff):
+def propagate(start, stop, length, signal, gaps, rate):
     """Propagate an exponentially decreasing signal.
 
     The signal decays over gaps; however, the signal is only added to
     coordinates corresponding non-gap symbols.
     """
-    max_k = -log(cutoff / length) / rate
+    max_k = -log(1E-3 / length) / rate
 
     k = 0
     while start - k - 1 >= 0 and k < max_k:
         if not gaps[start - k - 1]:
-            v = length * exp(-tc_rate * k)
+            v = length * exp(-rate * k)
             signal[start - k - 1] += v
         k += 1
 
     k = 0
     while stop + k <= len(signal) - 1 and k < max_k:
         if not gaps[stop + k]:
-            v = length * exp(-tc_rate * k)
+            v = length * exp(-rate * k)
             signal[stop + k] += v
         k += 1
 
@@ -235,6 +215,8 @@ def get_segments(msa, region):
 
 def is_trimmed(length, support, local_bias, nonlocal_bias):
     """Return boolean of whether to trim segment using logistic function."""
-    x = w0 + w1*length**2 + w2*support + w3*local_bias + w4*nonlocal_bias
+    weights = [constants['W0'], constants['W1'], constants['W2'], constants['W3'], constants['W4']]
+    regressors = [1, length**2, support, local_bias, nonlocal_bias]
+    x = sum([w*r for w, r in zip(weights, regressors)])
     p = 1 / (1 + exp(-x))
-    return p > threshold
+    return p > constants['THRESHOLD']
