@@ -61,7 +61,7 @@ def trim_conserved(msa1, scores1, gaps_array1):
 
     # 1 Get conserved regions
     binary = ndimage.binary_closing(scores1 <= len(msa1) * constants['CON_FRAC'])
-    mask = ndimage.label(binary, structure=constants['CON_CLOSE'] * [1])[0]
+    mask = ndimage.label(binary, structure=constants['CON_WINDOW'] * [1])[0]
     regions = [region for region, in ndimage.find_objects(mask) if region.stop - region.start >= constants['CON_MINLEN']]
     trim2full, i = {}, 0  # Trimmed to full MSA coordinates
     for region in regions:
@@ -104,7 +104,7 @@ def trim_insertions(msa1, scores1, gaps_array1, trimmed_dict=None):
         segments.extend(get_segments(msa1, region))
     segments = sorted(segments, key=lambda x: sum([s.stop-s.start for s in x['slices']]), reverse=True)
 
-    # 3 Make signal vector for local gap bias
+    # 3.1 Make arrays for gap metrics
     mask = ndimage.label(mask == 0)[0]  # Invert previous mask
     regions = [region for region, in ndimage.find_objects(mask)]
     full2trim, i = {}, 0  # Full to trimmed MSA coordinates
@@ -113,12 +113,19 @@ def trim_insertions(msa1, scores1, gaps_array1, trimmed_dict=None):
             full2trim[j] = i
             i += 1
 
+    # 3.2 Gap propensity
     scores2 = np.concatenate([scores1[region] for region in regions])
-    local_signal = ndimage.gaussian_filter1d(scores2 / len(msa1), sigma=constants['LOCAL_SIGMA'], mode='constant', cval=1)
+    gap_propensity = ndimage.gaussian_filter1d(scores2 / len(msa1), sigma=constants['GP_SIGMA'], mode='constant', cval=0)
 
-    # 4 Make signals arrays for nonlocal gap bias and trims near gaps
-    nonlocal_signals = np.zeros(msa1.shape)
+    # 3.3 Gap diversity
+    msa2 = msa1.loc[:, regions]
+    gap_diversity = []
+    for col in msa2.iter_positions():
+        gap_diversity.append(frozenset([i for i, sym in enumerate(str(col)) if sym == '-']))
+
+    # 4 Make arrays for indel and trim signals
     trim_signals = np.zeros(msa1.shape)
+    indel_signals = np.zeros(msa1.shape)
 
     # 5 Get trim slices
     trims = []
@@ -130,34 +137,38 @@ def trim_insertions(msa1, scores1, gaps_array1, trimmed_dict=None):
         support = segment['support']
         length = sum([s.stop-s.start for s in slices])
 
-        # 5.2 Get local gap bias
+        # 5.2 Get gap propensity and diversity
+        w = (constants['GD_WINDOW'] - 1) // 2
         if region.start == 0:
-            signal1 = 1
+            gp1 = 0
+            gd1 = set()
         else:
             idx1 = full2trim[region.start-1]
-            signal1 = local_signal[idx1]
+            gp1 = gap_propensity[idx1]
+            gd1 = set(gap_diversity[idx1-w:idx1+1])
         if region.stop == msa1.shape[1]:
-            signal2 = 1
+            gp2 = 0
+            gd2 = set()
         else:
             idx2 = full2trim[region.stop]
-            signal2 = local_signal[idx2]
-        local_bias = (signal1 + signal2) / 2
+            gp2 = gap_propensity[idx2]
+            gd2 = set(gap_diversity[idx2-w:idx2+1])
+        gp = (gp1 + gp2) / 2
+        gd = len(gd1 | gd2) / 2 ** len(msa1)
 
-        # 5.3 Get nonlocal gap bias
-        nonlocal_signal = nonlocal_signals[index]
+        # 5.3 Get indel biases
         start, stop = min([s.start for s in slices]), max([s.stop for s in slices])
-        nonlocal_bias = nonlocal_signal[start:stop].sum()
+        ib = indel_signals[index, start:stop].sum()
 
-        # 5.4 Update trims, nonlocal signal, and trim signal
+        # 5.4 Update trims, indel signal, and trim signal
         if trimmed_dict is None:
-            trimmed = is_trimmed(length, segment['support'], local_bias, nonlocal_bias)
+            trimmed = is_trimmed(length, segment['support'], gp, gd, ib)
         else:
             trimmed = trimmed_dict.get((region.start, region.stop, index), None)
-        trims.append({'region': region, 'index': index, 'slices': slices,
-                      'trimmed': trimmed,
-                      'length': length, 'support': support, 'local_bias': local_bias, 'nonlocal_bias': nonlocal_bias})
+        trims.append({'region': region, 'index': index, 'slices': slices, 'trimmed': trimmed,
+                      'length': length, 'support': support, 'gap_propensity': gp, 'gap_diversity': gd, 'indel_bias': ib})
         if trimmed:
-            propagate(start, stop, length, nonlocal_signal, gaps_array1[index], constants['NONLOCAL_RATE'])
+            propagate(start, stop, length, indel_signals[index], gaps_array1[index], constants['INDEL_RATE'])
             propagate(start, stop, length, trim_signals[index], gaps_array1[index], constants['GAP_RATE'])
 
     # 6 Trim segments
@@ -213,10 +224,10 @@ def get_segments(msa, region):
     return [segment for segment in segments.values() if segment['slices']]
 
 
-def is_trimmed(length, support, local_bias, nonlocal_bias):
+def is_trimmed(length, support, gap_propensity, gap_diversity, indel_bias):
     """Return boolean of whether to trim segment using logistic function."""
-    weights = [constants['W0'], constants['W1'], constants['W2'], constants['W3'], constants['W4']]
-    regressors = [1, length**2, support, local_bias, nonlocal_bias]
+    weights = [constants['W0'], constants['W1'], constants['W2'], constants['W3'], constants['W4'], constants['W5']]
+    regressors = [1, length**2, support, gap_propensity, gap_diversity, indel_bias]
     x = sum([w*r for w, r in zip(weights, regressors)])
     p = 1 / (1 + exp(-x))
     return p > constants['THRESHOLD']

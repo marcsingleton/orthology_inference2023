@@ -3,7 +3,7 @@
 constants = {
              # CONSERVED REGIONS PARAMETERS
              'CON_FRAC': 0,  # Maximum gap fraction in conserved columns
-             'CON_CLOSE': 3,  # Size of closing element
+             'CON_WINDOW': 3,  # Size of closing element
              'CON_MINLEN': 1,  # Minimum number of columns in conserved regions
 
              # CONSERVED REGIONS TRIMMING PARAMETERS
@@ -12,8 +12,9 @@ constants = {
 
              # GAP REGIONS PARAMETERS
              'GAP_NUM': 1,  # Maximum non-gap number in gap columns
-             'LOCAL_SIGMA': 1,  # Filter size for calculation of local signal
-             'NONLOCAL_RATE': 1,  # Decay rate of nonlocal signal
+             'GP_SIGMA': 1,  # Filter size for calculation of gap propensity
+             'GD_WINDOW': 1,  # Size of gap diversity window
+             'INDEL_RATE': 1,  # Decay rate of indel signal
 
              # GAP REGIONS TRIMMING PARAMETERS
              'GAP_RATE': 1,  # Decay rate of trim signal
@@ -23,8 +24,8 @@ constants = {
              'W0': 0,  # Intercept
              'W1': 1,  # Length
              'W2': -1,  # Support
-             'W3': -1,  # Local bias
-             'W4': 1,  # Nonlocal bias
+             'W3': -1,  # Gap propensity
+             'W4': 1,  # Gap diversity
+             'W5': 1,  # Indel bias
              'THRESHOLD': 0.5,
-
              }
