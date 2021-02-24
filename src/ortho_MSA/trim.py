@@ -40,12 +40,11 @@ def trim_msa(msa):
         slices_merge.append(slice(start, stop))
 
     # 3.3 Invert slices
-    slices_invert = []
-    start = 0
+    slices_invert, i = [], 0
     for s in slices_invert:
-        slices_invert.append(slice(start, s.start))
-        start = s.stop
-    slices_invert.append(slice(start, msa.shape[1]))
+        slices_invert.append(slice(i, s.start))
+        i = s.stop
+    slices_invert.append(slice(i, msa.shape[1]))
 
     # 4 Combine trims (segments and columns) to yield final alignment
     seqs = []
@@ -125,7 +124,18 @@ def trim_insertions(msa1, scores1, gaps_array1, trimmed_dict=None):
 
     # 4 Make arrays for indel and trim signals
     trim_signals = np.zeros(msa1.shape)
-    indel_signals = np.zeros(msa1.shape)
+    indel_signals1 = np.zeros(msa1.shape)
+    indel_signals2 = np.zeros(msa1.shape)
+
+    binary = ndimage.binary_closing(scores1 <= len(msa1) * constants['CON_FRAC'])
+    mask = ndimage.label(binary, structure=constants['CON_WINDOW'] * [1])[0]
+    regions = [region for region, in ndimage.find_objects(mask) if region.stop - region.start >= constants['CON_MINLEN']]
+    for region1 in regions:
+        gaps_array2 = gaps_array1[:, region1]
+        for i, gaps2 in enumerate(gaps_array2):
+            for region2, in ndimage.find_objects(ndimage.label(gaps2)[0]):
+                propagate(region1.start + region2.start, region1.start + region2.stop,
+                          region2.stop - region2.start, indel_signals2[i], gaps_array1[i], constants['INDEL2_RATE'])
 
     # 5 Get trim slices
     trims = []
@@ -139,6 +149,7 @@ def trim_insertions(msa1, scores1, gaps_array1, trimmed_dict=None):
 
         # 5.2 Get gap propensity and diversity
         w = (constants['GD_WINDOW'] - 1) // 2
+        n = 2**len(msa1) * (1 - ((2**len(msa1) - 1)/(2**len(msa1)))**constants['GD_WINDOW'])
         if region.start == 0:
             gp1 = 0
             gd1 = set()
@@ -154,21 +165,24 @@ def trim_insertions(msa1, scores1, gaps_array1, trimmed_dict=None):
             gp2 = gap_propensity[idx2]
             gd2 = set(gap_diversity[idx2-w:idx2+1])
         gp = (gp1 + gp2) / 2
-        gd = len(gd1 | gd2) / 2 ** len(msa1)
+        gd = len(gd1 | gd2) / n
 
         # 5.3 Get indel biases
         start, stop = min([s.start for s in slices]), max([s.stop for s in slices])
-        ib = indel_signals[index, start:stop].sum()
+        ib1 = indel_signals1[index, start:stop].sum()
+        ib2 = indel_signals2[index, start:stop].sum()
 
         # 5.4 Update trims, indel signal, and trim signal
         if trimmed_dict is None:
-            trimmed = is_trimmed(length, segment['support'], gp, gd, ib)
+            trimmed = is_trimmed(length, segment['support'], gp, gd, ib1, ib2)
         else:
             trimmed = trimmed_dict.get((region.start, region.stop, index), None)
         trims.append({'region': region, 'index': index, 'slices': slices, 'trimmed': trimmed,
-                      'length': length, 'support': support, 'gap_propensity': gp, 'gap_diversity': gd, 'indel_bias': ib})
+                      'length': length, 'support': support,
+                      'gap_propensity': gp, 'gap_diversity': gd,
+                      'indel_bias1': ib1, 'indel_bias2': ib2})
         if trimmed:
-            propagate(start, stop, length, indel_signals[index], gaps_array1[index], constants['INDEL_RATE'])
+            propagate(start, stop, length, indel_signals1[index], gaps_array1[index], constants['INDEL1_RATE'])
             propagate(start, stop, length, trim_signals[index], gaps_array1[index], constants['GAP_RATE'])
 
     # 6 Trim segments
@@ -224,10 +238,10 @@ def get_segments(msa, region):
     return [segment for segment in segments.values() if segment['slices']]
 
 
-def is_trimmed(length, support, gap_propensity, gap_diversity, indel_bias):
+def is_trimmed(length, support, gap_propensity, gap_diversity, indel_bias1, indel_bias2):
     """Return boolean of whether to trim segment using logistic function."""
-    weights = [constants['W0'], constants['W1'], constants['W2'], constants['W3'], constants['W4'], constants['W5']]
-    regressors = [1, length**2, support, gap_propensity, gap_diversity, indel_bias]
+    weights = [constants['W0'], constants['W1'], constants['W2'], constants['W3'], constants['W4'], constants['W5'], constants['W6']]
+    regressors = [1, length, support, gap_propensity, gap_diversity, indel_bias1, indel_bias2]
     x = sum([w*r for w, r in zip(weights, regressors)])
     p = 1 / (1 + exp(-x))
     return p > constants['THRESHOLD']
