@@ -101,7 +101,6 @@ def trim_insertions(msa1, scores1, gaps_array1, trimmed_dict=None):
     segments = []
     for region in regions:
         segments.extend(get_segments(msa1, region))
-    segments = sorted(segments, key=lambda x: sum([s.stop-s.start for s in x['slices']]), reverse=True)
 
     # 3.1 Make arrays for gap metrics
     mask = ndimage.label(mask == 0)[0]  # Invert previous mask
@@ -125,8 +124,14 @@ def trim_insertions(msa1, scores1, gaps_array1, trimmed_dict=None):
     # 4 Make arrays for indel and trim signals
     trim_signals = np.zeros(msa1.shape)
     indel_signals1 = np.zeros(msa1.shape)
-    indel_signals2 = np.zeros(msa1.shape)
+    for segment in segments:
+        index = segment['index']
+        slices = segment['slices']
+        length = sum([s.stop-s.start for s in slices])
+        start, stop = min([s.start for s in slices]), max([s.stop for s in slices])
+        propagate(start, stop, length, indel_signals1[index], gaps_array1[index], constants['INDEL1_RATE'])
 
+    indel_signals2 = np.zeros(msa1.shape)
     binary = ndimage.binary_closing(scores1 <= len(msa1) * constants['CON_FRAC'])
     mask = ndimage.label(binary, structure=constants['CON_WINDOW'] * [1])[0]
     regions = [region for region, in ndimage.find_objects(mask) if region.stop - region.start >= constants['CON_MINLEN']]
@@ -182,7 +187,6 @@ def trim_insertions(msa1, scores1, gaps_array1, trimmed_dict=None):
                       'gap_propensity': gp, 'gap_diversity': gd,
                       'indel_bias1': ib1, 'indel_bias2': ib2})
         if trimmed:
-            propagate(start, stop, length, indel_signals1[index], gaps_array1[index], constants['INDEL1_RATE'])
             propagate(start, stop, length, trim_signals[index], gaps_array1[index], constants['GAP_RATE'])
 
     # 6 Trim segments
@@ -200,21 +204,15 @@ def propagate(start, stop, length, signal, gaps, rate):
     The signal decays over gaps; however, the signal is only added to
     coordinates corresponding non-gap symbols.
     """
-    max_k = -log(1E-3 / length) / rate
+    truncate_k = int(-log(1E-3 / length) / rate) + 1
 
-    k = 0
-    while start - k - 1 >= 0 and k < max_k:
-        if not gaps[start - k - 1]:
-            v = length * exp(-rate * k)
-            signal[start - k - 1] += v
-        k += 1
+    max_k = min(truncate_k, start)  # Number of positions to propagate over
+    s = [length * exp(rate * (k-max_k+1)) for k in range(max_k)]
+    signal[start-max_k:start] += s * ~gaps[start-max_k:start]
 
-    k = 0
-    while stop + k <= len(signal) - 1 and k < max_k:
-        if not gaps[stop + k]:
-            v = length * exp(-rate * k)
-            signal[stop + k] += v
-        k += 1
+    max_k = min(truncate_k, len(signal) - stop)  # Number of positions to propagate over
+    s = [length * exp(-rate * k) for k in range(max_k)]
+    signal[stop:stop+max_k] += s * ~gaps[stop:stop+max_k]
 
 
 def get_segments(msa, region):
