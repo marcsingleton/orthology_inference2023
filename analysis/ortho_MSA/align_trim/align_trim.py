@@ -1,11 +1,12 @@
 """Trim alignments, removing spurious sequences and regions."""
 
+import json
 import os
 import re
 from itertools import chain
 
 import skbio
-from src.ortho_MSA.trim import trim_msa
+from src.ortho_MSA.trim import constants, trim_msa
 
 # TAXONOMIC CONDITIONS
 conditions = [(set(['dinn', 'dgri']), 1),
@@ -13,10 +14,14 @@ conditions = [(set(['dinn', 'dgri']), 1),
               (set(['dper', 'dpse']), 1),
               (set(['dobs', 'dgua', 'dsub']), 2),
               (set(['dana', 'dbip', 'dkik', 'dser']), 3),
-              (set(['dele', 'dfic', 'dtak', 'dbia']), 3),
-              (set(['deug', 'dere']), 1),
+              (set(['dele', 'dfic', 'deug', 'dere']), 3),
+              (set(['dtak', 'dbia']), 1),
               (set(['dmel']), 1),
               (set(['dmau', 'dsec']), 1)]
+
+with open('../config/constants.json') as file:
+    config = json.load(file)
+constants.update(config)
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
