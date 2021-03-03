@@ -34,7 +34,7 @@ for spid, source, prot_path, tcds_path in genomes:
                     gnid = gn_match.group(1)
                     ppid = pp_match.group(1)
 
-                    ppid2meta[ppid] = (gnid, spid, 'False')
+                    ppid2meta[ppid] = (gnid, spid)
                     ppid_counts[ppid] = ppid_counts.get(ppid, 0) + 1
                 except AttributeError:
                     print(line)
@@ -45,7 +45,7 @@ for spid, source, prot_path, tcds_path in genomes:
         while line:
             if line.startswith('>'):
                 ppid0 = re.search(pp_regex[source], line).group(1)
-                gnid, spid, _ = ppid2meta[ppid0]
+                gnid, spid = ppid2meta[ppid0]
                 line = file.readline()
 
             seqlines = []
@@ -55,15 +55,16 @@ for spid, source, prot_path, tcds_path in genomes:
             seq0 = ''.join(seqlines)
 
             try:
-                for _, seq1 in gnid2seqs[gnid]:
+                for ppid1, seq1 in gnid2seqs[gnid]:
                     if seq0 == seq1:
+                        ppid2meta[ppid0] = (gnid, spid, ppid1)
                         break
                 else:
                     gnid2seqs[gnid].append((ppid0, seq0))
-                    ppid2meta[ppid0] = (gnid, spid, 'True')
+                    ppid2meta[ppid0] = (gnid, spid, ppid0)
             except KeyError:
                 gnid2seqs[gnid] = [(ppid0, seq0)]
-                ppid2meta[ppid0] = (gnid, spid, 'True')
+                ppid2meta[ppid0] = (gnid, spid, ppid0)
 
 # Make output directory
 if not os.path.exists('out/'):
@@ -79,8 +80,12 @@ print('Unique IDs:', len(ppid_counts))
 
 """
 OUTPUT
-Total headers: 735719
-Unique IDs: 735719
+Total headers: 839414
+Unique IDs: 839414
+
+NOTES
+dyak has a few unusual entries in its translated_cds file which have no proper NCBI gene ID. These are supplied in the
+full database file, so they were simply manually corrected in the source FASTAs.
 
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
