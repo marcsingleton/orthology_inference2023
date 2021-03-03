@@ -1,5 +1,15 @@
 """Default constants for trimming functions."""
 
+from importlib.resources import open_text
+
+matrix = {}
+with open_text(__package__, 'BLOSUM62.txt') as file:
+    file.readline()  # Skip header
+    syms = file.readline().split()
+    for i, line in enumerate(file):
+        for j, value in enumerate(line.split()[1:]):
+            matrix[(syms[i], syms[j])] = int(value)
+
 constants = {
              # CONSERVED REGIONS PARAMETERS
              'CON_FRAC': 0,  # Maximum gap fraction in conserved columns
@@ -16,6 +26,7 @@ constants = {
              'GD_WINDOW': 1,  # Size of gap diversity window
              'INDEL1_RATE': 1,  # Decay rate of indel signal 1
              'INDEL2_RATE': 1,  # Decay rate of indel signal 2
+             'MATRIX': matrix,
 
              # GAP REGIONS TRIMMING PARAMETERS
              'GAP_RATE': 1,  # Decay rate of trim signal

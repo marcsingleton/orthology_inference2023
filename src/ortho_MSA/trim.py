@@ -1,5 +1,6 @@
 """Trim columns and segments from an alignment."""
 
+from itertools import combinations
 from math import exp, log
 
 import numpy as np
@@ -221,7 +222,11 @@ def get_segments(msa, region):
     segments = {i: {'region': region, 'index': i, 'slices': [], 'support': 0} for i in range(len(block))}
     starts = {i: None for i in range(len(block))}  # Slice starts
     for j, col in enumerate(block.iter_positions()):
-        support = len(col) - str(col).count('-') - 1
+        support = 0
+        syms = [sym for sym in str(col) if sym != '-']
+        for sym1, sym2 in combinations([sym for sym in str(col) if sym != '-'], 2):
+            support += constants['MATRIX'][(sym1, sym2)]
+        support *= 2/(max(2, len(syms))-1)  # Scale score to number of non-gap symbols
         for i, sym in enumerate(str(col)):
             if sym != '-':
                 segments[i]['support'] += support
