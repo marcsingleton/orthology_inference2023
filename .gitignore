@@ -1,0 +1,15 @@
+# Top level directories
+/data/
+/bin/
+
+# All directories
+docs/
+out/
+
+# File types
+*.tsv
+*.out
+
+# Special cases
+.gitignore
+/src/utilities/
