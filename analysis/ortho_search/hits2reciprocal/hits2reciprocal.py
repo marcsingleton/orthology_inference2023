@@ -3,9 +3,12 @@
 import os
 
 
-def check_edge(qppid, sppid, pgraph):
+def check_edge(qppid, sppid, graph):
+    # Check both directions since not all hits are in graph
     try:
-        r = qppid in pgraph[sppid]
+        r1 = qppid in graph[sppid]
+        r2 = sppid in graph[qppid]
+        r = r1 and r2
     except KeyError:
         r = False
     return r
@@ -19,16 +22,16 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'bitscore': float}
 
 # Load pgraphs
-pgraph1 = {}
+graph1 = {}
 with open('../hits2pgraph/out/pgraph1.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        pgraph1[node] = [adj.split(':')[0] for adj in adjs.split(',')]
-pgraph2 = {}
+        graph1[node] = set([adj.split(':')[0] for adj in adjs.split(',')])
+graph2 = {}
 with open('../hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        pgraph2[node] = [adj.split(':')[0] for adj in adjs.split(',')]
+        graph2[node] = set([adj.split(':')[0] for adj in adjs.split(',')])
 
 # Check reciprocity
 for qspid in os.listdir('../hsps2hits/out/'):
@@ -41,8 +44,8 @@ for qspid in os.listdir('../hsps2hits/out/'):
                 qppid, sppid = d['qppid'], d['sppid']
                 qlen, cnqa = d['qlen'], d['cnqa']
 
-                r1 = check_edge(qppid, sppid, pgraph1)
-                r2 = cnqa / qlen >= 0.5 and check_edge(qppid, sppid, pgraph2)
+                r1 = check_edge(qppid, sppid, graph1)
+                r2 = cnqa / qlen >= 0.5 and check_edge(qppid, sppid, graph2)
                 rows.append((qppid, sppid, str(r1), str(r2)))
 
         # Make output directory

@@ -10,11 +10,11 @@ def line2key(line):
 
 
 # Load pgraph
-pgraph = {}
+graph = {}
 with open('../hsps2pgraph/out/pgraph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        pgraph[node] = adjs.split(',')
+        graph[node] = set(adjs.split(','))
 
 # Check reciprocity
 for qspid in os.listdir('../blast2hsps/out/hsps/'):
@@ -25,7 +25,7 @@ for qspid in os.listdir('../blast2hsps/out/hsps/'):
             for key, group in groupby(file, key=line2key):
                 qppid, sppid = key[0], key[1]
                 try:
-                    r = qppid in pgraph[sppid]
+                    r = qppid in graph[sppid]
                 except KeyError:
                     r = False
                 rows.extend([(qppid, sppid, str(r))] * len(list(group)))
