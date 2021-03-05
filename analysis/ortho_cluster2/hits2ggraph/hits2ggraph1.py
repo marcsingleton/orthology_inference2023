@@ -1,4 +1,4 @@
-"""Convert hits to an undirected ggraph."""
+"""Convert hits to an undirected pgraph."""
 
 import multiprocessing as mp
 import os
@@ -11,13 +11,11 @@ def load_hit(qspid, sspid):
                      usecols=dtypes.keys(), dtype=dtypes, memory_map=True)
     r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal1'], memory_map=True)
-    dfr = df.join(r)
 
-    return dfr[dfr['reciprocal1']].groupby(['qgnid', 'sgnid'])['bitscore'].mean()
+    return df[r['reciprocal1']]
 
 
-dtypes = {'qppid': 'string', 'qgnid': 'string',
-          'sppid': 'string', 'sgnid': 'string',
+dtypes = {'qppid': 'string', 'sppid': 'string',
           'bitscore': float}
 num_processes = 2
 
@@ -33,20 +31,21 @@ if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
         hits = pd.concat(pool.starmap(load_hit, permutations(spids, 2)))
 
-    ggraph = {}
-    for (qgnid, sgnid), bitscore in hits.iteritems():
+    graph = {}
+    for row in hits.itertuples():
+        qppid, sppid, bitscore = row.qppid, row.sppid, row.bitscore
         try:
-            ggraph[qgnid].append((sgnid, round(bitscore)))
+            graph[qppid].append((sppid, float(bitscore)))
         except KeyError:
-            ggraph[qgnid] = [(sgnid, round(bitscore))]
+            graph[qppid] = [(sppid, float(bitscore))]
 
     # Make output directory
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
     # Write to file
-    with open('out/ggraph1.tsv', 'w') as file:
-        for qgnid, edges in ggraph.items():
+    with open('out/pgraph1.tsv', 'w') as file:
+        for qgnid, edges in graph.items():
             file.write(qgnid + '\t' + ','.join([sgnid + ':' + str(bitscore) for sgnid, bitscore in edges]) + '\n')
 
 """
