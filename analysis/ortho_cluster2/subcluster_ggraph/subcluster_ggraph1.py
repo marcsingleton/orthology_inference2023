@@ -1,20 +1,20 @@
-"""Extract clusters from connected components of ggraph."""
+"""Extract clusters from connected components of pgraph."""
 
 import matplotlib.pyplot as plt
 import os
 from itertools import combinations
 from src.ortho_cluster.triDFS import cluster
 
-# Load ggraph
-ggraph = {}
-with open('../hits2ggraph/out/ggraph1.tsv') as file:
+# Load graph
+graph = {}
+with open('../hits2pgraph/out/pgraph1.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        ggraph[node] = set([adj.split(':')[0] for adj in adjs.split(',')])
+        graph[node] = set([adj.split(':')[0] for adj in adjs.split(',')])
 
 # Load connected components
 CCs = []
-with open('../connect_ggraph/out/gconnect1.txt') as file:
+with open('../connect_pgraph/out/pconnect1.txt') as file:
     for line in file:
         _, nodes = line.rstrip().split(':')
         CCs.append(set(nodes.split(',')))
@@ -22,10 +22,10 @@ with open('../connect_ggraph/out/gconnect1.txt') as file:
 OGs = []
 CCtypes = [{} for _ in range(5)]
 for CC in CCs:
-    subggraph = {node: ggraph[node] for node in CC}
+    subgraph = {node: graph[node] for node in CC}
 
     # Cluster by triangle criterion
-    subOGs = cluster(subggraph)
+    subOGs = cluster(subgraph)
     OGs.append(subOGs)
 
     # Classify CCs
@@ -43,12 +43,12 @@ for CC in CCs:
         CCtypes[3][len(subnOGs)] = CCtypes[3].get(len(subnOGs), 0) + 1  # Component has multiple pairwise disjoint OGs
 
 # Make plots output directory
-if not os.path.exists('out/ggraph1/'):
-    os.makedirs('out/ggraph1/')  # Recursive folder creation
+if not os.path.exists('out/pgraph1/'):
+    os.makedirs('out/pgraph1/')  # Recursive folder creation
 
 # Write OGs to file
 j = 0
-with open('out/ggraph1/gclusters.txt', 'w') as file:
+with open('out/pgraph1/pclusters.txt', 'w') as file:
     for i, subOGs in enumerate(OGs):
         CCid = hex(i)[2:].zfill(4)
         for OG in subOGs:
@@ -66,9 +66,9 @@ plt.xlabel('Number of OGs in connected component')
 plt.ylabel('Number of connected components')
 plt.title('Distribution of connected components across number of OGs')
 plt.legend()
-plt.savefig('out/ggraph1/connectnum-OGnum_type_dist1-1.png')
+plt.savefig('out/pgraph1/connectnum-OGnum_type_dist1-1.png')
 plt.xlim((-1, 17))  # Adjust axis to truncate outliers
-plt.savefig('out/ggraph1/connectnum-OGnum_type_dist1-2.png')
+plt.savefig('out/pgraph1/connectnum-OGnum_type_dist1-2.png')
 plt.close()
 
 plt.bar(CCtypes[3].keys(), CCtypes[3].values(), label='Type 3', color='C3')
@@ -77,14 +77,14 @@ plt.xlabel('Number of OGs in connected component')
 plt.ylabel('Number of connected components')
 plt.title('Distribution of connected components across number of OGs')
 plt.legend()
-plt.savefig('out/ggraph1/connectnum-OGnum_type_dist2-1.png')
+plt.savefig('out/pgraph1/connectnum-OGnum_type_dist2-1.png')
 plt.xlim((-1, 17))  # Adjust axis to truncate outliers
-plt.savefig('out/ggraph1/connectnum-OGnum_type_dist2-2.png')
+plt.savefig('out/pgraph1/connectnum-OGnum_type_dist2-2.png')
 plt.close()
 
 plt.pie([sum(CCtype.values()) for CCtype in CCtypes], labels=[f'Type {i}' for i in range(len(CCtypes))])
 plt.title('Connected components by type')
-plt.savefig('out/ggraph1/type_pie.png')
+plt.savefig('out/pgraph1/type_pie.png')
 plt.close()
 
 for i, CCtype in enumerate(CCtypes):
@@ -92,16 +92,16 @@ for i, CCtype in enumerate(CCtypes):
 
 """
 OUTPUT
-Type 0: 290
-Type 1: 11989
-Type 2: 1522
-Type 3: 240
-Type 4: 785
+Type 0: 866
+Type 1: 11437
+Type 2: 3300
+Type 3: 427
+Type 4: 2026
 
 DEPENDENCIES
 ../../../src/ortho_cluster/triDFS.py
-../connect_ggraph/connect_ggraph1.py
-    ../connect_ggraph/out/gconnect1.txt
-../hits2ggraph/hits2ggraph1.py
-    ../hits2ggraph/out/ggraph1.tsv
+../connect_pgraph/connect_pgraph1.py
+    ../connect_pgraph/out/pconnect1.txt
+../hits2pgraph/hits2pgraph1.py
+    ../hits2pgraph/out/pgraph1.tsv
 """
