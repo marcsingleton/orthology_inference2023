@@ -27,8 +27,9 @@ groups = OGs.groupby('OGid')
 OGnum = OGs['OGid'].nunique()
 uppnum = OGs['ppid'].nunique()
 ugnnum = OGs['gnid'].nunique()
-u31num1 = len(groups.filter(lambda x: x['gnid'].nunique() == spid_num and x['spid'].nunique() == spid_num)) // spid_num
-u31num2 = len(groups.filter(lambda x: x['ppid'].nunique() == spid_num and x['spid'].nunique() == spid_num)) // spid_num
+OG_unums = groups.nunique()
+unum1 = len(OG_unums[(OG_unums['gnid'] == spid_num) & (OG_unums['spid'] == spid_num)])
+unum2 = len(OG_unums[(OG_unums['ppid'] == spid_num) & (OG_unums['spid'] == spid_num)])
 
 # Make output directory
 if not os.path.exists('out/pgraph2/spgn/'):
@@ -168,7 +169,7 @@ fig.savefig('out/pgraph2/spgn/hist_OGnum-spnum.png')
 plt.close()
 
 # Distribution of OGs across number of genes
-dist_gn = groups['gnid'].size().value_counts()
+dist_gn = groups['gnid'].nunique().value_counts()
 gn, gn_count = zip(*dist_gn.items())
 fig, ax1 = plt.subplots()
 ax1.bar(gn, gn_count, width=1)
@@ -186,7 +187,7 @@ fig.savefig('out/pgraph2/spgn/hist_OGnum-gnnum.png')
 plt.close()
 
 # Distribution of OGs across number of polypeptides
-dist_pp = groups['ppid'].size().value_counts()
+dist_pp = groups['ppid'].nunique().value_counts()
 pp, pp_count = zip(*dist_pp.items())
 fig, ax1 = plt.subplots()
 ax1.bar(pp, pp_count, width=1)
@@ -233,11 +234,11 @@ print()
 print(f'number of OGs with {spid_num} polypeptides:', dist_pp[spid_num])
 print(f'fraction of OGs with {spid_num} polypeptides:', dist_pp[spid_num] / OGnum)
 print()
-print(f'number of OGs with {spid_num} species and {spid_num} genes:', u31num1)
-print(f'fraction of OGs with {spid_num} species and {spid_num} genes:', u31num1 / OGnum)
+print(f'number of OGs with {spid_num} species and {spid_num} genes:', unum1)
+print(f'fraction of OGs with {spid_num} species and {spid_num} genes:', unum1 / OGnum)
 print()
-print(f'number of OGs with {spid_num} species and {spid_num} polypeptides:', u31num2)
-print(f'fraction of OGs with {spid_num} species and {spid_num} polypeptides:', u31num2 / OGnum)
+print(f'number of OGs with {spid_num} species and {spid_num} polypeptides:', unum2)
+print(f'fraction of OGs with {spid_num} species and {spid_num} polypeptides:', unum2 / OGnum)
 print()
 print('number of OGs with duplicates:', OGnum - dist_dup[0])
 print('fraction of OGs with duplicates', (OGnum - dist_dup[0]) / OGnum)
@@ -249,14 +250,14 @@ number of OGs: 24303
 number of OGs with 35 species: 8525
 fraction of OGs with 35 species: 0.3507797391268568
 
-number of OGs with 35 genes: 1805
-fraction of OGs with 35 genes: 0.07427066617290047
+number of OGs with 35 genes: 6791
+fraction of OGs with 35 genes: 0.279430522980702
 
 number of OGs with 35 polypeptides: 1805
 fraction of OGs with 35 polypeptides: 0.07427066617290047
 
-number of OGs with 35 species and 35 genes: 8749
-fraction of OGs with 35 species and 35 genes: 0.359996708225322
+number of OGs with 35 species and 35 genes: 6387
+fraction of OGs with 35 species and 35 genes: 0.26280706085668437
 
 number of OGs with 35 species and 35 polypeptides: 1364
 fraction of OGs with 35 species and 35 polypeptides: 0.05612475826029708
@@ -268,8 +269,8 @@ NOTES
 These plots are largely based off those in analysis/EggNOGv5_validation/ali_stats/ali_stats.py
 
 DEPENDENCIES
-../subcluster_pgraph/subcluster_pgraph2.py
-    ../subcluster_pgraph/pgraph2/out/pclusters.tsv
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
+../subcluster_pgraph/subcluster_pgraph2.py
+    ../subcluster_pgraph/pgraph2/out/pclusters.tsv
 """
