@@ -1,24 +1,24 @@
-"""Find connected components of ggraph."""
+"""Find connected components of pgraph."""
 
 import os
 from src.ortho_cluster.DFS import connect
 
-# Load ggraph
-ggraph = {}
-with open('../hits2ggraph/out/ggraph1.tsv') as file:
+# Load graph
+graph = {}
+with open('../hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        ggraph[node] = [adj.split(':')[0] for adj in adjs.split(',')]
+        graph[node] = [adj.split(':')[0] for adj in adjs.split(',')]
 
 # Find connected components
-CCs = connect(ggraph)
+CCs = connect(graph)
 
 # Make output directory
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Write clusters to file
-with open('out/gconnect1.txt', 'w') as outfile:
+with open('out/pconnect2.txt', 'w') as outfile:
     for i, CC in enumerate(filter(lambda x: len(x) > 2, CCs)):
         CCid = hex(i)[2:].zfill(4)
         outfile.write(CCid + ':' + ','.join(CC) + '\n')
@@ -26,6 +26,6 @@ with open('out/gconnect1.txt', 'w') as outfile:
 """
 DEPENDENCIES
 ../../../src/ortho_cluster/DFS.py
-../hits2ggraph/hits2ggraph.py
-    ../hits2ggraph/out/ggraph1.tsv
+../hits2pgraph/hits2pgraph.py
+    ../hits2pgraph/out/pgraph2.tsv
 """
