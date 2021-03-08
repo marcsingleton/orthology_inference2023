@@ -388,20 +388,20 @@ print('Fraction (genes with unknown amino acids):', s3 / s2)
 
 """
 OUTPUT
-Fraction of sequences with unknown amino acids: 0.012521528728775823
+Fraction of sequences with unknown amino acids: 0.013849222288397346
 
 Genes with at least one sequence without unknown amino acids
-Number: 363696
-Fraction: 0.9814952247046981
+Number: 434011
+Fraction: 0.9787918766843702
 
 Genes with at least one sequence with unknown amino acids
-Number: 7286
-Fraction: 0.019662504419070956
+Number: 9833
+Fraction: 0.022175614266544883
 
 Genes with at least one sequence without unknown amino acids and at least one sequence with unknown amino acids
 Number: 429
-Fraction (all genes): 0.0011577291237690696
-Fraction (genes with unknown amino acids): 0.05888004391984628
+Fraction (all genes): 0.000967490950915057
+Fraction (genes with unknown amino acids): 0.043628597579578966
 
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
