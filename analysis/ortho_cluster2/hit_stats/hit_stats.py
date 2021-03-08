@@ -91,10 +91,10 @@ def bar3(dfs, file_label, x_label, df_labels, colors, wrap=False):
 
 def bar_hits(counts, file_label):
     plt.bar(counts.keys(), counts.values(), width=1)
-    plt.title('Distribution of genes across number of reciprocal hits')
-    plt.xlabel('Number of reciprocal hits to gene')
-    plt.ylabel('Number of genes')
-    plt.savefig(f'out/hits/hist_gnidnum-hitnum_{file_label}.png')
+    plt.title('Distribution of polypeptides across number of reciprocal hits')
+    plt.xlabel('Number of reciprocal hits to polypeptides')
+    plt.ylabel('Number of polypeptides')
+    plt.savefig(f'out/hits/hist_ppidnum-hitnum_{file_label}.png')
     plt.close()
 
 
@@ -280,8 +280,18 @@ if __name__ == '__main__':
     sgnid_hitnum_dmel = sgnid_hitnum.loc[sgnid_hitnum['sspid'] == 'dmel', :]
     sgnid_hitnum_dmel.to_csv('out/hits/sgnids_dmel.tsv', sep='\t', index_label='sgnid')
 
-    # 2.2 PLOTS
-    # 2.2.1 Correlation of gene hits with number of associated polypeptides
+    # 2.2 PPID RANKS
+    ids = hits2.loc[:, ['sppid', 'sspid']].drop_duplicates().set_index('sppid')
+
+    sppid_hitnum = hits2.groupby('sppid')['qppid'].nunique().rename('sppid_hitnum').sort_values(ascending=False).to_frame()
+    sppid_hitnum = sppid_hitnum.join(ids)
+    sppid_hitnum.to_csv('out/hits/sppids.tsv', sep='\t', index_label='sppid')
+
+    sppid_hitnum_dmel = sppid_hitnum.loc[sppid_hitnum['sspid'] == 'dmel', :]
+    sppid_hitnum_dmel.to_csv('out/hits/sppids_dmel.tsv', sep='\t', index_label='sppid')
+
+    # 2.3 PLOTS
+    # 2.3.1 Correlation of gene hits with number of associated polypeptides
     gnid_ppidnum = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t',
                                index_col='gnid', dtype={'gnid': 'string'})
     corr = sgnid_hitnum.join(gnid_ppidnum)
@@ -294,12 +304,12 @@ if __name__ == '__main__':
     plt.savefig('out/hits/scatter_hitnum-ppidnum.png')
     plt.close()
 
-    # 2.2.2 Histograms of genes by number of hits
-    counts = sgnid_hitnum['sgnid_hitnum'].value_counts().to_dict()
+    # 2.3.2 Histograms of polypeptides by number of hits
+    counts = sppid_hitnum['sppid_hitnum'].value_counts().to_dict()
 
     bar_hits(counts, 'all')
-    bar_hits({key: val for key, val in counts.items() if key > 31}, '31+')
-    bar_hits({key: val for key, val in counts.items() if key <= 31}, '31-')
+    bar_hits({key: val for key, val in counts.items() if key > len(spids)}, f'{len(spids)}+')
+    bar_hits({key: val for key, val in counts.items() if key <= len(spids)}, f'{len(spids)}-')
 
 """
 DEPENDENCIES
