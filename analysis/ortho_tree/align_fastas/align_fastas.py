@@ -7,7 +7,8 @@ from time import time_ns
 
 
 def run_cmd(file_id):
-    cmd = (f'../../../bin/mafft --genafpair --maxiterate 1000 --thread 1 --anysymbol '
+    cmd = (f'../../../bin/mafft --globalpair --maxiterate 1000 '
+           f'--thread 1 --anysymbol --allowshift --unalignlevel 0.4 --leavegappyregion '
            f'../make_fastas/out/{file_id}.tfa '
            f'1> out/{file_id}.mfa 2> out/{file_id}.err')
     try:
