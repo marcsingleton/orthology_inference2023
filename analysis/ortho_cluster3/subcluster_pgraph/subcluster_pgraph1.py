@@ -59,7 +59,7 @@ with open('out/pgraph1/pclusters.txt', 'w') as file:
 # Plots
 plt.bar(CCtypes[0].keys(), CCtypes[0].values(), label='Type 0')
 plt.bar(CCtypes[1].keys(), CCtypes[1].values(), label='Type 1')
-plt.bar(CCtypes[2].keys(), CCtypes[2].values(), bottom=CCtypes[1][1], label='Type 2')
+plt.bar(CCtypes[2].keys(), CCtypes[2].values(), bottom=CCtypes[1].get(1, 0), label='Type 2')
 plt.bar(CCtypes[3].keys(), CCtypes[3].values(), label='Type 3')
 plt.bar(CCtypes[4].keys(), CCtypes[4].values(), bottom=[CCtypes[3].get(key, 0) for key in CCtypes[4]], label='Type 4')
 plt.xlabel('Number of OGs in connected component')
@@ -92,11 +92,11 @@ for i, CCtype in enumerate(CCtypes):
 
 """
 OUTPUT
-Type 0: 868
-Type 1: 11707
-Type 2: 3128
-Type 3: 437
-Type 4: 1855
+Type 0: 984
+Type 1: 13554
+Type 2: 2863
+Type 3: 471
+Type 4: 1863
 
 DEPENDENCIES
 ../../../src/ortho_cluster/triDFS.py

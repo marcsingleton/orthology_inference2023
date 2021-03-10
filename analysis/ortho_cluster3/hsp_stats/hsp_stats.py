@@ -62,12 +62,12 @@ def hist2_2(dfs, bins, data_label, file_label, x_label, df_labels, colors, capit
     plt.close()
 
 
-def bar_hits(counts, data_label, file_label, ax_label):
+def bar_hsps(counts, data_label, file_label, ax_label):
     plt.bar(counts.keys(), counts.values(), width=1)
-    plt.title(f'Distribution of genes across number of {ax_label}hits')
-    plt.xlabel(f'Number of {ax_label}hits to gene')
-    plt.ylabel('Number of genes')
-    plt.savefig(f'out/hits_{data_label}/hist_gnidnum-hitnum_{file_label}.png')
+    plt.title(f'Distribution of polypeptides across number of {ax_label}HSPs')
+    plt.xlabel(f'Number of {ax_label}HSPs to polypeptide')
+    plt.ylabel('Number of polypeptides')
+    plt.savefig(f'out/hsps_{data_label}/hist_ppidnum-hspnum_{file_label}.png')
     plt.close()
 
 
@@ -260,56 +260,56 @@ if __name__ == '__main__':
     # 2 HIT METRICS
     for data_label, hsps in [('all', hsps1), ('reciprocal', hsps1[hsps1['reciprocal']])]:
         # Make hits output directory
-        if not os.path.exists(f'out/hits_{data_label}/'):
-            os.mkdir(f'out/hits_{data_label}/')
+        if not os.path.exists(f'out/hsps_{data_label}/'):
+            os.mkdir(f'out/hsps_{data_label}/')
 
         # 2.1 PPID RANKS
         ids = hsps.loc[:, ['sppid', 'sgnid', 'sspid']].drop_duplicates().set_index('sppid')
 
-        sppid_hitnum = hsps['sppid'].value_counts().rename('sppid_hitnum').sort_values(ascending=False).to_frame()
-        sppid_hitnum = sppid_hitnum.join(ids)
-        sppid_hitnum.to_csv(f'out/hits_{data_label}/sppids.tsv', sep='\t', index_label='sppid')
+        sppid_hspnum = hsps['sppid'].value_counts().rename('sppid_hspnum').sort_values(ascending=False).to_frame()
+        sppid_hspnum = sppid_hspnum.join(ids)
+        sppid_hspnum.to_csv(f'out/hsps_{data_label}/sppids.tsv', sep='\t', index_label='sppid')
 
-        sppid_hitnum_dmel = sppid_hitnum.loc[sppid_hitnum['sspid'] == 'dmel', :]
-        sppid_hitnum_dmel.to_csv(f'out/hits_{data_label}/sppids_dmel.tsv', sep='\t', index_label='sppid')
+        sppid_hspnum_dmel = sppid_hspnum.loc[sppid_hspnum['sspid'] == 'dmel', :]
+        sppid_hspnum_dmel.to_csv(f'out/hsps_{data_label}/sppids_dmel.tsv', sep='\t', index_label='sppid')
 
         # 2.2 GNID RANKS
         ids = hsps.loc[:, ['sgnid', 'sspid']].drop_duplicates().set_index('sgnid')
 
-        sgnid_hitnum = hsps.groupby('sgnid')['qgnid'].nunique().rename('sgnid_hitnum').sort_values(ascending=False).to_frame()
-        sgnid_hitnum = sgnid_hitnum.join(ids)
-        sgnid_hitnum.to_csv(f'out/hits_{data_label}/sgnids.tsv', sep='\t', index_label='sgnid')
+        sgnid_hspnum = hsps.groupby('sgnid')['qgnid'].nunique().rename('sgnid_hspnum').sort_values(ascending=False).to_frame()
+        sgnid_hspnum = sgnid_hspnum.join(ids)
+        sgnid_hspnum.to_csv(f'out/hsps_{data_label}/sgnids.tsv', sep='\t', index_label='sgnid')
 
-        sgnid_hitnum_dmel = sgnid_hitnum.loc[sgnid_hitnum['sspid'] == 'dmel', :]
-        sgnid_hitnum_dmel.to_csv(f'out/hits_{data_label}/sgnids_dmel.tsv', sep='\t', index_label='sgnid')
+        sgnid_hspnum_dmel = sgnid_hspnum.loc[sgnid_hspnum['sspid'] == 'dmel', :]
+        sgnid_hspnum_dmel.to_csv(f'out/hsps_{data_label}/sgnids_dmel.tsv', sep='\t', index_label='sgnid')
 
         # 2.3 PLOTS
         ax_label = 'reciprocal ' if data_label == 'reciprocal' else ''
 
-        # 2.3.1 Correlation of gene hits with number of associated polypeptides
+        # 2.3.1 Correlation of gene HSPs with number of associated polypeptides
         gnid_nums = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t',
                                 index_col='gnid', dtype={'gnid': 'string'})
-        corr = sgnid_hitnum.join(gnid_nums)
+        corr = sgnid_hspnum.join(gnid_nums)
 
-        plt.scatter(corr['ppidnum'], corr['sgnid_hitnum'],
+        plt.scatter(corr['ppidnum'], corr['sgnid_hspnum'],
                     alpha=0.5, s=10, edgecolors='none')
         plt.xlabel('Number of polypeptides associated with gene')
-        plt.ylabel(f'Number of {ax_label}hits to gene')
-        plt.title(f'Correlation of number of {ax_label}hits to gene\nwith number of associated polypeptides')
-        plt.savefig(f'out/hits_{data_label}/scatter_hitnum-ppidnum.png')
+        plt.ylabel(f'Number of {ax_label}HSPs to gene')
+        plt.title(f'Correlation of number of {ax_label}HSPs to gene\nwith number of associated polypeptides')
+        plt.savefig(f'out/hsps_{data_label}/scatter_hspnum-ppidnum.png')
         plt.close()
 
-        # 2.3.2 Histograms of genes by number of hits
-        counts = sgnid_hitnum['sgnid_hitnum'].value_counts().to_dict()
+        # 2.3.2 Histograms of genes by number of HSPs
+        counts = sppid_hspnum['sppid_hspnum'].value_counts().to_dict()
 
-        bar_hits(counts, data_label, 'all', ax_label)
-        bar_hits({key: val for key, val in counts.items() if key > 26}, data_label, '26+', ax_label)
-        bar_hits({key: val for key, val in counts.items() if key <= 26}, data_label, '26-', ax_label)
+        bar_hsps(counts, data_label, 'all', ax_label)
+        bar_hsps({key: val for key, val in counts.items() if key > len(spids)}, data_label, f'{len(spids)}+', ax_label)
+        bar_hsps({key: val for key, val in counts.items() if key <= len(spids)}, data_label, f'{len(spids)}-', ax_label)
 
 """
 OUTPUT
-Fraction of best HSPs reciprocal: 0.9377310456504264
-Fraction of disjoint HSPs reciprocal: 0.9397926358798487
+Fraction of best HSPs reciprocal: 0.9411210016185043
+Fraction of disjoint HSPs reciprocal: 0.9431534979669558
 
 DEPENDENCIES
 ../../ortho_search/blast2hsps/blast2hsps.py

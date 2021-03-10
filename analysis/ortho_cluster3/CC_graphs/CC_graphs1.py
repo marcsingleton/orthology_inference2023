@@ -45,37 +45,37 @@ def get_node_colors(graph, OGs):
     return node_colors
 
 
-# Load ggraph
-ggraph = {}
-with open('../hits2ggraph/out/ggraph1.tsv') as file:
+# Load pgraph
+graph = {}
+with open('../hits2pgraph/out/pgraph1.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        ggraph[node] = [adj.split(':') for adj in adjs.split(',')]
+        graph[node] = [adj.split(':') for adj in adjs.split(',')]
 
 # Load connected components
 CCs = {}
-with open('../connect_ggraph/out/gconnect1.txt') as file:
+with open('../connect_pgraph/out/pconnect1.txt') as file:
     for line in file:
         CCid, nodes = line.rstrip().split(':')
         CCs[CCid] = set(nodes.split(','))
 
 # Load OGs
-OG3s = load_OGs('../subcluster_ggraph/out/ggraph1/gclusters.txt')
-OG4s = load_OGs('../clique4+_gcommunity/out/ggraph1/4clique/gclusters.txt')
-OG5s = load_OGs('../clique4+_gcommunity/out/ggraph1/5clique/gclusters.txt')
-OG6s = load_OGs('../clique4+_gcommunity/out/ggraph1/6clique/gclusters.txt')
+OG3s = load_OGs('../subcluster_pgraph/out/pgraph1/pclusters.txt')
+OG4s = load_OGs('../clique4+_pcommunity/out/pgraph1/4clique/pclusters.txt')
+OG5s = load_OGs('../clique4+_pcommunity/out/pgraph1/5clique/pclusters.txt')
+OG6s = load_OGs('../clique4+_pcommunity/out/pgraph1/6clique/pclusters.txt')
 
 # Make output directory
-if not os.path.exists('out/ggraph1/'):
-    os.makedirs('out/ggraph1/')  # Recursive folder creation
+if not os.path.exists('out/pgraph1/'):
+    os.makedirs('out/pgraph1/')  # Recursive folder creation
 
 CCids = sorted(CCs, key=lambda x: len(CCs[x]), reverse=True)
 for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
-    subggraph = {node: ggraph[node] for node in CCs[CCid]}
+    subgraph = {node: graph[node] for node in CCs[CCid]}
 
     # Create graph
     G = nx.Graph()
-    for node, adjs in subggraph.items():
+    for node, adjs in subgraph.items():
         G.add_node(node)
         for adj, w in adjs:
             if (node, adj) in G.edges:
@@ -118,8 +118,8 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
         locs.remove(loc)
 
     # Draw graph labeled by source
-    node_size = 25/(1 + exp(0.01*(len(subggraph)-400))) + 10  # Adjust node size
-    FB = [node for node in G.nodes if node.startswith('FBgn')]
+    node_size = 25/(1 + exp(0.01*(len(subgraph)-400))) + 10  # Adjust node size
+    FB = [node for node in G.nodes if node.startswith('FBpp')]
     NCBI = G.nodes - FB
 
     fig, ax = plt.subplots(figsize=figsize, dpi=300)
@@ -130,21 +130,21 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
     fig.legend(markerscale=(1 if node_size > 22.5 else 22.5/node_size), loc=locs[-1])
     fig.tight_layout()
     ax.axis('off')
-    fig.savefig(f'out/ggraph1/{i}_{CCid}_source.png')
+    fig.savefig(f'out/pgraph1/{i}_{CCid}_source.png')
     plt.close()
 
     # Draw graph labeled by cluster
     for j, OGjs in zip(range(3, 7), [OG3s, OG4s, OG5s, OG6s]):
         fig, ax = plt.subplots(figsize=figsize, dpi=300)
         nx.draw_networkx_edges(G, pos, alpha=0.25, width=0.5)
-        nx.draw_networkx_nodes(G.nodes, pos, node_size=node_size, linewidths=0, node_color=get_node_colors(G, OGjs[CCid]))
+        nx.draw_networkx_nodes(G.nodes, pos, node_size=node_size, linewidths=0, node_color=get_node_colors(G, OGjs.get(CCid, [])))
         fig.tight_layout()
         ax.axis('off')
-        fig.savefig(f'out/ggraph1/{i}_{CCid}_OG{j}.png')
+        fig.savefig(f'out/pgraph1/{i}_{CCid}_OG{j}.png')
         plt.close()
 
     # Draw graph labeled by edge
-    node_size = 20/(1 + exp(0.01*(len(subggraph)-400))) + 10  # Adjust node size
+    node_size = 20/(1 + exp(0.01*(len(subgraph)-400))) + 10  # Adjust node size
     edges = sorted(G.edges, key=lambda x: G.get_edge_data(*x)['weight'])
 
     ws = [G.get_edge_data(*edge)['weight'] for edge in edges]
@@ -163,19 +163,19 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
 
     fig.tight_layout()
     ax.axis('off')
-    fig.savefig(f'out/ggraph1/{i}_{CCid}_edge.png')
+    fig.savefig(f'out/pgraph1/{i}_{CCid}_edge.png')
     plt.close()
 
 """
 DEPENDENCIES
-../clique4+_gcommunity/clique4+_gcommunity1.py
-    ../clique4+_gcommunity/out/ggraph1/4clique/gclusters.txt
-    ../clique4+_gcommunity/out/ggraph1/5clique/gclusters.txt
-    ../clique4+_gcommunity/out/ggraph1/6clique/gclusters.txt
-../connect_ggraph/connect_ggraph1.py
-    ../connect_ggraph/out/gconnect1.txt
-../hits2ggraph/hits2ggraph1.py
-    ../hits2ggraph/out/ggraph1.tsv
-../subcluster_ggraph/subcluster_ggraph1.py
-    ../subcluster_ggraph/out/ggraph1/gclusters.txt
+../clique4+_pcommunity/clique4+_pcommunity1.py
+    ../clique4+_pcommunity/out/pgraph1/4clique/pclusters.txt
+    ../clique4+_pcommunity/out/pgraph1/5clique/pclusters.txt
+    ../clique4+_pcommunity/out/pgraph1/6clique/pclusters.txt
+../connect_pgraph/connect_pgraph1.py
+    ../connect_pgraph/out/pconnect1.txt
+../hits2pgraph/hits2pgraph1.py
+    ../hits2pgraph/out/pgraph1.tsv
+../subcluster_pgraph/subcluster_pgraph1.py
+    ../subcluster_pgraph/out/pgraph1/pclusters.txt
 """
