@@ -1,4 +1,4 @@
-"""Cluster gene graph by k-clique percolation."""
+"""Cluster graph by k-clique percolation."""
 
 import os
 import signal
