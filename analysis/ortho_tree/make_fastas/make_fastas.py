@@ -13,54 +13,44 @@ genomes = []
 with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        spid, _, source, prot_path, _ = line.split()
-        genomes.append((spid, source, prot_path))
+        _, _, source, prot_path, _ = line.split()
+        genomes.append((source, prot_path))
 
 # Load seq metadata
-ppid2gnid = {}
+ppid2meta = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        ppid, gnid, _, _ = line.split()
-        ppid2gnid[ppid] = gnid
+        ppid, gnid, spid, sqid = line.split()
+        ppid2meta[ppid] = (gnid, spid, sqid)
 
 # Load seqs
-gnid2seqs = {}
-for spid0, source, prot_path in genomes:
+ppid2seq = {}
+for source, prot_path in genomes:
     with open(prot_path) as file:
         line = file.readline()
         while line:
             if line.startswith('>'):
-                ppid0 = re.search(pp_regex[source], line).group(1)
-                gnid = ppid2gnid[ppid0]
+                ppid = re.search(pp_regex[source], line).group(1)
                 line = file.readline()
 
             seqlines = []
             while line and not line.startswith('>'):
                 seqlines.append(line.rstrip())
                 line = file.readline()
-            seq0 = ''.join(seqlines)
-
-            try:
-                for _, _, seq1 in gnid2seqs[gnid]:
-                    if seq0 == seq1:
-                        break
-                else:
-                    gnid2seqs[gnid].append((ppid0, spid0, seq0))
-            except KeyError:
-                gnid2seqs[gnid] = [(ppid0, spid0, seq0)]
+            seq = ''.join(seqlines)
+            ppid2seq[ppid] = seq
 
 # Load OGs and OG metadata
 OGs = {}
-with open('../clique4+_gcommunity/out/5clique/gclusters.txt') as file:
+with open('../clique4+_pcommunity/out/4clique/pclusters.txt') as file:
     for line in file:
         _, OGid, edges = line.rstrip().split(':')
-        gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
-        OGs[OGid] = gnids
-
+        sqids = set([ppid2meta[node][2] for edge in edges.split('\t') for node in edge.split(',')])
+        OGs[OGid] = sqids
 OGs_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
 
 # Write sequences
-num = 27
+num = len(genomes)
 gnnum = OGs_meta['gnidnum'] == num
 spnum = OGs_meta['spidnum'] == num
 sqnum = OGs_meta['sqidnum'] == num
@@ -71,10 +61,11 @@ if not os.path.exists('out/'):
 
 for OGid in OGids:
     with open(f'out/{OGid}.tfa', 'w') as file:
-        for gnid in OGs[OGid]:
-            ppid, spid, seq = gnid2seqs[gnid][0]
+        for sqid in OGs[OGid]:
+            gnid, spid, _ = ppid2meta[sqid]
+            seq = ppid2seq[sqid]
             seqstring = '\n'.join(seq[i:i+80] for i in range(0, len(seq), 80)) + '\n'
-            file.write(f'>ppid={ppid}|gnid={gnid}|spid={spid}\n')
+            file.write(f'>ppid={sqid}|gnid={gnid}|spid={spid}\n')
             file.write(seqstring)
 
 """
@@ -84,8 +75,8 @@ DEPENDENCIES
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../config/genomes.tsv
-../clique4+_gcommunity/clique4+_gcommunity.py
-    ../clique4+_gcommunity/out/5clique/gclusters.txt
+../clique4+_pcommunity/clique4+_pcommunity.py
+    ../clique4+_pcommunity/out/4clique/pclusters.txt
 ../OG_meta/OG_meta.py
     ../OG_meta/out/OG_meta.tsv
 """
