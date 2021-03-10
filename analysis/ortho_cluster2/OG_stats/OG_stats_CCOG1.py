@@ -158,7 +158,7 @@ DEPENDENCIES
 ../connect_pgraph/connect_pgraph1.py
     ../connect_pgraph/out/pconnect1.txt
 ../hsp_stats/hsp_stats.py
-    ../hsp_stats/out/hits_reciprocal/sppids.tsv
+    ../hsp_stats/out/hsps_reciprocal/sppids.tsv
 ../subcluster_pgraph/subcluster_pgraph1.py
     ../subcluster_pgraph/out/pgraph1/pclusters.txt
 """

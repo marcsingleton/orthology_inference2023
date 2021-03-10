@@ -335,7 +335,7 @@ if __name__ == '__main__':
     hist3(edgefracs, 50, 'OGnum-edgefrac', 'OGs', 'fraction of possible edges', labels, colors)
     hist1(edgefracs[0], 50, 'OGnum-edgefrac_all', 'OGs', 'fraction of possible edges', labels[0], colors[0])
     hist1(edgefracs[1], 50, 'OGnum-edgefrac_filter1', 'OGs', 'fraction of possible edges', labels[1], colors[1])
-    hist1(edgefracs[2], 50, 'OGnum-edgefrac_filter2', 'OGs', 'fraction of possible edges', labels[1], colors[1])
+    hist1(edgefracs[2], 50, 'OGnum-edgefrac_filter2', 'OGs', 'fraction of possible edges', labels[2], colors[2])
 
     # 13 CORRELATIONS
     scatter2(ppidnums[0], OGs[0]['bitscore'].mean(), 'bitscore-OGppnum', 'Mean bitscore of hits in OG')
