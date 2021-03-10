@@ -27,7 +27,7 @@ for qspid in os.listdir('../hsps2hits/out/'):
             file.readline()  # Skip header
             for _, group in groupby(file, lambda x: x.split()[0]):
                 group = list([line.split() for line in group])
-                bs_max = float(max([fields[14] for fields in group]))
+                bs_max = max([float(fields[14]) for fields in group])
                 for fields in group:
                     if bs_max == float(fields[14]):
                         d = {column: f(field) for (column, f), field in zip(columns.items(), fields)}
