@@ -2,7 +2,7 @@
 
 import os
 from collections import namedtuple
-from random import randrange
+from random import randrange, seed
 
 from skbio import io, TabularMSA, Protein
 
@@ -26,6 +26,7 @@ def is_invariant(col):
 
 
 Column = namedtuple('Column', ['spid', 'sym'])
+seed(930715)  # Set seed to make results consistent
 
 # Extract column pools
 colpools = {'100red': (lambda col: is_redundant(col, 1), []),
@@ -49,7 +50,7 @@ for label, (_, colpool) in colpools.items():
 
     print(f'{label}:', len(colpool))
     for samplenum in range(100):
-        sample = [colpool[randrange(len(colpool))] for _ in range(1000)]
+        sample = [colpool[randrange(len(colpool))] for _ in range(10000)]
         seqs = {}
         for col in sample:
             for spid, sym in col:
@@ -65,12 +66,12 @@ for label, (_, colpool) in colpools.items():
 
 """
 OUTPUT
-100red: 2129705
-100red_ni: 1119220
-50red: 2318925
-50red_ni: 1274843
-0red: 2619456
-0red_ni: 1361729
+100red: 4434228
+100red_ni: 2274285
+50red: 4966029
+50red_ni: 2684624
+0red: 5759178
+0red_ni: 2933188
 
 DEPENDENCIES
 ../align_aa2nt/align_aa2nt.py
