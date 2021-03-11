@@ -78,14 +78,14 @@ def update_tip_names(tree):
             node.tip_names = set().union(*[child.tip_names for child in node.children])
 
 
-def reduce(pOGid, pOG):
+def reduce(OGid, OG):
     """Return representative PPIDs for all GNIDs associated with tips in node."""
     # Extract sequences
     seqs = []
     ids = []
-    for ppid in pOG:
+    for ppid in OG:
         seqs.append(ppid2seq[ppid])
-        gnid, spid = ppid2meta[ppid]
+        gnid, spid, _ = ppid2meta[ppid]
         ids.append(f"'{spid}:{gnid}:{ppid}'")  # Wrap in quotes to ensure correct parsing
 
     # Make distance matrix
@@ -112,7 +112,7 @@ def reduce(pOGid, pOG):
     msd = get_max_gnid_distances(dm)
 
     # Prune tree
-    gnids = set([ppid2meta[ppid][0] for ppid in pOG])
+    gnids = set([ppid2meta[ppid][0] for ppid in OG])
     while len(tree.tip_names) > len(gnids):
         # Remove non-minimal tips in single-species clades
         for node in tree.postorder():
@@ -150,7 +150,7 @@ def reduce(pOGid, pOG):
 
     # Extract sequences from tree
     rOG = [tip_name.split(':') for tip_name in tree.tip_names]
-    return pOGid, rOG
+    return OGid, rOG
 
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
@@ -163,7 +163,7 @@ table = {ord('I'): '!', ord('L'): '!', ord('M'): '!', ord('V'): '!',
          ord('C'): '^',
          ord('P'): '&',
          ord('G'): '~'}
-num_processes = int(os.environ['SLURM_NTASKS'])
+num_processes = 2
 
 # Parse genomes
 genomes = []
@@ -177,12 +177,12 @@ with open('../config/genomes.tsv') as file:
 ppid2meta = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        ppid, gnid, spid, _ = line.split()
-        ppid2meta[ppid] = (gnid, spid)
+        ppid, gnid, spid, sqid = line.split()
+        ppid2meta[ppid] = (gnid, spid, sqid)
 
 # Load seqs
 ppid2seq = {}
-for spid0, source, prot_path in genomes:
+for _, source, prot_path in genomes:
     with open(prot_path) as file:
         line = file.readline()
         while line:
@@ -198,17 +198,17 @@ for spid0, source, prot_path in genomes:
             seq = ''.join(seqlines)
             ppid2seq[ppid] = seq
 
-# Load pOGs
-pOGs = {}
-with open('../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt') as file:
+# Load OGs
+OGs = {}
+with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
     for line in file:
-        _, pOGid, edges = line.rstrip().split(':')
-        ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
-        pOGs[pOGid] = ppids
+        _, OGid, edges = line.rstrip().split(':')
+        sqids = set([ppid2meta[node][2] for edge in edges.split('\t') for node in edge.split(',')])
+        OGs[OGid] = sqids  # Ensure only representatives are selected for reduced clusters
 
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        rOGs = pool.starmap(reduce, pOGs.items())
+        rOGs = pool.starmap(reduce, OGs.items())
 
     # Make output directory
     if not os.path.exists('out/'):
@@ -216,17 +216,17 @@ if __name__ == '__main__':
 
     # Write reduced clusters to file
     with open('out/rclusters.tsv', 'w') as outfile:
-        outfile.write('pOGid\tspid\tgnid\tppid\n')
-        for pOGid, rOG in rOGs:
+        outfile.write('OGid\tspid\tgnid\tppid\n')
+        for OGid, rOG in rOGs:
             for entry in rOG:
-                outfile.write(pOGid + '\t' + '\t'.join(entry) + '\n')
+                outfile.write(OGid + '\t' + '\t'.join(entry) + '\n')
 
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-../../ortho_cluster3/subcluster_pgraph/subcluster_pgraph.py
-    ../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt
+../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
+    ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../config/genomes.tsv

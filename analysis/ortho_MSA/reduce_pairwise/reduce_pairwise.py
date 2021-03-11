@@ -27,7 +27,7 @@ def reduce_terminal(tips, nontips, distances):
     # Get lists of species ids
     spids_list = [[tip.name for _ in tip.gnids] for tip in tips]
 
-    # Get lists of genes in pOG for each species
+    # Get lists of genes in OG for each species
     gnids_list = [tip.gnids.keys() for tip in tips]
 
     # Get sets of proteins corresponding to list of genes for each species
@@ -38,7 +38,7 @@ def reduce_terminal(tips, nontips, distances):
 
     scores = []
     for ppid_prods in product(*ppid_prods_list):  # Separate species to sum only inter-species hits
-        # Add species and gene ids to locate in pOG and calculate products to sum hits bidirectionally
+        # Add species and gene ids to locate in OG and calculate products to sum hits bidirectionally
         zs = [list(zip(spids, gnids, ppid_prod)) for spids, gnids, ppid_prod in zip(spids_list, gnids_list, ppid_prods)]
 
         # Get species combinations then ppid combinations with terminals
@@ -52,11 +52,11 @@ def reduce_terminal(tips, nontips, distances):
         for (spid1, gnid1, ppid1), (spid2, gnid2, ppid2) in chain(ppid_pairs1, ppid_pairs2):
             weight = distances[spid1] + distances[spid2]
             try:
-                score += pgraph[ppid1][ppid2] / weight
+                score += graph[ppid1][ppid2] / weight
             except KeyError:
                 pass
             try:
-                score += pgraph[ppid2][ppid1] / weight
+                score += graph[ppid2][ppid1] / weight
             except KeyError:
                 pass
         scores.append((score, [ppid for z in zs for ppid in z] + nontips))
@@ -83,11 +83,11 @@ pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
 ppid2meta = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        ppid, gnid, spid, _ = line.split()
-        ppid2meta[ppid] = (gnid, spid)
+        ppid, gnid, spid, sqid = line.split()
+        ppid2meta[ppid] = (gnid, spid, sqid)
 
 # Load pgraph
-pgraph = {}
+graph = {}
 with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
@@ -95,39 +95,39 @@ with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
         for adj in adjs.split(','):
             adj_node, adj_bitscore = adj.split(':')
             bitscores[adj_node] = float(adj_bitscore)
-        pgraph[node] = bitscores
+        graph[node] = bitscores
 
-# Load pOGs and tree
-pOGs = {}
-with open('../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt') as file:
+# Load OGs and tree
+OGs = {}
+with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
     for line in file:
-        _, pOGid, edges = line.rstrip().split(':')
-        ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
-        pOGs[pOGid] = ppids
+        _, OGid, edges = line.rstrip().split(':')
+        sqids = set([ppid2meta[node][2] for edge in edges.split('\t') for node in edge.split(',')])
+        OGs[OGid] = sqids  # Ensure only representatives are selected for reduced clusters
 
 tree_template = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
 tree_template.shear([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
 
 rOGs = {}
-for pOGid, pOG in pOGs.items():
+for OGid, OG in OGs.items():
     # Add genes to leaves of tree
     tree = tree_template.deepcopy()
     tips = {tip.name: tip for tip in tree.tips()}
     remain = set()
-    for ppid in pOG:
-        gnid, spid = ppid2meta[ppid]
+    for sqid in OG:
+        gnid, spid, _ = ppid2meta[sqid]
         remain.add(spid)
         try:
-            tips[spid].gnids[gnid].append(ppid)
+            tips[spid].gnids[gnid].append(sqid)
         except KeyError:
-            tips[spid].gnids[gnid] = [ppid]
+            tips[spid].gnids[gnid] = [sqid]
         except AttributeError:
-            tips[spid].gnids = {gnid: [ppid]}
+            tips[spid].gnids = {gnid: [sqid]}
     tree = tree.shear(remain)
 
-    # Reduce pOG
+    # Reduce OG
     rOG = reduce_node(tree)
-    rOGs[pOGid] = rOG
+    rOGs[OGid] = rOG
 
 # Make output directory
 if not os.path.exists('out/'):
@@ -135,17 +135,17 @@ if not os.path.exists('out/'):
 
 # Write reduced clusters to file
 with open('out/rclusters.tsv', 'w') as outfile:
-    outfile.write('pOGid\tspid\tgnid\tppid\n')
+    outfile.write('OGid\tspid\tgnid\tppid\n')
     for OGid, rOG in rOGs.items():
         for entry in rOG:
             outfile.write(OGid + '\t' + '\t'.join(entry) + '\n')
 
 """
 DEPENDENCIES
+../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
+    ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
 ../../ortho_cluster3/hits2pgraph/hits2pgraph.py
     ../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv
-../../ortho_cluster3/subcluster_pgraph/subcluster_pgraph.py
-    ../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../../ortho_tree/consensus_tree/consensus_tree.py
