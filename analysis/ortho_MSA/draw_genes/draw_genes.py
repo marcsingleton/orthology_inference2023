@@ -28,24 +28,25 @@ def load_msa(path):
 
 
 # Load seq metadata
-ppid2gnid = {}
+ppid2meta = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        ppid, gnid, _, _ = line.split()
-        ppid2gnid[ppid] = gnid
+        ppid, gnid, _, sqid = line.split()
+        ppid2meta[ppid] = (gnid, sqid)
 
-# Load pOGs
+# Load OGs
 rows = []
-with open('../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt') as file:
+with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
     for line in file:
-        OGid, pOGid, edges = line.rstrip().split(':')
+        CCid, OGid, edges = line.rstrip().split(':')
         ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
         for ppid in ppids:
-            rows.append({'OGid': OGid, 'pOGid': pOGid, 'ppid': ppid, 'gnid': ppid2gnid[ppid]})
-pOGs = pd.DataFrame(rows)
+            gnid, sqid = ppid2meta[ppid]
+            rows.append({'CCid': CCid, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'sqid': sqid})
+OGs = pd.DataFrame(rows)
 
 # Load pOG metadata and test genes
-pOG_meta = pd.read_table('../pOG_meta/out/pOG_meta.tsv', dtype={'pCCid': str})
+OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
 genes = pd.read_table('genes.tsv')
 
 # Load tree
@@ -57,33 +58,33 @@ order = {tip.name: i for i, tip in enumerate(tree.tips())}
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-df = pOGs[['gnid', 'OGid', 'pOGid']].drop_duplicates().merge(pOG_meta.drop('OGid', axis=1), on='pOGid', how='right').merge(genes, on='gnid', how='right')
-df.to_csv('out/pOGids.tsv', sep='\t', index=False)
+df = OGs[['gnid', 'OGid']].drop_duplicates().merge(OG_meta, on='OGid', how='right').merge(genes, on='gnid', how='right')
+df.to_csv('out/OGs.tsv', sep='\t', index=False)
 
 for record in df.dropna().itertuples():
-    if record.ppidnum == record.gnidnum:
-        msa = load_msa(f'../align_fastas1/out/{record.pOGid}.mfa')
+    if record.sqidnum == record.gnidnum:
+        msa = load_msa(f'../align_fastas1/out/{record.OGid}.mfa')
     else:
-        msa = load_msa(f'../align_fastas2-2/out/{record.pOGid}.mfa')
+        msa = load_msa(f'../align_fastas2-2/out/{record.OGid}.mfa')
 
     msa = [seq[1] for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
     im = draw_msa(msa)
-    plt.imsave(f'out/{record.pOGid}.png', im)
+    plt.imsave(f'out/{record.OGid}.png', im)
 
 """
 DEPENDENCIES
 ../../../src/draw.py
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
-../../ortho_cluster3/subcluster_pgraph.py
-    ../../ortho_cluster3/subcluster_pgraph/out/pclusters.txt
-../ortho_tree/consensus_tree/consensus_tree.py
-    ../ortho_tree/consensus_tree/out/100red_ni.txt
+../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
+    ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
+../../ortho_tree/consensus_tree/consensus_tree.py
+    ../../ortho_tree/consensus_tree/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
 ../align_fastas2-2/align_fastas2-2.py
     ../align_fastas2-2/out/*.mfa
-../pOG_meta/pOG_meta.py
-    ../pOG_meta/out/pOG_meta.tsv
+../OG_meta/OG_meta.py
+    ../OG_meta/out/OG_meta.tsv
 ./genes.tsv
 """
