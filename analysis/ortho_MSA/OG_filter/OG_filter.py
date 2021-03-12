@@ -1,7 +1,26 @@
-"""Extract metadata from OGs including numbers of edges, genes, species, and sequences."""
+"""Filter OGs to representatives by uniqueness criteria and species number."""
 
 import os
+
+import matplotlib.pyplot as plt
 import pandas as pd
+
+
+def spid_filter(spids):
+    conditions = [({'dnov', 'dvir'}, 1),
+                  ({'dmoj', 'dnav'}, 1),
+                  ({'dinn', 'dgri', 'dhyd'}, 2),
+                  ({'dgua', 'dsob'}, 1),
+                  ({'dbip', 'dana'}, 1),
+                  ({'dser', 'dkik'}, 1),
+                  ({'dele', 'dfik'}, 1),
+                  ({'dtak', 'dbia'}, 1),
+                  ({'dsuz', 'dspu'}, 1),
+                  ({'dsan', 'dyak'}, 1),
+                  ({'dmel'}, 1),
+                  ({'dmau', 'dsim', 'dsec'}, 1)]
+    return all([len(spids & group) >= num for group, num in conditions])
+
 
 # Load seq metadata
 ppid2meta = {}
@@ -30,7 +49,7 @@ with open('../../ortho_cluster3/connect_OGgraph/out/OGconnect.txt') as file:
             OGid2gOGid[OGid] = gOGid
 
 # Load OGs
-rows = []
+gOGid2OGs = {}
 with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
@@ -43,40 +62,38 @@ with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pcluster
             node1, node2 = edge.split(',')
             bitscore += pgraph[node1][node2] + pgraph[node2][node1]
 
-        d = {'CCid': CCid, 'OGid': OGid, 'gOGid': OGid2gOGid[OGid],
-             'bitscore': round(bitscore, 1), 'edgenum': len(edges.split('\t')),
-             'ppidnum': len(ppids), 'sqidnum': len(sqids),
-             'gnidnum': len(gnids), 'spidnum': len(spids)}
-        rows.append(d)
+        if len(gnids) == len(spids) >= 20 and spid_filter(spids):
+            gOGid = OGid2gOGid[OGid]
+            d = {'CCid': CCid, 'OGid': OGid, 'gOGid': gOGid,
+                 'bitscore': round(bitscore, 1), 'edgenum': len(edges.split('\t')),
+                 'ppidnum': len(ppids), 'sqidnum': len(sqids),
+                 'gnidnum': len(gnids), 'spidnum': len(spids)}
+            try:
+                gOGid2OGs[gOGid].append(d)
+            except KeyError:
+                gOGid2OGs[gOGid] = [d]
+
+rows = []
+for OGs in gOGid2OGs.values():
+    OG = max(OGs, key=lambda x: (x['spidnum'], x['bitscore']))  # Most species, highest bitscore
+    rows.append(OG)
 OGs = pd.DataFrame(rows)
 
-
-# Print counts
-num = 31
-ppnum = OGs['ppidnum'] == num
-sqnum = OGs['sqidnum'] == num
-gnnum = OGs['gnidnum'] == num
-spnum = OGs['spidnum'] == num
-
-print('Total OGs:', len(OGs))
-print(f'OGs with {num} genes:', len(OGs[gnnum]))
-print(f'OGs with {num} genes and species:', len(OGs[gnnum & spnum]))
-print(f'OGs with {num} genes, species, and sequences:', len(OGs[gnnum & spnum & ppnum]))
-print(f'OGs with {num} genes, species, and unique sequences:', len(OGs[gnnum & spnum & sqnum]))
-
-# Make output directory
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGs.to_csv('out/OG_meta.tsv', sep='\t', index=False)
+print('Total filtered OGs:', len(OGs))
+counts = OGs['gnidnum'].value_counts()
+plt.bar(counts.index, counts.values)
+plt.xlabel('Number of genes in OG')
+plt.ylabel('Number of OGs')
+plt.savefig('out/bar_OGnum-gnnum.png')
+
+OGs.to_csv('out/OG_filter.tsv', sep='\t', index=False)
 
 """
-OUTPUT 
-Total OGs: 23283
-OGs with 31 genes: 7703
-OGs with 31 genes and species: 7487
-OGs with 31 genes, species, and sequences: 2047
-OGs with 31 genes, species, and unique sequences: 5091
+OUTPUT
+Total filtered OGs: 8531
 
 DEPENDENCIES
 ../../ortho_search/seq_meta/seq_meta.py
