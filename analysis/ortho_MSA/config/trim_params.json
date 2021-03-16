@@ -1,0 +1,13 @@
+{
+  "con_frac": 0.15,
+  "con_window": 3,
+  "con_minlen": 15,
+  "con_rate": 0.15,
+  "con_minsig": 3,
+
+  "gap_num": 3,
+  "gap_rate": 0.75,
+  "gap_minsig": 1,
+
+  "threshold": 0.5
+}
