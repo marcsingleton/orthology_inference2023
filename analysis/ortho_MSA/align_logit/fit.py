@@ -47,7 +47,6 @@ def fit_model(OGid2msa,
     y_pred = logit.predict(X)
     d['log_loss'] = log_loss(y_true, y_pred)
     d.update({key: value for key, value in zip(['tn', 'fp', 'fn', 'tp'], confusion_matrix(y_true, y_pred).ravel())})
-    print(d)
 
     return d
 
@@ -118,10 +117,10 @@ weights = {key: 1 for key in ['bias', 'length', 'support', 'gap_propensity', 'ga
 
 labels = pd.read_table('out/segments_label.tsv').dropna().drop('length', axis=1)
 
-gp_range = np.linspace(0.5, 4.5, 9)
-gd_range = np.linspace(5, 33, 8)
-ir1_range = np.linspace(0.01, 0.19, 10)
-ir2_range = np.linspace(0.1, 0.9, 9)
+gp_range = np.linspace(1, 4, 7)
+gd_range = np.linspace(5, 25, 5)
+ir1_range = np.linspace(0.005, 0.040, 8)
+ir2_range = np.linspace(0.01, 0.15, 8)
 ranges = product(gp_range, gd_range, ir1_range, ir2_range)
 
 if __name__ == '__main__':
