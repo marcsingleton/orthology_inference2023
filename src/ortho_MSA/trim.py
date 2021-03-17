@@ -34,38 +34,12 @@ def trim_msa(msa,
                                         weights, threshold,
                                         matrix)
 
-    # 3.1 Extract slices from column trims
-    slices = []
-    for trim in trims:
-        if trim['trimmed']:
-            slices.extend(trim['slices'])
-    slices = sorted(slices, key=lambda x: (x.start, x.start - x.stop))  # Start then -length
-
-    # 3.2 Merge slices
-    slices_merge = []
-    if slices:
-        start, stop = slices[0].start, slices[0].stop
-        for s in slices:
-            if s.start > stop:
-                slices_merge.append(slice(start, stop))
-                start = s.start
-            if s.stop > stop:
-                stop = s.stop
-        slices_merge.append(slice(start, stop))
-
-    # 3.3 Invert slices
-    slices_invert, i = [], 0
-    for s in slices_invert:
-        slices_invert.append(slice(i, s.start))
-        i = s.stop
-    slices_invert.append(slice(i, msa.shape[1]))
-
-    # 4 Combine trims (segments and columns) to yield final alignment
+    # 3 Combine trims (segments and columns) to yield final alignment
     seqs = []
     for seq, syms1, syms2 in zip(msa, syms_list1, syms_list2):
         syms = ['-' if sym1 != sym2 else sym1 for sym1, sym2 in zip(syms1, syms2)]  # Will only differ if one is converted to gap
         seqs.append(skbio.Protein(''.join(syms), metadata=seq.metadata))
-    return skbio.TabularMSA(seqs).loc[:, slices_invert]
+    return skbio.TabularMSA(seqs)
 
 
 def trim_conserved(msa1, scores1, gaps_array1,
@@ -170,7 +144,7 @@ def trim_insertions(msa1, scores1, gaps_array1,
         Decay rate of insertions in gap regions.
     indel2_rate: float
         Decay rate of deletions in conserved regions.
-    gap_pate: float
+    gap_rate: float
         Decay rate of trim signal.
     gap_minsig: float
         Minimum signal to "trim" a position into a gap.
@@ -237,7 +211,7 @@ def trim_insertions(msa1, scores1, gaps_array1,
         length = sum([s.stop-s.start for s in slices])
 
         # 5.2 Get gap propensity and diversity
-        w = (gd_window - 1) // 2
+        w = int((gd_window - 1) // 2)
         n = 2**len(msa1) * (1 - ((2**len(msa1) - 1)/(2**len(msa1)))**gd_window)
         if region.start == 0:
             gp1 = 0
@@ -270,6 +244,9 @@ def trim_insertions(msa1, scores1, gaps_array1,
                       'indel_bias1': ib1, 'indel_bias2': ib2})
         if trimmed:
             propagate(start, stop, length, trim_signals[index], gaps_array1[index], gap_rate)
+            syms = syms_list[i]
+            for s in slices:
+                syms[s.start:s.stop] = (s.stop - s.start) * ['-']
 
     # 6 Trim segments
     gaps_array2 = trim_signals > gap_minsig
