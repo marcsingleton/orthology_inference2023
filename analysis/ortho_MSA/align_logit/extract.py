@@ -11,7 +11,7 @@ from src.ortho_MSA.trim import get_segments
 
 # Load parameters
 with open('../config/trim_params.json') as file:
-    trim_params = json.load(file)
+    tp = json.load(file)
 matrix = {}
 with open('../config/BLOSUM62.txt') as file:
     file.readline()  # Skip header
@@ -37,7 +37,7 @@ for OGid in OGids:
     for i, col in enumerate(msa.iter_positions()):
         scores[i] = col.count('-')
 
-    mask = ndimage.label(len(msa) - scores <= trim_params['gap_num'])[0]
+    mask = ndimage.label(len(msa) - scores <= tp['gap_num'])[0]
     regions = [region for region, in ndimage.find_objects(mask)]
     for region in regions:
         for segment in get_segments(msa, region, matrix):

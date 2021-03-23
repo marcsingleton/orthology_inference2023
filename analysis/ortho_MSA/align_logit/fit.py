@@ -105,7 +105,7 @@ def get_msa(OGid):
 num_processes = int(os.environ['SLURM_NTASKS'])
 
 with open('../config/trim_params.json') as file:
-    trim_params = json.load(file)
+    tp = json.load(file)
 matrix = {}
 with open('../config/BLOSUM62.txt') as file:
     file.readline()  # Skip header
@@ -132,10 +132,10 @@ if __name__ == '__main__':
         args_list = []
         for gp_sigma, gd_window, indel1_rate, indel2_rate in ranges:
             args = [OGid2msa,
-                    trim_params['con_frac'], trim_params['con_window'], trim_params['con_minlen'],
-                    trim_params['gap_num'], trim_params['gap_rate'], trim_params['gap_minsig'],
+                    tp['con_frac'], tp['con_window'], tp['con_minlen'],
+                    tp['gap_num'], tp['gap_rate'], tp['gap_minsig'],
                     gp_sigma, gd_window, indel1_rate, indel2_rate,
-                    weights, trim_params['threshold'],
+                    weights, tp['threshold'],
                     matrix]
             args_list.append(args)
         rows = pool.starmap(fit_model, args_list)
