@@ -1,0 +1,15 @@
+{
+  "gp_sigma": 2.0,
+  "gd_window": 15,
+  "indel1_rate": 0.02,
+  "indel2_rate": 0.09,
+  "weights": {"bias": -5.579068,
+              "length": -0.045989,
+              "support": 0.001364,
+              "gap_propensity": -6.270355,
+              "gap_diversity": 4.893157,
+              "indel_bias1": 0.055986,
+              "indel_bias2": 0.120091,
+              "terminal": 4.798189
+             }
+}
