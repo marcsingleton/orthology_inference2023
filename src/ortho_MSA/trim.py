@@ -5,41 +5,6 @@ from math import exp, log
 
 import numpy as np
 import scipy.ndimage as ndimage
-import skbio
-
-
-def trim_msa(msa,
-             con_frac, con_window, con_minlen, con_rate, con_minsig,
-             gap_num, gap_rate, gap_minsig,
-             gp_sigma, gd_window, indel1_rate, indel2_rate,
-             weights, threshold,
-             matrix):
-    """Trim MSA by removing segments near indels in conserved regions and large insertions.
-
-    All parameters are defined in their respective functions.
-    """
-    # 1 Calculate shared variables
-    scores = np.zeros(msa.shape[1])
-    for i, col in enumerate(msa.iter_positions()):
-        scores[i] = col.count('-')
-    gaps_array = np.array([[sym == '-' for sym in str(seq)] for seq in msa])
-
-    # 2 Get trims (segments and columns)
-    syms_list1 = trim_conserved(msa, scores, gaps_array,
-                                con_frac, con_window, con_minlen, con_rate, con_minsig)
-    syms_list2, trims = trim_insertions(msa, scores, gaps_array,
-                                        gap_num, gap_rate, gap_minsig,
-                                        gp_sigma, gd_window, indel1_rate, indel2_rate,
-                                        con_frac, con_window, con_minlen,
-                                        weights, threshold,
-                                        matrix)
-
-    # 3 Combine trims (segments and columns) to yield final alignment
-    seqs = []
-    for seq, syms1, syms2 in zip(msa, syms_list1, syms_list2):
-        syms = ['-' if sym1 != sym2 else sym1 for sym1, sym2 in zip(syms1, syms2)]  # Will only differ if one is converted to gap
-        seqs.append(skbio.Protein(''.join(syms), metadata=seq.metadata))
-    return skbio.TabularMSA(seqs)
 
 
 def trim_conserved(msa1, scores1, gaps_array1,
@@ -244,7 +209,7 @@ def trim_insertions(msa1, scores1, gaps_array1,
                       'indel_bias1': ib1, 'indel_bias2': ib2})
         if trimmed:
             propagate(start, stop, length, trim_signals[index], gaps_array1[index], gap_rate)
-            syms = syms_list[i]
+            syms = syms_list[index]
             for s in slices:
                 syms[s.start:s.stop] = (s.stop - s.start) * ['-']
 

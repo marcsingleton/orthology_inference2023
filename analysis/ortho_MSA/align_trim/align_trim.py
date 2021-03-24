@@ -3,9 +3,10 @@
 import json
 import os
 
+import numpy as np
 import pandas as pd
 import skbio
-from src.ortho_MSA.trim import trim_msa
+from src.ortho_MSA.trim import trim_conserved, trim_insertions
 
 # Load parameters
 with open('trim_params.json') as file:
@@ -34,13 +35,30 @@ for row in OG_filter.itertuples():
         msa1 = skbio.read(f'../align_fastas2-2/out/{row.OGid}.mfa',
                           format='fasta', into=skbio.TabularMSA, constructor=skbio.Protein)
 
-    # Trim MSA and remove gap only columns
-    msa2 = trim_msa(msa1,
-                    tp['con_frac'], tp['con_window'], tp['con_minlen'], tp['con_rate'], tp['con_minsig'],
-                    tp['gap_num'], tp['gap_rate'], tp['gap_minsig'],
-                    tp['gp_sigma'], tp['gd_window'], tp['indel1_rate'], tp['indel2_rate'],
-                    tp['weights'], tp['threshold'],
-                    matrix)
+    # 1 Calculate shared variables
+    scores = np.zeros(msa1.shape[1])
+    for i, col in enumerate(msa1.iter_positions()):
+        scores[i] = col.count('-')
+    gaps_array = np.array([[sym == '-' for sym in str(seq)] for seq in msa1])
+
+    # 2 Get trims (segments and columns)
+    syms_list1 = trim_conserved(msa1, scores, gaps_array,
+                                tp['con_frac'], tp['con_window'], tp['con_minlen'], tp['con_rate'], tp['con_minsig'])
+    syms_list2, trims = trim_insertions(msa1, scores, gaps_array,
+                                        tp['gap_num'], tp['gap_rate'], tp['gap_minsig'],
+                                        tp['gp_sigma'], tp['gd_window'], tp['indel1_rate'], tp['indel2_rate'],
+                                        tp['con_frac'], tp['con_window'], tp['con_minlen'],
+                                        tp['weights'], tp['threshold'],
+                                        matrix)
+
+    # 3 Combine trims (segments and columns) to yield final alignment
+    seqs = []
+    for seq, syms1, syms2 in zip(msa1, syms_list1, syms_list2):
+        syms = ['-' if sym1 != sym2 else sym1 for sym1, sym2 in zip(syms1, syms2)]  # Will only differ if one is converted to gap
+        seqs.append(skbio.Protein(''.join(syms), metadata=seq.metadata))
+    msa2 = skbio.TabularMSA(seqs)
+
+    # 4 Remove gap only columns
     slices, i = [], None
     for j, col in enumerate(msa2.iter_positions()):
         for sym in col:
