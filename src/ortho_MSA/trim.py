@@ -77,13 +77,13 @@ def trim_conserved(msa1, scores1, gaps_array1,
 
 def trim_insertions(msa1, scores1, gaps_array1,
                     gap_num, gap_rate, gap_minsig,
+                    nongap_frac, nongap_window, nongap_minlen,
                     gp_sigma, gd_window, indel1_rate, indel2_rate,
-                    con_frac, con_window, con_minlen,
                     weights, threshold,
                     matrix):
     """Trim MSA by removing large insertions.
 
-    con_frac, con_window, and con_minlen are defined in trim_conserved.
+    nongap_frac, nongap_window, and nongap_minlen are defined as in trim_conserved.
     weights, threshold are defined in is_trimmed.
     matrix is defined in get_segments.
 
@@ -155,9 +155,9 @@ def trim_insertions(msa1, scores1, gaps_array1,
         propagate(start, stop, length, indel_signals1[index], gaps_array1[index], indel1_rate)
 
     indel_signals2 = np.zeros(msa1.shape)
-    binary = ndimage.binary_closing(scores1 <= len(msa1) * con_frac)
-    mask = ndimage.label(binary, structure=con_window * [1])[0]
-    regions = [region for region, in ndimage.find_objects(mask) if region.stop - region.start >= con_minlen]
+    binary = ndimage.binary_closing(scores1 <= len(msa1) * nongap_frac)
+    mask = ndimage.label(binary, structure=nongap_window * [1])[0]
+    regions = [region for region, in ndimage.find_objects(mask) if region.stop - region.start >= nongap_minlen]
     for region1 in regions:
         gaps_array2 = gaps_array1[:, region1]
         for i, gaps2 in enumerate(gaps_array2):

@@ -46,8 +46,8 @@ for row in OG_filter.itertuples():
                                 tp['con_frac'], tp['con_window'], tp['con_minlen'], tp['con_rate'], tp['con_minsig'])
     syms_list2, trims = trim_insertions(msa1, scores, gaps_array,
                                         tp['gap_num'], tp['gap_rate'], tp['gap_minsig'],
+                                        tp['nongap_frac'], tp['nongap_window'], tp['nongap_minlen'],
                                         tp['gp_sigma'], tp['gd_window'], tp['indel1_rate'], tp['indel2_rate'],
-                                        tp['con_frac'], tp['con_window'], tp['con_minlen'],
                                         tp['weights'], tp['threshold'],
                                         matrix)
 

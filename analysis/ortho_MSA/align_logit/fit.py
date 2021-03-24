@@ -17,6 +17,7 @@ from sklearn.metrics import confusion_matrix, log_loss
 def fit_model(OGid2msa,
               con_frac, con_window, con_minlen,
               gap_num, gap_rate, gap_minsig,
+              nongap_frac, nongap_window, nongap_minlen,
               gp_sigma, gd_window, indel1_rate, indel2_rate,
               weights, threshold,
               matrix):
@@ -26,6 +27,7 @@ def fit_model(OGid2msa,
         rows.extend(get_regressors(OGid, msa, scores, gaps_array,
                                    con_frac, con_window, con_minlen,
                                    gap_num, gap_rate, gap_minsig,
+                                   nongap_frac, nongap_window, nongap_minlen,
                                    gp_sigma, gd_window, indel1_rate, indel2_rate,
                                    weights, threshold,
                                    matrix))
@@ -54,6 +56,7 @@ def fit_model(OGid2msa,
 def get_regressors(OGid, msa, scores, gaps_array,
                    con_frac, con_window, con_minlen,
                    gap_num, gap_rate, gap_minsig,
+                   nongap_frac, nongap_window, nongap_minlen,
                    gp_sigma, gd_window, indel1_rate, indel2_rate,
                    weights, threshold,
                    matrix):
@@ -66,8 +69,8 @@ def get_regressors(OGid, msa, scores, gaps_array,
     ds = []
     _, trims = trim_insertions(msa, scores, gaps_array,
                                gap_num, gap_rate, gap_minsig,
+                               nongap_frac, nongap_window, nongap_minlen,
                                gp_sigma, gd_window, indel1_rate, indel2_rate,
-                               con_frac, con_window, con_minlen,
                                weights, threshold,
                                matrix)
     for trim in trims:
@@ -134,6 +137,7 @@ if __name__ == '__main__':
             args = [OGid2msa,
                     tp['con_frac'], tp['con_window'], tp['con_minlen'],
                     tp['gap_num'], tp['gap_rate'], tp['gap_minsig'],
+                    tp['nongap_frac'], tp['nongap_window'], tp['nongap_minlen'],
                     gp_sigma, gd_window, indel1_rate, indel2_rate,
                     weights, tp['threshold'],
                     matrix]
