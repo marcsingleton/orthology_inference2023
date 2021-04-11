@@ -17,7 +17,7 @@ from sklearn.metrics import confusion_matrix, log_loss
 def fit_model(OGid2msa,
               con_frac, con_window, con_minlen,
               gap_num, gap_rate, gap_minsig,
-              nongap_frac, nongap_window, nongap_minlen,
+              nongap_frac, nongap_minlen,
               gp_sigma, gd_window, indel1_rate, indel2_rate,
               weights, threshold,
               matrix):
@@ -27,16 +27,17 @@ def fit_model(OGid2msa,
         rows.extend(get_regressors(OGid, msa, scores, gaps_array,
                                    con_frac, con_window, con_minlen,
                                    gap_num, gap_rate, gap_minsig,
-                                   nongap_frac, nongap_window, nongap_minlen,
+                                   nongap_frac, nongap_minlen,
                                    gp_sigma, gd_window, indel1_rate, indel2_rate,
                                    weights, threshold,
                                    matrix))
     df = labels.merge(pd.DataFrame(rows), on=['OGid', 'start', 'stop', 'index'], how='inner')
+    df['trimmed3'] = df['trimmed1'] | df['trimmed2']
 
     # Fit model
     regressors = ['length', 'support', 'gap_propensity', 'gap_diversity', 'indel_bias1', 'indel_bias2', 'terminal']
     X = df[regressors]
-    y_true = df['trimmed'].astype(bool)
+    y_true = df['trimmed3'].astype(bool)
     logit = LogisticRegression(max_iter=500, penalty='none')
     logit.fit(X, y_true)
 
@@ -56,7 +57,7 @@ def fit_model(OGid2msa,
 def get_regressors(OGid, msa, scores, gaps_array,
                    con_frac, con_window, con_minlen,
                    gap_num, gap_rate, gap_minsig,
-                   nongap_frac, nongap_window, nongap_minlen,
+                   nongap_frac, nongap_minlen,
                    gp_sigma, gd_window, indel1_rate, indel2_rate,
                    weights, threshold,
                    matrix):
@@ -69,7 +70,7 @@ def get_regressors(OGid, msa, scores, gaps_array,
     ds = []
     _, trims = trim_insertions(msa, scores, gaps_array,
                                gap_num, gap_rate, gap_minsig,
-                               nongap_frac, nongap_window, nongap_minlen,
+                               nongap_frac, nongap_minlen,
                                gp_sigma, gd_window, indel1_rate, indel2_rate,
                                weights, threshold,
                                matrix)
@@ -88,20 +89,22 @@ def get_regressors(OGid, msa, scores, gaps_array,
     return ds
 
 
-def get_msa(OGid):
-    try:
-        msa = skbio.read(f'../align_fastas1/out/{OGid}.mfa',
-                         format='fasta', into=skbio.TabularMSA, constructor=skbio.Protein)
-    except FileNotFoundError:
-        msa = skbio.read(f'../align_fastas2-2/out/{OGid}.mfa',
-                         format='fasta', into=skbio.TabularMSA, constructor=skbio.Protein)
+def load_msa(path):
+    msa = []
+    with open(path) as file:
+        line = file.readline()
+        while line:
+            if line.startswith('>'):
+                header = line
+                line = file.readline()
 
-    scores = np.zeros(msa.shape[1])
-    for i, col in enumerate(msa.iter_positions()):
-        scores[i] = col.count('-')
-    gaps_array = np.array([[sym == '-' for sym in str(seq)] for seq in msa])
-
-    return OGid, (msa, scores, gaps_array)
+            seqlines = []
+            while line and not line.startswith('>'):
+                seqlines.append(line.rstrip())
+                line = file.readline()
+            seq = ''.join(seqlines)
+            msa.append((header, seq))
+    return msa
 
 
 # Load parameters
@@ -122,34 +125,48 @@ labels = pd.read_table('out/segments_label.tsv').dropna().drop('length', axis=1)
 
 gp_range = np.linspace(1, 4, 7)
 gd_range = np.linspace(5, 25, 5)
-ir1_range = np.linspace(0.005, 0.040, 8)
-ir2_range = np.linspace(0.01, 0.15, 8)
+ir1_range = np.linspace(0.01, 0.09, 9)
+ir2_range = np.linspace(0.01, 0.09, 9)
 ranges = product(gp_range, gd_range, ir1_range, ir2_range)
 
 if __name__ == '__main__':
-    with mp.Pool(processes=num_processes) as pool:
-        # Load MSAs
-        OGid2msa = dict(pool.map(get_msa, labels['OGid'].drop_duplicates()))
+    # Load MSAs
+    OGid2msa = {}
+    for OGid in labels['OGid'].drop_duplicates():
+        try:
+            msa = load_msa(f'../align_fastas1/out/{OGid}.mfa')
+        except FileNotFoundError:
+            msa = load_msa(f'../align_fastas2-2/out/{OGid}.mfa')
 
-        # Construct and apply arguments
-        args_list = []
-        for gp_sigma, gd_window, indel1_rate, indel2_rate in ranges:
-            args = [OGid2msa,
-                    tp['con_frac'], tp['con_window'], tp['con_minlen'],
-                    tp['gap_num'], tp['gap_rate'], tp['gap_minsig'],
-                    tp['nongap_frac'], tp['nongap_window'], tp['nongap_minlen'],
-                    gp_sigma, gd_window, indel1_rate, indel2_rate,
-                    weights, tp['threshold'],
-                    matrix]
-            args_list.append(args)
+        gaps_array = np.full((len(msa), len(msa[0][1])), False)
+        for i, (_, seq) in enumerate(msa):
+            for j, sym in enumerate(seq):
+                if sym == '-':
+                    gaps_array[i, j] = True
+        scores = gaps_array.sum(axis=0)
+        msa = skbio.TabularMSA([skbio.Protein(seq, metadata={'description': header}) for header, seq in msa])
+        OGid2msa[OGid] = (msa, scores, gaps_array)
+
+    # Construct and apply arguments
+    args_list = []
+    for gp_sigma, gd_window, indel1_rate, indel2_rate in ranges:
+        args = [OGid2msa,
+                tp['con_frac'], tp['con_window'], tp['con_minlen'],
+                tp['gap_num'], tp['gap_rate'], tp['gap_minsig'],
+                tp['nongap_frac'], tp['nongap_minlen'],
+                gp_sigma, gd_window, indel1_rate, indel2_rate,
+                weights, tp['threshold'],
+                matrix]
+        args_list.append(args)
+    with mp.Pool(processes=num_processes) as pool:
         rows = pool.starmap(fit_model, args_list)
 
-        # Save results
-        if not os.path.exists('out/'):
-            os.mkdir('out/')
+    # Save results
+    if not os.path.exists('out/'):
+        os.mkdir('out/')
 
-        df = pd.DataFrame(rows)
-        df.to_csv('out/models.tsv', sep='\t', index=False)
+    df = pd.DataFrame(rows)
+    df.to_csv('out/models.tsv', sep='\t', index=False)
 
 """
 DEPENDENCIES

@@ -9,8 +9,7 @@
   "gap_rate": 0.125,
   "gap_minsig": 1,
   "nongap_frac": 0.15,
-  "nongap_window": 3,
-  "nongap_minlen": 15,
+  "nongap_minlen": 5,
 
   "threshold": 0.5
 }

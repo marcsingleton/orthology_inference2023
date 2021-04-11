@@ -45,8 +45,8 @@ def trim_conserved(msa1, scores1, gaps_array1,
     syms_list = [list(str(seq)) for seq in msa1]   # List of symbols representing alignment with trimmed segments
 
     # 1 Get conserved regions
-    binary = ndimage.binary_closing(scores1 <= len(msa1) * con_frac)
-    mask = ndimage.label(binary, structure=con_window * [1])[0]
+    binary = ndimage.binary_closing(scores1 <= len(msa1) * con_frac, structure=con_window * [1])
+    mask = ndimage.label(binary)[0]
     regions = [region for region, in ndimage.find_objects(mask) if region.stop - region.start >= con_minlen]
     trim2full, i = {}, 0  # Trimmed to full MSA coordinates
     for region in regions:
@@ -64,7 +64,7 @@ def trim_conserved(msa1, scores1, gaps_array1,
         trim_signal = np.zeros(len(seq))
         for region, in ndimage.find_objects(ndimage.label(gaps2)[0]):
             length = region.stop - region.start
-            propagate(region.start, region.stop, length, trim_signal, gaps2, con_rate)
+            propagate(region.start-1, region.stop, length, trim_signal, con_rate)
 
         # 2.2 Trim non-gap segments
         gaps3 = trim_signal >= con_minsig  # Sequence coded as boolean gap or non-gap after signal propagation
@@ -77,7 +77,7 @@ def trim_conserved(msa1, scores1, gaps_array1,
 
 def trim_insertions(msa1, scores1, gaps_array1,
                     gap_num, gap_rate, gap_minsig,
-                    nongap_frac, nongap_window, nongap_minlen,
+                    nongap_frac, nongap_minlen,
                     gp_sigma, gd_window, indel1_rate, indel2_rate,
                     weights, threshold,
                     matrix):
@@ -133,40 +133,47 @@ def trim_insertions(msa1, scores1, gaps_array1,
         for j in range(region.start, region.stop):
             full2trim[j] = i
             i += 1
+    msa2 = msa1.loc[:, regions]
 
     # 3.2 Gap propensity
     scores2 = np.concatenate([scores1[region] for region in regions])
     gap_propensity = ndimage.gaussian_filter1d(scores2 / len(msa1), sigma=gp_sigma, mode='constant', cval=0)
 
     # 3.3 Gap diversity
-    msa2 = msa1.loc[:, regions]
     gap_diversity = []
     for col in msa2.iter_positions():
         gap_diversity.append(frozenset([i for i, sym in enumerate(str(col)) if sym == '-']))
 
-    # 4 Make arrays for indel and trim signals
-    trim_signals = np.zeros(msa1.shape)
-    indel_signals1 = np.zeros(msa1.shape)
+    # 4 Make arrays for indel signals
+    # indel_signals1 are a measure of an insertion's distance to other insertions
+    # Signals are propagated only over non-gap regions
+    indel_signals1 = np.zeros(msa2.shape)
     for segment in segments:
+        region = segment['region']
         index = segment['index']
         slices = segment['slices']
         length = sum([s.stop-s.start for s in slices])
-        start, stop = min([s.start for s in slices]), max([s.stop for s in slices])
-        propagate(start, stop, length, indel_signals1[index], gaps_array1[index], indel1_rate)
+        start = full2trim[region.start-1] if region.start > 0 else -1
+        stop = full2trim[region.stop] if region.stop < msa1.shape[1] else msa2.shape[1]
+        propagate(start, stop, length, indel_signals1[index], indel1_rate)
 
-    indel_signals2 = np.zeros(msa1.shape)
-    binary = ndimage.binary_closing(scores1 <= len(msa1) * nongap_frac)
-    mask = ndimage.label(binary, structure=nongap_window * [1])[0]
+    # indel_signals2 are a measure of an insertion's distance to deletions
+    # Signals are propagated from gaps in individual conserved regions
+    indel_signals2 = np.zeros(msa2.shape)
+    binary = scores1 <= len(msa1) * nongap_frac  # Do not close since includes gap columns
+    mask = ndimage.label(binary)[0]
     regions = [region for region, in ndimage.find_objects(mask) if region.stop - region.start >= nongap_minlen]
     for region1 in regions:
         gaps_array2 = gaps_array1[:, region1]
         for i, gaps2 in enumerate(gaps_array2):
             for region2, in ndimage.find_objects(ndimage.label(gaps2)[0]):
-                propagate(region1.start + region2.start, region1.start + region2.stop,
-                          region2.stop - region2.start, indel_signals2[i], gaps_array1[i], indel2_rate)
+                start = full2trim[region1.start + region2.start] - 1
+                stop = full2trim[region1.start + region2.stop - 1] + 1
+                propagate(start, stop, region2.stop - region2.start, indel_signals2[i], indel2_rate)
 
     # 5 Get trim slices
     trims = []
+    trim_signals = np.zeros(msa1.shape)
     for segment in segments:
         # 5.1 Unpack names
         region = segment['region']
@@ -175,32 +182,29 @@ def trim_insertions(msa1, scores1, gaps_array1,
         support = segment['support']
         length = sum([s.stop-s.start for s in slices])
 
-        # 5.2 Get gap propensity and diversity
+        # 5.2 Get gap propensity and diversity and indel biases
         w = int((gd_window - 1) // 2)
         n = 2**len(msa1) * (1 - ((2**len(msa1) - 1)/(2**len(msa1)))**gd_window)
-        if region.start == 0:
-            gp1 = 0
-            gd1 = set()
-        else:
+        gps, gds = [], []
+        ibs1, ibs2 = [], []
+        if region.start != 0:
             idx1 = full2trim[region.start-1]
-            gp1 = gap_propensity[idx1]
-            gd1 = set(gap_diversity[idx1-w:idx1+1])
-        if region.stop == msa1.shape[1]:
-            gp2 = 0
-            gd2 = set()
-        else:
+            gps.append(gap_propensity[idx1])
+            gds.append(set(gap_diversity[idx1-w:idx1+1]))
+            ibs1.append(indel_signals1[index, idx1] - length)  # Remove contribution of adjacent gap
+            ibs2.append(indel_signals2[index, idx1])
+        if region.stop != msa1.shape[1]:
             idx2 = full2trim[region.stop]
-            gp2 = gap_propensity[idx2]
-            gd2 = set(gap_diversity[idx2-w:idx2+1])
-        gp = (gp1 + gp2) / 2
-        gd = len(gd1 | gd2) / n
+            gps.append(gap_propensity[idx2])
+            gds.append(set(gap_diversity[idx2-w:idx2+1]))
+            ibs1.append(indel_signals1[index, idx2] - length)  # Remove contribution of adjacent gap
+            ibs2.append(indel_signals2[index, idx2])
+        gp = sum(gps) / len(gps)
+        gd = len(set().union(*gds)) / n
+        ib1 = sum(ibs1) / len(ibs1)
+        ib2 = sum(ibs2) / len(ibs2)
 
-        # 5.3 Get indel biases
-        start, stop = min([s.start for s in slices]), max([s.stop for s in slices])
-        ib1 = indel_signals1[index, start:stop].sum()
-        ib2 = indel_signals2[index, start:stop].sum()
-
-        # 5.4 Update trims, indel signal, and trim signal
+        # 5.3 Update trims, indel signal, and trim signal
         trimmed = is_trimmed(length, segment['support'], gp, gd, ib1, ib2,
                              weights, threshold)
         trims.append({'region': region, 'index': index, 'slices': slices, 'trimmed': trimmed,
@@ -208,7 +212,7 @@ def trim_insertions(msa1, scores1, gaps_array1,
                       'gap_propensity': gp, 'gap_diversity': gd,
                       'indel_bias1': ib1, 'indel_bias2': ib2})
         if trimmed:
-            propagate(start, stop, length, trim_signals[index], gaps_array1[index], gap_rate)
+            propagate(region.start-1, region.stop, length, trim_signals[index], gap_rate)
             syms = syms_list[index]
             for s in slices:
                 syms[s.start:s.stop] = (s.stop - s.start) * ['-']
@@ -222,21 +226,22 @@ def trim_insertions(msa1, scores1, gaps_array1,
     return syms_list, trims
 
 
-def propagate(start, stop, length, signal, gaps, rate):
+def propagate(start, stop, length, signal, rate):
     """Propagate an exponentially decreasing signal.
 
-    The signal decays over gaps; however, the signal is only added to
-    coordinates corresponding non-gap symbols.
+    The given coordinates are inclusive, meaning the signal is propagated left
+    from start with start receiving the full signal. Likewise, the signal is
+    propagated right with right receiving the full signal.
     """
     truncate_k = int(-log(1E-3 / length) / rate) + 1
 
-    max_k = min(truncate_k, start)  # Number of positions to propagate over
-    s = [length * exp(rate * (k-max_k+1)) for k in range(max_k)]
-    signal[start-max_k:start] += s * ~gaps[start-max_k:start]
+    max_k = min(truncate_k, start + 1)  # Number of positions to propagate over
+    s = [length * exp(rate * (k+1-max_k)) for k in range(max_k)]
+    signal[start+1-max_k:start+1] += s
 
     max_k = min(truncate_k, len(signal) - stop)  # Number of positions to propagate over
     s = [length * exp(-rate * k) for k in range(max_k)]
-    signal[stop:stop+max_k] += s * ~gaps[stop:stop+max_k]
+    signal[stop:stop+max_k] += s
 
 
 def get_segments(msa, region, matrix):
