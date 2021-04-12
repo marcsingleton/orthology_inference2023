@@ -9,6 +9,25 @@ import scipy.ndimage as ndimage
 import skbio
 from src.ortho_MSA.trim import get_segments
 
+
+def load_msa(path):
+    msa = []
+    with open(path) as file:
+        line = file.readline()
+        while line:
+            if line.startswith('>'):
+                header = line
+                line = file.readline()
+
+            seqlines = []
+            while line and not line.startswith('>'):
+                seqlines.append(line.rstrip())
+                line = file.readline()
+            seq = ''.join(seqlines)
+            msa.append((header, seq))
+    return msa
+
+
 # Load parameters
 with open('../config/trim_params.json') as file:
     tp = json.load(file)
@@ -27,15 +46,17 @@ OGids = ['4bb0', '13ff', '15e6', '39c2', '3f97', '1417', '1832', '06ef',
 rows = []
 for OGid in OGids:
     try:
-        msa = skbio.read(f'../align_fastas1/out/{OGid}.mfa',
-                         format='fasta', into=skbio.TabularMSA, constructor=skbio.Protein)
+        msa = load_msa(f'../align_fastas1/out/{OGid}.mfa')
     except FileNotFoundError:
-        msa = skbio.read(f'../align_fastas2-2/out/{OGid}.mfa',
-                         format='fasta', into=skbio.TabularMSA, constructor=skbio.Protein)
+        msa = load_msa(f'../align_fastas2-2/out/{OGid}.mfa')
 
-    scores = np.zeros(msa.shape[1])
-    for i, col in enumerate(msa.iter_positions()):
-        scores[i] = col.count('-')
+    gaps_array = np.full((len(msa), len(msa[0][1])), False)
+    for i, (_, seq) in enumerate(msa):
+        for j, sym in enumerate(seq):
+            if sym == '-':
+                gaps_array[i, j] = True
+    scores = gaps_array.sum(axis=0)
+    msa = skbio.TabularMSA([skbio.Protein(seq, metadata={'description': header}) for header, seq in msa])
 
     mask = ndimage.label(len(msa) - scores <= tp['gap_num'])[0]
     regions = [region for region, in ndimage.find_objects(mask)]
