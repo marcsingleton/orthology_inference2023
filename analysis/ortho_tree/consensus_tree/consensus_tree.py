@@ -121,6 +121,7 @@ for label in os.listdir('../phyml_GTR/out/'):
     ax.spines['left'].set_visible(False)
     ax.set_xlabel('')
     plt.savefig(f'out/{label}_supports.png')
+    plt.savefig(f'out/{label}_supports.svg')
     plt.close()
 
 """
