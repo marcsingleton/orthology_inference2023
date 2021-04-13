@@ -7,24 +7,16 @@
 #
 # Process parameters
 #SBATCH --nodes=1
+#SBATCH --ntasks-per-node=24
 #SBATCH --cpus-per-task=1
 #
 # Reporting parameters
-#SBATCH --job-name=align_hmmer
-#SBATCH --output=align_hmmer.out
+#SBATCH --job-name=realign_trim
+#SBATCH --output=realign_trim.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
-# Set current directory and link to output in scratch
-if [ ! -d out ]; then
-  out_dir=/global/scratch/singleton/IDREvoDevo/analysis/ortho_MSA/align_hmmer/out/
-  if [ ! -d ${out_dir} ]; then
-    mkdir -p ${out_dir}  # -p makes intermediate directory if they do not exist
-  fi
-  ln -s ${out_dir} out
-fi
-
 source /global/home/users/singleton/.bashrc
 conda activate IDREvoDevo
-python align_hmmer.py
+python realign_trim.py
