@@ -98,8 +98,8 @@ if not os.path.exists('out/norm1/'):
     os.mkdir('out/norm1/')
 
 # 2.1 Ranked by sum
-head1 = df.sort_values(by='norm1', ascending=False).head(150)
-for i, row in enumerate(head1.itertuples()):
+head = df.sort_values(by='norm1', ascending=False).head(150)
+for i, row in enumerate(head.itertuples()):
     if row.sqidnum == row.gnidnum:
         msa = load_msa(f'../align_fastas1/out/{row.OGid}.mfa')
     else:
@@ -115,8 +115,8 @@ for i, row in enumerate(head1.itertuples()):
 if not os.path.exists('out/norm2/'):
     os.mkdir('out/norm2/')
 
-head1 = df.sort_values(by='norm2', ascending=False).head(150)
-for i, row in enumerate((head1.itertuples())):
+head = df.sort_values(by='norm2', ascending=False).head(150)
+for i, row in enumerate((head.itertuples())):
     if row.sqidnum == row.gnidnum:
         msa = load_msa(f'../align_fastas1/out/{row.OGid}.mfa')
     else:
@@ -136,8 +136,9 @@ for i, row in enumerate((head1.itertuples())):
     ../align_fastas1/out/*.mfa
 ../align_fastas2-2/align_fastas2-2.py
     ../align_fastas2-2/out/*.mfa
-../OG_meta/OG_meta.py
-    ../OG_meta/out/OG_meta.tsv
+../OG_filter/OG_filter.py
+    ../OG_filter/out/OG_filter.tsv
 ./gap_contrasts_calc.py
     ./out/row_sums.tsv
+    ./out/total_sums.tsv'
 """
