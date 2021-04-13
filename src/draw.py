@@ -11,7 +11,7 @@ from matplotlib.gridspec import GridSpec
 
 def draw_msa(msa,
              ratio=2.5, hspace=25, sym_length=7, sym_height=7,
-             im_cols=None, aa2color=None):
+             im_cols=None, aa2color=None, gap2color=None):
     """Draw alignment as PNG.
 
     Parameters
@@ -31,6 +31,9 @@ def draw_msa(msa,
         Number of columns in each block. Will override ratio if is not None.
     aa2color: dict
         Mapping of symbols to color hex codes.
+    gap2color: dict
+        Mapping of symbols to color hex codes of center dot. Intended for
+        distinguishing aligned and unaligned gaps produced by HMMer.
 
     Returns
     -------
@@ -82,6 +85,8 @@ def draw_msa(msa,
                     'H': '96c4ff', 'K': '7fadea', 'R': '7fadea',
                     'C': 'faed70', 'G': 'e2dedd', 'P': 'ffb1f1',
                     'X': '93908f', '-': 'ffffff'}
+    if gap2color is None:
+        gap2color = {'-': '3f3f3f'}
 
     # Instantiate array and fill with values
     im_length, im_height = get_dims(im_cols)
@@ -103,8 +108,9 @@ def draw_msa(msa,
 
             # Fill slice with color
             im[slice(y, y + sym_height), slice(x, x + sym_length), :] = color
-            if sym == '-':
-                color = [int('3f3f3f'[i:i+2], 16) for i in (0, 2, 4)]
+            if sym in gap2color:
+                hex = gap2color[sym]
+                color = [int(hex[i:i+2], 16) for i in (0, 2, 4)]
                 y1, y2 = y + ceil((sym_height - 2) / 2), y + ceil((sym_height + 1) / 2)
                 x1, x2 = x + ceil((sym_length - 2) / 2), x + ceil((sym_length + 1) / 2)
                 im[slice(y1, y2), slice(x1, x2), :] = color
