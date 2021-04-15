@@ -23,14 +23,14 @@ def load_msa(path):
     return msa
 
 
-def hmm_align(file):
-    OGid = file[:-4]
-    if os.path.exists(f'../align_fastas1/out/{OGid}.mfa'):
+def hmm_align(OGid):
+    sqidnum, gnidnum = OGid2meta[OGid]
+    if sqidnum == gnidnum:
         path = f'../make_fastas1/out/{OGid}.tfa'
     else:
         path = f'../make_fastas2-2/out/{OGid}.tfa'
-    run(f'../../../bin/hmmbuild --symfrac 0 --enone --wnone out/{OGid}.hmm ../align_trim/out/{file} > out/{OGid}.txt', shell=True, check=True)
-    run(f'../../../bin/hmmalign --outformat afa out/{OGid}.hmm {path}> out/{OGid}_temp.mfa', shell=True, check=True)
+    run(f'../../../bin/hmmbuild --symfrac 0 --eset {2*gnidnum} --wnone out/{OGid}.hmm ../realign_trim/out/{OGid}.mfa > out/{OGid}.txt', shell=True, check=True)
+    run(f'../../../bin/hmmalign --outformat afa out/{OGid}.hmm {path} > out/{OGid}_temp.mfa', shell=True, check=True)
 
     # Remove excess gaps
     msa = load_msa(f'out/{OGid}_temp.mfa')
@@ -65,18 +65,26 @@ def hmm_align(file):
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
+OGid2meta = {}
+with open('../OG_filter/out/OG_filter.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        fields = line.split()
+        OGid, sqidnum, gnidnum = fields[1], int(fields[6]), int(fields[7])
+        OGid2meta[OGid] = (sqidnum, gnidnum)
+
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        pool.map(hmm_align, os.listdir('../align_trim/out/'))
+        pool.map(hmm_align, OGid2meta)
 
 """
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
 ../align_fastas2-2/align_fastas2-2.py
     ../align_fastas2-2/out/*.mfa
-../align_trim/align_trim.py
-    ../align_trim/out/*.mfa
+../realign_trim/realign_trim.py
+    ../realign_trim/out/*.mfa
 """
