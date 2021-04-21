@@ -169,10 +169,8 @@ class HMM:
             emission sequence to have multiple distinct maximum probability
             state sequences.
         """
-        if self._emit2idx is not None:
-            emits = [self._emit2idx[emit] for emit in emits]  # Convert emits to internal labels
-
         # Forward pass
+        emits = [self._emit2idx[emit] for emit in emits]  # Convert emits to internal labels
         vs = {state: [(log(self._e_dists_rv[state].pmf(emits[0])) + log(self._start_dist_rv.pmf(state)), [None])]
               for state in self._states}
         for emit in emits[1:]:
@@ -204,7 +202,7 @@ class HMM:
 
         To prevent numerical underflow, the forward variables are scaled, so
         the sum over all states at each time point is 1. The unscaled value at
-        time i is given by s_i*fs[state][i] where s_0i is the product of all
+        time i is given by s_0i*fs[state][i] where s_0i is the product of all
         scaling factors from 0 to i, inclusive. See section 3.6 of Durbin's
         Biological sequence analysis for more details.
 
@@ -222,10 +220,9 @@ class HMM:
         """
         if not emits:  # Catch empty inputs
             return {state: [] for state in self.states}, []
-        if self._emit2idx is not None:
-            emits = [self._emit2idx[emit] for emit in emits]  # Convert emits to internal labels
 
         # Initialize
+        emits = [self._emit2idx[emit] for emit in emits]  # Convert emits to internal labels
         fs = {state: [self._e_dists_rv[state].pmf(emits[0]) * self._start_dist_rv.pmf(state)] for state in self._states}
         s = sum([fs[state][0] for state in self._states])
         for state in self._states:
@@ -254,7 +251,7 @@ class HMM:
 
         To prevent numerical underflow, the backward variables are scaled, so
         the sum over all states at each time point is 1. The unscaled value at
-        time i is given by s_i*bs[state][i] where s_iN is the product of all
+        time i is given by s_iN*bs[state][i] where s_iN is the product of all
         scaling factors from i to N, inclusive. See section 3.6 of Durbin's
         Biological sequence analysis for more details.
 
@@ -272,10 +269,9 @@ class HMM:
         """
         if not emits:  # Catch empty inputs
             return {state: [] for state in self.states}, []
-        if self._emit2idx is not None:
-            emits = [self._emit2idx[emit] for emit in emits]  # Convert emits to internal labels
 
         # Initialize
+        emits = [self._emit2idx[emit] for emit in emits]  # Convert emits to internal labels
         bs = {state: [1] for state in self._states}
         s = sum([bs[state][0] for state in self._states])
         for state in self._states:
