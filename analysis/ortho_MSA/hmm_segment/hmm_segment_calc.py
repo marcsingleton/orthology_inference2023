@@ -71,7 +71,7 @@ with open('segments.tsv') as file:
 
 # Get counts
 t_counts = {state: {s: 1 for s in states} for state in states}  # Add pseudocounts to transitions
-e_counts = {state: {} for state in states}
+e_counts = {state: ([], {}) for state in states}  # Bernoulli and beta binomial counts
 start_count = {state: 1 for state in states}  # Add pseudocounts to starts
 for OGid, regions in OGid2regions.items():
     # Load MSA and trim terminal insertions
@@ -96,24 +96,28 @@ for OGid, regions in OGid2regions.items():
             rs.append((start-offset, stop-offset, state))
         regions = rs
 
-    # Create state and emission sequences
-    n = len(msa)
-    gaps = len(msa[0][1]) * [0]
-    for _, seq in msa:
-        for i, sym in enumerate(seq):
-            if sym in ['-', '.']:
-                gaps[i] += 1
+    # Create emission sequences
+    col0 = []
+    patterns, gaps = [], []
+    for j in range(len(msa[0][1])):
+        col = [1 if msa[i][1][j] in ['-', '.'] else 0 for i in range(len(msa))]
+        patterns.append(1 if sum([c0 == c == 1 for c0, c in zip(col0, col)]) > 5 else 0)
+        gaps.append(sum(col))
+        col0 = col
+
+    # Create state sequence
     states = []
     for (start, stop, state) in regions:
         states.extend((stop-start)*[state])
 
-    # Count transitions and emissions
-    state0 = None
-    for i, (gap, state) in enumerate(zip(gaps, states)):
+    # Count emissions and transitions
+    n, state0 = len(msa), None
+    for i, (pattern, gap, state) in enumerate(zip(patterns, gaps, states)):
+        e_counts[state][0].append(pattern)
         try:
-            e_counts[state][n].append(gap)
+            e_counts[state][1][n].append(gap)
         except KeyError:
-            e_counts[state][n] = [gap]
+            e_counts[state][1][n] = [gap]
 
         if state0 is None:
             start_count[state] += 1
@@ -128,17 +132,17 @@ for state, t_count in t_counts.items():
     t_dists[state] = {s: count/total for s, count in t_count.items()}
 
 e_dists = {}
-for state, e_count in e_counts.items():
-    # Compile counts from different models
+for state, (e_count0, e_count1) in e_counts.items():
+    # Compile counts from different ns
     lls = []
     a, b, w = [], [], []
-    for n, count in e_count.items():
-        lls.append(create_betabinom_likelihood(count, n-1))
-        ests = mm_betabinom(np.asarray(count), n-1)
+    for n, count1 in e_count1.items():
+        lls.append(create_betabinom_likelihood(count1, n-1))
+        ests = mm_betabinom(np.asarray(count1), n-1)
         if ests['a'] > 0 and ests['b'] > 0:  # Under-dispersed data can yield negative mm estimates
-            a.append(len(count)*ests['a'])
-            b.append(len(count)*ests['b'])
-            w.append(len(count))
+            a.append(len(count1)*ests['a'])
+            b.append(len(count1)*ests['b'])
+            w.append(len(count1))
 
     # Merge likelihoods and initial parameter estimates
     ll = lambda x: -sum([ll(x) for ll in lls])
@@ -152,8 +156,9 @@ for state, e_count in e_counts.items():
     u, v = result.x
     a = u / v
     b = (1 - u) / v
+    p = sum(e_count0) / len(e_count0)
 
-    e_dists[state] = (a, b)
+    e_dists[state] = (p, a, b)
 
 total = sum(start_count.values())
 start_dist = {s: count/total for s, count in start_count.items()}
