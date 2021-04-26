@@ -27,16 +27,6 @@ def load_msa(path):
     return msa
 
 
-aa2color = {'A': '6dd7a1', 'I': '55c08c', 'L': '55c08c', 'V': '55c08c', 'M': '55c08c',
-            'F': 'b897ec', 'Y': 'b897ec', 'W': 'a180d2',
-            'S': 'ffbe74', 'T': 'ffbe74',
-            'N': '77eaf4', 'Q': '77eaf4',
-            'D': 'ee8485', 'E': 'ee8485',
-            'H': '96c4ff', 'K': '7fadea', 'R': '7fadea',
-            'C': 'faed70', 'G': 'e2dedd', 'P': 'ffb1f1',
-            'X': '93908f', '-': 'ffffff', '.': '3f3f3f'}
-gap2color = {'-': '3f3f3f', '.': 'ffffff'}
-
 tree_template = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
 spids = set([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
 
@@ -55,7 +45,7 @@ for i, row in enumerate(head.itertuples()):
     tree = tree_template.shear([seq[0] for seq in msa])
     order = {tip.name: i for i, tip in enumerate(tree.tips())}
     msa = [seq[1].upper() for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
-    im = draw_msa(msa, aa2color=aa2color, gap2color=gap2color)
+    im = draw_msa(msa)
     plt.imsave(f'out/norm1/{i}_{row.OGid}.png', im)
 
 if not os.path.exists('out/norm2/'):
@@ -68,7 +58,7 @@ for i, row in enumerate(head.itertuples()):
     tree = tree_template.shear([seq[0] for seq in msa])
     order = {tip.name: i for i, tip in enumerate(tree.tips())}
     msa = [seq[1].upper() for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
-    im = draw_msa(msa, aa2color=aa2color, gap2color=gap2color)
+    im = draw_msa(msa)
     plt.imsave(f'out/norm2/{i}_{row.OGid}.png', im)
 
 """

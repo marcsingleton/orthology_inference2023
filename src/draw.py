@@ -84,9 +84,9 @@ def draw_msa(msa,
                     'D': 'ee8485', 'E': 'ee8485',
                     'H': '96c4ff', 'K': '7fadea', 'R': '7fadea',
                     'C': 'faed70', 'G': 'e2dedd', 'P': 'ffb1f1',
-                    'X': '93908f', '-': 'ffffff'}
+                    'X': '93908f', '-': 'ffffff', '.': '3f3f3f'}
     if gap2color is None:
-        gap2color = {'-': '3f3f3f'}
+        gap2color = {'-': '3f3f3f', '.': 'ffffff'}
 
     # Instantiate array and fill with values
     im_length, im_height = get_dims(im_cols)
@@ -121,7 +121,7 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
                    msa_labels=None, msa_labelsize=6, y_labelsize=6, x_labelsize=6,
                    msa_height=1, data_height=1, hspace=0.75, sym_length=7, sym_height=7,
                    lines_min=None, lines_max=None,
-                   block_cols=None, aa2color=None):
+                   block_cols=None, aa2color=None, gap2color=None):
     # Define functions and globals
     ROWS, COLS = len(msa), len(msa[0])
     RATIO = figsize[0] / figsize[1]
@@ -176,7 +176,7 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
     block_rows = len(msa)
 
     im = draw_msa(msa, im_cols=len(msa[0]),
-                  sym_length=sym_length, sym_height=sym_height, aa2color=aa2color)
+                  sym_length=sym_length, sym_height=sym_height, aa2color=aa2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
     gs = GridSpec(2*block_num, 1, figure=fig,
                   height_ratios=[msa_height if i % 2 == 0 else data_height for i in range(2*block_num)],
@@ -206,7 +206,7 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
 def plot_msa(msa, figsize=(12, 6),
             msa_labels=None, msa_labelsize=6, x_labelsize=6,
             hspace=0.5, sym_length=7, sym_height=7,
-            block_cols=None, aa2color=None):
+            block_cols=None, aa2color=None, gap2color=None):
     # Define functions and globals
     ROWS, COLS = len(msa), len(msa[0])
     RATIO = figsize[0] / figsize[1]
@@ -250,7 +250,7 @@ def plot_msa(msa, figsize=(12, 6),
     block_rows = len(msa)
 
     im = draw_msa(msa, im_cols=len(msa[0]),
-                  sym_length=sym_length, sym_height=sym_height, aa2color=aa2color)
+                  sym_length=sym_length, sym_height=sym_height, aa2color=aa2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
     gs = GridSpec(block_num, 1, figure=fig,
                   hspace=hspace)
