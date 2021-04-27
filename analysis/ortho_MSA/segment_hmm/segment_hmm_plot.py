@@ -32,7 +32,7 @@ with open('out/model.json') as file:
 
 # Load msa and trim terminal insertions
 OGid = '20d6'
-msa = load_msa(f'../realign_trim/out/{OGid}.mfa')
+msa = load_msa(f'../realign_hmmer/out/{OGid}.mfa')
 
 idx = 0
 for j in range(len(msa[0][1])):
@@ -75,6 +75,6 @@ plt.savefig(f'out/{OGid}.png', bbox_inches='tight')
 DEPENDENCIES
 ../realign_hmmer/realign_hmmer.py
     ../realign_hmmer/out/*.mfa
-./hmm_segment_calc.py
+./segment_hmm_calc.py
     ./out/model.json
 """
