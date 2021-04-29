@@ -53,7 +53,7 @@ def ar1_betabinom_pmf(i, j, n, a0, b0, a1, b1):
 # Load regions
 OGid2regions = {}
 states = set()
-with open('segments.tsv') as file:
+with open('../config/segments.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid, start, stop, state = line.split()
@@ -64,10 +64,12 @@ with open('segments.tsv') as file:
         except KeyError:
             OGid2regions[OGid] = [(int(start), int(stop), state)]
 
-# Get counts
-t_counts = {state: {s: 1 for s in states} for state in states}  # Add pseudocounts to transitions
-e_counts = {state: {} for state in states}  # Beta binomial counts
-start_t_count = {state: 1 for state in states}  # Add pseudocounts to starts
+# Initialize counts with pseudocounts
+t_counts = {state: {s: 1 for s in states} for state in states}
+e_counts = {state: {} for state in states}
+start_t_count = {state: 1 for state in states}
+
+# Get observed counts
 for OGid, regions in OGid2regions.items():
     # Load MSA and trim terminal insertions
     msa = load_msa(f'../realign_hmmer/out/{OGid}.mfa')
@@ -126,7 +128,7 @@ for state, t_count in t_counts.items():
 
 e_dists = {}
 for state, e_count in e_counts.items():
-    # Compile counts from different ns and merge likelihoods
+    # Compile counts from different models and merge likelihoods
     lls = []
     for n, count in e_count.items():
         lls.append(create_ar1_betabinom_likelihood(count, n-1))
@@ -154,5 +156,5 @@ with open('out/model.json', 'w') as file:
 DEPENDENCIES
 ../realign_hmmer/realign_hmmer.py
     ../realign_hmmer/out/*.mfa
-./segments.tsv
+../config/segments.tsv
 """

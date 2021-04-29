@@ -135,6 +135,6 @@ plt.savefig(f'out/{OGid}.png', bbox_inches='tight')
 DEPENDENCIES
 ../realign_hmmer/realign_hmmer.py
     ../realign_hmmer/out/*.mfa
-./segment_arhmm_calc.py
+./segment_arhmm1_calc.py
     ./out/model.json
 """

@@ -58,7 +58,7 @@ def mm_betabinom(data, n):
 # Load regions
 OGid2regions = {}
 states = set()
-with open('segments.tsv') as file:
+with open('../config/segments.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid, start, stop, state = line.split()
@@ -69,10 +69,12 @@ with open('segments.tsv') as file:
         except KeyError:
             OGid2regions[OGid] = [(int(start), int(stop), state)]
 
-# Get counts
-t_counts = {state: {s: 1 for s in states} for state in states}  # Add pseudocounts to transitions
-e_counts = {state: {} for state in states}  # Beta binomial counts
-start_count = {state: 1 for state in states}  # Add pseudocounts to starts
+# Initialize counts with pseudocounts
+t_counts = {state: {s: 1 for s in states} for state in states}
+e_counts = {state: {} for state in states}
+start_count = {state: 1 for state in states}
+
+# Get observed counts
 for OGid, regions in OGid2regions.items():
     # Load MSA and trim terminal insertions
     msa = load_msa(f'../realign_hmmer/out/{OGid}.mfa')
@@ -107,7 +109,7 @@ for OGid, regions in OGid2regions.items():
     for (start, stop, state) in regions:
         states.extend((stop-start)*[state])
 
-    # Count transitions and emissions
+    # Count emissions and transitions
     n, state0 = len(msa), None
     for i, (emit, state) in enumerate(zip(emits, states)):
         try:
@@ -171,5 +173,5 @@ with open('out/model.json', 'w') as file:
 DEPENDENCIES
 ../realign_hmmer/realign_hmmer.py
     ../realign_hmmer/out/*.mfa
-./segments.tsv
+../config/segments.tsv
 """
