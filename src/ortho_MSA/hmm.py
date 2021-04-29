@@ -59,8 +59,7 @@ class HMM:
         if set(e_dists) != set(states):
             raise ValueError('States in e_dists do not match those in t_dists.')
         all_dicts = all([isinstance(e_dist, dict) for e_dist in e_dists.values()])
-        all_rvs = all([isinstance(e_dist, stats.rv_discrete) or isinstance(e_dist, stats._distn_infrastructure.rv_frozen)]
-                      for e_dist in e_dists.values())
+        all_rvs = all([getattr(e_dist, 'pmf', None) and getattr(e_dist, 'rvs', None) for e_dist in e_dists.values()])
         if not all_dicts and not all_rvs:
             raise ValueError('e_dists are not either all dicts or all rvs.')
 
@@ -332,11 +331,15 @@ class ARHMM:
         # Check e_dists
         if set(e_dists) != set(states):
             raise ValueError('States in e_dists do not match those in t_dists.')
+        all_rvs = all([getattr(e_dist, 'pmf', None) and getattr(e_dist, 'rvs', None) for e_dist in e_dists.values()])
+        if not all_rvs:
+            raise ValueError('e_dists are not all rvs.')
 
         # Check start_dists
-        if not set(start_t_dist) <= states:
+        start_states = set(start_t_dist)
+        if not start_states <= states:
             raise ValueError('start_t_dist contains a transition to an unknown state.')
-        if not set(start_e_dists) != set():
+        if set(start_e_dists) != start_states:
             raise ValueError('States in start_e_dists do not match those in start_t_dist.')
 
         # Create random variates from t_dists
@@ -370,6 +373,8 @@ class ARHMM:
         self._start_t_dist_rv = start_t_dist_rv
         self.start_e_dists = start_e_dists
         self._start_e_dists_rv = start_e_dists_rv
+        self.start_states = start_states
+        self._start_states = set([state2idx[state] for state in self.start_states])
         self.stop_states = stop_states
         self._stop_states = [state2idx[state] for state in stop_states] if stop_states is not None else []
 
@@ -397,8 +402,9 @@ class ARHMM:
 
     def viterbi(self, emits):
         # Forward pass
-        vs = {state: [(log(self._start_e_dists_rv[state].pmf(emits[0])) + log(self._start_t_dist_rv.pmf(state)), [None])]
-              for state in self._states}
+        vs = {state: [(0, [None])] for state in self._states}
+        for state in self._start_states:
+            vs[state] = [(log(self._start_e_dists_rv[state].pmf(emits[0])) + log(self._start_t_dist_rv.pmf(state)), [None])]
         for i, emit in enumerate(emits[1:]):
             for state in self._states:
                 # Get probabilities
@@ -428,7 +434,9 @@ class ARHMM:
             return {state: [] for state in self.states}, []
 
         # Initialize
-        fs = {state: [self._start_e_dists_rv[state].pmf(emits[0]) * self._start_t_dist_rv.pmf(state)] for state in self._states}
+        fs = {state: [0] for state in self._states}
+        for state in self._start_states:
+            fs[state] = [self._start_e_dists_rv[state].pmf(emits[0]) * self._start_t_dist_rv.pmf(state)]
         s = sum([fs[state][0] for state in self._states])
         for state in self._states:
             fs[state][0] /= s
