@@ -4,7 +4,7 @@ import json
 
 import matplotlib.pyplot as plt
 import scipy.stats as stats
-import src.ortho_MSA.hmm as hmm
+import src.hmm as hmm
 import src.draw as draw
 
 

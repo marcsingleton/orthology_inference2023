@@ -5,7 +5,7 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as stats
-import src.ortho_MSA.hmm as hmm
+import src.hmm as hmm
 import src.draw as draw
 from scipy.linalg import solve
 
