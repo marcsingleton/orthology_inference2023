@@ -18,7 +18,8 @@ IDREvoDevo/
 Only `analysis/` and `src/`, which together contain all code written for this project, are explicitly tracked by Git. `bin/` contains third-party programs or code used in this project. Though this directory is not tracked by Git, scripts may reference it by path, so it is included here for completeness. Similarly, `data/`, which contains all the raw data used in this project, is not tracked by Git.
 
 `analysis/` contains only directories, which serve to group related analyses. Some directories are "orphaned" and no longer contribute to any recent or ongoing analyses, but are included here for completeness. Currently it contains the following entries:
-- `brownian/`: Application of Brownian motion model to EggNOGv5 orthologs segmented by IUPRED
+- `brownian1/`: Application of Brownian motion model to EggNOGv5 orthologs segmented by IUPRED
+- `brownian2/`: Application of Brownian motion model to orthologs from NCBI annotations, among other phylogenetic analyses
 - `EggNOGv5_validation/`: Analyses to validate *Drosophila* orthologs downloaded from the [EggNOG v5.0](http://eggnog5.embl.de/) database
 - `ortho_cluster1/`: Initial attempt at constructing orthologous groups using genome annotations largely from [Yang *et al.*](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6305970/)
 - `ortho_cluster2/`: Construction of orthologous groups using all *Drosophila* genome annotations obtained from [NCBI](https://www.ncbi.nlm.nih.gov/genome/annotation_euk/all/)
