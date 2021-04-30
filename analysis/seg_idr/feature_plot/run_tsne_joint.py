@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/tsne_joint.py ../sample_feats/ 3 ordered Ordered Disordered', shell=True)
+run('python ../../../src/seg_scripts/plot/tsne_joint.py ../sample_feats/out/ 3 ordered Ordered Disordered', shell=True)
 
 """
 NOTES
@@ -28,5 +28,5 @@ ZNORM
 DEPENDENCIES
 ../../../src/feature_calc_scripts/tsne_joint.py
 ../sample_feats/run_sample_feats.py
-    ../sample_feats/features_*.tsv
+    ../sample_feats/out/features_*.tsv
 """

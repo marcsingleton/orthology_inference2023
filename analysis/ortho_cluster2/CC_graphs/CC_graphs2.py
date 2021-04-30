@@ -8,38 +8,38 @@ from math import exp
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from numpy import linspace
 
-# Load ggraph
-ggraph = {}
-with open('../hits2ggraph/out/ggraph2.tsv') as file:
+# Load pgraph
+graph = {}
+with open('../hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        ggraph[node] = [adj.split(':') for adj in adjs.split(',')]
+        graph[node] = [adj.split(':') for adj in adjs.split(',')]
 
 # Load connected components
 CCs = {}
-with open('../connect_ggraph/out/gconnect2.txt') as file:
+with open('../connect_pgraph/out/pconnect2.txt') as file:
     for line in file:
         CCid, nodes = line.rstrip().split(':')
         CCs[CCid] = set(nodes.split(','))
 
 # Make output directory
-if not os.path.exists('out/ggraph2/'):
-    os.makedirs('out/ggraph2/')  # Recursive folder creation
+if not os.path.exists('out/pgraph2/'):
+    os.makedirs('out/pgraph2/')  # Recursive folder creation
 
 CCids = sorted(CCs, key=lambda x: len(CCs[x]), reverse=True)
 for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
-    subggraph = {node: ggraph[node] for node in CCs[CCid]}
+    subgraph = {node: graph[node] for node in CCs[CCid]}
 
     # Create graph and segment nodes by data source
     G = nx.Graph()
-    for node, adjs in subggraph.items():
+    for node, adjs in subgraph.items():
         G.add_node(node)
         for adj, w in adjs:
             if (node, adj) in G.edges:
                 edge_data = G.get_edge_data(node, adj)
-                edge_data['weight'] = edge_data.get('weight', 0) + int(w)  # Sum edge weights
+                edge_data['weight'] = edge_data.get('weight', 0) + float(w)  # Sum edge weights
             else:
-                G.add_edge(node, adj, weight=int(w))
+                G.add_edge(node, adj, weight=float(w))
 
     # Get positions and canvas limits
     pos = nx.kamada_kawai_layout(G, weight=None)  # Weight is None as otherwise is used for layout
@@ -75,8 +75,8 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
         locs.remove(loc)
 
     # Draw graph labeled by source
-    node_size = 25/(1 + exp(0.01*(len(subggraph)-400))) + 10  # Adjust node size
-    FB = [node for node in G.nodes if node.startswith('FBgn')]
+    node_size = 25 / (1 + exp(0.01 * (len(subgraph) - 400))) + 10  # Adjust node size
+    FB = [node for node in G.nodes if node.startswith('FBpp')]
     NCBI = G.nodes - FB
 
     fig, ax = plt.subplots(figsize=figsize, dpi=300)
@@ -87,11 +87,11 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
     fig.legend(markerscale=(1 if node_size > 22.5 else 22.5/node_size), loc=locs[-1])
     fig.tight_layout()
     ax.axis('off')
-    fig.savefig(f'out/ggraph2/{i}_{CCid}_source.png')
+    fig.savefig(f'out/pgraph2/{i}_{CCid}_source.png')
     plt.close()
 
     # Draw graph labeled by edge
-    node_size = 20/(1 + exp(0.01*(len(subggraph)-400))) + 10  # Adjust node size
+    node_size = 20 / (1 + exp(0.01 * (len(subgraph) - 400))) + 10  # Adjust node size
     edges = sorted(G.edges, key=lambda x: G.get_edge_data(*x)['weight'])
 
     ws = [G.get_edge_data(*edge)['weight'] for edge in edges]
@@ -100,7 +100,7 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
     norm = mpl.colors.Normalize(min(ws), max(ws))
 
     fig, ax = plt.subplots(figsize=figsize, dpi=300)
-    nx.draw_networkx_edges(G, pos, edges=edges, alpha=0.375, width=0.75, edge_color=ws, edge_cmap=cmap1)
+    nx.draw_networkx_edges(G, pos, edgelist=edges, alpha=0.375, width=0.75, edge_color=ws, edge_cmap=cmap1)
     nx.draw_networkx_nodes(G, pos, node_size=node_size, linewidths=0, node_color='#333333')
 
     cax = inset_axes(ax, width=1, height=0.1, loc=locs[-1])
@@ -110,13 +110,13 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
 
     fig.tight_layout()
     ax.axis('off')
-    fig.savefig(f'out/ggraph2/{i}_{CCid}_edge.png')
+    fig.savefig(f'out/pgraph2/{i}_{CCid}_edge.png')
     plt.close()
 
 """
 DEPENDENCIES
-../connect_ggraph/connect_ggraph2.py
-    ../connect_ggraph/out/gconnect2.txt
-../hits2ggraph/hits2ggraph2.py
-    ../hits2ggraph/out/ggraph2.tsv
+../connect_pgraph/connect_pgraph2.py
+    ../connect_pgraph/out/gconnect2.txt
+../hits2pgraph/hits2pgraph2.py
+    ../hits2pgraph/out/pgraph2.tsv
 """

@@ -17,8 +17,8 @@ def to_dict(path, dtype):
 
 
 # Input variables
-path_pics = '../pic_calc/pics.tsv'
-path_scores = '../meta_conscore/scores_match.tsv'
+path_pics = '../pic_calc/out/pics.tsv'
+path_scores = '../meta_conscore/out/scores_match.tsv'
 type_name = 'ordered'
 name_T = 'Ordered'
 name_F = 'Disordered'
@@ -85,7 +85,7 @@ for lt in [2 ** x for x in range(6)]:
 """
 DEPENDENCIES
 ../meta_conscore/meta_conscore.py
-    ../meta_conscore/scores_match.tsv
+    ../meta_conscore/out/scores_match.tsv
 ../pic_calc/pic_calc.py
-    ../pic_calc/pics.tsv
+    ../pic_calc/out/pics.tsv
 """

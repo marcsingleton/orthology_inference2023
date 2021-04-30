@@ -17,29 +17,34 @@ def get_Xmax(seq):
 
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
-gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
-            'NCBI': r'db_xref=GeneID:([0-9]+)'}
+            'NCBI': r'([NXY]P_[0-9]+)'}
 
-# Parse parameters
-params = {}
-with open('params.tsv') as file:
+# Load seq metadata
+ppid2gnid = {}
+with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+    for line in file:
+        ppid, gnid, _, _ = line.split()
+        ppid2gnid[ppid] = gnid
+
+# Parse genomes
+genomes = {}
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        spid, _, source, tcds_path = line.split()
-        params[spid] = (source, tcds_path)
+        spid, _, source, prot_path = line.split()
+        genomes[spid] = (source, prot_path)
 
 # Parse polypeptides
 sqid0 = 0
 sqids = {}
 rows = []
-for spid, (source, tcds_path) in params.items():
-    with open(tcds_path) as file:
+for spid, (source, prot_path) in genomes.items():
+    with open(prot_path) as file:
         line = file.readline()
         while line:
             if line.startswith('>'):
-                ppid = re.search(pp_regex[source], line).group(1)
-                gnid = re.search(gn_regex[source], line).group(1)
+                ppid0 = re.search(pp_regex[source], line).group(1)
+                gnid = ppid2gnid[ppid0]
                 line = file.readline()
 
             seqlines = []
@@ -49,19 +54,19 @@ for spid, (source, tcds_path) in params.items():
             seq0 = ''.join(seqlines)
 
             try:
-                for sqid, seq in sqids[gnid]:
-                    if seq0 == seq:
-                        rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqid': sqid,
-                                     'sqlen': len(seq), 'Xnum': seq.upper().count('X'), 'Xmax': get_Xmax(seq)})
+                for sqid1, seq1 in sqids[gnid]:
+                    if seq0 == seq1:
+                        rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': sqid1,
+                                     'sqlen': len(seq1), 'Xnum': seq1.upper().count('X'), 'Xmax': get_Xmax(seq1)})
                         break
                 else:
                     sqids[gnid].append((str(sqid0).zfill(8), seq0))
-                    rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
+                    rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
                                  'sqlen': len(seq0), 'Xnum': seq0.upper().count('X'), 'Xmax': get_Xmax(seq0)})
                     sqid0 += 1
             except KeyError:
                 sqids[gnid] = [(str(sqid0).zfill(8), seq0)]
-                rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
+                rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
                              'sqlen': len(seq0), 'Xnum': seq0.upper().count('X'), 'Xmax': get_Xmax(seq0)})
                 sqid0 += 1
 
@@ -71,8 +76,8 @@ if not os.path.exists('out/'):
 
 # Define dataframe and groups
 df = pd.DataFrame(rows)
-ncbi_spids = [spid for spid in params if params[spid][0] == 'NCBI']
-flybase_spids = [spid for spid in params if params[spid][0] == 'FlyBase']
+ncbi_spids = [spid for spid in genomes if genomes[spid][0] == 'NCBI']
+flybase_spids = [spid for spid in genomes if genomes[spid][0] == 'FlyBase']
 
 # 1.1 Distribution of polypeptides across associated species
 spid_ppidnum = df['spid'].value_counts()
@@ -383,23 +388,25 @@ print('Fraction (genes with unknown amino acids):', s3 / s2)
 
 """
 OUTPUT
-Fraction of sequences with unknown amino acids: 0.00811963364570573
+Fraction of sequences with unknown amino acids: 0.014257199487651535
 
 Genes with at least one sequence without unknown amino acids
-Number: 443454
-Fraction: 0.9896693246563695
+Number: 438969
+Fraction: 0.9796600183448155
 
 Genes with at least one sequence with unknown amino acids
-Number: 5158
-Fraction: 0.011511260190634325
+Number: 9643
+Fraction: 0.02152056650218821
 
 Genes with at least one sequence without unknown amino acids and at least one sequence with unknown amino acids
 Number: 529
 Fraction (all genes): 0.0011805848470037917
-Fraction (genes with unknown amino acids): 0.10255913144629701
+Fraction (genes with unknown amino acids): 0.05485844654153272
 
 DEPENDENCIES
-../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
+../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-./params.tsv
+../../ortho_search/seq_meta/seq_meta.py
+    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../config/genomes.tsv
 """

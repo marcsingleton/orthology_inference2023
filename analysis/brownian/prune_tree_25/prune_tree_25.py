@@ -17,8 +17,8 @@ for leaf in remove:
     tree.prune(leaf)
 
 # Make output directory and save
-if not os.path.exists('out'):
-    os.mkdir('out')
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 Phylo.write(tree, 'out/drosophila-10spec-tree.nwk', 'newick')
 
 # Draw tree

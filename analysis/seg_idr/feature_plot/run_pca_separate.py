@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/pca_separate.py ../sample_feats/ 3 ordered Ordered Disordered', shell=True)
+run('python ../../../src/seg_scripts/plot/pca_separate.py ../sample_feats/out/ 3 ordered Ordered Disordered', shell=True)
 
 """
 NOTES
@@ -20,7 +20,7 @@ ZNORM
     Both classes largely have no structure and the projections do not vary greatly with length cutoff.
 
 DEPENDENCIES
-../../../src/feature_plot_scripts/pca_separate.py
+../../../src/seg_scripts/plot/pca_separate.py
 ../sample_feats/run_sample_feats.py
-    ../sample_feats/features_*.tsv
+    ../sample_feats/out/features_*.tsv
 """

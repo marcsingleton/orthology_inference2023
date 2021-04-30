@@ -1,34 +1,39 @@
-"""Plot various statistics of OGs relating to their counts of genes and species."""
+"""Plot various statistics of OGs relating to their counts of polypeptides and species."""
 
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
 
-# Load gn metadata
-gnid2spid = {}
-with open('../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv') as file:
+# Load seq metadata
+ppid2meta = {}
+with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
     for line in file:
-        _, gnid, spid = line.split()
-        gnid2spid[gnid] = spid
+        ppid, gnid, spid, _ = line.split()
+        ppid2meta[ppid] = gnid, spid
 
 # Load OGs
 rows = []
-with open('../clique5+_community/out/ggraph2/6clique/gclusters.txt') as file:
+with open('../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
-        gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
-        for gnid in gnids:
-            rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid, 'spid': gnid2spid[gnid]})
+        ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
+        for ppid in ppids:
+            gnid, spid = ppid2meta[ppid]
+            rows.append({'CCid': CCid, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'spid': spid})
 OGs = pd.DataFrame(rows)
 
+spid_num = 31
 groups = OGs.groupby('OGid')
 OGnum = OGs['OGid'].nunique()
+uppnum = OGs['ppid'].nunique()
 ugnnum = OGs['gnid'].nunique()
-u25num = len(groups.filter(lambda x: len(x) == 25 and x['spid'].nunique() == 25)) // 25
+OG_unums = groups.nunique()
+unum1 = len(OG_unums[(OG_unums['gnid'] == spid_num) & (OG_unums['spid'] == spid_num)])
+unum2 = len(OG_unums[(OG_unums['ppid'] == spid_num) & (OG_unums['spid'] == spid_num)])
 
 # Make output directory
-if not os.path.exists('out/ggraph2/spgn/'):
-    os.makedirs('out/ggraph2/spgn/')  # Recursive folder creation
+if not os.path.exists('out/pgraph2/spgn/'):
+    os.makedirs('out/pgraph2/spgn/')  # Recursive folder creation
 
 # Plots
 # Number of associated OGs for species
@@ -53,31 +58,31 @@ ax2.set_ylim(mn / OGnum, mx / OGnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/ggraph2/spgn/bar_OGnum-species.png')
+fig.savefig('out/pgraph2/spgn/bar_OGnum-species.png')
 plt.close()
 
-# Distribution of genes across species
-spid_gns = OGs['spid'].value_counts().sort_index()
-labels, h_gn = zip(*spid_gns.items())
+# Distribution of polypeptides across species
+spid_upps = OGs.groupby('spid')['ppid'].nunique().sort_index()
+labels, h_upp = zip(*spid_upps.items())
 x = list(range(1, len(labels) + 1))
 fig, ax1 = plt.subplots()
-ax1.bar(x, h_gn)
+ax1.bar(x, h_upp)
 ax1.set_xticks(x)
 ax1.set_xticklabels(labels, rotation=60, fontsize=8)
 ax1.set_xlabel('Associated species')
-ax1.set_ylabel('Number of genes')
-ax1.set_title('Distribution of genes across associated species')
+ax1.set_ylabel('Number of polypeptides')
+ax1.set_title('Distribution of polypeptides across associated species')
 
 ax2 = ax1.twinx()
 mn, mx = ax1.get_ylim()
-ax2.set_ylim(mn / len(OGs), mx / len(OGs))
-ax2.set_ylabel('Fraction of total genes')
+ax2.set_ylim(mn / uppnum, mx / uppnum)
+ax2.set_ylabel('Fraction of total polypeptides')
 
 fig.tight_layout()
-fig.savefig('out/ggraph2/spgn/bar_gnnum-species.png')
+fig.savefig('out/pgraph2/spgn/bar_uppnum-species.png')
 plt.close()
 
-# Distribution of unique genes across species
+# Distribution of genes across species
 spid_ugns = OGs.groupby('spid')['gnid'].nunique().sort_index()
 labels, h_ugn = zip(*spid_ugns.items())
 x = list(range(1, len(labels) + 1))
@@ -86,20 +91,20 @@ ax1.bar(x, h_ugn)
 ax1.set_xticks(x)
 ax1.set_xticklabels(labels, rotation=60, fontsize=8)
 ax1.set_xlabel('Associated species')
-ax1.set_ylabel('Number of unique genes')
-ax1.set_title('Distribution of unique genes across associated species')
+ax1.set_ylabel('Number of genes')
+ax1.set_title('Distribution of genes across associated species')
 
 ax2 = ax1.twinx()
 mn, mx = ax1.get_ylim()
 ax2.set_ylim(mn / ugnnum, mx / ugnnum)
-ax2.set_ylabel('Fraction of total unique genes')
+ax2.set_ylabel('Fraction of total genes')
 
 fig.tight_layout()
-fig.savefig('out/ggraph2/spgn/bar_ugnnum-species.png')
+fig.savefig('out/pgraph2/spgn/bar_ugnnum-species.png')
 plt.close()
 
 # Number of exclusions for each species
-for i in range(15, 25):
+for i in range(spid_num-10, spid_num):
     spids = set(OGs['spid'].drop_duplicates())
     spid_counts = {spid: 0 for spid in sorted(spids)}
     for spids in [spids - set(group['spid'].drop_duplicates()) for _, group in groups if group['spid'].nunique() == i]:
@@ -117,41 +122,41 @@ for i in range(15, 25):
 
     ax2 = ax1.twinx()
     mn, mx = ax1.get_ylim()
-    OG_num = sum(h) / (25 - i)
+    OG_num = sum(h) / (spid_num - i)
     ax2.set_ylim(mn / OG_num, mx / OG_num)
     ax2.set_ylabel(f'Fraction of total OGs with {i} species')
 
     fig.tight_layout()
-    fig.savefig(f'out/ggraph2/spgn/bar_OGexclusion{i}-species.png')
+    fig.savefig(f'out/pgraph2/spgn/bar_OGexclusion{i}-species.png')
     plt.close()
+
+# Correlation of number of polypeptides and associated OGs
+fig, ax = plt.subplots()
+ax.scatter(h_OG, h_upp, s=6)
+ax.set_xlabel('Number of associated OGs')
+ax.set_ylabel('Number of associated polypeptides')
+ax.set_title('Correlation of numbers of associated\n polypeptides and OGs for each species')
+
+fig.savefig('out/pgraph2/spgn/scatter_uppnum-OGnum.png')
+plt.close()
 
 # Correlation of number of genes and associated OGs
 fig, ax = plt.subplots()
-ax.scatter(h_OG, h_gn)
+ax.scatter(h_OG, h_ugn, s=6)
 ax.set_xlabel('Number of associated OGs')
 ax.set_ylabel('Number of associated genes')
-ax.set_title('Correlation of numbers of associated\ngenes and OGs for each species')
+ax.set_title('Correlation of numbers of associated\n genes and OGs for each species')
 
-fig.savefig('out/ggraph2/spgn/scatter_gnnum-OGnum.png')
+fig.savefig('out/pgraph2/spgn/scatter_ugnnum-OGnum.png')
 plt.close()
 
-# Correlation of number of unique genes and associated OGs
-fig, ax = plt.subplots()
-ax.scatter(h_OG, h_ugn)
-ax.set_xlabel('Number of associated OGs')
-ax.set_ylabel('Number of associated unique genes')
-ax.set_title('Correlation of numbers of associated\n unique genes and OGs for each species')
-
-fig.savefig('out/ggraph2/spgn/scatter_ugnnum-OGnum.png')
-plt.close()
-
-# Distribution of OGs across number of unique species
-dist_species = groups['spid'].nunique().value_counts()
-spec, spec_count = zip(*dist_species.items())
+# Distribution of OGs across number of species
+dist_sp = groups['spid'].nunique().value_counts()
+sp, sp_count = zip(*dist_sp.items())
 fig, ax1 = plt.subplots()
-ax1.bar(spec, spec_count)
-ax1.set_title('Distribution of OGs across number of unique species in OG')
-ax1.set_xlabel('Number of unique species in OG')
+ax1.bar(sp, sp_count)
+ax1.set_title('Distribution of OGs across number of species in OG')
+ax1.set_xlabel('Number of species in OG')
 ax1.set_ylabel('Number of OGs')
 
 ax2 = ax1.twinx()
@@ -160,14 +165,14 @@ ax2.set_ylim(mn / OGnum, mx / OGnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/ggraph2/spgn/hist_OGnum-spnum.png')
+fig.savefig('out/pgraph2/spgn/hist_OGnum-spnum.png')
 plt.close()
 
 # Distribution of OGs across number of genes
-dist_seq = groups.size().value_counts()
-seq, seq_count = zip(*dist_seq.items())
+dist_gn = groups['gnid'].nunique().value_counts()
+gn, gn_count = zip(*dist_gn.items())
 fig, ax1 = plt.subplots()
-ax1.bar(seq, seq_count, width=1)
+ax1.bar(gn, gn_count, width=1)
 ax1.set_title('Distribution of OGs across number of genes in OG')
 ax1.set_xlabel('Number of genes in OG')
 ax1.set_ylabel('Number of OGs')
@@ -178,7 +183,25 @@ ax2.set_ylim(mn / OGnum, mx / OGnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/ggraph2/spgn/hist_OGnum-gnnum.png')
+fig.savefig('out/pgraph2/spgn/hist_OGnum-gnnum.png')
+plt.close()
+
+# Distribution of OGs across number of polypeptides
+dist_pp = groups['ppid'].nunique().value_counts()
+pp, pp_count = zip(*dist_pp.items())
+fig, ax1 = plt.subplots()
+ax1.bar(pp, pp_count, width=1)
+ax1.set_title('Distribution of OGs across number of polypeptides in OG')
+ax1.set_xlabel('Number of polypeptides in OG')
+ax1.set_ylabel('Number of OGs')
+
+ax2 = ax1.twinx()
+mn, mx = ax1.get_ylim()
+ax2.set_ylim(mn / OGnum, mx / OGnum)
+ax2.set_ylabel('Fraction of total OGs')
+
+fig.tight_layout()
+fig.savefig('out/pgraph2/spgn/hist_OGnum-ppnum.png')
 plt.close()
 
 # Distribution of OGs across number of species duplicates
@@ -196,46 +219,58 @@ ax2.set_ylim(mn / OGnum, mx / OGnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/ggraph2/spgn/hist_OGnum-spdup.png')
+fig.savefig('out/pgraph2/spgn/hist_OGnum-spdup.png')
 plt.close()
 
 # Print counts
 print('number of OGs:', OGnum)
 print()
-print('number of OGs with 25 species:', dist_species[25])
-print('fraction of OGs with 25 species:', dist_species[25] / OGnum)
+print(f'number of OGs with {spid_num} species:', dist_sp[spid_num])
+print(f'fraction of OGs with {spid_num} species:', dist_sp[spid_num] / OGnum)
 print()
-print('number of OGs with 25 genes:', dist_seq[25])
-print('fraction of OGs with 25 genes:', dist_seq[25] / OGnum)
+print(f'number of OGs with {spid_num} genes:', dist_gn[spid_num])
+print(f'fraction of OGs with {spid_num} genes:', dist_gn[spid_num] / OGnum)
 print()
-print('number of OGs with 25 species and 25 genes:', u25num)
-print('fraction of OGs with 25 species and 25 genes:', u25num / OGnum)
+print(f'number of OGs with {spid_num} polypeptides:', dist_pp[spid_num])
+print(f'fraction of OGs with {spid_num} polypeptides:', dist_pp[spid_num] / OGnum)
+print()
+print(f'number of OGs with {spid_num} species and {spid_num} genes:', unum1)
+print(f'fraction of OGs with {spid_num} species and {spid_num} genes:', unum1 / OGnum)
+print()
+print(f'number of OGs with {spid_num} species and {spid_num} polypeptides:', unum2)
+print(f'fraction of OGs with {spid_num} species and {spid_num} polypeptides:', unum2 / OGnum)
 print()
 print('number of OGs with duplicates:', OGnum - dist_dup[0])
 print('fraction of OGs with duplicates', (OGnum - dist_dup[0]) / OGnum)
 
 """
 OUTPUT
-number of OGs: 14391
+number of OGs: 23283
 
-number of OGs with 25 species: 9305
-fraction of OGs with 25 species: 0.6465846709749149
+number of OGs with 31 species: 9269
+fraction of OGs with 31 species: 0.3981016192071469
 
-number of OGs with 25 genes: 8269
-fraction of OGs with 25 genes: 0.5745952331318185
+number of OGs with 31 genes: 7703
+fraction of OGs with 31 genes: 0.33084224541510976
 
-number of OGs with 25 species and 25 genes: 8141
-fraction of OGs with 25 species and 25 genes: 0.5657007852129803
+number of OGs with 31 polypeptides: 2485
+fraction of OGs with 31 polypeptides: 0.10673023235837306
 
-number of OGs with duplicates: 1758
-fraction of OGs with duplicates 0.12215968313529289
+number of OGs with 31 species and 31 genes: 7487
+fraction of OGs with 31 species and 31 genes: 0.3215650904093115
+
+number of OGs with 31 species and 31 polypeptides: 2047
+fraction of OGs with 31 species and 31 polypeptides: 0.08791822359661555
+
+number of OGs with duplicates: 13131
+fraction of OGs with duplicates 0.5639737147274836
 
 NOTES
 These plots are largely based off those in analysis/EggNOGv5_validation/ali_stats/ali_stats.py
 
 DEPENDENCIES
-../subcluster_ggraph/subcluster_ggraph2.py
-    ../subcluster_ggraph/ggraph2/out/gclusters.tsv
-../../ortho_cluster2/ppid2meta/ppid2meta.py
-    ../../ortho_cluster2/ppid2meta/out/ppid2meta.tsv
+../../ortho_search/seq_meta/seq_meta.py
+    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../clique4+_pcommunity/clique4+_gcommunity2.py
+    ../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
 """

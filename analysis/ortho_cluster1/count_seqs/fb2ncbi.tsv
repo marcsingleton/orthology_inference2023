@@ -1,4 +1,4 @@
-#species	ncbi	flybase
+#spid	ncbi	flybase
 dana	GCA_000005115.1_dana_caf1_genomic.fna.gz	Drosophila_ananassae/dana_r1.06_FB2018_04/fasta/dana-all-chromosome-r1.06.fasta.gz
 dere	GCA_000005135.1_dere_caf1_genomic.fna.gz	Drosophila_erecta/dere_r1.05_FB2018_06/fasta/dere-all-chromosome-r1.05.fasta.gz
 dgri	GCA_000005155.1_dgri_caf1_genomic.fna.gz	Drosophila_grimshawi/dgri_r1.05_FB2018_06/fasta/dgri-all-chromosome-r1.05.fasta.gz

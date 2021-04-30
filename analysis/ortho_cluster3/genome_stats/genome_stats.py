@@ -17,29 +17,34 @@ def get_Xmax(seq):
 
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
-gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
-            'NCBI': r'db_xref=GeneID:([0-9]+)'}
+            'NCBI': r'([NXY]P_[0-9]+)'}
 
-# Parse parameters
-params = {}
-with open('params.tsv') as file:
+# Load seq metadata
+ppid2gnid = {}
+with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+    for line in file:
+        ppid, gnid, _, _ = line.split()
+        ppid2gnid[ppid] = gnid
+
+# Parse genomes
+genomes = {}
+with open('../config/genomes.tsv') as file:
     fields = file.readline().split()  # Skip header
     for line in file:
-        spid, _, source, tcds_path = line.split()
-        params[spid] = (source, tcds_path)
+        spid, _, source, prot_path = line.split()
+        genomes[spid] = (source, prot_path)
 
 # Parse polypeptides
 sqid0 = 0
 sqids = {}
 rows = []
-for spid, (source, tcds_path) in params.items():
-    with open(tcds_path) as file:
+for spid, (source, prot_path) in genomes.items():
+    with open(prot_path) as file:
         line = file.readline()
         while line:
             if line.startswith('>'):
-                ppid = re.search(pp_regex[source], line).group(1)
-                gnid = re.search(gn_regex[source], line).group(1)
+                ppid0 = re.search(pp_regex[source], line).group(1)
+                gnid = ppid2gnid[ppid0]
                 line = file.readline()
 
             seqlines = []
@@ -49,19 +54,19 @@ for spid, (source, tcds_path) in params.items():
             seq0 = ''.join(seqlines)
 
             try:
-                for sqid, seq in sqids[gnid]:
-                    if seq0 == seq:
-                        rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqid': sqid,
-                                     'sqlen': len(seq), 'Xnum': seq.upper().count('X'), 'Xmax': get_Xmax(seq)})
+                for sqid1, seq1 in sqids[gnid]:
+                    if seq0 == seq1:
+                        rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': sqid1,
+                                     'sqlen': len(seq1), 'Xnum': seq1.upper().count('X'), 'Xmax': get_Xmax(seq1)})
                         break
                 else:
                     sqids[gnid].append((str(sqid0).zfill(8), seq0))
-                    rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
+                    rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
                                  'sqlen': len(seq0), 'Xnum': seq0.upper().count('X'), 'Xmax': get_Xmax(seq0)})
                     sqid0 += 1
             except KeyError:
                 sqids[gnid] = [(str(sqid0).zfill(8), seq0)]
-                rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
+                rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
                              'sqlen': len(seq0), 'Xnum': seq0.upper().count('X'), 'Xmax': get_Xmax(seq0)})
                 sqid0 += 1
 
@@ -71,8 +76,8 @@ if not os.path.exists('out/'):
 
 # Define dataframe and groups
 df = pd.DataFrame(rows)
-ncbi_spids = [spid for spid in params if params[spid][0] == 'NCBI']
-flybase_spids = [spid for spid in params if params[spid][0] == 'FlyBase']
+ncbi_spids = [spid for spid in genomes if genomes[spid][0] == 'NCBI']
+flybase_spids = [spid for spid in genomes if genomes[spid][0] == 'FlyBase']
 
 # 1.1 Distribution of polypeptides across associated species
 spid_ppidnum = df['spid'].value_counts()
@@ -83,7 +88,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
 plt.xlabel('Associated species')
 plt.ylabel('Number of polypeptides')
 plt.title('Distribution of polypeptides across associated species')
@@ -101,7 +106,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
 plt.xlabel('Associated species')
 plt.ylabel('Number of unique sequences')
 plt.title('Distribution of unique sequences across associated species')
@@ -119,7 +124,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
 plt.xlabel('Associated species')
 plt.ylabel('Number of redundant sequences')
 plt.title('Distribution of redundant sequences across associated species')
@@ -137,7 +142,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label='FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
 plt.xlabel('Associated species')
 plt.ylabel('Number of genes')
 plt.ylim((0, 1.1 * plt.ylim()[1]))  # Increase y-axis span to prevent overlap with legend
@@ -306,7 +311,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
 plt.xlabel('Associated species')
 plt.ylabel('Number of unique sequences with unknown amino acids')
 plt.title('Distribution of unique sequences with\nunknown amino acids across associated species')
@@ -324,7 +329,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
 plt.xlabel('Associated species')
 plt.ylabel('Number of genes with unknown amino acids')
 plt.title('Distribution of genes with \nunknown amino acids across associated species')
@@ -344,7 +349,7 @@ plt.bar(range(0, len(ncbi)),
         ncbi.values(), label='NCBI', color='C0', width=0.75)
 plt.bar(range(len(ncbi), len(ncbi) + len(flybase)),
         flybase.values(), label=r'FlyBase', color='C1', width=0.75)
-plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60)
+plt.xticks(list(range(len(ncbi) + len(flybase))), list(ncbi.keys()) + list(flybase.keys()), rotation=60, fontsize=8)
 plt.xlabel('Associated species')
 plt.ylabel('Number of genes with unknown amino acids')
 plt.title('Distribution of genes with \nunknown amino acids across associated species')
@@ -383,23 +388,25 @@ print('Fraction (genes with unknown amino acids):', s3 / s2)
 
 """
 OUTPUT
-Fraction of sequences with unknown amino acids: 0.005894556069545204
+Fraction of sequences with unknown amino acids: 0.013849222288397346
 
 Genes with at least one sequence without unknown amino acids
-Number: 350927
-Fraction: 0.9921936848295673
+Number: 434011
+Fraction: 0.9787918766843702
 
 Genes with at least one sequence with unknown amino acids
-Number: 3184
-Fraction: 0.009002284499332745
+Number: 9833
+Fraction: 0.022175614266544883
 
 Genes with at least one sequence without unknown amino acids and at least one sequence with unknown amino acids
-Number: 423
-Fraction (all genes): 0.0011959693289000475
-Fraction (genes with unknown amino acids): 0.13285175879396985
+Number: 429
+Fraction (all genes): 0.000967490950915057
+Fraction (genes with unknown amino acids): 0.043628597579578966
 
 DEPENDENCIES
-../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
+../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-./params.tsv
+../../ortho_search/seq_meta/seq_meta.py
+    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../config/genomes.tsv
 """

@@ -1,25 +1,22 @@
 """Plot various statistics of OGs relating to their BLAST parameters."""
 
+import matplotlib.colors as mpl_colors
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import os
 import pandas as pd
+from itertools import permutations
 from numpy import linspace
 
 
 # Load functions
 def load_hit(qspid, sspid):
-    df = pd.read_csv(f'../hsps2hits/out/{qspid}/{sspid}', sep='\t',
+    df = pd.read_csv(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=hit_dtypes.keys(), dtype=hit_dtypes, memory_map=True)
-    r = pd.read_csv(f'../hits2reciprocal/out/{qspid}/{sspid}', sep='\t',
+    r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal1'], memory_map=True)
-    dfr = df.join(r)
 
-    ids = pd.read_csv(f'../OGs2hits/out/{qspid}/{sspid}', sep='\t',
-                      usecols=id_dtypes.keys(), dtype=id_dtypes, memory_map=True)
-    ids = ids.rename(columns={'CCid1': 'CCid', 'OGid1': 'OGid'})
-
-    return dfr[dfr['reciprocal1']].merge(ids, how='left', on=['qgnid', 'sgnid']).dropna()
+    return df[r['reciprocal1']]
 
 
 # Plot functions
@@ -29,7 +26,7 @@ def hist1(df, bins, file_label, title_label, x_label, df_label, color, wrap=Fals
     plt.ylabel(f'Number of {title_label}')
     plt.title(f'Distribution of {title_label} across' + ('\n' if wrap else ' ') + x_label)
     plt.legend()
-    plt.savefig(f'out/ggraph1/blast/hist_{file_label}.png')
+    plt.savefig(f'out/pgraph1/blast/hist_{file_label}.png')
     plt.close()
 
 
@@ -43,7 +40,7 @@ def hist3(dfs, bins, file_label, title_label, x_label, df_labels, colors, wrap=F
     axs[1].set_ylabel(f'Number of {title_label}')
     fig.suptitle(f'Distribution of {title_label} across' + ('\n' if wrap else ' ') + x_label)
     fig.subplots_adjust(left=0.175)
-    fig.savefig(f'out/ggraph1/blast/hist3_{file_label}.png')
+    fig.savefig(f'out/pgraph1/blast/hist3_{file_label}.png')
     plt.close()
 
 
@@ -53,7 +50,7 @@ def bar1(df, file_label, x_label, df_label, color, wrap=False):
     plt.ylabel('Number of hits')
     plt.title('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     plt.legend()
-    plt.savefig(f'out/ggraph1/blast/hist_{file_label}.png')
+    plt.savefig(f'out/pgraph1/blast/hist_{file_label}.png')
     plt.close()
 
 
@@ -66,7 +63,7 @@ def bar3(dfs, file_label, x_label, df_labels, colors, wrap=False):
     axs[1].set_ylabel('Number of hits')
     fig.suptitle('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     fig.subplots_adjust(left=0.175)
-    fig.savefig(f'out/ggraph1/blast/hist_{file_label}.png')
+    fig.savefig(f'out/pgraph1/blast/hist_{file_label}.png')
     plt.close()
 
 
@@ -78,15 +75,15 @@ def scatter1(x, y, file_label, xy_label, df_label, color):
     leg = ax.legend(markerscale=2)
     for lh in leg.legendHandles:
         lh.set_alpha(1)
-    fig.savefig(f'out/ggraph1/blast/scatter_{file_label}.png')
+    fig.savefig(f'out/pgraph1/blast/scatter_{file_label}.png')
     plt.close()
 
 
 def scatter2(x, y, file_label, y_label):
     plt.scatter(x, y, alpha=0.5, s=10, label='all', color='C0', edgecolors='none')
-    plt.xlabel('Number of genes in OG')
+    plt.xlabel('Number of polypeptides in OG')
     plt.ylabel(y_label)
-    plt.savefig(f'out/ggraph1/blast/scatter_{file_label}.png')
+    plt.savefig(f'out/pgraph1/blast/scatter_{file_label}.png')
     plt.close()
 
 
@@ -96,20 +93,35 @@ hit_dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
               'qlen': int, 'nqa': int, 'cnqa': int,
               'slen': int, 'nsa': int, 'cnsa': int,
               'bitscore': float}
-id_dtypes = {'qgnid': 'string', 'sgnid': 'string',
-             'CCid1': 'string', 'OGid1': 'string'}
 num_processes = 4
 
 if __name__ == '__main__':
+    # Parse genomes
+    spids = []
+    with open('../config/genomes.tsv') as file:
+        fields = file.readline().split()  # Skip header
+        for line in file:
+            spids.append(line.split()[0])
+
     # Load data
+    rows = []
+    with open('../subcluster_pgraph/out/pgraph1/pclusters.txt') as file:
+        for line in file:
+            CCid, OGid, edges = line.rstrip().split(':')
+            for edge in edges.split('\t'):
+                node1, node2 = edge.split(',')
+                rows.append({'CCid': CCid, 'OGid': OGid, 'qppid': node1, 'sppid': node2})
+                rows.append({'CCid': CCid, 'OGid': OGid, 'qppid': node2, 'sppid': node1})
+    edges = pd.DataFrame(rows)
+
     with mp.Pool(processes=num_processes) as pool:
-        tsvs = [(qspid, sspid) for qspid in os.listdir('../hsps2hits/out/')
-                for sspid in os.listdir(f'../hsps2hits/out/{qspid}/')]
-        hits0 = pd.concat(pool.starmap(load_hit, tsvs))
-        hits0['xhspnum'] = hits0['chspnum'] - hits0['hspnum']
+        hits0 = pd.concat(pool.starmap(load_hit, permutations(spids, 2)))
+        hits0 = edges.merge(hits0, how='left', on=['qppid', 'sppid'])
         hits0['fqa'] = hits0['nqa'] / hits0['qlen']
+        hits0['fsa'] = hits0['nsa'] / hits0['slen']
         hits0['cfqa'] = hits0['cnqa'] / hits0['qlen']
         hits0['xfqa'] = hits0['cfqa'] - hits0['fqa']
+        hits0['xhspnum'] = hits0['chspnum'] - hits0['hspnum']
 
     # Segment OGs
     OGs = hits0.groupby('OGid')
@@ -119,12 +131,12 @@ if __name__ == '__main__':
     OG_gnidnum = OGs['qgnid'].nunique()
     gn_OGidnum = gns['OGid'].nunique()
 
-    OGs_31sps = OG_spidnum[OG_spidnum == 31].index
-    OGs_31gns = OG_gnidnum[OG_gnidnum == 31].index
+    OGs_sps = OG_spidnum[OG_spidnum == len(spids)].index
+    OGs_gns = OG_gnidnum[OG_gnidnum == len(spids)].index
     gns_gn1OG = gn_OGidnum[gn_OGidnum > 1].index
     OGs_gn1OG = hits0.loc[hits0['qgnid'].isin(gns_gn1OG), 'OGid'].unique()
 
-    OGs1 = set(OGs_31sps) & set(OGs_31gns)
+    OGs1 = set(OGs_sps) & set(OGs_gns)
     OGs2 = OGs1 - set(OGs_gn1OG)
 
     hits1 = hits0[hits0['OGid'].isin(OGs1)]
@@ -136,15 +148,15 @@ if __name__ == '__main__':
     colors = ['C0', 'C1', 'C2']
 
     # Make output directory
-    if not os.path.exists('out/ggraph1/blast/'):
-        os.makedirs('out/ggraph1/blast/')
+    if not os.path.exists('out/pgraph1/blast/'):
+        os.makedirs('out/pgraph1/blast/')
 
     # 1 FILTER PLOT
     ys = [hit['OGid'].nunique() for hit in hits]
     plt.bar(labels, ys, color=colors, width=0.25)
     plt.xlim((-0.75, 2.75))
     plt.ylabel('Number of OGs')
-    plt.savefig('out/ggraph1/blast/bar_OGnum-filter.png')
+    plt.savefig('out/pgraph1/blast/bar_OGnum-filter.png')
     plt.close()
 
     # 2 BITSCORE PLOTS
@@ -299,48 +311,45 @@ if __name__ == '__main__':
     scatter1(OGs[1]['xfqa'].mean(), OGs[1]['xfqa'].var(), 'xfqavar-xfqamean_filter1.png', 'xFQA', labels[1], colors[1])
     scatter1(OGs[2]['xfqa'].mean(), OGs[2]['xfqa'].var(), 'xfqavar-xfqamean_filter2.png', 'xFQA', labels[2], colors[2])
 
-    # 11 EDGES
-    edgenums = [hit[['qgnid', 'sgnid', 'OGid']].drop_duplicates().groupby('OGid').size() / 2 for hit in hits]
-    gnidnums = [OG['qgnid'].nunique() for OG in OGs]
-    edgefracs = [2*edgenum / (gnidnum*(gnidnum-1)) for edgenum, gnidnum in zip(edgenums, gnidnums)]
+    # 11 FQA-FSA SCATTERS
+    for label, hit in zip(labels, hits):
+        plt.hist2d(hit['fqa'], hit['fsa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
+        plt.xlabel('Fraction of query aligned')
+        plt.ylabel('Fraction of subject aligned')
+        plt.colorbar()
+        plt.savefig(f'out/pgraph1/blast/hist2d_fsa-fqa_{label}.png')
+        plt.close()
 
-    # 11.1 Edge number histograms
+    # 12 EDGES
+    edgenums = [hit[['qppid', 'sppid', 'OGid']].drop_duplicates().groupby('OGid').size() / 2 for hit in hits]
+    ppidnums = [OG['qppid'].nunique() for OG in OGs]
+    edgefracs = [2 * edgenum / (gnidnum*(gnidnum-1)) for edgenum, gnidnum in zip(edgenums, ppidnums)]
+
+    # 12.1 Edge number histograms
     hist3(edgenums, 100, 'OGnum-edgenum', 'OGs', 'number of edges', labels, colors)
     hist1(edgenums[0], 100, 'OGnum-edgenum_all', 'OGs', 'number of edges', labels[0], colors[0])
     hist1(edgenums[1], 50, 'OGnum-edgenum_filter1', 'OGs', 'number of edges', labels[1], colors[1])
     hist1(edgenums[2], 50, 'OGnum-edgenum_filter2', 'OGs', 'number of edges', labels[2], colors[2])
 
-    # 11.2 Edge fraction histograms
+    # 12.2 Edge fraction histograms
     hist3(edgefracs, 50, 'OGnum-edgefrac', 'OGs', 'fraction of possible edges', labels, colors)
     hist1(edgefracs[0], 50, 'OGnum-edgefrac_all', 'OGs', 'fraction of possible edges', labels[0], colors[0])
     hist1(edgefracs[1], 50, 'OGnum-edgefrac_filter1', 'OGs', 'fraction of possible edges', labels[1], colors[1])
-    hist1(edgefracs[2], 50, 'OGnum-edgefrac_filter2', 'OGs', 'fraction of possible edges', labels[1], colors[1])
+    hist1(edgefracs[2], 50, 'OGnum-edgefrac_filter2', 'OGs', 'fraction of possible edges', labels[2], colors[2])
 
-    # 12 CORRELATIONS
-    # 12.1 Including His OGs
-    scatter2(gnidnums[0], OGs[0]['bitscore'].mean(), 'bitscore-OGgnnum_all', 'Mean bitscore of hits in OG')
-    scatter2(gnidnums[0], OGs[0]['fqa'].mean(), 'fqa-OGgnnum_all', 'Mean fraction of query aligned of hits in OG')
-    scatter2(gnidnums[0], edgenums[0], 'edgenum-OGgnnum_all', 'Number of edges in OG')
-    scatter2(gnidnums[0], edgefracs[0], 'edgefrac-OGgnnum_all', 'Fraction of possible edges in OG')
-
-    # 12.2 Excluding His OGs
-    hits3 = hits0[~hits0['OGid'].isin(['0a55', '0ad7', '0ad5', '0ad8', '0ad6'])]
-    OG3 = hits3.groupby('OGid')
-    edgenum = hits3[['qgnid', 'sgnid', 'OGid']].drop_duplicates().groupby('OGid').size() / 2
-    gnidnum = OG3['qgnid'].nunique()
-    edgefrac = 2*edgenum / (gnidnum*(gnidnum-1))
-
-    scatter2(gnidnum, OG3['bitscore'].mean(), 'bitscore-OGgnnum_his', 'Mean bitscore of hits in OG')
-    scatter2(gnidnum, OG3['fqa'].mean(), 'fqa-OGgnnum_his', 'Mean fraction of query aligned of hits in OG')
-    scatter2(gnidnum, edgenum, 'edgenum-OGgnnum_his', 'Number of edges in OG')
-    scatter2(gnidnum, edgefrac, 'edgefrac-OGgnnum_his', 'Fraction of possible edges in OG')
+    # 13 CORRELATIONS
+    scatter2(ppidnums[0], OGs[0]['bitscore'].mean(), 'bitscore-OGppnum', 'Mean bitscore of hits in OG')
+    scatter2(ppidnums[0], OGs[0]['fqa'].mean(), 'fqa-OGppnum', 'Mean fraction of query aligned of hits in OG')
+    scatter2(ppidnums[0], edgenums[0], 'edgenum-OGppnum', 'Number of edges in OG')
+    scatter2(ppidnums[0], edgefracs[0], 'edgefrac-OGppnum', 'Fraction of possible edges in OG')
 
 """
 DEPENDENCIES
-../blast2hits/blast2hits.py
-    ../blast2hsps/out/*/*.tsv
-../hits2reciprocal/hits2reciprocal.py
-    ../hits2reciprocal/out/*/*.tsv
-../OGs2hits/OGs2hits.py
-    ../OGs2hsps/out/*/*.tsv
+../../ortho_search/blast2hits/blast2hits.py
+    ../../ortho_search/blast2hsps/out/*/*.tsv
+../../ortho_search/hits2reciprocal/hits2reciprocal.py
+    ../../ortho_search/hits2reciprocal/out/*/*.tsv
+../config/genomes.tsv
+../subcluster_pgraph/subcluster_pgraph1.py
+    ../subcluster_pgraph/out/pgraph1/pclusters.txt
 """

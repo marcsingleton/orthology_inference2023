@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/tsne_separate.py ../sample_feats/ 3 ordered Ordered Disordered', shell=True)
+run('python ../../../src/seg_scripts/plot/tsne_separate.py ../sample_feats/out/ 3 ordered Ordered Disordered', shell=True)
 
 """
 NOTES
@@ -20,7 +20,7 @@ ZNORM
     The projections are nearly identical to their joint counterparts, excluding the separation of the central cluster into subclusters of the two classes.
 
 DEPENDENCIES
-../../../src/feature_plot_scripts/tsne_separate.py
+../../../src/seg_scripts/plot/tsne_separate.py
 ../sample_feats/run_sample_feats.py
-    ../sample_feats/features_*.tsv
+    ../sample_feats/out/features_*.tsv
 """

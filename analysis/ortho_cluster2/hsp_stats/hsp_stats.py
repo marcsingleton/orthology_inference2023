@@ -5,20 +5,23 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 import os
 import pandas as pd
+from itertools import permutations
 from math import log10
 from numpy import linspace
 
 
 # Load functions
 def load_hsp(qspid, sspid):
-    df = pd.read_csv(f'../blast2hsps/out/hsps/{qspid}/{sspid}', sep='\t',
+    df = pd.read_csv(f'../../ortho_search/blast2hsps/out/hsps/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=dtypes.keys(), dtype=dtypes, memory_map=True)
-    r = pd.read_csv(f'../hsps2reciprocal/out/{qspid}/{sspid}', sep='\t',
+    r = pd.read_csv(f'../../ortho_search/hsps2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal'], memory_map=True)
 
     df['pident'] = df['nident'] / df['length']
     df['nqa'] = df['qend'] - df['qstart'] + 1
-    df['fqa'] = (df['qend'] - df['qstart'] + 1) / df['qlen']
+    df['fqa'] = df['nqa'] / df['qlen']
+    df['nsa'] = df['send'] - df['sstart'] + 1
+    df['fsa'] = df['nsa'] / df['slen']
     df['logevalue'] = df['evalue'].apply(lambda x: log10(x) if x > 0 else -180)
     return df[df['disjoint']].join(r)
 
@@ -59,12 +62,12 @@ def hist2_2(dfs, bins, data_label, file_label, x_label, df_labels, colors, capit
     plt.close()
 
 
-def bar_hits(counts, data_label, file_label, ax_label):
+def bar_hsps(counts, data_label, file_label, ax_label):
     plt.bar(counts.keys(), counts.values(), width=1)
-    plt.title(f'Distribution of genes across number of {ax_label}hits')
-    plt.xlabel(f'Number of {ax_label}hits to gene')
-    plt.ylabel('Number of genes')
-    plt.savefig(f'out/hits_{data_label}/hist_gnidnum-hitnum_{file_label}.png')
+    plt.title(f'Distribution of polypeptides across number of {ax_label}HSPs')
+    plt.xlabel(f'Number of {ax_label}HSPs to polypeptide')
+    plt.ylabel('Number of polypeptides')
+    plt.savefig(f'out/hsps_{data_label}/hist_ppidnum-hspnum_{file_label}.png')
     plt.close()
 
 
@@ -72,16 +75,22 @@ dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
           'sppid': 'string', 'sgnid': 'string', 'sspid': 'string',
           'length': int, 'nident': int,
           'qlen': int, 'qstart': int, 'qend': int,
+          'slen': int, 'sstart': int, 'send': int,
           'evalue': float, 'bitscore': float,
           'index_hsp': bool, 'disjoint': bool}
 num_processes = 2
 
 if __name__ == '__main__':
+    # Parse genomes
+    spids = []
+    with open('../config/genomes.tsv') as file:
+        fields = file.readline().split()  # Skip header
+        for line in file:
+            spids.append(line.split()[0])
+
     # Load data
     with mp.Pool(processes=num_processes) as pool:
-        tsvs = [(qspid, sspid) for qspid in os.listdir('../blast2hsps/out/hsps/')
-                for sspid in os.listdir(f'../blast2hsps/out/hsps/{qspid}/')]
-        hsps0 = pd.concat(pool.starmap(load_hsp, tsvs))
+        hsps0 = pd.concat(pool.starmap(load_hsp, permutations(spids, 2)))
         hsps1 = hsps0[hsps0['index_hsp']]
 
     # 0 BEST AND DISJOINT SIZES
@@ -141,11 +150,18 @@ if __name__ == '__main__':
         hist1(evalue1, 200, data_label, 'evalue_reciprocal', 'log10(E-value)', labels[1], colors[1], capital=False)
 
         # 1.2.1.3 Scatters of E-value with other metrics
+        plt.hist2d(df0['logevalue'], df0['fqa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
+        plt.xlabel('log10(E-value)')
+        plt.ylabel('Fraction of query aligned')
+        plt.colorbar()
+        plt.savefig(f'out/blast_{data_label}/hist2d_fqa-evalue_all.png')
+        plt.close()
+
         plt.hist2d(df1['logevalue'], df1['fqa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
         plt.xlabel('log10(E-value)')
         plt.ylabel('Fraction of query aligned')
         plt.colorbar()
-        plt.savefig(f'out/blast_{data_label}/hist2d_fqa-evalue.png')
+        plt.savefig(f'out/blast_{data_label}/hist2d_fqa-evalue_reciprocal.png')
         plt.close()
 
         g0 = df0.groupby('logevalue')
@@ -226,65 +242,81 @@ if __name__ == '__main__':
         hist1(df1['fqa'], 50, data_label, 'fqa_reciprocal', 'fraction of query aligned',
               labels[1], colors[1], wrap=True)
 
+        # 1.2.6 FQA-FSA scatters
+        plt.hist2d(df0['fqa'], df0['fsa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
+        plt.xlabel('Fraction of query aligned')
+        plt.ylabel('Fraction of subject aligned')
+        plt.colorbar()
+        plt.savefig(f'out/blast_{data_label}/hist2d_fsa-fqa_all.png')
+        plt.close()
+
+        plt.hist2d(df1['fqa'], df1['fsa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
+        plt.xlabel('Fraction of query aligned')
+        plt.ylabel('Fraction of subject aligned')
+        plt.colorbar()
+        plt.savefig(f'out/blast_{data_label}/hist2d_fsa-fqa_reciprocal.png')
+        plt.close()
+
     # 2 HIT METRICS
     for data_label, hsps in [('all', hsps1), ('reciprocal', hsps1[hsps1['reciprocal']])]:
         # Make hits output directory
-        if not os.path.exists(f'out/hits_{data_label}/'):
-            os.mkdir(f'out/hits_{data_label}/')
+        if not os.path.exists(f'out/hsps_{data_label}/'):
+            os.mkdir(f'out/hsps_{data_label}/')
 
         # 2.1 PPID RANKS
         ids = hsps.loc[:, ['sppid', 'sgnid', 'sspid']].drop_duplicates().set_index('sppid')
 
-        sppid_hitnum = hsps['sppid'].value_counts().rename('sppid_hitnum').sort_values(ascending=False).to_frame()
-        sppid_hitnum = sppid_hitnum.join(ids)
-        sppid_hitnum.to_csv(f'out/hits_{data_label}/sppids.tsv', sep='\t', index_label='sppid')
+        sppid_hspnum = hsps['sppid'].value_counts().rename('sppid_hspnum').sort_values(ascending=False).to_frame()
+        sppid_hspnum = sppid_hspnum.join(ids)
+        sppid_hspnum.to_csv(f'out/hsps_{data_label}/sppids.tsv', sep='\t', index_label='sppid')
 
-        sppid_hitnum_dmel = sppid_hitnum.loc[sppid_hitnum['sspid'] == 'dmel', :]
-        sppid_hitnum_dmel.to_csv(f'out/hits_{data_label}/sppids_dmel.tsv', sep='\t', index_label='sppid')
+        sppid_hspnum_dmel = sppid_hspnum.loc[sppid_hspnum['sspid'] == 'dmel', :]
+        sppid_hspnum_dmel.to_csv(f'out/hsps_{data_label}/sppids_dmel.tsv', sep='\t', index_label='sppid')
 
         # 2.2 GNID RANKS
         ids = hsps.loc[:, ['sgnid', 'sspid']].drop_duplicates().set_index('sgnid')
 
-        sgnid_hitnum = hsps.groupby('sgnid')['qgnid'].nunique().rename('sgnid_hitnum').sort_values(ascending=False).to_frame()
-        sgnid_hitnum = sgnid_hitnum.join(ids)
-        sgnid_hitnum.to_csv(f'out/hits_{data_label}/sgnids.tsv', sep='\t', index_label='sgnid')
+        sgnid_hspnum = hsps.groupby('sgnid')['qgnid'].nunique().rename('sgnid_hspnum').sort_values(ascending=False).to_frame()
+        sgnid_hspnum = sgnid_hspnum.join(ids)
+        sgnid_hspnum.to_csv(f'out/hsps_{data_label}/sgnids.tsv', sep='\t', index_label='sgnid')
 
-        sgnid_hitnum_dmel = sgnid_hitnum.loc[sgnid_hitnum['sspid'] == 'dmel', :]
-        sgnid_hitnum_dmel.to_csv(f'out/hits_{data_label}/sgnids_dmel.tsv', sep='\t', index_label='sgnid')
+        sgnid_hspnum_dmel = sgnid_hspnum.loc[sgnid_hspnum['sspid'] == 'dmel', :]
+        sgnid_hspnum_dmel.to_csv(f'out/hsps_{data_label}/sgnids_dmel.tsv', sep='\t', index_label='sgnid')
 
         # 2.3 PLOTS
         ax_label = 'reciprocal ' if data_label == 'reciprocal' else ''
 
-        # 2.3.1 Correlation of gene hits with number of associated polypeptides
+        # 2.3.1 Correlation of gene HSPs with number of associated polypeptides
         gnid_nums = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t',
                                 index_col='gnid', dtype={'gnid': 'string'})
-        corr = sgnid_hitnum.join(gnid_nums)
+        corr = sgnid_hspnum.join(gnid_nums)
 
-        plt.scatter(corr['ppidnum'], corr['sgnid_hitnum'],
+        plt.scatter(corr['ppidnum'], corr['sgnid_hspnum'],
                     alpha=0.5, s=10, edgecolors='none')
         plt.xlabel('Number of polypeptides associated with gene')
-        plt.ylabel(f'Number of {ax_label}hits to gene')
-        plt.title(f'Correlation of number of {ax_label}hits to gene\nwith number of associated polypeptides')
-        plt.savefig(f'out/hits_{data_label}/scatter_hitnum-ppidnum.png')
+        plt.ylabel(f'Number of {ax_label}HSPs to gene')
+        plt.title(f'Correlation of number of {ax_label}HSPs to gene\nwith number of associated polypeptides')
+        plt.savefig(f'out/hsps_{data_label}/scatter_hspnum-ppidnum.png')
         plt.close()
 
-        # 2.3.2 Histograms of genes by number of hits
-        counts = sgnid_hitnum['sgnid_hitnum'].value_counts().to_dict()
+        # 2.3.2 Histograms of genes by number of HSPs
+        counts = sppid_hspnum['sppid_hspnum'].value_counts().to_dict()
 
-        bar_hits(counts, data_label, 'all', ax_label)
-        bar_hits({key: val for key, val in counts.items() if key > 31}, data_label, '31+', ax_label)
-        bar_hits({key: val for key, val in counts.items() if key <= 31}, data_label, '31-', ax_label)
+        bar_hsps(counts, data_label, 'all', ax_label)
+        bar_hsps({key: val for key, val in counts.items() if key > len(spids)}, data_label, f'{len(spids)}+', ax_label)
+        bar_hsps({key: val for key, val in counts.items() if key <= len(spids)}, data_label, f'{len(spids)}-', ax_label)
 
 """
 OUTPUT
-Fraction of best HSPs reciprocal: 0.9252319741539392
-Fraction of disjoint HSPs reciprocal: 0.9273366102210822
+Fraction of best HSPs reciprocal: 0.9317895192755523
+Fraction of disjoint HSPs reciprocal: 0.9338858845321562
 
 DEPENDENCIES
-../blast2hsps/blast2hsps.py
-    ../blast2hsps/out/hsps/*/*.tsv
+../../ortho_search/blast2hsps/blast2hsps.py
+    ../../ortho_search/blast2hsps/out/hsps/*/*.tsv
+../../ortho_search/hsps2reciprocal/hsps2reciprocal.py
+    ../../ortho_search/hsps2reciprocal/out/*/*.tsv
+../config/genomes.tsv
 ../genome_stats/genome_stats.py
     ../genome_stats/out/gnid_nums.tsv
-../hsps2reciprocal/hsps2reciprocal.py
-    ../hsps2reciprocal/out/*/*.tsv
 """

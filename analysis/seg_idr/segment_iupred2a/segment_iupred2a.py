@@ -1,6 +1,7 @@
 """Segment alignments by IUPRED2a score and write subsequences to dataframe."""
 
 import gzip
+import os
 import pandas as pd
 import subprocess
 import tempfile
@@ -57,6 +58,9 @@ with open(path) as file:
                     seg_data.append({'ali_id': ali_id, 'seq_id': record.id, 'seg_id': hex(seg_num)[2:].zfill(8),
                                      'bound': bound, 'ordered': ordered, 'seq': seq[bound[0]:bound[1]]})
                     seg_num += 1
+
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 df = pd.DataFrame(seg_data)
 df.to_csv('segment_iupred2a.tsv', sep='\t', index=False)

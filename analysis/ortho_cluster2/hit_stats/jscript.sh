@@ -1,8 +1,8 @@
 #!/bin/bash
 # Key parameters
 #SBATCH --account=fc_eisenlab
-#SBATCH --partition=savio2_bigmem
-#SBATCH --time=8:00:00
+#SBATCH --partition=savio3_bigmem
+#SBATCH --time=4:00:00
 #SBATCH --qos=savio_normal
 #
 # Process parameters
@@ -18,5 +18,5 @@
 #
 # Command(s) to run:
 source /global/home/users/singleton/.bashrc
-conda activate
+conda activate IDREvoDevo
 python hit_stats.py

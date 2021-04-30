@@ -2,7 +2,7 @@
 
 from subprocess import run
 
-run('python ../../../src/feature_plot_scripts/pca_separate.py ../feature_calc_shuffle/ 1 conserved Conserved Diverged', shell=True)
+run('python ../../../src/seg_scripts/plot/pca_separate.py ../feature_calc_shuffle/out/ 1 conserved Conserved Diverged', shell=True)
 
 """
 NOTES
@@ -33,7 +33,7 @@ ZNORM
         These observations are consistent with the conclusion that shuffled sequences are more "average" and observed sequences have a higher proportion of outliers.
 
 DEPENDENCIES
-../../../src/feature_plot_scripts/pca_separate.py
+../../../src/seg_scripts/plot/pca_separate.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
-    ../feature_calc_shuffle/features_*.tsv
+    ../feature_calc_shuffle/out/features_*.tsv
 """

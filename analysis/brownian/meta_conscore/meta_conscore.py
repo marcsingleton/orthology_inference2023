@@ -1,11 +1,12 @@
 """Calculate conservation scores for IDR segments."""
 
+import os
 import pandas as pd
 from Bio.SubsMat import MatrixInfo
 from itertools import combinations
 
 # Input variables
-path = '../segment_avg/segment_avg.tsv'
+path = '../segment_avg/out/segment_avg.tsv'
 matrix = MatrixInfo.blosum50
 
 # Initialize
@@ -27,12 +28,16 @@ for key, block in segs.groupby('block_id'):
     scores_blosum[key] = score_blosum / (rows * (rows - 1) * cols / 2)
     scores_match[key] = score_match / (rows * (rows - 1) * cols / 2)
 
+# Make output directory
+if not os.path.exists('out/'):
+    os.mkdir('out/')
+
 # Save block_id: score dictionaries as tsv
-with open('scores_blosum.tsv', 'w') as file:
+with open('out/scores_blosum.tsv', 'w') as file:
     file.write('block_id\tblosum_score\n')
     for block_id, blosum_score in scores_blosum.items():
         file.write(f'{block_id}\t{blosum_score}\n')
-with open('scores_match.tsv', 'w') as file:
+with open('out/scores_match.tsv', 'w') as file:
     file.write('block_id\tmatch_score\n')
     for block_id, match_score in scores_match.items():
         file.write(f'{block_id}\t{match_score}\n')
@@ -40,5 +45,5 @@ with open('scores_match.tsv', 'w') as file:
 """
 DEPENDENCIES
 ../segment_avg/segment_avg.py
-    ../segment_avg/segment_avg.tsv
+    ../segment_avg/out/segment_avg.tsv
 """
