@@ -3,6 +3,7 @@
 import json
 import os
 
+import numpy as np
 import scipy.optimize as opt
 import scipy.stats as stats
 from numpy import log
@@ -50,6 +51,35 @@ def ar1_betabinom_pmf(i, j, n, a0, b0, a1, b1):
     return sum(pmfs)
 
 
+def create_betabinom_likelihood(data, n):
+
+    def betabinom_likelihood(x):
+        u, v = x
+        s = 0
+        for x in data:
+            s += sum([log(u+i*v) for i in range(x)])
+            s += sum([log(1-u+i*v) for i in range(n-x)])
+        s -= len(data)*sum([log(1+i*v) for i in range(n)])
+
+        return s
+
+    return betabinom_likelihood
+
+
+def mm_betabinom(data, n):
+    ests = {}
+
+    # Moments
+    m1 = data.sum() / len(data)
+    m2 = (data ** 2).sum() / len(data)
+
+    # Estimators
+    ests['a'] = (n*m1-m2) / (n*(m2/m1-m1-1)+m1)
+    ests['b'] = (n-m1)*(n-m2/m1) / (n*(m2/m1-m1-1)+m1)
+
+    return ests
+
+
 # Load regions
 OGid2regions = {}
 states = set()
@@ -72,7 +102,7 @@ start_t_count = {state: 1 for state in states}
 # Get observed counts
 for OGid, regions in OGid2regions.items():
     # Load MSA and trim terminal insertions
-    msa = load_msa(f'../realign_hmmer/out/{OGid}.mfa')
+    msa = load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
     if regions[-1][2] == '0':
         start, _, _ = regions[-1]
         regions = regions[:-1]
@@ -127,10 +157,39 @@ for state, t_count in t_counts.items():
     t_dists[state] = {s: count/total for s, count in t_count.items()}
 
 e_dists = {}
-for state, e_count in e_counts.items():
-    # Compile counts from different models and merge likelihoods
+for state in ['1A', '3']:
+    # Compile counts from different models
     lls = []
-    for n, count in e_count.items():
+    a, b, w = [], [], []
+    for n, count in e_counts[state].items():
+        lls.append(create_betabinom_likelihood([c[1] for c in count], n-1))
+        ests = mm_betabinom(np.asarray([c[1] for c in count]), n-1)
+        if ests['a'] > 0 and ests['b'] > 0:  # Under-dispersed data can yield negative mm estimates
+            a.append(len(count)*ests['a'])
+            b.append(len(count)*ests['b'])
+            w.append(len(count))
+
+    # Merge likelihoods and initial parameter estimates
+    ll = lambda x: -sum([ll(x) for ll in lls])
+    a = sum(a) / sum(w)
+    b = sum(b) / sum(w)
+    v = 1 / (a + b)
+    u = a * v
+
+    # Compute ML estimates
+    result = opt.minimize(ll, [u, v], bounds=[(0, 1), (0, None)])
+    u, v = result.x
+    a = u / v
+    b = (1 - u) / v
+    e_dists[state] = (a, b)
+
+    # Print results
+    print(f'STATE {state}')
+    print(result)
+for state in ['1B', '2']:
+    # Compile counts from different ns and merge likelihoods
+    lls = []
+    for n, count in e_counts[state].items():
         lls.append(create_ar1_betabinom_likelihood(count, n-1))
     ll = lambda x: -sum([ll(x) for ll in lls])
 
@@ -154,7 +213,7 @@ with open('out/model.json', 'w') as file:
 
 """
 DEPENDENCIES
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/*.mfa
-../config/segments.tsv
+../../ortho_MSA/realign_hmmer/realign_hmmer.py
+    ../../ortho_MSA/realign_hmmer/out/*.mfa
+./segments.tsv
 """

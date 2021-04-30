@@ -157,7 +157,7 @@ with open('out/model.json') as file:
 
 # Load msa and trim terminal insertions
 OGid = '298a'
-msa = load_msa(f'../realign_hmmer/out/{OGid}.mfa')
+msa = load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
 
 idx = 0
 for j in range(len(msa[0][1])):
@@ -207,8 +207,8 @@ plt.savefig(f'out/{OGid}.png', bbox_inches='tight')
 
 """
 DEPENDENCIES
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/*.mfa
+../../ortho_MSA/realign_hmmer/realign_hmmer.py
+    ../../ortho_MSA/realign_hmmer/out/*.mfa
 ./segment_arhmm2_calc.py
     ./out/model.json
 """
