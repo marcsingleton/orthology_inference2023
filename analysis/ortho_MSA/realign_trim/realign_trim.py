@@ -6,6 +6,7 @@ import os
 
 import numpy as np
 import pandas as pd
+import scipy.ndimage as ndimage
 import skbio
 from src.ortho_MSA.trim import trim_conserved, trim_insertions
 
@@ -58,35 +59,27 @@ def trim(OGid):
     msa2 = []
     for seq, syms1, syms2 in zip(msa1, syms_list1, syms_list2):
         syms = ['-' if sym1 != sym2 else sym1 for sym1, sym2 in zip(syms1, syms2)]  # Will only differ if one is converted to gap
-        msa2.append((seq.metadata['description'], ''.join(syms)))
+        msa2.append((seq.metadata['description'], syms))
 
-    # 4 Remove gap only columns
-    slices, idx = [], None
-    for j in range(len(msa2[0][1])):
+    # 4 Restore gap only columns
+    gaps_array = np.full((len(msa2), len(msa2[0][1])), False)
+    for i, (_, seq) in enumerate(msa2):
+        for j, sym in enumerate(seq):
+            if sym == '-':
+                gaps_array[i, j] = True
+    scores = gaps_array.sum(axis=0)
+
+    rf = ['x' for _ in range(len(msa2[0][1]))]
+    for region, in ndimage.find_objects(ndimage.label(scores == len(msa2))[0]):
+        rf[region] = (region.stop - region.start) * ['.']
         for i in range(len(msa2)):
-            sym = msa2[i][1][j]
-            if sym != '-':
-                if idx is None:  # Store position only if new slice is not started
-                    idx = j
-                break
-        else:
-            if idx is not None:
-                slices.append(slice(idx, j))
-                idx = None
-    if idx is not None:  # Add final slice to end
-        slices.append(slice(idx, len(msa2[0][1])))
+            syms = msa2[i][1]
+            syms[region] = list(str(msa1[i, region]))
 
     # 5 Write to file
-    with open(f'out/{OGid}.mfa', 'w') as file:
-        for header, seq1 in msa2:
-            seq2 = []
-            for s in slices:
-                seq2.extend(seq1[s])
-            seq2 = ''.join(seq2)
-
-            seqstring = '\n'.join([seq2[i:i+80] for i in range(0, len(seq2), 80)]) + '\n'
-            file.write(header)
-            file.write(seqstring)
+    msa2 = skbio.TabularMSA([skbio.Protein(''.join(syms), metadata={'description': header}) for header, syms in msa2],
+                            positional_metadata={'RF': rf})
+    msa2.write(f'out/{OGid}.sto',  'stockholm')
 
 
 # Load parameters

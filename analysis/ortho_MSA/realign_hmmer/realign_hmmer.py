@@ -29,7 +29,7 @@ def hmm_align(OGid):
         path = f'../make_fastas1/out/{OGid}.tfa'
     else:
         path = f'../make_fastas2-2/out/{OGid}.tfa'
-    run(f'../../../bin/hmmbuild --symfrac 0 --eset {2*gnidnum} --wnone out/{OGid}.hmm ../realign_trim/out/{OGid}.mfa > out/{OGid}.txt', shell=True, check=True)
+    run(f'../../../bin/hmmbuild --hand --eset {gnidnum} --wnone out/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/{OGid}.txt', shell=True, check=True)
     run(f'../../../bin/hmmalign --outformat afa out/{OGid}.hmm {path} > out/{OGid}_temp.mfa', shell=True, check=True)
 
     # Remove excess gaps
