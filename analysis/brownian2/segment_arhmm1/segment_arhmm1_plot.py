@@ -127,8 +127,8 @@ start_e_dists_rv = {state: get_stationary_dist(len(msa)-1, a0, b0, a1, b1) for s
 model = hmm.ARHMM(params['t_dists'], e_dists_rv, params['start_t_dist'], start_e_dists_rv)
 
 # Decode states and plot
-fb = model.forward_backward(emits)
-draw.plot_msa_lines([record[1].upper() for record in msa], [[d['1A'] for d in fb], [d['2'] for d in fb], [d['3'] for d in fb], [d['1B'] for d in fb]])
+fbs = model.forward_backward(emits)
+draw.plot_msa_lines([record[1].upper() for record in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']])
 plt.savefig(f'out/{OGid}.png', bbox_inches='tight')
 
 """

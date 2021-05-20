@@ -311,13 +311,14 @@ class HMM:
         bs, ss_b = self.backward(emits)
         p = reduce(lambda x, y: x+y, map(log, ss_f))
 
-        fb = []
+        fbs = {state: [] for state in self.states}
         for i in range(len(emits)):
             s_f = reduce(lambda x, y: x+y, map(log, ss_f[:i+1]))
             s_b = reduce(lambda x, y: x+y, map(log, ss_b[i:]))
-            fb.append({state: fs[state][i]*bs[state][i]*exp(s_f+s_b-p) for state in self.states})
+            for state, fb in fbs.items():
+                fbs[state].append(fs[state][i]*bs[state][i]*exp(s_f+s_b-p))
 
-        return fb
+        return fbs
 
 
 class ARHMM:
@@ -491,13 +492,14 @@ class ARHMM:
         bs, ss_b = self.backward(emits)
         p = reduce(lambda x, y: x+y, map(log, ss_f))
 
-        fb = []
+        fbs = {state: [] for state in self.states}
         for i in range(len(emits)):
             s_f = reduce(lambda x, y: x+y, map(log, ss_f[:i+1]))
             s_b = reduce(lambda x, y: x+y, map(log, ss_b[i:]))
-            fb.append({state: fs[state][i]*bs[state][i]*exp(s_f+s_b-p) for state in self.states})
+            for state, fb in fbs.items():
+                fbs[state].append(fs[state][i]*bs[state][i]*exp(s_f+s_b-p))
 
-        return fb
+        return fbs
 
 
 class IdentityGetter:

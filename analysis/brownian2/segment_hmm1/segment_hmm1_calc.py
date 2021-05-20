@@ -144,8 +144,8 @@ for state, e_count in e_counts.items():
 
     # Merge likelihoods and initial parameter estimates
     ll = lambda x: -sum([ll(x) for ll in lls])
-    a = sum(a) / sum(w)
-    b = sum(b) / sum(w)
+    a = sum(a) / sum(w) if a else 0.5
+    b = sum(b) / sum(w) if b else 0.5
     v = 1 / (a + b)
     u = a * v
 
