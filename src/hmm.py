@@ -1,4 +1,5 @@
 from functools import reduce
+from itertools import accumulate
 
 import scipy.stats as stats
 from numpy import exp, log
@@ -310,13 +311,13 @@ class HMM:
         fs, ss_f = self.forward(emits)
         bs, ss_b = self.backward(emits)
         p = reduce(lambda x, y: x+y, map(log, ss_f))
+        ss_f = list(accumulate(map(log, ss_f)))
+        ss_b = list(accumulate(map(log, ss_b[::-1])))[::-1]
 
         fbs = {state: [] for state in self.states}
         for i in range(len(emits)):
-            s_f = reduce(lambda x, y: x+y, map(log, ss_f[:i+1]))
-            s_b = reduce(lambda x, y: x+y, map(log, ss_b[i:]))
             for state, fb in fbs.items():
-                fbs[state].append(fs[state][i]*bs[state][i]*exp(s_f+s_b-p))
+                fbs[state].append(fs[state][i]*bs[state][i]*exp(ss_f[i]+ss_b[i]-p))
 
         return fbs
 
@@ -491,13 +492,13 @@ class ARHMM:
         fs, ss_f = self.forward(emits)
         bs, ss_b = self.backward(emits)
         p = reduce(lambda x, y: x+y, map(log, ss_f))
+        ss_f = list(accumulate(map(log, ss_f)))
+        ss_b = list(accumulate(map(log, ss_b[::-1])))[::-1]
 
         fbs = {state: [] for state in self.states}
         for i in range(len(emits)):
-            s_f = reduce(lambda x, y: x+y, map(log, ss_f[:i+1]))
-            s_b = reduce(lambda x, y: x+y, map(log, ss_b[i:]))
             for state, fb in fbs.items():
-                fbs[state].append(fs[state][i]*bs[state][i]*exp(s_f+s_b-p))
+                fbs[state].append(fs[state][i]*bs[state][i]*exp(ss_f[i]+ss_b[i]-p))
 
         return fbs
 
