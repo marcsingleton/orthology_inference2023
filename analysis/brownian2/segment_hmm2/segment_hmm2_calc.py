@@ -179,5 +179,5 @@ with open('out/model.json', 'w') as file:
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer/realign_hmmer.py
     ../../ortho_MSA/realign_hmmer/out/*.mfa
-./segments.tsv
+../config/segments.tsv
 """
