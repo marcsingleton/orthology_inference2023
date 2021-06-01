@@ -155,55 +155,64 @@ def load_msa(path):
 with open('out/model.json') as file:
     params = json.load(file)
 
+# Load OGids
+OGids = set()
+with open('../config/segments.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        OGid = line.split()[0]
+        OGids.add(OGid)
+
 # Load msa and trim terminal insertions
-OGid = '298a'
-msa = load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
+for OGid in OGids:
+    msa = load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
 
-idx = 0
-for j in range(len(msa[0][1])):
-    for i in range(len(msa)):
-        sym = msa[i][1][j]
-        if sym == '.' or sym.islower():
-            break
-    else:
-        idx = j
-        break  # if no break exit
-msa = [(header, seq[idx:]) for header, seq in msa]
+    idx = 0
+    for j in range(len(msa[0][1])):
+        for i in range(len(msa)):
+            sym = msa[i][1][j]
+            if sym == '.' or sym.islower():
+                break
+        else:
+            idx = j
+            break  # if no break exit
+    msa = [(header, seq[idx:]) for header, seq in msa]
 
-idx = len(msa[0][1])
-for j in range(len(msa[0][1]), 0, -1):
-    for i in range(len(msa)):
-        sym = msa[i][1][j-1]
-        if sym == '.' or sym.islower():
-            break
-    else:
-        idx = j
-        break  # if no break exit
-msa = [(header, seq[:idx]) for header, seq in msa]
+    idx = len(msa[0][1])
+    for j in range(len(msa[0][1]), 0, -1):
+        for i in range(len(msa)):
+            sym = msa[i][1][j-1]
+            if sym == '.' or sym.islower():
+                break
+        else:
+            idx = j
+            break  # if no break exit
+    msa = [(header, seq[:idx]) for header, seq in msa]
 
-# Create emission sequence
-emits = []
-for j in range(len(msa[0][1])):
-    col = [1 if msa[i][1][j] in ['-', '.'] else 0 for i in range(len(msa))]
-    emits.append(sum(col))
+    # Create emission sequence
+    emits = []
+    for j in range(len(msa[0][1])):
+        col = [1 if msa[i][1][j] in ['-', '.'] else 0 for i in range(len(msa))]
+        emits.append(sum(col))
 
-# Instantiate model
-e_dists_rv = {}
-start_e_dists_rv = {}
-for state in ['1A', '3']:
-    a, b = params['e_dists'][state]
-    e_dists_rv[state] = betabinom_frozen(len(msa)-1, a, b)
-    start_e_dists_rv[state] = stats.betabinom(len(msa)-1, a, b)
-for state in ['1B', '2']:
-    a0, b0, a1, b1 = params['e_dists'][state]
-    e_dists_rv[state] = ar1_betabinom_frozen(len(msa)-1, a0, b0, a1, b1)
-    start_e_dists_rv[state] = get_stationary_dist(len(msa)-1, a0, b0, a1, b1)
-model = hmm.ARHMM(params['t_dists'], e_dists_rv, params['start_t_dist'], start_e_dists_rv)
+    # Instantiate model
+    e_dists_rv = {}
+    start_e_dists_rv = {}
+    for state in ['1A', '3']:
+        a, b = params['e_dists'][state]
+        e_dists_rv[state] = betabinom_frozen(len(msa)-1, a, b)
+        start_e_dists_rv[state] = stats.betabinom(len(msa)-1, a, b)
+    for state in ['1B', '2']:
+        a0, b0, a1, b1 = params['e_dists'][state]
+        e_dists_rv[state] = ar1_betabinom_frozen(len(msa)-1, a0, b0, a1, b1)
+        start_e_dists_rv[state] = get_stationary_dist(len(msa)-1, a0, b0, a1, b1)
+    model = hmm.ARHMM(params['t_dists'], e_dists_rv, params['start_t_dist'], start_e_dists_rv)
 
-# Decode states and plot
-fbs = model.forward_backward(emits)
-draw.plot_msa_lines([record[1].upper() for record in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']])
-plt.savefig(f'out/{OGid}.png', bbox_inches='tight')
+    # Decode states and plot
+    fbs = model.forward_backward(emits)
+    draw.plot_msa_lines([record[1].upper() for record in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']])
+    plt.savefig(f'out/{OGid}.png', bbox_inches='tight')
+    plt.close()
 
 """
 DEPENDENCIES

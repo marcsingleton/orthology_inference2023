@@ -30,46 +30,56 @@ def load_msa(path):
 with open('out/model.json') as file:
     params = json.load(file)
 
-# Load msa and trim terminal insertions
-OGid = '20d6'
-msa = load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
+# Load OGids
+OGids = set()
+with open('../config/segments.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        OGid = line.split()[0]
+        OGids.add(OGid)
 
-idx = 0
-for j in range(len(msa[0][1])):
-    for i in range(len(msa)):
-        sym = msa[i][1][j]
-        if sym == '.' or sym.islower():
-            break
-    else:
-        idx = j
-        break  # if no break exit
-msa = [(header, seq[idx:]) for header, seq in msa]
+# Plot alignments
+for OGid in OGids:
+    # Load msa and trim terminal insertions
+    msa = load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
 
-idx = len(msa[0][1])
-for j in range(len(msa[0][1]), 0, -1):
-    for i in range(len(msa)):
-        sym = msa[i][1][j-1]
-        if sym == '.' or sym.islower():
-            break
-    else:
-        idx = j
-        break  # if no break exit
-msa = [(header, seq[:idx]) for header, seq in msa]
+    idx = 0
+    for j in range(len(msa[0][1])):
+        for i in range(len(msa)):
+            sym = msa[i][1][j]
+            if sym == '.' or sym.islower():
+                break
+        else:
+            idx = j
+            break  # if no break exit
+    msa = [(header, seq[idx:]) for header, seq in msa]
 
-# Create emission sequence
-emits = []
-for j in range(len(msa[0][1])):
-    col = [1 if msa[i][1][j] in ['-', '.'] else 0 for i in range(len(msa))]
-    emits.append(sum(col))
+    idx = len(msa[0][1])
+    for j in range(len(msa[0][1]), 0, -1):
+        for i in range(len(msa)):
+            sym = msa[i][1][j-1]
+            if sym == '.' or sym.islower():
+                break
+        else:
+            idx = j
+            break  # if no break exit
+    msa = [(header, seq[:idx]) for header, seq in msa]
 
-# Instantiate model
-e_dists_rv = {state: stats.betabinom(len(msa)-1, a, b) for state, (a, b) in params['e_dists'].items()}
-model = hmm.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
+    # Create emission sequence
+    emits = []
+    for j in range(len(msa[0][1])):
+        col = [1 if msa[i][1][j] in ['-', '.'] else 0 for i in range(len(msa))]
+        emits.append(sum(col))
 
-# Decode states and plot
-fbs = model.forward_backward(emits)
-draw.plot_msa_lines([record[1].upper() for record in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']])
-plt.savefig(f'out/{OGid}.png', bbox_inches='tight')
+    # Instantiate model
+    e_dists_rv = {state: stats.betabinom(len(msa)-1, a, b) for state, (a, b) in params['e_dists'].items()}
+    model = hmm.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
+
+    # Decode states and plot
+    fbs = model.forward_backward(emits)
+    draw.plot_msa_lines([record[1].upper() for record in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']])
+    plt.savefig(f'out/{OGid}.png', bbox_inches='tight')
+    plt.close()
 
 """
 DEPENDENCIES
