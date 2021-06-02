@@ -188,6 +188,7 @@ def load_msa(path):
 
 eta = 1E-3
 epsilon = 1E-2
+iter_num = 200
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
 if __name__ == '__main__':
@@ -264,20 +265,24 @@ if __name__ == '__main__':
 
     # Gradient descent
     j, ll0 = 0, None
-    while True:
+    models = []
+    while j < iter_num:
         # Calculate expectations and likelihoods
         t_dists_norm, e_dists_norm = norm_params(t_dists, e_dists)
         with mp.Pool(processes=num_processes) as pool:
             records = pool.starmap(get_expts, [(t_dists_norm, e_dists_norm, start_dist, record) for record in records])
 
-        # Check convergence
+        # Save and report updated parameters
         ll = sum([record['ll'] for record in records])
+        models.append((ll, t_dists_norm, e_dists_norm))
+
         print('ITERATION', j)
         print('ll:', ll)
         print('t_dists_norm:', t_dists_norm)
         print('e_dists_norm:', e_dists_norm)
         print()
 
+        # Check convergence
         if ll0 is not None and abs(ll - ll0) < epsilon:
             break
         ll0 = ll
@@ -314,6 +319,7 @@ if __name__ == '__main__':
     if not os.path.exists('out/'):
         os.mkdir('out/')
     with open('out/model.json', 'w') as file:
+        _, t_dists, e_dists = max(models)
         json.dump({'t_dists': t_dists, 'e_dists': e_dists, 'start_dist': start_dist}, file)
 
 """
