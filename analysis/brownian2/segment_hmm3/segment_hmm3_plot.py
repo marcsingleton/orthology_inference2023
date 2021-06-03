@@ -114,8 +114,12 @@ for OGid in OGids:
 
     # Decode states and plot
     fbs = model.forward_backward(emits)
-    draw.plot_msa_lines([record[1].upper() for record in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']])
-    plt.savefig(f'out/{OGid}.png', bbox_inches='tight')
+    draw.plot_msa_lines([record[1].upper() for record in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(15, 6))
+    plt.savefig(f'out/{OGid}_wide.png', bbox_inches='tight')
+    plt.close()
+
+    draw.plot_msa_lines([record[1].upper() for record in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(8, 8))
+    plt.savefig(f'out/{OGid}_tall.png', bbox_inches='tight')
     plt.close()
 
 """
