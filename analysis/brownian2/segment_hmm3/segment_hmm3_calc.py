@@ -90,18 +90,18 @@ def beta_prime(a, b):
     return beta(a, b) * (digamma(a) - digamma(a + b))
 
 
-def beta_pmf(x, n, a, b):
-    """Return pmf of beta distribution evaluated at x."""
+def beta_binom_pmf(x, n, a, b):
+    """Return pmf of beta-binomial distribution evaluated at x."""
     return comb(n, x) * beta(x + a, n - x + b) / beta(a, b)
 
 
-def beta_pmf_prime1(x, n, a, b):
-    """Return derivative of beta pmf relative to its first shape parameter, a."""
+def beta_binom_pmf_prime1(x, n, a, b):
+    """Return derivative of beta-binomial pmf relative to its first shape parameter, a."""
     return comb(n, x) * (beta_prime(x + a, n - x + b) * beta(a, b) - beta(x + a, n - x + b) * beta_prime(a, b)) / (beta(a, b))**2
 
 
-def beta_pmf_prime2(x, n, a, b):
-    """Return derivative of beta pmf relative to its second shape parameter, b."""
+def beta_binom_pmf_prime2(x, n, a, b):
+    """Return derivative of beta-binomial pmf relative to its second shape parameter, b."""
     return comb(n, x) * (beta_prime(n - x + b, x + a) * beta(a, b) - beta(x + a, n - x + b) * beta_prime(b, a)) / (beta(a, b))**2
 
 
@@ -206,7 +206,7 @@ if __name__ == '__main__':
             except KeyError:
                 OGid2regions[OGid] = [(int(start), int(stop), state)]
 
-    # Convert MSAs to sequences
+    # Convert MSAs to records containing state-emissions sequences and other data
     records = []
     for OGid, regions in OGid2regions.items():
         # Load MSA and trim terminal insertions
@@ -309,8 +309,8 @@ if __name__ == '__main__':
                 for i, emit in enumerate(emit_seq):
                     mn = mis[s][i] - nis[s][i]
                     dzp -= mn / bernoulli_pmf(emit[0], p) * bernoulli_pmf_prime(emit[0], p) * p / (1 + exp(zp))
-                    dza -= mn / beta_pmf(emit[1], n-1, a, b) * beta_pmf_prime1(emit[1], n-1, a, b) * a
-                    dzb -= mn / beta_pmf(emit[1], n-1, a, b) * beta_pmf_prime2(emit[1], n-1, a, b) * b
+                    dza -= mn / beta_binom_pmf(emit[1], n-1, a, b) * beta_binom_pmf_prime1(emit[1], n-1, a, b) * a
+                    dzb -= mn / beta_binom_pmf(emit[1], n-1, a, b) * beta_binom_pmf_prime2(emit[1], n-1, a, b) * b
                 e_dists[s] = (zp - eta * dzp, za - eta * dza, zb - eta * dzb)
 
         j += 1
