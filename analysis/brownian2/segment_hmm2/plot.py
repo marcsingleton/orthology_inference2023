@@ -126,6 +126,6 @@ for OGid in OGids:
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer/realign_hmmer.py
     ../../ortho_MSA/realign_hmmer/out/*.mfa
-./segment_hmm3_calc.py
+./fit.py
     ./out/model.json
 """

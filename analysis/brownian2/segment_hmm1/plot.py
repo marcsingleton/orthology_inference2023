@@ -1,70 +1,11 @@
-﻿"""Plot example alignments segmented via posterior decoding."""
+"""Plot example alignments segmented via posterior decoding."""
 
 import json
 
 import matplotlib.pyplot as plt
-import numpy as np
 import scipy.stats as stats
 import src.hmm as hmm
 import src.draw as draw
-from scipy.linalg import solve
-
-
-class ar1_betabinom_gen:
-    def pmf(self, i, j, n, a0, b0, a1, b1):
-        pmfs = [stats.betabinom.pmf(j - k, n - i, a0, b0) * stats.betabinom.pmf(k, i, a1, b1)
-                for k in range(max(0, i + j - n), min(i, j) + 1)]
-        return sum(pmfs)
-
-    def rvs(self, i, n, a0, b0, a1, b1, size=None, random_state=None):
-        js = list(range(n+1))
-        ps = [self.pmf(i, j, n, a0, b0, a1, b1) for j in js]
-        rvs = stats.rv_discrete(values=(js, ps)).rvs(size=size, random_state=random_state)
-        return rvs
-
-
-ar1_betabinom = ar1_betabinom_gen()
-
-
-class ar1_betabinom_frozen:
-    def __init__(self, n, a0, b0, a1, b1):
-        self.n = n
-        self.a0 = a0
-        self.b0 = b0
-        self.a1 = a1
-        self.b1 = b1
-
-        dist = {}
-        for i in range(n+1):
-            for j in range(n+1):
-                dist[(i, j)] = ar1_betabinom.pmf(i, j, n, a0, b0, a1, b1)
-        self.dist = dist
-
-    def pmf(self, i, j):
-        return self.dist[(i, j)]
-
-    def rvs(self, i, size=None, random_state=None):
-        js = list(range(self.n+1))
-        ps = [self.pmf(i, j) for j in js]
-        rvs = stats.rv_discrete(values=(js, ps)).rvs(size=size, random_state=random_state)
-        return rvs
-
-
-def get_stationary_dist(n, a0, b0, a1, b1):
-    a = np.zeros((n+1, n+1))
-    for i in range(n+1):
-        for j in range(n+1):
-            a[i, j] = ar1_betabinom.pmf(i, j, n, a0, b0, a1, b1)
-
-    a = a.transpose() - np.identity(n+1)
-    a[n] = 1
-    b = np.zeros(n+1)
-    b[n] = 1
-    pi = solve(a, b)
-    pi = np.where(pi < 0, 0, pi)  # Remove negative values
-    pi = pi / pi.sum()  # Rescale to sum to 1
-
-    return stats.rv_discrete(values=(np.arange(n+1), pi))
 
 
 def load_msa(path):
@@ -97,8 +38,9 @@ with open('../config/segments.tsv') as file:
         OGid = line.split()[0]
         OGids.add(OGid)
 
-# Load msa and trim terminal insertions
+# Plot alignments
 for OGid in OGids:
+    # Load msa and trim terminal insertions
     msa = load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
 
     idx = 0
@@ -130,9 +72,8 @@ for OGid in OGids:
         emits.append(sum(col))
 
     # Instantiate model
-    e_dists_rv = {state: ar1_betabinom_frozen(len(msa)-1, a0, b0, a1, b1) for state, (a0, b0, a1, b1) in params['e_dists'].items()}
-    start_e_dists_rv = {state: get_stationary_dist(len(msa)-1, a0, b0, a1, b1) for state, (a0, b0, a1, b1) in params['e_dists'].items()}
-    model = hmm.ARHMM(params['t_dists'], e_dists_rv, params['start_t_dist'], start_e_dists_rv)
+    e_dists_rv = {state: stats.betabinom(len(msa)-1, a, b) for state, (a, b) in params['e_dists'].items()}
+    model = hmm.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
 
     # Decode states and plot
     fbs = model.forward_backward(emits)
@@ -148,6 +89,6 @@ for OGid in OGids:
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer/realign_hmmer.py
     ../../ortho_MSA/realign_hmmer/out/*.mfa
-./segment_arhmm1_calc.py
+./fit.py
     ./out/model.json
 """
