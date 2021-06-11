@@ -20,7 +20,7 @@ class HMM:
     passed directly as rv_discrete objects. Currently only discrete random
     variables are supported for emission distributions, largely since in the
     scipy implementation of continuous random variables the pdf is accessed via
-    the pdf attribute (as opposed to the pmf attribute). Additionally, the
+    the pdf method (as opposed to the pmf method). Additionally, the
     transition matrix can only be passed as a nested dictionary to ensure a
     clear labeling of all states in the model.
 
@@ -382,7 +382,7 @@ class ARHMM:
 
     def __repr__(self):
         pad = 4 * ' '
-        return (f"HMM(states={self.states},\n"
+        return (f"ARHMM(states={self.states},\n"
                 f"{pad}stop_states={self.stop_states},\n"
                 f"{pad}name='{self.name}')")
 
