@@ -59,6 +59,7 @@ def load_msa(path):
 
 
 def decode(OGid, params):
+    # Load msa and trim terminal insertions
     msa = load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
 
     idx = 0
