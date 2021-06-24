@@ -52,11 +52,7 @@ def hmm_align(OGid):
     # Write to file and remove temp alignment
     with open(f'out/{OGid}.mfa', 'w') as file:
         for header, seq1 in msa:
-            seq2 = []
-            for s in slices:
-                seq2.extend(seq1[s])
-            seq2 = ''.join(seq2)
-
+            seq2 = ''.join([seq1[s] for s in slices])
             seqstring = '\n'.join([seq2[i:i+80] for i in range(0, len(seq2), 80)]) + '\n'
             file.write(header)
             file.write(seqstring)

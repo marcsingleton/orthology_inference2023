@@ -69,7 +69,7 @@ def trim(OGid):
                 gaps_array[i, j] = True
     scores = gaps_array.sum(axis=0)
 
-    rf = ['x' for _ in range(len(msa2[0][1]))]
+    rf = ['x' for _ in range(len(msa2[0][1]))]  # Metadata for marking consensus columns in profile HMM
     for region, in ndimage.find_objects(ndimage.label(scores == len(msa2))[0]):
         rf[region] = (region.stop - region.start) * ['.']
         for i in range(len(msa2)):
