@@ -94,39 +94,22 @@ df = pd.read_table('out/total_sums.tsv').merge(OG_filter[['OGid', 'sqidnum']], o
 df['norm1'] = df['total'] / df['gnidnum']
 df['norm2'] = df['total'] / (df['gnidnum'] * df['len2'])
 
-if not os.path.exists('out/norm1/'):
-    os.mkdir('out/norm1/')
+for label in ['norm1', 'norm2']:
+    if not os.path.exists(f'out/{label}/'):
+        os.mkdir(f'out/{label}/')
 
-# 2.1 Ranked by sum
-head = df.sort_values(by='norm1', ascending=False).head(150)
-for i, row in enumerate(head.itertuples()):
-    if row.sqidnum == row.gnidnum:
-        msa = load_msa(f'../align_fastas1/out/{row.OGid}.mfa')
-    else:
-        msa = load_msa(f'../align_fastas2-2/out/{row.OGid}.mfa')
+    head = df.sort_values(by=label, ascending=False).head(150)
+    for i, row in enumerate(head.itertuples()):
+        if row.sqidnum == row.gnidnum:
+            msa = load_msa(f'../align_fastas1/out/{row.OGid}.mfa')
+        else:
+            msa = load_msa(f'../align_fastas2-2/out/{row.OGid}.mfa')
 
-    tree = tree_template.shear([seq[0] for seq in msa])
-    order = {tip.name: i for i, tip in enumerate(tree.tips())}
-    msa = [seq[1] for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
-    im = draw_msa(msa)
-    plt.imsave(f'out/norm1/{i}_{row.OGid}.png', im)
-
-# 2.2 Ranked by avg
-if not os.path.exists('out/norm2/'):
-    os.mkdir('out/norm2/')
-
-head = df.sort_values(by='norm2', ascending=False).head(150)
-for i, row in enumerate((head.itertuples())):
-    if row.sqidnum == row.gnidnum:
-        msa = load_msa(f'../align_fastas1/out/{row.OGid}.mfa')
-    else:
-        msa = load_msa(f'../align_fastas2-2/out/{row.OGid}.mfa')
-
-    tree = tree_template.shear([seq[0] for seq in msa])
-    order = {tip.name: i for i, tip in enumerate(tree.tips())}
-    msa = [seq[1] for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
-    im = draw_msa(msa)
-    plt.imsave(f'out/norm2/{i}_{row.OGid}.png', im)
+        tree = tree_template.shear([seq[0] for seq in msa])
+        order = {tip.name: i for i, tip in enumerate(tree.tips())}
+        msa = [seq[1] for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
+        im = draw_msa(msa)
+        plt.imsave(f'out/{label}/{i}_{row.OGid}.png', im)
 
 """
 ../../../src/draw.py

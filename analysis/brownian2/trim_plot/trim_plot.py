@@ -37,67 +37,37 @@ df = pd.read_table('../../ortho_MSA/gap_contrasts/out/total_sums.tsv').merge(OG_
 df['norm1'] = df['total'] / df['gnidnum']
 df['norm2'] = df['total'] / (df['gnidnum'] * df['len2'])
 
-if not os.path.exists('out/norm1/'):
-    os.makedirs('out/norm1/')
+for label in ['norm1', 'norm2']:
+    if not os.path.exists(f'out/{label}/'):
+        os.makedirs(f'out/{label}/')
 
-head = df.sort_values(by='norm1', ascending=False).head(150)
-for i, row in enumerate(head.itertuples()):
-    # Load msa and trim terminal insertions
-    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer/out/{row.OGid}.mfa'))
+    head = df.sort_values(by=label, ascending=False).head(150)
+    for i, row in enumerate(head.itertuples()):
+        # Load msa and trim terminal insertions
+        msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer/out/{row.OGid}.mfa'))
 
-    # Load decoded states
-    posterior = []
-    with open(f'../trim_extract/out/{row.OGid}.tsv') as file:
-        header = file.readline().split()
-        for line in file:
-            d = {key: float(value) for key, value in zip(header, line.split())}
-            posterior.append(d['2'] + d['3'])
-    posterior = np.array(posterior)
-    gradient = np.gradient(posterior)
+        # Load decoded states
+        posterior = []
+        with open(f'../trim_extract/out/{row.OGid}.tsv') as file:
+            header = file.readline().split()
+            for line in file:
+                d = {key: float(value) for key, value in zip(header, line.split())}
+                posterior.append(d['2'] + d['3'])
+        posterior = np.array(posterior)
+        gradient = np.gradient(posterior)
 
-    # Make trim plot
-    slices = get_slices(msa, posterior, gradient)
-    trims = np.zeros(len(posterior))
-    for s in slices:
-        trims[s] = 1
+        # Make trim plot
+        slices = get_slices(msa, posterior, gradient)
+        trims = np.zeros(len(posterior))
+        for s in slices:
+            trims[s] = 1
 
-    tree = tree_template.shear([seq[0] for seq in msa])
-    order = {tip.name: i for i, tip in enumerate(tree.tips())}
-    msa = [seq[1].upper() for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
-    plot_msa_lines(msa, [posterior, trims])
-    plt.savefig(f'out/norm1/{i}_{row.OGid}.png')
-    plt.close()
-
-if not os.path.exists('out/norm2/'):
-    os.makedirs('out/norm2/')
-
-head = df.sort_values(by='norm2', ascending=False).head(150)
-for i, row in enumerate(head.itertuples()):
-    # Load msa and trim terminal insertions
-    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer/out/{row.OGid}.mfa'))
-
-    # Load decoded states
-    posterior = []
-    with open(f'../trim_extract/out/{row.OGid}.tsv') as file:
-        header = file.readline().split()
-        for line in file:
-            d = {key: float(value) for key, value in zip(header, line.split())}
-            posterior.append(d['2'] + d['3'])
-    posterior = np.array(posterior)
-    gradient = np.gradient(posterior)
-
-    # Make trim plot
-    slices = get_slices(msa, posterior, gradient)
-    trims = np.zeros(len(posterior))
-    for s in slices:
-        trims[s] = 1
-
-    tree = tree_template.shear([seq[0] for seq in msa])
-    order = {tip.name: i for i, tip in enumerate(tree.tips())}
-    msa = [seq[1].upper() for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
-    plot_msa_lines(msa, [posterior, trims])
-    plt.savefig(f'out/norm2/{i}_{row.OGid}.png')
-    plt.close()
+        tree = tree_template.shear([seq[0] for seq in msa])
+        order = {tip.name: i for i, tip in enumerate(tree.tips())}
+        msa = [seq[1].upper() for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
+        plot_msa_lines(msa, [posterior, trims])
+        plt.savefig(f'out/{label}/{i}_{row.OGid}.png')
+        plt.close()
 
 """
 DEPENDENCIES
