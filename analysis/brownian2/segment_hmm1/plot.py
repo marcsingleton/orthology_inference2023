@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 import src.hmm as hmm
 import src.draw as draw
+from src.brownian2.trim import trim_terminals
 
 
 def load_msa(path):
@@ -41,29 +42,7 @@ with open('../config/segments.tsv') as file:
 # Plot alignments
 for OGid in OGids:
     # Load msa and trim terminal insertions
-    msa = load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
-
-    idx = 0
-    for j in range(len(msa[0][1])):
-        for i in range(len(msa)):
-            sym = msa[i][1][j]
-            if sym == '.' or sym.islower():
-                break
-        else:
-            idx = j
-            break  # if no break exit
-    msa = [(header, seq[idx:]) for header, seq in msa]
-
-    idx = len(msa[0][1])
-    for j in range(len(msa[0][1]), 0, -1):
-        for i in range(len(msa)):
-            sym = msa[i][1][j-1]
-            if sym == '.' or sym.islower():
-                break
-        else:
-            idx = j
-            break  # if no break exit
-    msa = [(header, seq[:idx]) for header, seq in msa]
+    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa'))
 
     # Create emission sequence
     emits = []
