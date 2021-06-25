@@ -30,11 +30,11 @@ def trim_terminals(msa):
     return msa
 
 
-def get_bound(msa, start, stop, sign):
+def get_bound(msa, gradient, start, stop, sign):
     """Return column with largest change in number of gaps from previous.
 
     Gaps are calculated from the range of lower to upper, inclusive. Ties are
-    broken towards the most "interior" column. (The sign argument, which is
+    broken towards the most "exterior" column. (The sign argument, which is
     either +1 or -1, correctly controls the ordering of both the delta and
     index for both the start and stop bounds.)
     """
@@ -48,9 +48,9 @@ def get_bound(msa, start, stop, sign):
 
     deltas, count0 = [], gaps[0][1]
     for j, count in gaps[1:]:
-        deltas.append((j, count - count0))
+        deltas.append((j, abs(gradient[j])*(count - count0)))
         count0 = count
-    return max(deltas, key=lambda x: (sign*x[1], sign*x[0]))[0]
+    return max(deltas, key=lambda x: (sign*x[1], -sign*x[0]))[0]
 
 
 def get_slices(msa, posterior, gradient):
@@ -62,24 +62,38 @@ def get_slices(msa, posterior, gradient):
     of gaps and will be correctly excluded from the slice.
     """
     slices = []
-    for region, in ndimage.find_objects(ndimage.label(posterior >= HIGH)[0]):
-        start = region.start  # start of left margin
-        while start-1 >= 0 and posterior[start-1] >= LOW and gradient[start-1] >= GRADIENT:
-            start -= 1
-        if start < region.start:
-            start = get_bound(msa, start, region.start, 1)
+    for region, in ndimage.find_objects(ndimage.label(posterior >= POSTERIOR)[0]):
+        lstart = region.start  # start of left margin
+        while lstart-1 >= 0 and gradient[lstart-1] >= GRAD_LOW:
+            lstart -= 1
+        lstop = region.start  # stop of left margin
+        while lstop+1 < len(posterior) and gradient[lstop+1] >= GRAD_HIGH:
+            lstop += 1
+        if lstart < lstop:
+            start = get_bound(msa, gradient, lstart, lstop, 1)
+        else:
+            start = region.start
 
-        stop = region.stop  # stop of right margin
-        while stop+1 < len(posterior) and posterior[stop+1] >= LOW and gradient[stop+1] <= -GRADIENT:
-            stop += 1
-        if stop > region.stop:
-            stop = get_bound(msa, region.stop - 1, stop, -1)
+        rstart = region.stop - 1  # start of right margin
+        while rstart-1 >= 0 and gradient[rstart-1] <= -GRAD_HIGH:
+            rstart -= 1
+        rstop = region.stop - 1  # stop of right margin
+        while rstop+1 < len(posterior) and gradient[rstop+1] <= -GRAD_LOW:
+            rstop += 1
+        if rstop > region.stop:
+            stop = get_bound(msa, gradient, rstart, rstop, -1)
+        else:
+            stop = region.stop
 
-        slices.append(slice(start, stop))
+        if start < stop:
+            s = slice(start, stop)
+        else:
+            s = region
+        slices.append(s)
 
     return slices
 
 
-HIGH = 0.6
-LOW = 0.01
-GRADIENT = 0.005
+POSTERIOR = 0.65
+GRAD_HIGH = 0.02
+GRAD_LOW = 0.001
