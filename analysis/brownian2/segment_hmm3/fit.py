@@ -186,7 +186,7 @@ def load_msa(path):
     return msa
 
 
-eta = 1E-3
+eta = 1E-4
 epsilon = 1E-2
 iter_num = 200
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])

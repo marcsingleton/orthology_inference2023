@@ -10,12 +10,12 @@
 #SBATCH --cpus-per-task=1
 #
 # Reporting parameters
-#SBATCH --job-name=segment_hmm3_calc
-#SBATCH --output=segment_hmm3_calc.out
+#SBATCH --job-name=fit
+#SBATCH --output=fit.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
 source /global/home/users/singleton/.bashrc
 conda activate IDREvoDevo
-python segment_hmm3_calc.py
+python fit.py
