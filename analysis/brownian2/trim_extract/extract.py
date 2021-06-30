@@ -43,6 +43,8 @@ for OGid in OGids:
     slices = get_slices(msa, posterior, gradient)
 
     # Invert slices
+    # Original slices may overlap due to extension,
+    # but this will produce empty "inverted" slices and will not affect the result.
     inverts, i = [], 0
     for s in slices:
         inverts.append(slice(i, s.start))

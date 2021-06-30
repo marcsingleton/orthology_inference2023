@@ -62,9 +62,9 @@ def get_slices(msa, posterior, gradient):
     of gaps and will be correctly excluded from the slice.
     """
     slices = []
-    for region, in ndimage.find_objects(ndimage.label(posterior >= POSTERIOR)[0]):
+    for region, in ndimage.find_objects(ndimage.label(posterior >= POST_HIGH)[0]):
         lstart = region.start  # start of left margin
-        while lstart-1 >= 0 and gradient[lstart-1] >= GRAD_LOW:
+        while lstart-1 >= 0 and (posterior[lstart-1] >= POST_LOW or gradient[lstart-1] >= GRAD_LOW):
             lstart -= 1
         lstop = region.start  # stop of left margin
         while lstop+1 < len(posterior) and gradient[lstop+1] >= GRAD_HIGH:
@@ -78,7 +78,7 @@ def get_slices(msa, posterior, gradient):
         while rstart-1 >= 0 and gradient[rstart-1] <= -GRAD_HIGH:
             rstart -= 1
         rstop = region.stop - 1  # stop of right margin
-        while rstop+1 < len(posterior) and gradient[rstop+1] <= -GRAD_LOW:
+        while rstop+1 < len(posterior) and (posterior[rstop+1] >= POST_LOW or gradient[rstop+1] <= -GRAD_LOW):
             rstop += 1
         if rstop > region.stop:
             stop = get_bound(msa, gradient, rstart, rstop, -1)
@@ -94,6 +94,7 @@ def get_slices(msa, posterior, gradient):
     return slices
 
 
-POSTERIOR = 0.65
+POST_HIGH = 0.75
+POST_LOW = 0.5
 GRAD_HIGH = 0.02
 GRAD_LOW = 0.001
