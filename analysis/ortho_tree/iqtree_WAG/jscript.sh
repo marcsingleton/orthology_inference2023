@@ -18,13 +18,13 @@
 # Command(s) to run:
 module load gnu-parallel
 
-for folder in $(ls ../make_AAmeta/out/); do
+for folder in $(ls ../make_metaAA/out/); do
   if [[ $folder == *_ni ]]; then
     invariant=""
   else
     invariant="+I"
   fi
-  for file in $(ls ../make_AAmeta/out/${folder}/); do
+  for file in $(ls ../make_metaAA/out/${folder}/); do
     if [[ $file == *.fasta ]]; then
       echo $folder $(basename $file .fasta) $invariant
     fi
