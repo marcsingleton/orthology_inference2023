@@ -62,7 +62,6 @@ for label, (_, colpool) in colpools.items():
         msa = TabularMSA([Protein(''.join(seq), metadata={'id': spid, 'description': f'{label}_{samplenum}'})
                           for spid, seq in seqs.items()], minter='id')  # Sets index to id (for writing in Phylip)
         msa.write(f'out/{label}/meta_{samplenum}.fasta', 'fasta', max_width=80)
-        msa.write(f'out/{label}/meta_{samplenum}.phy', 'phylip')
 
 """
 OUTPUT
