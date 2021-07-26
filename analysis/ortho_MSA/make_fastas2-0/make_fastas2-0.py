@@ -63,11 +63,14 @@ for OGid in OGids:
             gnid2sqids[gnid].append((sqid, ppid2seq[sqid]))
         except KeyError:
             gnid2sqids[gnid] = [(sqid, ppid2seq[sqid])]
+    records = []
+    for gnid, sqids in gnid2sqids.items():
+        sqid, seq = max(sqids, key=lambda x: len(x[1]))
+        gnid, spid, _ = ppid2meta[sqid]
+        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
+        records.append((sqid, gnid, spid, seqstring))
     with open(f'out/{OGid}.tfa', 'w') as file:
-        for gnid, sqids in gnid2sqids.items():
-            sqid, seq = max(sqids, key=lambda x: len(x[1]))
-            gnid, spid, _ = ppid2meta[sqid]
-            seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
+        for sqid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):
             file.write(f'>ppid={sqid}|gnid={gnid}|spid={spid}\n')
             file.write(seqstring)
 

@@ -105,7 +105,7 @@ with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pcluster
         sqids = set([ppid2meta[node][2] for edge in edges.split('\t') for node in edge.split(',')])
         OGs[OGid] = sqids  # Ensure only representatives are selected for reduced clusters
 
-tree_template = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 tree_template.shear([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
 
 rOGs = {}

@@ -44,7 +44,8 @@ if not os.path.exists('out/'):
 OGids = OG_meta.loc[~(OG_meta['sqidnum'] == OG_meta['gnidnum']), 'OGid']
 for OGid in OGids:
     with open(f'out/{OGid}.tfa', 'w') as file:
-        for row in rclusters.get_group(OGid).itertuples():
+        rows = sorted(rclusters.get_group(OGid).itertuples(), key=lambda x: x.spid)
+        for row in rows:
             seq = ppid2seq[row.ppid]
             seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
             file.write(f'>ppid={row.ppid}|gnid={row.gnid}|spid={row.spid}\n')

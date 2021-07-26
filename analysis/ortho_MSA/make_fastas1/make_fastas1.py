@@ -55,11 +55,14 @@ if not os.path.exists('out/'):
 
 OGids = OG_meta.loc[OG_meta['sqidnum'] == OG_meta['gnidnum'], 'OGid']
 for OGid in OGids:
+    records = []
+    for sqid in OGs[OGid]:
+        gnid, spid, _ = ppid2meta[sqid]
+        seq = ppid2seq[sqid]
+        seqstring = '\n'.join([seq[i:i + 80] for i in range(0, len(seq), 80)]) + '\n'
+        records.append((sqid, gnid, spid, seqstring))
     with open(f'out/{OGid}.tfa', 'w') as file:
-        for sqid in OGs[OGid]:
-            gnid, spid, _ = ppid2meta[sqid]
-            seq = ppid2seq[sqid]
-            seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
+        for sqid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):
             file.write(f'>ppid={sqid}|gnid={gnid}|spid={spid}\n')
             file.write(seqstring)
 
