@@ -1,91 +1,11 @@
-"""Make consensus trees from bootstrapped PhyML runs."""
+"""Make consensus trees from bootstrapped IQ-TREE runs."""
 
 import os
 
 import matplotlib.pyplot as plt
 import skbio
 from src.draw import plot_tree
-
-
-def majority_consensus(trees, cutoff=0.5):
-    # Count nodes
-    counts = {}
-    for tree in trees:
-        for node in tree.traverse():
-            if not node.is_tip():
-                tip_set = frozenset([tip.name for tip in node.tips()])
-                counts[tip_set] = counts.get(tip_set, 0) + 1
-
-    # Make count list and node dictionary
-    # This uses the top-level node that includes all taxon labels and is equivalent to initiating the algorithm with a
-    # single node containing said labels
-    counts = sorted(counts.items(), key=lambda x: (x[1], len(x[0])), reverse=True)
-    consensus_nodes = {frozenset([name]): skbio.TreeNode(name=name) for name in counts[0][0]}
-
-    # Make root
-    root = skbio.TreeNode(children=list(consensus_nodes.values()))
-    consensus_nodes[frozenset([node.name for node in root.children])] = root
-
-    # Add nodes
-    for tip_set1, count in counts[1:]:
-        if count / len(trees) < cutoff:
-            break
-
-        # Find parent
-        for tip_set2 in sorted(consensus_nodes, key=lambda x: len(x), reverse=True):
-            compatible = (tip_set1 <= tip_set2 or
-                          tip_set2 <= tip_set1 or
-                          not (tip_set1 & tip_set2))
-            if not compatible:
-                break
-            if tip_set2 >= tip_set1:
-                parent_set = tip_set2  # Smallest superset since sorted by size
-        if not compatible:
-            continue
-        parent_node = consensus_nodes[parent_set]
-
-        # Construct current node
-        children = []
-        for node in parent_node.children:
-            for tip in node.tips(include_self=True):
-                if tip.name in tip_set1:
-                    children.append(node)
-                    break
-        node = skbio.TreeNode(children=children, support=count/len(trees))  # Instantiation automatically updates parents
-        consensus_nodes[tip_set1] = node
-        parent_node.append(node)
-
-    # Get branch lengths
-    bl_sums = {}
-    for tree in trees:
-        for node in tree.traverse():
-            if node.is_tip():
-                continue
-            tip_set = frozenset([tip.name for tip in node.tips()])
-
-            # Add clade
-            if tip_set in consensus_nodes:
-                count, bl_sum = bl_sums.get(tip_set, (0, 0))
-                count, bl_sum = count + 1, bl_sum + node.length if node.length else None
-                bl_sums[tip_set] = (count, bl_sum)
-
-                # Add terminal children of clade
-                for child_node in filter(lambda x: not x.is_tip(), node.children):
-                    if not frozenset([tip.name for tip in child_node.tips()]) in consensus_nodes:
-                        break
-                else:
-                    for child_tip in filter(lambda x: x.is_tip(), node.children):
-                        tip_set = frozenset([child_tip.name])
-                        count, bl_sum = bl_sums.get(tip_set, (0, 0))
-                        count, bl_sum = count + 1, bl_sum + child_tip.length if child_tip.length else None
-                        bl_sums[tip_set] = (count, bl_sum)
-
-    # Set branch lengths
-    for tip_set, (count, bl_sum) in bl_sums.items():
-        node = consensus_nodes[tip_set]
-        node.length = bl_sum / count if bl_sum else None
-
-    return root
+from src.ortho_tree.tree import majority_consensus
 
 
 if not os.path.exists('out/'):
@@ -149,6 +69,7 @@ execution is slightly involved since we first have to copy over the labels and t
 
 DEPENDENCIES
 ../../../src/draw.py
+../../../src/ortho_tree/tree.py
 ../phyml_GTR/phyml_GTR.py
     ../phyml_GTR/out/*/meta_*.phy_phyml_tree.txt
 """
