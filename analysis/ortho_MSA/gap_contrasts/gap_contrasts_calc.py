@@ -52,7 +52,7 @@ def load_msa(path):
 
 
 # Load tree
-tree_template = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 spids = set([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
 
 # Load representative OGs
@@ -98,8 +98,8 @@ with open('out/row_sums.tsv', 'w') as file:
 
 """
 DEPENDENCIES
-../../ortho_tree/consensus_tree/consensus_tree.py
-    ../../ortho_tree/consensus_tree/out/100red_ni.txt
+../../ortho_tree/ctree_WAG/ctree_WAG.py
+    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
 ../align_fastas2-2/align_fastas2-2.py

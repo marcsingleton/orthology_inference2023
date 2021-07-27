@@ -27,7 +27,7 @@ def load_msa(path):
     return msa
 
 
-tree_template = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 spids = set([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
 
 OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
@@ -52,8 +52,8 @@ for label in ['norm1', 'norm2']:
 """
 DEPENDENCIES
 ../../../src/draw.py
-../../ortho_tree/consensus_tree/consensus_tree.py
-    ../../ortho_tree/consensus_tree/out/100red_ni.txt
+../../ortho_tree/ctree_WAG/ctree_WAG.py
+    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../gap_contrasts/gap_contrasts_calc.py
     ../gap_contrasts/out/total_sums.tsv
 ../OG_filter/OG_filter.py

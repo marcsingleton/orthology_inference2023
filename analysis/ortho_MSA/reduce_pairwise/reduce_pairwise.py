@@ -148,6 +148,6 @@ DEPENDENCIES
     ../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
-../../ortho_tree/consensus_tree/consensus_tree.py
-    ../../ortho_tree/consensus_tree/out/100red_ni.txt
+../../ortho_tree/ctree_WAG/ctree_WAG.py
+    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 """

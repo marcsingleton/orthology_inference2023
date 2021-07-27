@@ -30,7 +30,7 @@ def load_msa(path):
 
 
 OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
-tree_template = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 spids = set([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
 num_contrasts = len(spids) - 1
 
@@ -113,8 +113,8 @@ for label in ['norm1', 'norm2']:
 
 """
 ../../../src/draw.py
-../../ortho_tree/consensus_tree/consensus_tree.py
-    ../../ortho_tree/consensus_tree/out/100red_ni.txt
+../../ortho_tree/ctree_WAG/ctree_WAG.py
+    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
 ../align_fastas2-2/align_fastas2-2.py

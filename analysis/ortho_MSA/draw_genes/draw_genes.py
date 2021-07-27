@@ -50,7 +50,7 @@ OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
 genes = pd.read_table('genes.tsv')
 
 # Load tree
-tree = skbio.read('../../ortho_tree/consensus_tree/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 tree = tree.shear([tip.name for tip in tree.tips() if tip.name != 'sleb'])
 order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
@@ -78,8 +78,8 @@ DEPENDENCIES
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
     ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
-../../ortho_tree/consensus_tree/consensus_tree.py
-    ../../ortho_tree/consensus_tree/out/100red_ni.txt
+../../ortho_tree/ctree_WAG/ctree_WAG.py
+    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
 ../align_fastas2-2/align_fastas2-2.py
