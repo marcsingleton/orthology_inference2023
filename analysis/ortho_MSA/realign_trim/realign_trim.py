@@ -77,7 +77,7 @@ def trim(OGid):
             syms[region] = list(str(msa1[i, region]))
 
     # 5 Write to file
-    msa2 = skbio.TabularMSA([skbio.Protein(''.join(syms), metadata={'description': header}) for header, syms in msa2],
+    msa2 = skbio.TabularMSA([skbio.Protein(''.join(syms), metadata={'description': header.rstrip()}) for header, syms in msa2],
                             positional_metadata={'RF': rf})
     msa2.write(f'out/{OGid}.sto',  'stockholm')
 
