@@ -56,8 +56,7 @@ for OGid in OGids:
         for header, seq1 in msa:
             seq2 = ''.join([seq1[s] for s in inverts])
             seqstring = '\n'.join([seq2[i:i+80] for i in range(0, len(seq2), 80)]) + '\n'
-            file.write(header)
-            file.write(seqstring)
+            file.write(header + seqstring)
 
 """
 DEPENDENCIES
