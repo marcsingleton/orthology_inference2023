@@ -24,7 +24,7 @@ def load_msa(path):
     return msa
 
 
-def predict(OGid):
+def run_aucpred(OGid):
     msa = load_msa(f'../trim_extract/out/{OGid}.mfa')
 
     if not os.path.exists(f'out/{OGid}/'):
@@ -32,13 +32,14 @@ def predict(OGid):
 
     for header, seq in msa:
         ppid = re.match(r'>ppid=([A-Za-z0-9_]+)\|', header).group(1)
-        with open(f'out/{OGid}/{ppid}.fasta', 'w') as file:
-            seq = seq.translate({ord('-'): None, ord('.'): None})
-            seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-            file.write(header + seqstring)
-        subprocess.run(f'../../../bin/Predict_Property/AUCpreD.sh -i out/{OGid}/{ppid}.fasta -o out/{OGid}/',
-                       check=True, shell=True)
-        os.remove(f'out/{OGid}/{ppid}.fasta')
+        seq = seq.translate({ord('-'): None, ord('.'): None})
+        if len(seq) < 10000:  # AUCpreD uses PSIPRED which has a length limit of 10000
+            with open(f'out/{OGid}/{ppid}.fasta', 'w') as file:
+                seqstring = '\n'.join([seq[i:i + 80] for i in range(0, len(seq), 80)]) + '\n'
+                file.write(header + seqstring)
+            subprocess.run(f'../../../bin/Predict_Property/AUCpreD.sh -i out/{OGid}/{ppid}.fasta -o out/{OGid}/',
+                           check=True, shell=True)
+            os.remove(f'out/{OGid}/{ppid}.fasta')
 
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
@@ -49,7 +50,7 @@ if __name__ == '__main__':
 
     with mp.Pool(processes=num_processes) as pool:
         OGids = [path.split('.')[0] for path in os.listdir('../trim_extract/out/') if path.endswith('.mfa')]
-        pool.map(predict, OGids)
+        pool.map(run_aucpred, OGids)
 
 """
 DEPENDENCIES
