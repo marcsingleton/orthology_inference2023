@@ -26,27 +26,28 @@ def load_msa(path):
 
 def run_aucpred(OGid):
     msa = load_msa(f'../trim_extract/out/{OGid}.mfa')
+    prefix = f'out/raw/{OGid}/'
 
-    if not os.path.exists(f'out/{OGid}/'):
-        os.mkdir(f'out/{OGid}/')
+    if not os.path.exists(prefix):
+        os.mkdir(prefix)
 
     for header, seq in msa:
-        ppid = re.match(r'>ppid=([A-Za-z0-9_]+)\|', header).group(1)
+        ppid = re.search(r'ppid=([A-Za-z0-9_]+)', header).group(1)
         seq = seq.translate({ord('-'): None, ord('.'): None})
         if len(seq) < 10000:  # AUCpreD uses PSIPRED which has a length limit of 10000
-            with open(f'out/{OGid}/{ppid}.fasta', 'w') as file:
+            with open(f'{prefix}{ppid}.fasta', 'w') as file:
                 seqstring = '\n'.join([seq[i:i + 80] for i in range(0, len(seq), 80)]) + '\n'
-                file.write(header + seqstring)
-            subprocess.run(f'../../../bin/Predict_Property/AUCpreD.sh -i out/{OGid}/{ppid}.fasta -o out/{OGid}/',
+                file.write(header + '\n' + seqstring)
+            subprocess.run(f'../../../bin/Predict_Property/AUCpreD.sh -i {prefix}{ppid}.fasta -o {prefix}',
                            check=True, shell=True)
-            os.remove(f'out/{OGid}/{ppid}.fasta')
+            os.remove(f'{prefix}{ppid}.fasta')
 
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
 if __name__ == '__main__':
-    if not os.path.exists('out/'):
-        os.mkdir('out/')
+    if not os.path.exists('out/raw/'):
+        os.makedirs('out/raw/')
 
     with mp.Pool(processes=num_processes) as pool:
         OGids = [path.split('.')[0] for path in os.listdir('../trim_extract/out/') if path.endswith('.mfa')]
