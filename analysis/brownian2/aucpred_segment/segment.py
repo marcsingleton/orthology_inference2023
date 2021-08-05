@@ -34,14 +34,36 @@ def load_scores(path):
     return scores
 
 
-THRESHOLD = 0.5
-PPID_REGEX = r'ppid=([A-Za-z0-9_]+)'
+def gaussian_filter(input, sigma):
+    # Make stack of Gaussian kernels
+    radius = int(4 * sigma + 0.5)  # Truncate filter at 4 standard deviations rounded to nearest integer
+    x = np.stack([np.arange(-radius, radius+1) for _ in range(input.shape[0])])
+    kernel = np.exp(-x**2 / (2 * sigma**2))
+
+    # Apply filter ignoring masked values
+    padded = np.ma.masked_invalid(np.pad(input, [(0, 0), (radius, radius)], mode='edge'))
+    mean_array = np.zeros(input.shape[1])
+    var_array = np.zeros(input.shape[1])
+    for j in range(input.shape[1]):  # Output has as many columns as input; slicing always grabs correct window even though actual centers are offset
+        window = padded[:, j:j+2*radius+1]
+        weight = (~window.mask * kernel).sum()
+        mean = (window * kernel).sum() / weight
+        var = ((window - mean) ** 2 * kernel).sum() / weight
+
+        mean_array[j] = mean
+        var_array[j] = var
+
+    return mean_array, var_array
+
+
+threshold = 0.5
+ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 
 records = []
 for OGid in os.listdir('out/raw/'):
     # Load MSA
     msa = load_msa(f'../trim_extract/out/{OGid}.mfa')
-    msa = {re.search(PPID_REGEX, header).group(1): seq for header, seq in msa}
+    msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
     # Map outputs to MSA columns
     ppids = set([path.split('.')[0] for path in os.listdir(f'out/raw/{OGid}/')])
@@ -57,9 +79,11 @@ for OGid in os.listdir('out/raw/'):
             if sym not in ['-', '.']:
                 mapped[i, j] = scores[idx]
                 idx += 1
+    mapped = np.ma.masked_invalid(mapped)
 
     # Extract regions
-    binary = np.nanmean(mapped, axis=0) >= THRESHOLD
+    mean, var = gaussian_filter(mapped, 2)
+    binary = mean >= threshold
     regions, value0, idx0 = [], binary[0], 0
     for idx, value in enumerate(binary):
         if value != value0:
@@ -79,6 +103,9 @@ with open('out/segments.tsv', 'w') as file:
         file.write('\t'.join(record) + '\n')
 
 """
+OUTPUT
+3423 has fewer predictions than sequences. Skipping segmentation.
+
 DEPENDENCIES
 ../trim_extract/trim_extract.py
     ../trim_extract/out/*.mfa
