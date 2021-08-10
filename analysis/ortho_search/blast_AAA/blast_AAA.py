@@ -13,7 +13,7 @@ blast_path = argv[3]
 # Parse genomes
 spids = []
 with open('../config/genomes.tsv') as file:
-    fields = file.readline().split()  # Skip header
+    file.readline()  # Skip header
     for line in file:
         spids.append(line.split()[0])
 

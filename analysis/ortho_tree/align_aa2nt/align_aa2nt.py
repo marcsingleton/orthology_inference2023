@@ -64,7 +64,7 @@ pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
 # Parse genomes
 genomes = []
 with open('../config/genomes.tsv') as file:
-    fields = file.readline().split()  # Skip header
+    file.readline()  # Skip header
     for line in file:
         spid, _, source, _, cds_path = line.split()
         genomes.append((spid, source, cds_path))

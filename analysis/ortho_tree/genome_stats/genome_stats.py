@@ -29,7 +29,7 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
 # Parse genomes
 genomes = {}
 with open('../config/genomes.tsv') as file:
-    fields = file.readline().split()  # Skip header
+    file.readline()  # Skip header
     for line in file:
         spid, _, source, prot_path, _ = line.split()
         genomes[spid] = (source, prot_path)
