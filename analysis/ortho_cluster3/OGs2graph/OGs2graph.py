@@ -23,7 +23,7 @@ with open('../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
 graph = {OGid: set() for OGid in OGid2gnids}
 for OGid1, OGid2 in combinations(OGid2gnids, 2):
     gnids1, gnids2 = OGid2gnids[OGid1], OGid2gnids[OGid2]
-    if len(gnids1 & gnids2) / min(len(OGid1), len(OGid2)) >= 0.5:
+    if len(gnids1 & gnids2) / min(len(gnids1), len(gnids2)) >= 0.5:
         graph[OGid1].add(OGid2)
         graph[OGid2].add(OGid1)
 
