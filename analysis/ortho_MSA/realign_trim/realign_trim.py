@@ -17,7 +17,7 @@ def load_msa(path):
         line = file.readline()
         while line:
             if line.startswith('>'):
-                header = line
+                header = line.rstrip()
                 line = file.readline()
 
             seqlines = []
@@ -77,9 +77,9 @@ def trim(OGid):
             syms[region] = list(str(msa1[i, region]))
 
     # 5 Write to file
-    msa2 = skbio.TabularMSA([skbio.Protein(''.join(syms), metadata={'description': header.rstrip()}) for header, syms in msa2],
+    msa2 = skbio.TabularMSA([skbio.Protein(''.join(syms), metadata={'description': header}) for header, syms in msa2],
                             positional_metadata={'RF': rf})
-    msa2.write(f'out/{OGid}.sto',  'stockholm')
+    msa2.write(f'out/{OGid}.sto', 'stockholm')
 
 
 # Load parameters

@@ -15,7 +15,7 @@ def load_msa(path):
         line = file.readline()
         while line:
             if line.startswith('>'):
-                header = line
+                header = line.rstrip()
                 line = file.readline()
 
             seqlines = []

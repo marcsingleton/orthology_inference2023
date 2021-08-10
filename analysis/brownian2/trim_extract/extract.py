@@ -12,7 +12,7 @@ def load_msa(path):
         line = file.readline()
         while line:
             if line.startswith('>'):
-                header = line
+                header = line.rstrip()
                 line = file.readline()
 
             seqlines = []
@@ -56,7 +56,7 @@ for OGid in OGids:
         for header, seq1 in msa:
             seq2 = ''.join([seq1[s] for s in inverts])
             seqstring = '\n'.join([seq2[i:i+80] for i in range(0, len(seq2), 80)]) + '\n'
-            file.write(header + seqstring)
+            file.write(header + '\n' + seqstring)
 
 """
 DEPENDENCIES
