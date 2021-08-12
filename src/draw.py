@@ -223,17 +223,26 @@ def plot_msa(msa, figsize=(12, 6),
 
     def get_block_cols():
         # Use binary search to find interval containing optimal block_cols
+        # If an interval endpoint exactly equals the ratio, choose that endpoint
+        # Otherwise choose the interval where the deviation changes sign between the two endpoints
         interval = (1, COLS)
         while interval[1] - interval[0] > 1:
-            i1 = (interval[0], (interval[0] + interval[1]) // 2)
-            i2 = ((interval[0] + interval[1]) // 2, interval[1])
-            if (get_aspect(i1[0]) - RATIO) * (get_aspect(i1[1]) - RATIO) < 0:
-                interval = i1
-            elif (get_aspect(i2[0]) - RATIO) * (get_aspect(i2[1]) - RATIO) < 0:
-                interval = i2
-            else:
+            c0, c2 = interval
+            c1 = (c0 + c2) // 2
+            deltas = [get_aspect(c) - RATIO for c in (c0, c1, c2)]
+
+            if any([delta == 0 for delta in deltas]):
+                c = min(zip((c0, c1, c2), deltas), key=lambda x: abs(x[1]))[0]
+                interval = (c, c)  # Make degenerate interval to fit with min
                 break
-        block_cols = min(interval, key=lambda x: abs(get_aspect(x) - RATIO))  # Choose value that minimizes difference
+            elif deltas[0] * deltas[1] < 0:
+                interval = (c0, c1)
+            elif deltas[1] * deltas[2] < 0:
+                interval = (c1, c2)
+            else:
+                interval = (c0, c2)
+                break
+        block_cols = min(range(interval[0], interval[1]+1), key=lambda x: abs(get_aspect(x) - RATIO))  # Choose value that minimizes difference
 
         # Ensure last block is at least 50% of block_cols
         if COLS % block_cols < 0.5 * block_cols:  # Guarantees at least two blocks
@@ -249,11 +258,10 @@ def plot_msa(msa, figsize=(12, 6),
         block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
     block_rows = len(msa)
 
-    im = draw_msa(msa, im_cols=len(msa[0]),
-                  sym_length=sym_length, sym_height=sym_height, aa2color=aa2color, gap2color=gap2color)
+    im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height,
+                  aa2color=aa2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
-    gs = GridSpec(block_num, 1, figure=fig,
-                  hspace=hspace)
+    gs = GridSpec(block_num, 1, figure=fig, hspace=hspace)
     for i in range(block_num):
         msa_ax = fig.add_subplot(gs[i:i+1, :])
 
