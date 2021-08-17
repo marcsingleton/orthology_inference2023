@@ -118,7 +118,7 @@ def draw_msa(msa,
 
 
 def plot_msa_lines(msa, lines, figsize=(12, 6),
-                   msa_labels=None, msa_labelsize=6, y_labelsize=6, x_labelsize=6,
+                   msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6, y_labelsize=6,
                    msa_height=1, data_height=1, hspace=0.75, sym_length=7, sym_height=7,
                    lines_min=None, lines_max=None,
                    block_cols=None, aa2color=None, gap2color=None):
@@ -161,7 +161,6 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
         msa_labels = []
     if block_cols is None:
         block_cols = get_block_cols()
-        block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
     if isinstance(lines, list):
         lines = np.array(lines)
     if lines.ndim == 1:
@@ -173,6 +172,7 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
     if lines_min == lines_max:
         lines_min -= 0.5
         lines_max += 0.5
+    block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
     block_rows = len(msa)
 
     im = draw_msa(msa, im_cols=len(msa[0]),
@@ -186,17 +186,18 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
         lines_ax = fig.add_subplot(gs[2*i+1:2*(i+1), :], sharex=msa_ax, aspect=block_rows*data_height/(msa_height * (lines_max - lines_min)))
 
         block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
-        msa_ax.imshow(block, extent=[i*block_cols, i*block_cols + block.shape[1]//sym_length, 0, block_rows], origin='lower')
+        x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
+        msa_ax.imshow(block, extent=[x_left, x_right, 0, block_rows], origin='lower')
         msa_ax.set_yticks([x+0.5 for x in range(ROWS)])
         msa_ax.set_yticklabels(msa_labels)
         msa_ax.tick_params(axis='y', length=0, labelsize=msa_labelsize)
         msa_ax.xaxis.set_visible(False)
-        msa_ax.spines['left'].set_visible(False)
-        msa_ax.spines['bottom'].set_visible(False)
+        for spine in ['left', 'right', 'top', 'bottom']:
+            msa_ax.spines[spine].set_visible(False)
 
         for line in lines:
-            lines_ax.plot(list(range(i*block_cols, i*block_cols + block.shape[1]//sym_length)),
-                          line[i * block_cols:i * block_cols + block.shape[1] // sym_length])
+            lines_ax.plot(list(range(x_left, x_right)),
+                          line[i*block_cols:i*block_cols + block.shape[1]//sym_length])
         lines_ax.set_ylim(lines_min, lines_max)
         lines_ax.tick_params(axis='y', labelsize=y_labelsize)
         lines_ax.tick_params(axis='x', labelsize=x_labelsize)
@@ -204,7 +205,7 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
 
 
 def plot_msa(msa, figsize=(12, 6),
-            msa_labels=None, msa_labelsize=6, x_labelsize=6,
+            msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6,
             hspace=0.5, sym_length=7, sym_height=7,
             block_cols=None, aa2color=None, gap2color=None):
     # Define functions and globals
@@ -255,7 +256,7 @@ def plot_msa(msa, figsize=(12, 6),
         msa_labels = []
     if block_cols is None:
         block_cols = get_block_cols()
-        block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
+    block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
     block_rows = len(msa)
 
     im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height,
@@ -266,13 +267,14 @@ def plot_msa(msa, figsize=(12, 6),
         msa_ax = fig.add_subplot(gs[i:i+1, :])
 
         block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
-        msa_ax.imshow(block, extent=[i*block_cols, i*block_cols + block.shape[1]//sym_length, 0, block_rows], origin='lower')
+        x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
+        msa_ax.imshow(block, extent=[x_left, x_right, 0, block_rows], origin='lower')
         msa_ax.set_yticks([x+0.5 for x in range(ROWS)])
         msa_ax.set_yticklabels(msa_labels)
         msa_ax.tick_params(axis='y', length=0, labelsize=msa_labelsize)
         msa_ax.tick_params(axis='x', labelsize=x_labelsize)
-        msa_ax.spines['left'].set_visible(False)
-        msa_ax.spines['bottom'].set_visible(False)
+        for spine in ['left', 'right', 'top', 'bottom']:
+            msa_ax.spines[spine].set_visible(False)
     return fig
 
 
