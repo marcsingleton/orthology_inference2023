@@ -31,7 +31,9 @@ def load_msa(path):
 
 def get_features(record):
     d = {'OGid': record.OGid, 'start': record.start, 'stop': record.stop, 'ppid': record.ppid}
-    d.update(features.get_features(record.segment))
+    if not (len(record.segment) == 0 or 'X' in record.segment or 'U' in record.segment):
+        d.update(features.get_features(record.segment))
+    print(record.OGid, record.start, record.stop, record.ppid)
     return d
 
 
@@ -39,6 +41,7 @@ num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 
 if __name__ == '__main__':
+    print('load regions')
     # Load regions
     OGid2regions = {}
     with open('../aucpred_segment/out/segments.tsv') as file:
@@ -50,17 +53,19 @@ if __name__ == '__main__':
             except KeyError:
                 OGid2regions[OGid] = [(int(start), int(stop), disorder)]
 
+    print('extract segments')
     # Extract segments
     args = []
-    for OGid, regions in list(OGid2regions.items()):
+    for OGid, regions in OGid2regions.items():
         msa = load_msa(f'../trim_extract/out/{OGid}.mfa')
         msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
         for start, stop, disorder in regions:
             for ppid, seq in msa.items():
-                segment = seq[start:stop].translate({ord('-'): None, ord('.'): None})
+                segment = seq[start:stop].translate({ord('-'): None, ord('.'): None}).upper()
                 args.append(Record(OGid, start, stop, ppid, disorder, segment))
 
+    print('calculate features')
     # Calculate features
     with mp.Pool(processes=num_processes) as pool:
         records = pool.map(get_features, args, chunksize=50)
@@ -74,7 +79,7 @@ if __name__ == '__main__':
             fields = list(records[0])
             file.write('\t'.join(fields) + '\n')
         for record in records:
-            file.write('\t'.join(str(record[field]) for field in fields) + '\n')
+            file.write('\t'.join(str(record.get(field, 'nan')) for field in fields) + '\n')
 
 """
 DEPENDENCIES
