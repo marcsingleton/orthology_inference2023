@@ -33,7 +33,6 @@ def get_features(record):
     d = {'OGid': record.OGid, 'start': record.start, 'stop': record.stop, 'ppid': record.ppid}
     if not (len(record.segment) == 0 or 'X' in record.segment or 'U' in record.segment):
         d.update(features.get_features(record.segment))
-    print(record.OGid, record.start, record.stop, record.ppid)
     return d
 
 
@@ -41,7 +40,6 @@ num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 
 if __name__ == '__main__':
-    print('load regions')
     # Load regions
     OGid2regions = {}
     with open('../aucpred_segment/out/segments.tsv') as file:
@@ -53,7 +51,6 @@ if __name__ == '__main__':
             except KeyError:
                 OGid2regions[OGid] = [(int(start), int(stop), disorder)]
 
-    print('extract segments')
     # Extract segments
     args = []
     for OGid, regions in OGid2regions.items():
@@ -65,7 +62,6 @@ if __name__ == '__main__':
                 segment = seq[start:stop].translate({ord('-'): None, ord('.'): None}).upper()
                 args.append(Record(OGid, start, stop, ppid, disorder, segment))
 
-    print('calculate features')
     # Calculate features
     with mp.Pool(processes=num_processes) as pool:
         records = pool.map(get_features, args, chunksize=50)
