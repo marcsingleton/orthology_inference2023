@@ -110,7 +110,7 @@ num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 states = ['1A', '1B', '2', '3']
 
 if __name__ == '__main__':
-    with open('../segment_hmm3/out/model.json') as file:
+    with open('../insertion_hmm3/out/model.json') as file:
         params = json.load(file)
 
     if not os.path.exists('out/'):
@@ -123,6 +123,6 @@ if __name__ == '__main__':
 """
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer/realign_hmmer.py
-../segment_hmm3/fit.py
-    ../segment_hmm3/out/model.json
+../insertion_hmm3/fit.py
+    ../insertion_hmm3/out/model.json
 """

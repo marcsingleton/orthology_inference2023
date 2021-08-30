@@ -253,7 +253,7 @@ if __name__ == '__main__':
                         'mis': mis, 'mijs': mijs})
 
     # Initialize parameters
-    with open('../segment_hmm2/out/model.json') as file:
+    with open('../insertion_hmm2/out/model.json') as file:
         params = json.load(file)
     t_dists = params['t_dists']
     e_dists = params['e_dists']
@@ -330,6 +330,6 @@ DEPENDENCIES
 ../../ortho_MSA/realign_hmmer/realign_hmmer.py
     ../../ortho_MSA/realign_hmmer/out/*.mfa
 ../config/segments.tsv
-../segment_hmm2/segment_hmm2_calc.py
-    ../segment_hmm2/segment_hmm2_calc/out/model.json
+../insertion_hmm2/insertion_hmm2_calc.py
+    ../insertion_hmm2/insertion_hmm2_calc/out/model.json
 """

@@ -75,6 +75,6 @@ DEPENDENCIES
     ../../ortho_MSA/realign_hmmer/out/*
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
-./decode.py
-    ./out/*.tsv
+../trim_extract/decode.py
+    ./trim_extract/out/*.tsv
 """
