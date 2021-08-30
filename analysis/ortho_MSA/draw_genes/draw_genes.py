@@ -67,7 +67,7 @@ for row in df.dropna().itertuples():
     else:
         msa = load_msa(f'../align_fastas2-2/out/{row.OGid}.mfa')
 
-    msa = [seq[1] for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
+    msa = [seq for _, seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
     im = draw_msa(msa)
     plt.imsave(f'out/{row.OGid}.png', im)
 

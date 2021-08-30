@@ -107,7 +107,7 @@ for label in ['norm1', 'norm2']:
 
         tree = tree_template.shear([seq[0] for seq in msa])
         order = {tip.name: i for i, tip in enumerate(tree.tips())}
-        msa = [seq[1] for seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
+        msa = [seq for _, seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
         im = draw_msa(msa)
         plt.imsave(f'out/{label}/{i}_{row.OGid}.png', im)
 
