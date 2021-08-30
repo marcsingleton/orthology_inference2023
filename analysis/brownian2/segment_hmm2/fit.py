@@ -167,7 +167,7 @@ for state, (e_count0, e_count1) in e_counts.items():
     print(result)
 
 total = sum(start_count.values())
-start_dist = {s: count/total for s, count in start_count.items()}
+start_dist = {state: count/total for state, count in start_count.items()}
 
 # Save parameters
 if not os.path.exists('out/'):

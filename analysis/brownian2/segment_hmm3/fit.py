@@ -17,7 +17,6 @@ from scipy.special import beta, digamma
 class modHMM(hmm.HMM):
     def forward_backward1(self, emits, fs, ss_f, bs, ss_b):
         """Posterior decoding of states."""
-
         p = reduce(lambda x, y: x+y, map(log, ss_f))
         ss_f = list(accumulate(map(log, ss_f)))
         ss_b = list(accumulate(map(log, ss_b[::-1])))[::-1]
@@ -128,7 +127,7 @@ def count_transitions(state_seq, state_set):
 
 
 def count_states(state_seq, state_set):
-    mis = {s: [] for s in state_set}
+    mis = {state: [] for state in state_set}
     for state in state_seq:
         for s in state_set:
             mis[s].append(1 if state == s else 0)

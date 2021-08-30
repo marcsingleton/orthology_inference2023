@@ -203,7 +203,7 @@ for state in ['1B', '2']:
     print(result)
 
 total = sum(start_t_count.values())
-start_t_dist = {s: count/total for s, count in start_t_count.items()}
+start_t_dist = {state: count/total for state, count in start_t_count.items()}
 
 # Save parameters
 if not os.path.exists('out/'):

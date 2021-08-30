@@ -189,11 +189,11 @@ for OGid in OGids:
 
     # Decode states and plot
     fbs = model.forward_backward(emits)
-    draw.plot_msa_lines([record[1].upper() for record in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(15, 6))
+    draw.plot_msa_lines([seq.upper() for _, seq in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(15, 6))
     plt.savefig(f'out/{OGid}_wide.png', bbox_inches='tight')
     plt.close()
 
-    draw.plot_msa_lines([record[1].upper() for record in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(8, 8))
+    draw.plot_msa_lines([seq.upper() for _, seq in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(8, 8))
     plt.savefig(f'out/{OGid}_tall.png', bbox_inches='tight')
     plt.close()
 
