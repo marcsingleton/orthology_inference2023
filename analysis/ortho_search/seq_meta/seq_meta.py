@@ -88,6 +88,7 @@ dyak has a few unusual entries in its translated_cds file which have no proper N
 full database file, so they were simply manually corrected in the source FASTAs.
 
 DEPENDENCIES
+../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../config/genomes.tsv

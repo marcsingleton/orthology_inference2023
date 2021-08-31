@@ -85,6 +85,6 @@ DEPENDENCIES
     ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
 ../../ortho_cluster3/connect_OGgraph/connect_OGgraph.py
     ../../ortho_cluster3/connect_OGgraph/out/OGconnect.txt
-../../ortho_cluster3/hits2pgraph/hits2pgraph.py
+../../ortho_cluster3/hits2pgraph/hits2pgraph2.py
     ../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv
 """

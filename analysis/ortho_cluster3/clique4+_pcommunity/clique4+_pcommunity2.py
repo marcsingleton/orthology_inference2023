@@ -197,8 +197,8 @@ Type 3: 711
 Type 4: 1581
 
 DEPENDENCIES
-../connect_pgraph/connect_pgraph.py
+../connect_pgraph/connect_pgraph2.py
     ../connect_pgraph/out/pconnect2.txt
-../hits2pgraph/hits2pgraph.py
+../hits2pgraph/hits2pgraph2.py
     ../hits2pgraph/out/pgraph2.tsv
 """

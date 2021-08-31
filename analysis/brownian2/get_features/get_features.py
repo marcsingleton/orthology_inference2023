@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../aucpred_segment/aucpred_segment.py
+../aucpred_segment/segment.py
     ../aucpred_segment/out/segments.tsv
 ../insertion_trim/extract.py
     ../insertion_trim/out/*.mfa

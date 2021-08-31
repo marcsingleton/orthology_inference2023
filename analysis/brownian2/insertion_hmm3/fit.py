@@ -330,6 +330,6 @@ DEPENDENCIES
 ../../ortho_MSA/realign_hmmer/realign_hmmer.py
     ../../ortho_MSA/realign_hmmer/out/*.mfa
 ../config/segments.tsv
-../insertion_hmm2/insertion_hmm2_calc.py
-    ../insertion_hmm2/insertion_hmm2_calc/out/model.json
+../insertion_hmm2/fit.py
+    ../insertion_hmm2/out/model.json
 """

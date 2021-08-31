@@ -7,5 +7,5 @@ fi
 ../../../bin/iqtree -s ../make_metaAA/out/${1}/${2}.fasta -m WAG+FO${3}+G -pre out/${1}/${2} -quiet
 
 # DEPENDENCIES
-# ../make_meta/make_metaAA.py
+# ../make_metaAA/make_metaAA.py
 #   ../make_metaAA/out/*/*.phy

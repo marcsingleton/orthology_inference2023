@@ -7,5 +7,5 @@ fi
 ../../../bin/iqtree -s ../make_metaNT/out/${1}/${2}.fasta -m GTR+FO${3}+G -pre out/${1}/${2} -quiet
 
 # DEPENDENCIES
-# ../make_meta/make_metaNT.py
+# ../make_metaNT/make_metaNT.py
 #   ../make_metaNT/out/*/*.phy

@@ -51,7 +51,6 @@ for label in ['norm1', 'norm2']:
 
 """
 DEPENDENCIES
-../../../src/draw.py
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../gap_contrasts/gap_contrasts_calc.py

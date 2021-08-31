@@ -43,6 +43,6 @@ DEPENDENCIES
 ../extract_orfs/extract_orfs.py
     ../extract_orfs/out/dpse_translated_orfs.faa
     ../extract_orfs/out/dyak_translated_orfs.faa
-../blast_dbs/blast_dbs.py
+../blast_dbs/blast_dbs.sh
     ../blast_dbs/out/*
 """

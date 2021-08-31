@@ -155,7 +155,7 @@ plt.close()
 DEPENDENCIES
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
-../clique4+_pcommunity/clique4+_pcommunity1.py
+../clique4+_pcommunity/clique4+_pcommunity2.py
     ../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
 ../connect_pgraph/connect_pgraph2.py
     ../connect_pgraph/out/pconnect2.txt

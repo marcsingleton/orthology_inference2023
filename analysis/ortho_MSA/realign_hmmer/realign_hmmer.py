@@ -76,6 +76,7 @@ if __name__ == '__main__':
         pool.map(hmm_align, OGid2meta)
 
 """
+DEPENDENCIES
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
 ../align_fastas2-2/align_fastas2-2.py

@@ -46,8 +46,6 @@ for label in os.listdir('../iqtree_GTR/out/'):
 
 """
 DEPENDENCIES
-../../../src/draw.py
-../../../src/ortho_tree/tree.py
-../iqtree_GTR/iqtree_GTR.py
+../iqtree_GTR/iqtree_GTR.sh
     ../iqtree_GTR/out/*/meta_*.treefile
 """

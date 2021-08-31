@@ -20,5 +20,6 @@ do
 done
 
 # DEPENDENCIES
-# ../../../data/ncbi_genomes/fna/*
+# ../../../data/ncbi_annotations/*/*/*/*_protein.faa
+# ../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
 # ../config/genomes.tsv

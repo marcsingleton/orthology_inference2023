@@ -75,5 +75,5 @@ DEPENDENCIES
 ../clique4+_pcommunity/clique4+_pcommunity.py
     ../../ortho_cluster3/clique4+_pcommunity/out/4clique/pclusters.txt
 ../hits2pgraph/hits2pgraph.py
-    ../hits2pgraph/out/pgraph2.tsv
+    ../hits2pgraph/out/pgraph.tsv
 """

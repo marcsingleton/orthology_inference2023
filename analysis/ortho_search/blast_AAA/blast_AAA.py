@@ -44,6 +44,6 @@ DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../config/genomes.tsv
-../blast_dbs/blast_dbs.py
+../blast_dbs/blast_dbs.sh
     ../blast_dbs/out/*
 """

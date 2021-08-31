@@ -94,8 +94,8 @@ pca_plots(df, 'TC2')
 
 """
 DEPENDENCIES
-../bm_score_calc/bm_score_calc.py
-    ../bm_score_calc/out/scores.tsv
+../bm_score/bm_score_calc.py
+    ../bm_score/out/scores.tsv
 ./m_coffee_score_calc.py
     ./out/scores.tsv
 """

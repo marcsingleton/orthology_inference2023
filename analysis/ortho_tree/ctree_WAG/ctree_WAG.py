@@ -46,8 +46,6 @@ for label in os.listdir('../iqtree_WAG/out/'):
 
 """
 DEPENDENCIES
-../../../src/draw.py
-../../../src/ortho_tree/tree.py
-../iqtree_WAG/iqtree_WAG.py
+../iqtree_WAG/iqtree_WAG.sh
     ../iqtree_WAG/out/*/meta_*.treefile
 """

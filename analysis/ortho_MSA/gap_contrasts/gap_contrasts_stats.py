@@ -112,7 +112,6 @@ for label in ['norm1', 'norm2']:
         plt.imsave(f'out/{label}/{i}_{row.OGid}.png', im)
 
 """
-../../../src/draw.py
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py
