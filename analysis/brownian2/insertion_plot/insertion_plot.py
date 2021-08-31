@@ -48,7 +48,7 @@ for label in ['norm1', 'norm2']:
 
         # Load decoded states
         posterior = []
-        with open(f'../trim_extract/out/{row.OGid}.tsv') as file:
+        with open(f'../insertion_trim/out/{row.OGid}.tsv') as file:
             header = file.readline().split()
             for line in file:
                 d = {key: float(value) for key, value in zip(header, line.split())}
@@ -75,6 +75,6 @@ DEPENDENCIES
     ../../ortho_MSA/realign_hmmer/out/*
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
-../trim_extract/decode.py
-    ./trim_extract/out/*.tsv
+../insertion_trim/decode.py
+    ./insertion_trim/out/*.tsv
 """

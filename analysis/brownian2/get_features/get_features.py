@@ -54,7 +54,7 @@ if __name__ == '__main__':
     # Extract segments
     args = []
     for OGid, regions in OGid2regions.items():
-        msa = load_msa(f'../trim_extract/out/{OGid}.mfa')
+        msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
         msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
         for start, stop, disorder in regions:
@@ -81,6 +81,6 @@ if __name__ == '__main__':
 DEPENDENCIES
 ../aucpred_segment/aucpred_segment.py
     ../aucpred_segment/out/segments.tsv
-../trim_extract/trim_extract.py
-    ../trim_extract/out/*.mfa
+../insertion_trim/extract.py
+    ../insertion_trim/out/*.mfa
 """

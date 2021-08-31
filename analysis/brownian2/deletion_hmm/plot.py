@@ -61,7 +61,7 @@ with open('segments.tsv') as file:
 # Plot alignments
 for OGid, ppid in ids:
     # Load msa and trim terminal insertions
-    msa = load_msa(f'../trim_extract/out/{OGid}.mfa')
+    msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
     seq = [seq for header, seq in msa if re.search(ppid_regex, header).group(1) == ppid][0]
 
     # Create Bernoulli sequence
@@ -99,8 +99,8 @@ for OGid, ppid in ids:
 
 """
 DEPENDENCIES
-../trim_extract/trim_extract.py
-    ../trim_extract/trim_extract/out/*.mfa
+../insertion_trim/extract.py
+    ../trim_extract/out/*.mfa
 ./fit.py
     ./out/model.json
 """

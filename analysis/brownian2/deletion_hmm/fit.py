@@ -170,7 +170,7 @@ if __name__ == '__main__':
     records = []
     for (OGid, ppid), regions in OGid2regions.items():
         # Load MSA and extract seq
-        msa = load_msa(f'../trim_extract/out/{OGid}.mfa')
+        msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
         seq = [seq for header, seq in msa if re.search(ppid_regex, header).group(1) == ppid][0]
 
         # Create Bernoulli sequence
@@ -290,7 +290,7 @@ The gradients are calculated using the formulas in:
 Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 
 DEPENDENCIES
-../trim_extract/trim_extract.py
-    ../trim_extract/trim_extract/out/*.mfa
+../insertion_trim/extract.py
+    ../insertion_trim/out/*.mfa
 ./segments.tsv
 """

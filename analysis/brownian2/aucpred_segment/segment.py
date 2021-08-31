@@ -62,7 +62,7 @@ ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 records = []
 for OGid in os.listdir('out/raw/'):
     # Load MSA
-    msa = load_msa(f'../trim_extract/out/{OGid}.mfa')
+    msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
     msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
     # Map outputs to MSA columns
@@ -107,8 +107,8 @@ OUTPUT
 3423 has fewer predictions than sequences. Skipping segmentation.
 
 DEPENDENCIES
-../trim_extract/trim_extract.py
-    ../trim_extract/out/*.mfa
+../insertion_trim/extract.py
+    ../insertion_trim/out/*.mfa
 ./run.py
     ./out/raw/*/*.diso_noprof
 """

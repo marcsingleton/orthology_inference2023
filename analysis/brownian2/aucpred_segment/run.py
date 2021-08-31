@@ -25,7 +25,7 @@ def load_msa(path):
 
 
 def run_aucpred(OGid):
-    msa = load_msa(f'../trim_extract/out/{OGid}.mfa')
+    msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
     prefix = f'out/raw/{OGid}/'
 
     if not os.path.exists(prefix):
@@ -50,11 +50,11 @@ if __name__ == '__main__':
         os.makedirs('out/raw/')
 
     with mp.Pool(processes=num_processes) as pool:
-        OGids = [path.split('.')[0] for path in os.listdir('../trim_extract/out/') if path.endswith('.mfa')]
+        OGids = [path.split('.')[0] for path in os.listdir('../insertion_trim/out/') if path.endswith('.mfa')]
         pool.map(run_aucpred, OGids)
 
 """
 DEPENDENCIES
-../trim_extract/extract.py
-    ../trim_extract/out/*.mfa
+../insertion_trim/extract.py
+    ../insertion_trim/out/*.mfa
 """

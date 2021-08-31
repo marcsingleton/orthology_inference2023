@@ -59,7 +59,7 @@ with open('../aucpred_segment/out/segments.tsv') as file:
 # Filter regions
 records = []
 for OGid, regions in OGid2regions.items():
-    msa = load_msa(f'../trim_extract/out/{OGid}.mfa')
+    msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
 
     for region in regions:
         # Get indices and length
@@ -110,7 +110,7 @@ for OGid, regions in OGid2regions.items():
         # 3 Filter by phylogenetic diversity
         ppids = [ppid for ppid, _, _ in segments2]
         spids = set([spid for _, spid, _ in segments2])
-        if spid_filter(spids):
+        if len(spids) == 20 and spid_filter(spids):
             records.append((OGid, str(start), str(stop), str(disorder), ','.join(ppids)))
 
 # Write records to file
@@ -127,6 +127,6 @@ with open('out/segments.tsv', 'w') as file:
 DEPENDENCIES
 ../aucpred_segment/segment.py
     ../aucpred_segment/out/segments.tsv
-../trim_extract/trim_extract.py
-    ../trim_extract/out/*.mfa
+../insertion_trim/extract.py
+    ../insertion_trim/out/*.mfa
 """

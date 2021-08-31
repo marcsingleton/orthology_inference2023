@@ -97,9 +97,9 @@ def decode(OGid, params):
     # Instantiate model
     e_dists_rv = {state: bernoulli_betabinom_frozen(p, len(msa)-1, a, b) for state, (p, a, b) in params['e_dists'].items()}
     model = hmm.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
-    fbs = model.forward_backward(emits)
 
     # Decode states and write
+    fbs = model.forward_backward(emits)
     with open(f'out/{OGid}.tsv', 'w') as file:
         file.write('\t'.join(states) + '\n')
         for fb in zip(*[fbs[state] for state in states]):
