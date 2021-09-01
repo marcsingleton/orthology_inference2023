@@ -18,7 +18,7 @@
 # Command(s) to run:
 # Link to output in scratch
 if [ ! -d out ]; then
-  out_dir=/global/scratch/singleton/IDREvoDevo/analysis/ortho_MSA/realign_hmmer/out/
+  out_dir=/global/scratch/users/singleton/IDREvoDevo/analysis/ortho_MSA/realign_hmmer/out/
   if [ ! -d ${out_dir} ]; then
     mkdir -p ${out_dir}  # -p makes intermediate directory if they do not exist
   fi

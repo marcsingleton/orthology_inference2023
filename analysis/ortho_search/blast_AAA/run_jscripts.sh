@@ -4,7 +4,7 @@
 # Set current directory and link to output in scratch
 cd "$(dirname "$0")"
 if [ ! -d out ]; then
-  out_dir=/global/scratch/singleton/IDREvoDevo/analysis/ortho_cluster2/blast_AAA/out/
+  out_dir=/global/scratch/users/singleton/IDREvoDevo/analysis/ortho_cluster2/blast_AAA/out/
   if [ ! -d ${out_dir} ]; then
     mkdir -p ${out_dir}  # -p makes intermediate directory if they do not exist
   fi
