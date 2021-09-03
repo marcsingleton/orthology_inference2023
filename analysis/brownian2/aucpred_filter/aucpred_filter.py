@@ -24,6 +24,19 @@ def load_msa(path):
     return msa
 
 
+def load_posteriors(path):
+    posteriors = {}
+    with open(path) as file:
+        file.readline()  # Skip header
+        for line in file:
+            ppid, p0, p1 = line.split()
+            try:
+                posteriors[ppid].append((float(p0), float(p1)))
+            except KeyError:
+                posteriors[ppid] = [(float(p0), float(p1))]
+    return posteriors
+
+
 def spid_filter(spids):
     conditions = [({'dnov', 'dvir'}, 1),
                   ({'dmoj', 'dnav'}, 1),
@@ -41,7 +54,7 @@ def spid_filter(spids):
 
 
 min_length = 30
-alpha = 0.001
+threshold = 0.99
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 spid_regex = r'spid=([a-z]+)'
 
@@ -60,6 +73,7 @@ with open('../aucpred_segment/out/segments.tsv') as file:
 records = []
 for OGid, regions in OGid2regions.items():
     msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
+    posteriors = load_posteriors(f'../deletion_decode/out/{OGid}.tsv')
 
     for region in regions:
         # Get indices and length
@@ -67,50 +81,30 @@ for OGid, regions in OGid2regions.items():
         length = stop - start
         disorder = region[2]
 
-        # Extract segments and counts of gaps and (non-gap) symbols
-        segments0 = []
+        # Extract and filter segments
+        segments = []
         for header, seq in msa:
+            # Extract
             ppid = re.search(ppid_regex, header).group(1)
             spid = re.search(spid_regex, header).group(1)
             segment = seq[start:stop]
-            gaps = sum([segment.count(sym) for sym in ['-', '.']])
-            syms = length - gaps
 
-            segments0.append((ppid, spid, segment, gaps, syms))
+            # Filter
+            length, is_standard = 0, True
+            for sym in segment:
+                if sym not in ['-', '.']:
+                    length += 1
+                if sym in ['X', 'U']:
+                    is_standard = False
+                    break
+            posterior = posteriors[ppid][start:stop]
+            if length >= min_length and is_standard and all([p1 < threshold for _, p1 in posterior]):
+                segments.append((ppid, spid))
 
-        # 1 Filter by length
-        segments1 = []
-        for record in segments0:
-            syms = record[4]
-            if syms > min_length:
-                segments1.append(record)
-        if not segments1:
-            continue
-
-        # 2 Filter by gap composition (Pearson's chi-squared test)
-        total_gaps = sum([record[3] for record in segments1]) + 1  # Pseudocounts prevent later division by zero
-        total_syms = sum([record[4] for record in segments1]) + 1
-        total = total_gaps + total_syms
-        p_gaps = total_gaps / total
-        p_syms = total_syms / total
-        exp_gaps = p_gaps * length
-        exp_syms = p_syms * length
-
-        segments2 = []
-        for ppid, spid, segment, gaps, syms in segments1:
-            chi2 = (gaps - exp_gaps) ** 2 / exp_gaps + (syms - exp_syms) ** 2 / exp_syms
-            pvalue = 1 - stats.chi2.cdf(chi2, df=1)
-            if pvalue >= alpha:
-                segments2.append((ppid, spid, segment))
-            else:
-                print(f'Rejected {ppid} in {OGid}:{start}:{stop} (p = {pvalue})!')
-        if not segments2:
-            continue
-
-        # 3 Filter by phylogenetic diversity
-        ppids = [ppid for ppid, _, _ in segments2]
-        spids = set([spid for _, spid, _ in segments2])
-        if len(spids) == 20 and spid_filter(spids):
+        # Filter by phylogenetic diversity
+        ppids = [ppid for ppid, _ in segments]
+        spids = set([spid for _, spid in segments])
+        if len(spids) >= 20 and spid_filter(spids):
             records.append((OGid, str(start), str(stop), str(disorder), ','.join(ppids)))
 
 # Write records to file
