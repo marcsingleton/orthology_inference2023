@@ -87,7 +87,7 @@ for OGid, regions in OGid2regions.items():
             # Extract
             ppid = re.search(ppid_regex, header).group(1)
             spid = re.search(spid_regex, header).group(1)
-            segment = seq[start:stop]
+            segment = seq[start:stop].upper()
 
             # Filter
             length, is_standard = 0, True
