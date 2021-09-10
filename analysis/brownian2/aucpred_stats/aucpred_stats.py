@@ -6,6 +6,7 @@ import re
 import matplotlib.pyplot as plt
 import pandas as pd
 from numpy import linspace
+from sklearn.decomposition import PCA
 
 
 def load_msa(path):
@@ -27,78 +28,166 @@ def load_msa(path):
 
 
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
+min_lengths = sorted([int(path.split('_')[1][:-4]) for path in os.listdir('../aucpred_filter/out/') if path.endswith('.tsv')])
+pdidx = pd.IndexSlice
 
-# Parse segments
+# Parse segments and load features
 rows = []
-with open('../aucpred_filter/out/segments.tsv') as file:
-    file.readline()  # Skip header
-    for line in file:
-        OGid, start, stop, disorder, ppids = line.split()
+for min_length in min_lengths:
+    with open(f'../aucpred_filter/out/segments_{min_length}.tsv') as file:
+        file.readline()  # Skip header
+        for line in file:
+            OGid, start, stop, disorder, ppids = line.split()
 
-        msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
-        msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
+            msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
+            msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
-        for ppid in ppids.split(','):
-            length = len([sym for sym in msa[ppid] if sym not in ['-', '.']])
-            rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True', 'ppid': ppid, 'length': length})
-
-# Convert to pandas objects
+            for ppid in ppids.split(','):
+                segment = msa[ppid][int(start):int(stop)]
+                length = len([sym for sym in segment if sym not in ['-', '.']])
+                rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True',
+                             'ppid': ppid, 'min_length': min_length, 'length': length})
 df = pd.DataFrame(rows)
-OGs = df.groupby(['OGid', 'start', 'stop', 'disorder'])
-idx = pd.IndexSlice
+features = pd.read_table('../get_features/out/features.tsv')
 
+# Plots of combined segment sets
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-
-# Mean region length histogram
-lengths = OGs['length'].aggregate(['mean', 'std'])
-
-fig, axs = plt.subplots(2, 1, sharex=True)
-xmin, xmax = lengths['mean'].min(), lengths['mean'].max()
-axs[0].hist(lengths.loc[idx[:, :, :, True], 'mean'], bins=linspace(xmin, xmax, 100), color='C0', label='disorder')
-axs[1].hist(lengths.loc[idx[:, :, :, False], 'mean'], bins=linspace(xmin, xmax, 100), color='C1', label='order')
-axs[1].set_xlabel('Average length of region')
-for i in range(2):
-    axs[i].set_ylabel('Number of regions')
-    axs[i].legend()
-plt.savefig('out/hist_numregions-length.png')
-plt.close()
-
-# Number of sequences in region bar plot
-fig, ax = plt.subplots()
-counts1 = OGs.size()[idx[:, :, :, True]].value_counts()
-counts2 = OGs.size()[idx[:, :, :, False]].value_counts()
-ax.bar(counts1.index - 0.35/2, counts1.values, label='disorder', width=0.35)
-ax.bar(counts2.index + 0.35/2, counts2.values, label='order', width=0.35)
-ax.set_xlabel('Number of sequences in region')
-ax.set_ylabel('Number of regions')
-ax.legend()
-plt.savefig('out/bar_numregions-numseqs.png')
-plt.close()
-
-# Counts of regions and unique OGs in each class
-disorder = df[df['disorder']]
-order = df[~df['disorder']]
-
-plt.bar([0, 1], [len(disorder[['OGid', 'start', 'stop']].drop_duplicates()), len(order[['OGid', 'start', 'stop']].drop_duplicates())],
-        tick_label=['disorder', 'order'], color=['C0', 'C1'], width=0.35)
-plt.xlim((-0.5, 1.5))
+# Number of regions by length threshold
+disorder, order = [], []
+for min_length in min_lengths:
+    disorder.append(len(df.loc[df['disorder'] & (df['min_length'] == min_length), ['OGid', 'start', 'stop']].drop_duplicates()))
+    order.append(len(df.loc[~df['disorder'] & (df['min_length'] == min_length), ['OGid', 'start', 'stop']].drop_duplicates()))
+plt.plot(min_lengths, disorder, color='C0', label='disorder')
+plt.plot(min_lengths, order, color='C1', label='order')
+plt.xlabel('Length threshold')
 plt.ylabel('Number of regions')
-plt.savefig('out/bar_numregions-DO.png')
+plt.legend()
+plt.savefig('out/line_numregions-minlength.png')
 plt.close()
 
-plt.bar([0, 1], [len(disorder['OGid'].drop_duplicates()), len(order['OGid'].drop_duplicates())],
-        tick_label=['disorder', 'order'], color=['C0', 'C1'], width=0.35)
-plt.xlim((-0.5, 1.5))
+# Number of OGs by length threshold
+disorder, order = [], []
+for min_length in min_lengths:
+    disorder.append(len(df.loc[df['disorder'] & (df['min_length'] == min_length), 'OGid'].drop_duplicates()))
+    order.append(len(df.loc[~df['disorder'] & (df['min_length'] == min_length), 'OGid'].drop_duplicates()))
+plt.plot(min_lengths, disorder, color='C0', label='disorder')
+plt.plot(min_lengths, order, color='C1', label='order')
+plt.xlabel('Length threshold')
 plt.ylabel('Number of unique OGs')
-plt.savefig('out/bar_numOGs-DO.png')
+plt.legend()
+plt.savefig('out/line_numOGs-minlength.png')
 plt.close()
+
+# Plots of individual segment sets
+for min_length in min_lengths:
+    segments = df[df['min_length'] == min_length].merge(features, how='left', on=['OGid', 'start', 'stop', 'ppid'])
+    OGs = segments.groupby(['OGid', 'start', 'stop', 'disorder'])
+    mean = OGs.mean()
+
+    if not os.path.exists(f'out/segments_{min_length}/'):
+        os.mkdir(f'out/segments_{min_length}/')
+
+    # Mean region length histogram
+    fig, axs = plt.subplots(2, 1, sharex=True)
+    xmin, xmax = mean['length'].min(), mean['length'].max()
+    axs[0].hist(mean.loc[pdidx[:, :, :, True], 'length'], bins=linspace(xmin, xmax, 100), color='C0', label='disorder')
+    axs[1].hist(mean.loc[pdidx[:, :, :, False], 'length'], bins=linspace(xmin, xmax, 100), color='C1', label='order')
+    axs[1].set_xlabel('Mean length of region')
+    for i in range(2):
+        axs[i].set_ylabel('Number of regions')
+        axs[i].legend()
+    plt.savefig(f'out/segments_{min_length}/hist_numregions-length.png')
+    plt.close()
+
+    # Number of sequences in region bar plot
+    fig, ax = plt.subplots()
+    counts1 = OGs.size()[pdidx[:, :, :, True]].value_counts()
+    counts2 = OGs.size()[pdidx[:, :, :, False]].value_counts()
+    ax.bar(counts1.index - 0.35/2, counts1.values, color='C0', label='disorder', width=0.35)
+    ax.bar(counts2.index + 0.35/2, counts2.values, color='C1', label='order', width=0.35)
+    ax.set_xlabel('Number of sequences in region')
+    ax.set_ylabel('Number of regions')
+    ax.legend()
+    plt.savefig(f'out/segments_{min_length}/bar_numregions-numseqs.png')
+    plt.close()
+
+    # Counts of regions and unique OGs in each class
+    disorder = segments[segments['disorder']]
+    order = segments[~segments['disorder']]
+
+    plt.bar([0, 1], [len(disorder[['OGid', 'start', 'stop']].drop_duplicates()), len(order[['OGid', 'start', 'stop']].drop_duplicates())],
+            tick_label=['disorder', 'order'], color=['C0', 'C1'], width=0.35)
+    plt.xlim((-0.5, 1.5))
+    plt.ylabel('Number of regions')
+    plt.savefig(f'out/segments_{min_length}/bar_numregions-DO.png')
+    plt.close()
+
+    plt.bar([0, 1], [len(disorder['OGid'].drop_duplicates()), len(order['OGid'].drop_duplicates())],
+            tick_label=['disorder', 'order'], color=['C0', 'C1'], width=0.35)
+    plt.xlim((-0.5, 1.5))
+    plt.ylabel('Number of unique OGs')
+    plt.savefig(f'out/segments_{min_length}/bar_numOGs-DO.png')
+    plt.close()
+
+    # Feature variance pie chart
+    var = mean.var().drop(['min_length', 'length']).sort_values(ascending=False)  # Remove "non-feature" columns
+    truncate = pd.concat([var[:4], pd.Series({'other': var[4:].sum()})])
+    plt.pie(truncate.values, labels=truncate.index)
+    plt.title(f'Feature variance, length ≥ {min_length}')
+    plt.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
+    plt.subplots_adjust(right=0.7)
+    plt.savefig(f'out/segments_{min_length}/pie_variance.png')
+    plt.close()
+
+    # Feature PCAs
+    pca = PCA(n_components=5)
+    idx = mean.index.get_level_values('disorder').array.astype(bool)
+    x = mean.drop(['min_length', 'length'], axis=1)  # Remove "non-feature" columns
+
+    transform = pca.fit_transform(x.to_numpy())
+    plt.scatter(transform[idx, 0], transform[idx, 1], label='disorder', s=5, alpha=0.05, edgecolors='none')
+    plt.scatter(transform[~idx, 0], transform[~idx, 1], label='order', s=5, alpha=0.05, edgecolors='none')
+    plt.title(f'unnormed, length ≥ {min_length}')
+    plt.xlabel('PC1')
+    plt.ylabel('PC2')
+    legend = plt.legend(markerscale=2)
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+    plt.savefig(f'out/segments_{min_length}/pca_unnorm.png')
+    plt.close()
+
+    norm = (x - x.mean()) / x.std()
+    transform = pca.fit_transform(norm.to_numpy())
+    plt.scatter(transform[idx, 0], transform[idx, 1], label='disorder', s=5, alpha=0.05, edgecolors='none')
+    plt.scatter(transform[~idx, 0], transform[~idx, 1], label='order', s=5, alpha=0.05, edgecolors='none')
+    plt.title(f'z-score, length ≥ {min_length}')
+    plt.xlabel('PC1')
+    plt.ylabel('PC2')
+    legend = plt.legend(markerscale=2)
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+    plt.savefig(f'out/segments_{min_length}/pca_zscore.png')
+    plt.close()
+
+    norm = (x - x.min()) / (x.max()-x.min())
+    transform = pca.fit_transform(norm.to_numpy())
+    plt.scatter(transform[idx, 0], transform[idx, 1], label='disorder', s=5, alpha=0.05, edgecolors='none')
+    plt.scatter(transform[~idx, 0], transform[~idx, 1], label='order', s=5, alpha=0.05, edgecolors='none')
+    plt.title(f'min-max, length ≥ {min_length}')
+    plt.xlabel('PC1')
+    plt.ylabel('PC2')
+    legend = plt.legend(markerscale=2)
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+    plt.savefig(f'out/segments_{min_length}/pca_minmax.png')
+    plt.close()
 
 """
 DEPENDENCIES
 ../aucpred_filter/aucpred_filter.py
-    ../aucpred_filter/out/segments.tsv
+    ../aucpred_filter/out/segments_*.tsv
 ../insertion_trim/extract.py
     ../insertion_trim/out/*.mfa
 """
