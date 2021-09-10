@@ -53,7 +53,6 @@ def spid_filter(spids):
     return all([len(spids & group) >= num for group, num in conditions])
 
 
-min_length = 30
 threshold = 0.99
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 spid_regex = r'spid=([a-z]+)'
@@ -70,7 +69,7 @@ with open('../aucpred_segment/out/segments.tsv') as file:
             OGid2regions[OGid] = [(start, stop, disorder)]
 
 # Filter regions
-records = []
+record_sets = {i: [] for i in range(10, 35, 5)}
 for OGid, regions in OGid2regions.items():
     msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
     posteriors = load_posteriors(f'../deletion_decode/out/{OGid}.tsv')
@@ -82,7 +81,7 @@ for OGid, regions in OGid2regions.items():
         disorder = region[2]
 
         # Extract and filter segments
-        segments = []
+        segment_sets = {i: [] for i in record_sets}
         for header, seq in msa:
             # Extract
             ppid = re.search(ppid_regex, header).group(1)
@@ -98,24 +97,27 @@ for OGid, regions in OGid2regions.items():
                     is_standard = False
                     break
             posterior = posteriors[ppid][start:stop]
-            if length >= min_length and is_standard and all([p1 < threshold for _, p1 in posterior]):
-                segments.append((ppid, spid))
+            for min_length, segments in segment_sets.items():
+                if length >= min_length and is_standard and all([p1 < threshold for _, p1 in posterior]):
+                    segments.append((ppid, spid))
 
         # Filter by phylogenetic diversity
-        ppids = [ppid for ppid, _ in segments]
-        spids = set([spid for _, spid in segments])
-        if len(spids) >= 20 and spid_filter(spids):
-            records.append((OGid, str(start), str(stop), str(disorder), ','.join(ppids)))
+        for min_length, segments in segment_sets.items():
+            ppids = [ppid for ppid, _ in segments]
+            spids = set([spid for _, spid in segments])
+            if len(spids) >= 20 and spid_filter(spids):
+                record_sets[min_length].append((OGid, str(start), str(stop), str(disorder), ','.join(ppids)))
 
 # Write records to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-with open('out/segments.tsv', 'w') as file:
-    fields = ['OGid', 'start', 'stop', 'disorder', 'ppids']
-    file.write('\t'.join(fields) + '\n')
-    for record in records:
-        file.write('\t'.join(record) + '\n')
+for min_length, records in record_sets.items():
+    with open(f'out/segments_{min_length}.tsv', 'w') as file:
+        fields = ['OGid', 'start', 'stop', 'disorder', 'ppids']
+        file.write('\t'.join(fields) + '\n')
+        for record in records:
+            file.write('\t'.join(record) + '\n')
 
 """
 DEPENDENCIES
