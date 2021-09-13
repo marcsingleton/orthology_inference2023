@@ -7,6 +7,7 @@ import numpy as np
 from matplotlib import rcParams
 from matplotlib.collections import LineCollection
 from matplotlib.gridspec import GridSpec
+from matplotlib.lines import Line2D
 
 
 def draw_msa(msa,
@@ -77,16 +78,9 @@ def draw_msa(msa,
     if im_cols is None:
         im_cols = get_im_cols()
     if aa2color is None:
-        aa2color = {'A': '6dd7a1', 'I': '55c08c', 'L': '55c08c', 'V': '55c08c', 'M': '55c08c',
-                    'F': 'b897ec', 'Y': 'b897ec', 'W': 'a180d2',
-                    'S': 'ffbe74', 'T': 'ffbe74',
-                    'N': '77eaf4', 'Q': '77eaf4',
-                    'D': 'ee8485', 'E': 'ee8485',
-                    'H': '96c4ff', 'K': '7fadea', 'R': '7fadea',
-                    'C': 'faed70', 'G': 'e2dedd', 'P': 'ffb1f1',
-                    'X': '93908f', '-': 'ffffff', '.': '3f3f3f'}
+        aa2color = default_aa2color
     if gap2color is None:
-        gap2color = {'-': '3f3f3f', '.': 'ffffff'}
+        gap2color = default_gap2color
 
     # Instantiate array and fill with values
     im_length, im_height = get_dims(im_cols)
@@ -120,6 +114,7 @@ def draw_msa(msa,
 def plot_msa_lines(msa, lines, figsize=(12, 6),
                    msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6, y_labelsize=6,
                    msa_height=1, data_height=1, hspace=0.75, sym_length=7, sym_height=7,
+                   legend=False, legend_markersize=8, legend_kwargs=None,
                    lines_min=None, lines_max=None,
                    block_cols=None, aa2color=None, gap2color=None):
     # Define functions and globals
@@ -159,8 +154,14 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
     # Set options
     if msa_labels is None:
         msa_labels = []
+    if legend_kwargs is None:
+        legend_kwargs = {}
     if block_cols is None:
         block_cols = get_block_cols()
+    if aa2color is None:
+        aa2color = default_aa2color
+    if gap2color is None:
+        gap2color = default_gap2color
     if isinstance(lines, list):
         lines = np.array(lines)
     if lines.ndim == 1:
@@ -175,6 +176,7 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
     block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
     block_rows = len(msa)
 
+    # Draw axes
     im = draw_msa(msa, im_cols=len(msa[0]),
                   sym_length=sym_length, sym_height=sym_height, aa2color=aa2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
@@ -201,11 +203,27 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
         lines_ax.set_ylim(lines_min, lines_max)
         lines_ax.tick_params(axis='y', labelsize=y_labelsize)
         lines_ax.tick_params(axis='x', labelsize=x_labelsize)
+
+    # Draw legend
+    if legend:
+        color2aas = {}
+        for aa, color in aa2color.items():
+            if aa in gap2color:
+                continue
+            try:
+                color2aas[color].append(aa)
+            except KeyError:
+                color2aas[color] = [aa]
+        handles = []
+        for color, aas in color2aas.items():
+            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', markersize=legend_markersize, label=', '.join(aas)))
+        fig.legend(handles=handles, **legend_kwargs)
     return fig
 
 
 def plot_msa(msa, figsize=(12, 6),
             msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6,
+            legend=False, legend_markersize=8, legend_kwargs=None,
             hspace=0.5, sym_length=7, sym_height=7,
             block_cols=None, aa2color=None, gap2color=None):
     # Define functions and globals
@@ -254,11 +272,18 @@ def plot_msa(msa, figsize=(12, 6),
     # Set options
     if msa_labels is None:
         msa_labels = []
+    if legend_kwargs is None:
+        legend_kwargs = {}
     if block_cols is None:
         block_cols = get_block_cols()
+    if aa2color is None:
+        aa2color = default_aa2color
+    if gap2color is None:
+        gap2color = default_gap2color
     block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
     block_rows = len(msa)
 
+    # Draw axes
     im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height,
                   aa2color=aa2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
@@ -275,6 +300,23 @@ def plot_msa(msa, figsize=(12, 6),
         msa_ax.tick_params(axis='x', labelsize=x_labelsize)
         for spine in ['left', 'right', 'top', 'bottom']:
             msa_ax.spines[spine].set_visible(False)
+
+    # Draw legend
+    if legend:
+        color2aas = {}
+        for aa, color in aa2color.items():
+            if aa in gap2color:
+                continue
+            try:
+                color2aas[color].append(aa)
+            except KeyError:
+                color2aas[color] = [aa]
+        handles = []
+        for color, aas in color2aas.items():
+            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', markersize=legend_markersize, label=', '.join(aas)))
+        fig.legend(handles=handles, **legend_kwargs)
+    return fig
+
     return fig
 
 
@@ -384,3 +426,14 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
     ax.set_xlabel('branch length')
 
     return fig, ax
+
+
+default_aa2color = {'A': '6dd7a1', 'I': '55c08c', 'L': '55c08c', 'V': '55c08c', 'M': '55c08c',
+                    'F': 'b897ec', 'Y': 'b897ec', 'W': 'a180d2',
+                    'S': 'ffbe74', 'T': 'ffbe74',
+                    'N': '77eaf4', 'Q': '77eaf4',
+                    'D': 'ee8485', 'E': 'ee8485',
+                    'H': '96c4ff', 'K': '7fadea', 'R': '7fadea',
+                    'C': 'faed70', 'G': 'e2dedd', 'P': 'ffb1f1',
+                    'X': '93908f', '-': 'ffffff', '.': '3f3f3f'}
+default_gap2color = {'-': '3f3f3f', '.': 'ffffff'}
