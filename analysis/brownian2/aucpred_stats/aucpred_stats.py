@@ -31,7 +31,12 @@ ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 min_lengths = sorted([int(path.split('_')[1][:-4]) for path in os.listdir('../aucpred_filter/out/') if path.endswith('.tsv')])
 pdidx = pd.IndexSlice
 
-# Parse segments and load features
+# Load features
+features = pd.read_table('../get_features/out/features.tsv')
+features.loc[features['kappa'] == -1, 'kappa'] = 1
+features.loc[features['omega'] == -1, 'omega'] = 1
+
+# Parse segments
 rows = []
 for min_length in min_lengths:
     with open(f'../aucpred_filter/out/segments_{min_length}.tsv') as file:
@@ -48,7 +53,6 @@ for min_length in min_lengths:
                 rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True',
                              'ppid': ppid, 'min_length': min_length, 'length': length})
 df = pd.DataFrame(rows)
-features = pd.read_table('../get_features/out/features.tsv')
 
 # Plots of combined segment sets
 if not os.path.exists('out/'):
@@ -168,7 +172,7 @@ for min_length in min_lengths:
     legend = plt.legend(markerscale=2)
     for lh in legend.legendHandles:
         lh.set_alpha(1)
-    plt.savefig(f'out/segments_{min_length}/pca_zscore.png')
+    plt.savefig(f'out/segments_{min_length}/pca_z-score.png')
     plt.close()
 
     norm = (x - x.min()) / (x.max()-x.min())
@@ -181,7 +185,7 @@ for min_length in min_lengths:
     legend = plt.legend(markerscale=2)
     for lh in legend.legendHandles:
         lh.set_alpha(1)
-    plt.savefig(f'out/segments_{min_length}/pca_minmax.png')
+    plt.savefig(f'out/segments_{min_length}/pca_min-max.png')
     plt.close()
 
 """
