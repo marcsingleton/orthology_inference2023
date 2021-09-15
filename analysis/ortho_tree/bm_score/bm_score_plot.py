@@ -34,14 +34,14 @@ def pca_plots(df, metric):
         y = pca.components_[2, i] / 5
         if x > 0:
             ha = 'left'
-            x_offset = 0.006
+            x_offset = 0.01
         elif x == 0:
             ha = 'center'
             x_offset = 0
         else:
             ha = 'right'
-            x_offset = -0.006
-        plt.arrow(0, 0, x, y, width=0.0001, head_width=0.003)
+            x_offset = -0.01
+        plt.annotate('', xy=(x, y), xytext=(0, 0), arrowprops={'headwidth': 5, 'headlength': 5, 'width': 0.5, 'color': 'black'})
         plt.text(x + x_offset, y, col, fontsize='small', ha=ha)
     plt.legend()
     plt.xlabel('PC2')
