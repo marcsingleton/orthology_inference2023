@@ -9,8 +9,8 @@
 #SBATCH --nodes=1
 #
 # Reporting parameters
-#SBATCH --job-name=run
-#SBATCH --output=run.out
+#SBATCH --job-name=run_aucpred
+#SBATCH --output=run_aucpred.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
@@ -27,4 +27,4 @@ fi
 source /global/home/users/singleton/.bashrc
 conda activate IDREvoDevo
 module load gcc
-python run.py
+python run_aucpred.py

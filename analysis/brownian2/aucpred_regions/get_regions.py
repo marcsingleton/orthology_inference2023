@@ -1,4 +1,4 @@
-"""Segment trimmed alignments by averaging raw AUCpreD scores."""
+"""Segment trimmed alignments into regions by averaging raw AUCpreD scores."""
 
 import os
 import re
@@ -96,7 +96,7 @@ for OGid in os.listdir('out/raw/'):
         records.append((OGid, str(start), str(stop), str(disorder)))
 
 # Write segments to file
-with open('out/segments.tsv', 'w') as file:
+with open('out/regions.tsv', 'w') as file:
     fields = ['OGid', 'start', 'stop', 'disorder']
     file.write('\t'.join(fields) + '\n')
     for record in records:
@@ -109,6 +109,6 @@ OUTPUT
 DEPENDENCIES
 ../insertion_trim/extract.py
     ../insertion_trim/out/*.mfa
-./run.py
+./run_aucpred.py
     ./out/raw/*/*.diso_noprof
 """

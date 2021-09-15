@@ -36,10 +36,10 @@ features = pd.read_table('../get_features/out/features.tsv')
 features.loc[features['kappa'] == -1, 'kappa'] = 1
 features.loc[features['omega'] == -1, 'omega'] = 1
 
-# Parse segments
+# Parse regions
 rows = []
 for min_length in min_lengths:
-    with open(f'../aucpred_filter/out/segments_{min_length}.tsv') as file:
+    with open(f'../aucpred_filter/out/regions_{min_length}.tsv') as file:
         file.readline()  # Skip header
         for line in file:
             OGid, start, stop, disorder, ppids = line.split()
@@ -87,11 +87,11 @@ plt.close()
 # Plots of individual segment sets
 for min_length in min_lengths:
     segments = df[df['min_length'] == min_length].merge(features, how='left', on=['OGid', 'start', 'stop', 'ppid'])
-    OGs = segments.groupby(['OGid', 'start', 'stop', 'disorder'])
-    mean = OGs.mean()
+    regions = segments.groupby(['OGid', 'start', 'stop', 'disorder'])
+    mean = regions.mean()
 
-    if not os.path.exists(f'out/segments_{min_length}/'):
-        os.mkdir(f'out/segments_{min_length}/')
+    if not os.path.exists(f'out/regions_{min_length}/'):
+        os.mkdir(f'out/regions_{min_length}/')
 
     # Mean region length histogram
     fig, axs = plt.subplots(2, 1, sharex=True)
@@ -102,19 +102,19 @@ for min_length in min_lengths:
     for i in range(2):
         axs[i].set_ylabel('Number of regions')
         axs[i].legend()
-    plt.savefig(f'out/segments_{min_length}/hist_numregions-length.png')
+    plt.savefig(f'out/regions_{min_length}/hist_numregions-length.png')
     plt.close()
 
     # Number of sequences in region bar plot
     fig, ax = plt.subplots()
-    counts1 = OGs.size()[pdidx[:, :, :, True]].value_counts()
-    counts2 = OGs.size()[pdidx[:, :, :, False]].value_counts()
+    counts1 = regions.size()[pdidx[:, :, :, True]].value_counts()
+    counts2 = regions.size()[pdidx[:, :, :, False]].value_counts()
     ax.bar(counts1.index - 0.35/2, counts1.values, color='C0', label='disorder', width=0.35)
     ax.bar(counts2.index + 0.35/2, counts2.values, color='C1', label='order', width=0.35)
     ax.set_xlabel('Number of sequences in region')
     ax.set_ylabel('Number of regions')
     ax.legend()
-    plt.savefig(f'out/segments_{min_length}/bar_numregions-numseqs.png')
+    plt.savefig(f'out/regions_{min_length}/bar_numregions-numseqs.png')
     plt.close()
 
     # Counts of regions and unique OGs in each class
@@ -125,14 +125,14 @@ for min_length in min_lengths:
             tick_label=['disorder', 'order'], color=['C0', 'C1'], width=0.35)
     plt.xlim((-0.5, 1.5))
     plt.ylabel('Number of regions')
-    plt.savefig(f'out/segments_{min_length}/bar_numregions-DO.png')
+    plt.savefig(f'out/regions_{min_length}/bar_numregions-DO.png')
     plt.close()
 
     plt.bar([0, 1], [len(disorder['OGid'].drop_duplicates()), len(order['OGid'].drop_duplicates())],
             tick_label=['disorder', 'order'], color=['C0', 'C1'], width=0.35)
     plt.xlim((-0.5, 1.5))
     plt.ylabel('Number of unique OGs')
-    plt.savefig(f'out/segments_{min_length}/bar_numOGs-DO.png')
+    plt.savefig(f'out/regions_{min_length}/bar_numOGs-DO.png')
     plt.close()
 
     # Feature variance pie chart
@@ -142,7 +142,7 @@ for min_length in min_lengths:
     plt.title(f'Feature variance, length ≥ {min_length}')
     plt.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
     plt.subplots_adjust(right=0.7)
-    plt.savefig(f'out/segments_{min_length}/pie_variance.png')
+    plt.savefig(f'out/regions_{min_length}/pie_variance.png')
     plt.close()
 
     # Feature PCAs
@@ -159,7 +159,7 @@ for min_length in min_lengths:
     legend = plt.legend(markerscale=2)
     for lh in legend.legendHandles:
         lh.set_alpha(1)
-    plt.savefig(f'out/segments_{min_length}/pca_unnorm.png')
+    plt.savefig(f'out/regions_{min_length}/pca_unnorm.png')
     plt.close()
 
     norm = (x - x.mean()) / x.std()
@@ -172,7 +172,7 @@ for min_length in min_lengths:
     legend = plt.legend(markerscale=2)
     for lh in legend.legendHandles:
         lh.set_alpha(1)
-    plt.savefig(f'out/segments_{min_length}/pca_z-score.png')
+    plt.savefig(f'out/regions_{min_length}/pca_z-score.png')
     plt.close()
 
     norm = (x - x.min()) / (x.max()-x.min())
@@ -185,7 +185,7 @@ for min_length in min_lengths:
     legend = plt.legend(markerscale=2)
     for lh in legend.legendHandles:
         lh.set_alpha(1)
-    plt.savefig(f'out/segments_{min_length}/pca_min-max.png')
+    plt.savefig(f'out/regions_{min_length}/pca_min-max.png')
     plt.close()
 
 """

@@ -59,7 +59,7 @@ spid_regex = r'spid=([a-z]+)'
 
 # Load regions
 OGid2regions = {}
-with open('../aucpred_segment/out/segments.tsv') as file:
+with open('../aucpred_regions/out/regions.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid, start, stop, disorder = line.split()
@@ -113,7 +113,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 for min_length, records in record_sets.items():
-    with open(f'out/segments_{min_length}.tsv', 'w') as file:
+    with open(f'out/regions_{min_length}.tsv', 'w') as file:
         fields = ['OGid', 'start', 'stop', 'disorder', 'ppids']
         file.write('\t'.join(fields) + '\n')
         for record in records:
@@ -121,8 +121,8 @@ for min_length, records in record_sets.items():
 
 """
 DEPENDENCIES
-../aucpred_segment/segment.py
-    ../aucpred_segment/out/segments.tsv
+../aucpred_regions/get_regions.py
+    ../aucpred_regions/out/regions.tsv
 ../insertion_trim/extract.py
     ../insertion_trim/out/*.mfa
 """

@@ -16,15 +16,15 @@ features.loc[features['omega'] == -1, 'omega'] = 1
 
 # Parse segments
 rows = []
-with open('../aucpred_filter/out/segments_30.tsv') as file:
+with open('../aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid, start, stop, disorder, ppids = line.split()
         for ppid in ppids.split(','):
             rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True', 'ppid': ppid})
 segments = pd.DataFrame(rows).merge(features, how='left', on=['OGid', 'start', 'stop', 'ppid'])
-OGs = segments.groupby(['OGid', 'start', 'stop', 'disorder'])
-mean = OGs.mean()
+regions = segments.groupby(['OGid', 'start', 'stop', 'disorder'])
+mean = regions.mean()
 
 pdidx = pd.IndexSlice
 disorder = mean.loc[pdidx[:, :, :, True], :]
