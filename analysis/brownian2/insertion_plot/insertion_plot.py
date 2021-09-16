@@ -62,7 +62,7 @@ for label in ['norm1', 'norm2']:
         for s in slices:
             trims[s] = 1
 
-        tree = tree_template.shear([seq[0] for seq in msa])
+        tree = tree_template.shear([spid for spid, _ in msa])
         order = {tip.name: i for i, tip in enumerate(tree.tips())}
         msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
         plot_msa_lines(msa, [posterior, trims])

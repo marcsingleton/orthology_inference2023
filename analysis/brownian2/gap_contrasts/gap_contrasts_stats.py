@@ -17,7 +17,7 @@ def load_msa(path):
         line = file.readline()
         while line:
             if line.startswith('>'):
-                spid = re.search(r'spid=([a-z]+)', line).group(1)
+                header = line.rstrip()
                 line = file.readline()
 
             seqlines = []
@@ -25,17 +25,31 @@ def load_msa(path):
                 seqlines.append(line.rstrip())
                 line = file.readline()
             seq = ''.join(seqlines)
-            msa.append((spid, seq))
+            msa.append((header, seq))
     return msa
 
 
-OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
+ppid_regex = r'ppid=([A-Za-z0-9_]+)'
+spid_regex = r'spid=([a-z]+)'
+
+
+# Load regions
+rows = []
+with open('../aucpred_filter/out/regions_30.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        OGid, start, stop, disorder, ppids = line.split()
+        rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop),
+                     'gnidnum': len(ppids.split(',')), 'ppids': ppids.split(',')})
+regions = pd.DataFrame(rows)
+
+# Load tree
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 spids = set([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
 num_contrasts = len(spids) - 1
 
 # 1 PLOT STATISTICS (OGS WITH ALL SPECIES)
-df = pd.read_table('out/row_sums.tsv').merge(OG_filter, on='OGid', how='left')
+df = pd.read_table('out/row_sums.tsv').merge(regions, on=['OGid', 'start', 'stop'], how='left')
 df['total'] = df[[f'row{i}' for i in range(num_contrasts)]].sum(axis=1)
 df['avg'] = df['total'] / df['len2']
 
@@ -72,16 +86,16 @@ plt.yscale('log')
 plt.savefig('out/hist_contrast_log.png')
 plt.close()
 
-# 1.3 Distribution of averages within OGs
+# 1.3 Distribution of averages within regions
 plt.hist(contrasts.groupby('OGid').mean(), bins=200)
-plt.xlabel('Contrast mean in OG')
+plt.xlabel('Contrast mean in region')
 plt.ylabel('Count')
-plt.savefig('out/hist_contrast_OGmean.png')
+plt.savefig('out/hist_contrast_regionmean.png')
 plt.yscale('log')
-plt.savefig('out/hist_contrast_OGmean_log.png')
+plt.savefig('out/hist_contrast_regionmean_log.png')
 plt.close()
 
-# 1.4 Contrast averages across all OGs
+# 1.4 Contrast averages across all regions
 plt.bar(list(range(num_contrasts)), [df[f'row{i}'].mean() for i in range(num_contrasts)],
         yerr=[df[f'row{i}'].std()/50 for i in range(num_contrasts)])
 plt.xlabel('Contrast ID')
@@ -90,7 +104,7 @@ plt.savefig('out/bar_contrast_mean.png')
 plt.close()
 
 # 2 DRAW ALIGNMENTS (ALL OGS)
-df = pd.read_table('out/total_sums.tsv').merge(OG_filter[['OGid', 'sqidnum']], on='OGid', how='left')  # total_sums.tsv has gnidnum already
+df = pd.read_table('out/total_sums.tsv').merge(regions[['OGid', 'start', 'stop', 'ppids']], how='left', on=['OGid', 'start', 'stop'])
 df['norm1'] = df['total'] / df['gnidnum']
 df['norm2'] = df['total'] / (df['gnidnum'] * df['len2'])
 
@@ -100,26 +114,26 @@ for label in ['norm1', 'norm2']:
 
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
-        if row.sqidnum == row.gnidnum:
-            msa = load_msa(f'../align_fastas1/out/{row.OGid}.mfa')
-        else:
-            msa = load_msa(f'../align_fastas2-2/out/{row.OGid}.mfa')
+        msa = []
+        for header, seq in load_msa(f'../insertion_trim/out/{row.OGid}.mfa'):
+            ppid = re.search(ppid_regex, header).group(1)
+            spid = re.search(spid_regex, header).group(1)
+            if ppid in row.ppids:
+                msa.append((spid, seq[row.start:row.stop]))
 
         tree = tree_template.shear([spid for spid, _ in msa])
         order = {tip.name: i for i, tip in enumerate(tree.tips())}
-        msa = [seq for _, seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
+        msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
         im = draw_msa(msa)
-        plt.imsave(f'out/{label}/{i}_{row.OGid}.png', im)
+        plt.imsave(f'out/{label}/{i}_{row.OGid}-{row.start}-{row.stop}.png', im)
 
 """
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
-../align_fastas1/align_fastas1.py
-    ../align_fastas1/out/*.mfa
-../align_fastas2-2/align_fastas2-2.py
-    ../align_fastas2-2/out/*.mfa
-../OG_filter/OG_filter.py
-    ../OG_filter/out/OG_filter.tsv
+../insertion_trim/extract.py
+    ../insertion_trim/out/*.mfa
+../aucpred_filter/aucpred_filter.py
+    ../aucpred_filter/out/regions_30.tsv
 ./gap_contrasts_calc.py
     ./out/row_sums.tsv
     ./out/total_sums.tsv'
