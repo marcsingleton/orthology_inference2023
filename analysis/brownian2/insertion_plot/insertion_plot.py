@@ -1,4 +1,4 @@
-"""Extract state 1 segments to yield trimmed alignments."""
+"""Plot decoded insertions in alignments with large gap contrasts."""
 
 import os
 import re
