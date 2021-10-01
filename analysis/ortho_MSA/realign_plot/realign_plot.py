@@ -41,7 +41,7 @@ for label in ['norm1', 'norm2']:
 
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
-        msa = load_msa(f'../realign_hmmer/out/{row.OGid}.mfa')
+        msa = load_msa(f'../realign_hmmer2/out/{row.OGid}.mfa')
 
         tree = tree_template.shear([spid for spid, _ in msa])
         order = {tip.name: i for i, tip in enumerate(tree.tips())}
@@ -57,6 +57,6 @@ DEPENDENCIES
     ../gap_contrasts/out/total_sums.tsv
 ../OG_filter/OG_filter.py
     ../OG_filter/out/OG_filter.tsv
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/*.mfa
+../realign_hmmer2/realign_hmmer2.py
+    ../realign_hmmer2/out/*.mfa
 """

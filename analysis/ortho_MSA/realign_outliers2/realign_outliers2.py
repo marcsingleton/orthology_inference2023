@@ -39,8 +39,8 @@ spid_regex = r'spid=([a-z]+)'
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 
 records = []
-for OGid in [path.split('.mfa')[0] for path in os.listdir('../realign_hmmer/out/') if path.endswith('.mfa')]:
-    msa = [(re.search(spid_regex, header).group(1), seq.upper()) for header, seq in load_msa(f'../realign_hmmer/out/{OGid}.mfa')]
+for OGid in [path.split('.mfa')[0] for path in os.listdir('../realign_hmmer2/out/') if path.endswith('.mfa')]:
+    msa = [(re.search(spid_regex, header).group(1), seq.upper()) for header, seq in load_msa(f'../realign_hmmer2/out/{OGid}.mfa')]
 
     idx = 0
     for j in range(len(msa[0][1])):
@@ -149,6 +149,6 @@ for record in outliers:
 DEPENDENCIES
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/*.mfa
+../realign_hmmer2/realign_hmmer2.py
+    ../realign_hmmer2/out/*.mfa
 """
