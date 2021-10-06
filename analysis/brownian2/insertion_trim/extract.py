@@ -24,10 +24,10 @@ def load_msa(path):
     return msa
 
 
-OGids = [path.split('.')[0] for path in os.listdir('../../ortho_MSA/realign_hmmer/out/') if path.endswith('.mfa')]
+OGids = [path.split('.')[0] for path in os.listdir('../../ortho_MSA/realign_hmmer2/out/') if path.endswith('.mfa')]
 for OGid in OGids:
     # Load msa and trim terminal insertions
-    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa'))
+    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer2/out/{OGid}.mfa'))
 
     # Load decoded states and calculate derivative
     posterior = []
@@ -60,8 +60,8 @@ for OGid in OGids:
 
 """
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer/realign_hmmer.py
-    ../../ortho_MSA/realign_hmmer/out/*
+../../ortho_MSA/realign_hmmer2/realign_hmmer2.py
+    ../../ortho_MSA/realign_hmmer2/out/*
 ./decode.py
     ./out/*.tsv
 """

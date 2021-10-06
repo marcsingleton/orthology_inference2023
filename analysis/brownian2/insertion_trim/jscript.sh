@@ -15,6 +15,15 @@
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
+# Link to output in scratch
+if [ ! -d out ]; then
+  out_dir=/global/scratch/users/singleton/IDREvoDevo/analysis/brownian2/insertion_trim/out/
+  if [ ! -d ${out_dir} ]; then
+    mkdir -p ${out_dir}  # -p makes intermediate directory if they do not exist
+  fi
+  ln -s ${out_dir} out
+fi
+
 source /global/home/users/singleton/.bashrc
 conda activate IDREvoDevo
 python decode.py

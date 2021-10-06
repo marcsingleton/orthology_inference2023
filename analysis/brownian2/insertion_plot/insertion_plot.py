@@ -44,7 +44,7 @@ for label in ['norm1', 'norm2']:
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
         # Load msa and trim terminal insertions
-        msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer/out/{row.OGid}.mfa'))
+        msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer2/out/{row.OGid}.mfa'))
 
         # Load decoded states
         posterior = []
@@ -71,8 +71,8 @@ for label in ['norm1', 'norm2']:
 
 """
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer/realign_hmmer.py
-    ../../ortho_MSA/realign_hmmer/out/*
+../../ortho_MSA/realign_hmmer2/realign_hmmer2.py
+    ../../ortho_MSA/realign_hmmer2/out/*
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../insertion_trim/decode.py
