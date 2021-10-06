@@ -77,7 +77,7 @@ start_count = {state: 1 for state in states}
 # Get observed counts
 for OGid, regions in OGid2regions.items():
     # Load MSA and trim terminal insertions
-    msa = load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
+    msa = load_msa(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa')
     if regions[-1][2] == '0':
         start, _, _ = regions[-1]
         regions = regions[:-1]
@@ -177,7 +177,7 @@ with open('out/model.json', 'w') as file:
 
 """
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer/realign_hmmer.py
-    ../../ortho_MSA/realign_hmmer/out/*.mfa
+../../ortho_MSA/realign_hmmer1/realign_hmmer1.py
+    ../../ortho_MSA/realign_hmmer1/out/*.mfa
 ../config/segments.tsv
 """

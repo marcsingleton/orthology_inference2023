@@ -100,7 +100,7 @@ with open('../config/segments.tsv') as file:
 
 # Load msa and trim terminal insertions
 for OGid in OGids:
-    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa'))
+    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa'))
 
     # Create emission sequence
     emits = []
@@ -125,8 +125,8 @@ for OGid in OGids:
 
 """
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer/realign_hmmer.py
-    ../../ortho_MSA/realign_hmmer/out/*.mfa
+../../ortho_MSA/realign_hmmer/realign_hmmer1.py
+    ../../ortho_MSA/realign_hmmer1/out/*.mfa
 ./fit.py
     ./out/model.json
 """

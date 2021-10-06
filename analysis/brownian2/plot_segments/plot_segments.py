@@ -43,7 +43,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 for OGid, labels in OGid2labels.items():
-    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa'))
+    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa'))
 
     if labels['0'] and labels['0'][0][0] == 0:
         offset = labels['0'][0][1]
@@ -63,5 +63,7 @@ for OGid, labels in OGid2labels.items():
 
 """
 DEPENDENCIES
+../../ortho_MSA/realign_hmmer1/realign_hmmer1.py
+    ../../ortho_MSA/realign_hmmer1/out/*.mfa
 ../config/segments.tsv
 """
