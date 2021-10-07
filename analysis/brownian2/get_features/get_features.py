@@ -42,7 +42,7 @@ ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 if __name__ == '__main__':
     # Load regions
     OGid2regions = {}
-    with open('../aucpred_segment/out/segments.tsv') as file:
+    with open('../aucpred_regions/out/regions.tsv') as file:
         file.readline()  # Skip header
         for line in file:
             OGid, start, stop, disorder = line.split()
@@ -79,8 +79,8 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../aucpred_segment/segment.py
-    ../aucpred_segment/out/segments.tsv
+../aucpred_regions/regions.py
+    ../aucpred_regions/out/regions.tsv
 ../insertion_trim/extract.py
     ../insertion_trim/out/*.mfa
 """
