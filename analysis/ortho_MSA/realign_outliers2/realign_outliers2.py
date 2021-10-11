@@ -116,7 +116,7 @@ plt.xlabel('(score - alignment mean) of sequence')
 plt.ylabel('IQR of scores in alignment')
 plt.savefig('out/scatter_iqr-score1.png')
 
-ymax = plt.ylim()[1]
+ymax = max([record[2] for record in records])
 xmin = -(ymax/a)**0.5
 xs = np.linspace(xmin, 0, 100)
 ys = a*xs**2
@@ -125,7 +125,7 @@ plt.savefig('out/scatter_iqr-score2.png')
 plt.close()
 
 # Plot unique MSAs with largest deviations
-i, OGids = -1, set()
+OGids = set()
 outliers = sorted([record for record in records if record[0] < -1 and record[2] < a*record[0]**2])  # Use -1 to exclude near-zero floating point rounding errors
 for record in outliers:
     # Unpack variables
