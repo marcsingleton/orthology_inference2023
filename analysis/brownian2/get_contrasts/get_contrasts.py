@@ -41,11 +41,11 @@ def apply_contrasts(args):
     name, group, tree = args
 
     # Map features to tips
-    tree = tree.shear([ppid2spid[ppid] for ppid in group['ppid']])
-    spid2idx = {ppid2spid[ppid]: i for i, ppid in enumerate(group['ppid'])}
+    tree = tree.shear(group['spid'])
+    spid2idx = {spid: i for i, spid in enumerate(group['spid'])}
     for tip in tree.tips():
         idx = spid2idx[tip.name]
-        tip.value = group.iloc[idx].drop(['OGid', 'start', 'stop', 'ppid'])
+        tip.value = group.iloc[idx].drop(['OGid', 'start', 'stop', 'ppid', 'spid'])
 
     # Get contrasts
     tree.length = 0  # Set root length to 0 for convenience
@@ -78,14 +78,16 @@ if __name__ == '__main__':
         for line in file:
             OGid, start, stop, disorder, ppids = line.split()
             for ppid in ppids.split(','):
-                rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'ppid': ppid})
+                rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'ppid': ppid, 'spid': ppid2spid[ppid]})
     segments = pd.DataFrame(rows).merge(features, how='left', on=['OGid', 'start', 'stop', 'ppid'])
     regions = segments.groupby(['OGid', 'start', 'stop'])
 
     # Apply contrasts
     args = get_args(regions, tree_template)
     with mp.Pool(processes=num_processes) as pool:
-        records = pool.imap(apply_contrasts, args)
+        # Using imap distributes the construction of the args tuples
+        # However to force computation before pool is closed we must call list on it
+        records = list(pool.imap(apply_contrasts, args, chunksize=50))
 
     # Write contrasts to file
     if not os.path.exists('out/'):
