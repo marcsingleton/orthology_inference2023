@@ -8,4 +8,4 @@ fi
 
 # DEPENDENCIES
 # ../make_metaNT/make_metaNT.py
-#   ../make_metaNT/out/*/*.phy
+#   ../make_metaNT/out/*/*.fasta
