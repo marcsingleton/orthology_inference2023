@@ -59,7 +59,7 @@ for OGid in OGids:
     for sqid in OGs[OGid]:
         gnid, spid, _ = ppid2meta[sqid]
         seq = ppid2seq[sqid]
-        seqstring = '\n'.join([seq[i:i + 80] for i in range(0, len(seq), 80)]) + '\n'
+        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
         records.append((sqid, gnid, spid, seqstring))
     with open(f'out/{OGid}.tfa', 'w') as file:
         for sqid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):

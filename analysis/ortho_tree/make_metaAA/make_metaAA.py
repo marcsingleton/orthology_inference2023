@@ -77,7 +77,7 @@ for label, _, colpool in colpools:
 
         with open(f'out/{label}/meta_{samplenum}.fasta', 'w') as file:
             for spid, seq in sorted(seqs.items()):
-                seqstring = '\n'.join([''.join(seq[i:i + 80]) for i in range(0, len(seq), 80)]) + '\n'
+                seqstring = '\n'.join([''.join(seq[i:i+80]) for i in range(0, len(seq), 80)]) + '\n'
                 file.write(f'>{spid} {label}_{samplenum}\n' + seqstring)
 
 """
