@@ -71,7 +71,7 @@ if not os.path.exists('out/'):
 
 for label, _, colpool in colpools:
     print(f'{label}:', len(colpool))
-    sample = [colpool[randrange(len(colpool))] for _ in range(int(1E6))]
+    sample = [colpool[randrange(len(colpool))] for _ in range(int(1E5))]
     seqs = {}
     for col in sample:
         for spid, sym in col:
