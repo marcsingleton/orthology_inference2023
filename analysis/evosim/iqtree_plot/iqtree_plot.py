@@ -16,21 +16,21 @@ labels = ['0red_D', '50red_D', '100red_D',
           '0red_O', '50red_O', '100red_O']
 
 # Read WAG matrix
-WAG = np.zeros((20, 20))
+WAG_matrix = np.zeros((20, 20))
 with open('WAG.txt') as file:
     # Parse exchangeability matrix
     for i in range(19):
         line = file.readline()
         for j, value in enumerate(line.split()):
-            WAG[i+1, j] = float(value)
-            WAG[j, i+1] = float(value)
+            WAG_matrix[i + 1, j] = float(value)
+            WAG_matrix[j, i + 1] = float(value)
 
     # Parse equilibrium frequencies
     for _ in range(2):
         line = file.readline()
-    freqs = [float(value) for value in line.split()]
-rate = (np.array(freqs) * WAG.sum(axis=1)).sum()
-WAG = WAG / rate
+    WAG_freqs = [float(value) for value in line.split()]
+rate = (np.array(WAG_freqs) * WAG_matrix.sum(axis=1)).sum()
+WAG_matrix = WAG_matrix / rate
 
 # Read IQ-TREE matrices
 records = []
@@ -71,7 +71,7 @@ for label in labels:
 
     rate = (np.array(freqs) * matrix.sum(axis=1)).sum()
     matrix = matrix / rate
-    records.append((label, matrix))
+    records.append((label, matrix, freqs))
 
 # Make plots
 if not os.path.exists('out/'):
@@ -79,8 +79,8 @@ if not os.path.exists('out/'):
 
 # 1 HEATMAP
 fig, axs = plt.subplots(2, 3, figsize=(8, 6))
-vmax = max([matrix.max() for _, matrix in records])
-for ax, (label, matrix) in zip(axs.ravel(), records):
+vmax = max([record[1].max() for record in records])
+for ax, (label, matrix, _) in zip(axs.ravel(), records):
     ax.imshow(matrix, vmax=vmax)
     ax.set_title(label)
     ax.set_xticks(range(20))
@@ -88,12 +88,12 @@ for ax, (label, matrix) in zip(axs.ravel(), records):
     ax.set_yticks(range(20))
     ax.set_yticklabels(order, fontdict={'fontsize': 7})
 fig.colorbar(ScalarMappable(Normalize(0, vmax)), ax=axs, fraction=0.025)
-plt.savefig('out/heatmap_all.png')
+plt.savefig('out/heatmap_all.png', bbox_inches='tight')
 plt.close()
 
 # 2 DOT PLOT
 fig, axs = plt.subplots(2, 3, figsize=(8, 6))
-for ax, (label, matrix) in zip(axs.ravel(), records):
+for ax, (label, matrix, _) in zip(axs.ravel(), records):
     ax.set_title(label)
     ax.set_xlim(0, 20)
     ax.set_xticks(range(1, 21))
@@ -111,13 +111,13 @@ for ax, (label, matrix) in zip(axs.ravel(), records):
                 continue
             c = Circle((j+1, 20-i), 0.7*value, color='black')
             ax.add_patch(c)
-plt.savefig('out/dotplot_all.png')
+plt.savefig('out/dotplot_all.png', bbox_inches='tight')
 plt.close()
 
 # 3 DOT COMPARISONS
 scale = 0.65
-pairs = [(records[1][0], records[1][1], 'black', 'WAG', WAG, 'white'),
-         (records[4][0], records[4][1], 'grey', 'WAG', WAG, 'white'),
+pairs = [(records[1][0], records[1][1], 'black', 'WAG', WAG_matrix, 'white'),
+         (records[4][0], records[4][1], 'grey', 'WAG', WAG_matrix, 'white'),
          (records[1][0], records[1][1], 'black', records[4][0], records[4][1], 'grey')]
 for l1, m1, c1, l2, m2, c2 in pairs:
     fig, ax = plt.subplots(figsize=(9, 4))
@@ -152,8 +152,8 @@ for l1, m1, c1, l2, m2, c2 in pairs:
 
 # 4 RATIO DOT COMPARISONS
 scale = 0.15
-pairs = [(records[1][0], records[1][1], 'WAG', WAG),
-         (records[4][0], records[4][1], 'WAG', WAG),
+pairs = [(records[1][0], records[1][1], 'WAG', WAG_matrix),
+         (records[4][0], records[4][1], 'WAG', WAG_matrix),
          (records[1][0], records[1][1], records[4][0], records[4][1])]
 for l1, m1, l2, m2 in pairs:
     fig, ax = plt.subplots()
@@ -197,8 +197,8 @@ for l1, m1, l2, m2 in pairs:
 
 # 5 DIFFERENCE DOT COMPARISONS
 scale = 1
-pairs = [(records[1][0], records[1][1], 'WAG', WAG),
-         (records[4][0], records[4][1], 'WAG', WAG),
+pairs = [(records[1][0], records[1][1], 'WAG', WAG_matrix),
+         (records[4][0], records[4][1], 'WAG', WAG_matrix),
          (records[1][0], records[1][1], records[4][0], records[4][1])]
 for l1, m1, l2, m2 in pairs:
     fig, ax = plt.subplots()
@@ -239,6 +239,22 @@ for l1, m1, l2, m2 in pairs:
 
     plt.savefig(f'out/dotplot_diff_{l1}-{l2}.png')
     plt.close()
+
+# 6 FREQUENCIES
+width = 0.2
+bars = [(records[1][0], records[1][2], 'black'),
+        (records[4][0], records[4][2], 'grey'),
+        ('WAG', WAG_freqs, 'white')]
+plt.figure(figsize=(8, 4))
+for i, (label, freqs, color) in enumerate(bars):
+    dx = -len(bars)//2 + i + (1.5 if len(bars)%2 == 0 else 1)
+    plt.bar([x+width*dx for x in range(len(order))], freqs, label=label, facecolor=color, edgecolor='black', width=width)
+plt.xticks(range(len(order)), order)
+plt.xlabel('Amino acid')
+plt.ylabel('Frequency')
+plt.legend()
+plt.savefig('out/bar_freqs.png')
+plt.close()
 
 """
 DEPENDENCEIES
