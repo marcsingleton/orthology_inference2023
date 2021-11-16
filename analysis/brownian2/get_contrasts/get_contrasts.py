@@ -49,9 +49,9 @@ def apply_contrasts(args):
 
     # Get contrasts
     tree.length = 0  # Set root length to 0 for convenience
-    contrasts, _, _ = get_contrasts(tree)
+    contrasts, value, _ = get_contrasts(tree)
 
-    return name, contrasts
+    return name, contrasts, value
 
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
@@ -89,18 +89,26 @@ if __name__ == '__main__':
         # However to force computation before pool is closed we must call list on it
         records = list(pool.imap(apply_contrasts, args, chunksize=50))
 
-    # Write contrasts to file
+    # Write contrasts and means to file
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
-    with open('out/contrasts.tsv', 'w') as file:
-        file.write('\t'.join(['OGid', 'start', 'stop', 'contrast_id'] + feature_labels) + '\n')
-        for name, contrasts in records:
+    with open('out/contrasts.tsv', 'w') as file1, open('out/roots.tsv', 'w') as file2:
+        file1.write('\t'.join(['OGid', 'start', 'stop', 'contrast_id'] + feature_labels) + '\n')
+        file2.write('\t'.join(['OGid', 'start', 'stop'] + feature_labels) + '\n')
+        for name, contrasts, value in records:
+            # Write contrasts
             for idx, contrast in enumerate(contrasts):
-                fields = [name[0], str(name[1]), str(name[2]), str(idx)]
+                fields1 = [name[0], str(name[1]), str(name[2]), str(idx)]
                 for feature_label in feature_labels:
-                    fields.append(str(contrast[feature_label]))
-                file.write('\t'.join(fields) + '\n')
+                    fields1.append(str(contrast[feature_label]))
+                file1.write('\t'.join(fields1) + '\n')
+
+            # Write means
+            fields2 = [name[0], str(name[1]), str(name[2])]
+            for feature_label in feature_labels:
+                fields2.append(str(value[feature_label]))
+            file2.write('\t'.join(fields2) + '\n')
 
 """
 DEPENDENCIES
