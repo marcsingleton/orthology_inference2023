@@ -7,6 +7,7 @@ from math import exp, pi
 import matplotlib.pyplot as plt
 import pandas as pd
 import skbio
+from matplotlib.lines import Line2D
 from numpy import linspace
 from src.draw import plot_msa
 from sklearn.decomposition import PCA
@@ -34,8 +35,13 @@ spid_regex = r'spid=([a-z]+)'
 pdidx = pd.IndexSlice
 
 # Load contrasts and tree
+features = pd.read_table('../get_features/out/features.tsv')
 contrasts = pd.read_table('../get_contrasts/out/contrasts.tsv')
+roots = pd.read_table('../get_contrasts/out/roots.tsv')
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+
+features.loc[features['kappa'] == -1, 'kappa'] = 1
+features.loc[features['omega'] == -1, 'omega'] = 1
 
 # Load seq metadata
 ppid2spid = {}
@@ -53,38 +59,40 @@ with open('../aucpred_filter/out/regions_30.tsv') as file:
         rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True'})
         region2spids[(OGid, int(start), int(stop))] = [ppid2spid[ppid] for ppid in ppids.split(',')]
 segments = pd.DataFrame(rows)
-df1 = segments.merge(contrasts, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder', 'contrast_id'])
+features = segments.merge(features, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder'])
+contrasts = segments.merge(contrasts, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder', 'contrast_id'])
+roots = segments.merge(roots, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder'])
 
 # 1 CONTRASTS
 if not os.path.exists('out/contrasts/'):
     os.makedirs('out/contrasts/')
 
 # 1.1 Plot contrast distributions
-disorder = df1.loc[pdidx[:, :, :, True, :], :]
-order = df1.loc[pdidx[:, :, :, False, :], :]
-for feature_label in df1.columns:
+disorder = contrasts.loc[pdidx[:, :, :, True, :], :]
+order = contrasts.loc[pdidx[:, :, :, False, :], :]
+for feature_label in contrasts.columns:
     fig, axs = plt.subplots(2, 1, sharex=True)
-    xmin, xmax = df1[feature_label].min(), df1[feature_label].max()
+    xmin, xmax = contrasts[feature_label].min(), contrasts[feature_label].max()
     axs[0].hist(disorder[feature_label], bins=linspace(xmin, xmax, 150), color='C0', label='disorder')
     axs[1].hist(order[feature_label], bins=linspace(xmin, xmax, 150), color='C1', label='order')
     axs[1].set_xlabel(f'Contrast value ({feature_label})')
     for i in range(2):
         axs[i].set_ylabel('Number of contrasts')
         axs[i].legend()
-    plt.savefig(f'out/contrasts/{feature_label}.png')
+    plt.savefig(f'out/contrasts/hist_numcontrasts-{feature_label}.png')
     for i in range(2):
         axs[i].set_yscale('log')
-    plt.savefig(f'out/contrasts/{feature_label}_log.png')
+    plt.savefig(f'out/contrasts/hist_numcontrasts-{feature_label}_log.png')
     plt.close()
 
 # 1.2 Plot regions with extreme contrasts
-df2 = df1.abs()
-for feature_label in df2.columns:
+df = contrasts.abs()
+for feature_label in df.columns:
     if not os.path.exists(f'out/contrasts/{feature_label}/'):
         os.makedirs(f'out/contrasts/{feature_label}/')
 
     regions = set()
-    ranked = df2[feature_label].sort_values(ascending=False).iteritems()
+    ranked = df[feature_label].sort_values(ascending=False).iteritems()
     while len(regions) < 20:
         (OGid, start, stop, _, _), _ = next(ranked)
         if (OGid, start, stop) in regions:
@@ -108,7 +116,7 @@ if not os.path.exists('out/means/'):
     os.makedirs('out/means/')
 
 # 2.1 Plot contrast means distributions
-mean = df1.groupby(['OGid', 'start', 'stop', 'disorder']).mean()
+mean = contrasts.groupby(['OGid', 'start', 'stop', 'disorder']).mean()
 disorder = mean.loc[pdidx[:, :, :, True, :], :]
 order = mean.loc[pdidx[:, :, :, False, :], :]
 for feature_label in mean.columns:
@@ -120,7 +128,7 @@ for feature_label in mean.columns:
     for i in range(2):
         axs[i].set_ylabel('Number of regions')
         axs[i].legend()
-    plt.savefig(f'out/means/{feature_label}.png')
+    plt.savefig(f'out/means/hist_numregions-{feature_label}.png')
     plt.close()
 
 # 2.2 Plot standardized contrast means distributions
@@ -130,8 +138,8 @@ for feature_label in mean.columns:
 # Regions with constant contrasts will have 0 variance, so the normalization will result in a NaN
 # While it is possible for a tree with unequal tip values to yield constant (non-zero) contrasts, it is unlikely
 # Thus constant contrasts are assumed to equal zero
-var = ((df1**2).groupby(['OGid', 'start', 'stop', 'disorder']).mean())
-size = df1.groupby(['OGid', 'start', 'stop', 'disorder']).size()
+var = ((contrasts**2).groupby(['OGid', 'start', 'stop', 'disorder']).mean())
+size = contrasts.groupby(['OGid', 'start', 'stop', 'disorder']).size()
 std = (mean / (var.div(size, axis=0))**0.5).fillna(0)
 disorder = std.loc[pdidx[:, :, :, True, :], :]
 order = std.loc[pdidx[:, :, :, False, :], :]
@@ -145,7 +153,7 @@ for feature_label in std.columns:
         axs[i].plot(linspace(xmin, xmax), [1/(2*pi)**0.5 * exp(-x**2/2) for x in linspace(xmin, xmax)], color='black')
         axs[i].set_ylabel('Density of regions')
         axs[i].legend()
-    plt.savefig(f'out/means/{feature_label}_std.png')
+    plt.savefig(f'out/means/hist_numregions-{feature_label}_std.png')
     plt.close()
 
 # 2.3 Plot contrast mean PCAs
@@ -178,13 +186,13 @@ plt.savefig(f'out/means/pca_mean_std.png')
 plt.close()
 
 # 2.4 Plot regions with extreme means
-df2 = mean.abs()
-for feature_label in df2.columns:
+df = mean.abs()
+for feature_label in df.columns:
     if not os.path.exists(f'out/means/{feature_label}/'):
         os.makedirs(f'out/means/{feature_label}/')
 
     regions = set()
-    ranked = df2[feature_label].sort_values(ascending=False).iteritems()
+    ranked = df[feature_label].sort_values(ascending=False).iteritems()
     while len(regions) < 20:
         (OGid, start, stop, _), _ = next(ranked)
         if (OGid, start, stop) in regions:
@@ -208,73 +216,95 @@ if not os.path.exists('out/rates/'):
     os.makedirs('out/rates/')
 
 # 3.1 Plot rate distributions
-rate = ((df1**2).groupby(['OGid', 'start', 'stop', 'disorder']).mean())
-disorder = rate.loc[pdidx[:, :, :, True, :], :]
-order = rate.loc[pdidx[:, :, :, False, :], :]
-for feature_label in rate.columns:
+rates = ((contrasts**2).groupby(['OGid', 'start', 'stop', 'disorder']).mean())
+disorder = rates.loc[pdidx[:, :, :, True, :], :]
+order = rates.loc[pdidx[:, :, :, False, :], :]
+for feature_label in rates.columns:
     fig, axs = plt.subplots(2, 1, sharex=True)
-    xmin, xmax = rate[feature_label].min(), rate[feature_label].max()
+    xmin, xmax = rates[feature_label].min(), rates[feature_label].max()
     axs[0].hist(disorder[feature_label], bins=linspace(xmin, xmax, 150), color='C0', label='disorder')
     axs[1].hist(order[feature_label], bins=linspace(xmin, xmax, 150), color='C1', label='order')
     axs[1].set_xlabel(f'Rate ({feature_label})')
     for i in range(2):
         axs[i].set_ylabel('Number of regions')
         axs[i].legend()
-    plt.savefig(f'out/rates/{feature_label}.png')
+    plt.savefig(f'out/rates/hist_numregions-{feature_label}.png')
     for i in range(2):
         axs[i].set_yscale('log')
-    plt.savefig(f'out/rates/{feature_label}_log.png')
+    plt.savefig(f'out/rates/hist_numregions-{feature_label}_log.png')
     plt.close()
 
 # 3.2 Plot rate PCAs
 pca = PCA(n_components=10)
-idx = rate.index.get_level_values('disorder').array.astype(bool)
+idx = rates.index.get_level_values('disorder').array.astype(bool)
+records = [(rates, 'unnorm'),
+           ((rates-rates.mean())/rates.std(), 'z-score'),
+           ((rates-rates.min())/(rates.max()-rates.min()), 'min-max')]
+colors = ['#e15759', '#499894', '#59a14f', '#f1ce63', '#b07aa1', '#d37295', '#9d7660', '#bab0ac',
+          '#ff9d9a', '#86bcb6', '#8cd17d', '#b6992d', '#d4a6c8', '#fabfd2', '#d7b5a6', '#79706e']
 
-transform = pca.fit_transform(rate.to_numpy())
-plt.scatter(transform[idx, 0], transform[idx, 1], label='disorder', s=5, color='C0', alpha=0.1, edgecolors='none')
-plt.scatter(transform[~idx, 0], transform[~idx, 1], label='order', s=5, color='C1', alpha=0.1, edgecolors='none')
-plt.xlabel('PC1')
-plt.ylabel('PC2')
-plt.title('unnorm')
-legend = plt.legend(markerscale=2)
-for lh in legend.legendHandles:
-    lh.set_alpha(1)
-plt.savefig(f'out/rates/pca_rate_unnorm.png')
-plt.close()
+for data, label in records:
+    transform = pca.fit_transform(data.to_numpy())
 
-x = (rate-rate.mean())/rate.std()
-transform = pca.fit_transform(x.to_numpy())
-plt.scatter(transform[idx, 0], transform[idx, 1], label='disorder', s=5, color='C0', alpha=0.1, edgecolors='none')
-plt.scatter(transform[~idx, 0], transform[~idx, 1], label='order', s=5, color='C1', alpha=0.1, edgecolors='none')
-plt.xlabel('PC1')
-plt.ylabel('PC2')
-plt.title('z-score')
-legend = plt.legend(markerscale=2)
-for lh in legend.legendHandles:
-    lh.set_alpha(1)
-plt.savefig(f'out/rates/pca_rate_z-score.png')
-plt.close()
+    # PCs 1 and 2
+    plt.scatter(transform[idx, 0], transform[idx, 1], label='disorder', s=5, color='C0', alpha=0.1, edgecolors='none')
+    plt.scatter(transform[~idx, 0], transform[~idx, 1], label='order', s=5, color='C1', alpha=0.1, edgecolors='none')
+    plt.xlabel('PC1')
+    plt.ylabel('PC2')
+    plt.title(label)
+    legend = plt.legend(markerscale=2)
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+    plt.savefig(f'out/rates/scatter_pca_{label}1.png')
+    plt.close()
 
-x = (rate-rate.min())/(rate.max()-rate.min())
-transform = pca.fit_transform(x.to_numpy())
-plt.scatter(transform[idx, 0], transform[idx, 1], label='disorder', s=5, color='C0', alpha=0.1, edgecolors='none')
-plt.scatter(transform[~idx, 0], transform[~idx, 1], label='order', s=5, color='C1', alpha=0.1, edgecolors='none')
-plt.xlabel('PC1')
-plt.ylabel('PC2')
-plt.title('min-max')
-legend = plt.legend(markerscale=2)
-for lh in legend.legendHandles:
-    lh.set_alpha(1)
-plt.savefig(f'out/rates/pca_rate_min-max.png')
-plt.close()
+    # PCs 2 and 3
+    plt.scatter(transform[idx, 1], transform[idx, 2], label='disorder', s=5, color='C0', alpha=0.1, edgecolors='none')
+    plt.scatter(transform[~idx, 1], transform[~idx, 2], label='order', s=5, color='C1', alpha=0.1, edgecolors='none')
+    plt.xlabel('PC2')
+    plt.ylabel('PC3')
+    plt.title(label)
+    legend = plt.legend(markerscale=2)
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+    plt.savefig(f'out/rates/scatter_pca_{label}2.png')
+    plt.close()
+
+    # PCs 2 and 3 with arrows
+    plt.scatter(transform[:, 1], transform[:, 2], label=label, color='C0', s=5, alpha=0.1, edgecolors='none')
+    plt.xlabel('PC2')
+    plt.ylabel('PC3')
+    plt.title(label)
+
+    xmin, xmax = plt.xlim()
+    ymin, ymax = plt.ylim()
+    scale = (xmax + ymax - xmin - ymin) / 4
+    projections = sorted(zip(data.columns, pca.components_[1:3].transpose()), key=lambda x: x[1][0]**2 + x[1][1]**2, reverse=True)
+
+    handles = []
+    for i in range(len(colors)):
+        feature_label, (x, y) = projections[i]
+        handles.append(Line2D([], [], color=colors[i%len(colors)], label=feature_label))
+        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 5, 'headlength': 5, 'width': 0.5, 'color': colors[i%len(colors)]})
+    plt.legend(handles=handles, fontsize=6, loc='center', bbox_to_anchor=(1, 0.5))
+    plt.savefig(f'out/rates/scatter_pca_{label}2_arrows.png')
+    plt.close()
+
+    # Scree plot
+    plt.bar(range(1, len(pca.explained_variance_ratio_) + 1), pca.explained_variance_ratio_)
+    plt.xlabel('Principal component')
+    plt.ylabel('Explained variance ratio')
+    plt.title(label)
+    plt.savefig(f'out/rates/bar_scree_{label}.png')
+    plt.close()
 
 # 3.3 Plot regions with extreme rates
-for feature_label in rate.columns:
+for feature_label in rates.columns:
     if not os.path.exists(f'out/rates/{feature_label}/'):
         os.makedirs(f'out/rates/{feature_label}/')
 
     regions = set()
-    ranked = df2[feature_label].sort_values(ascending=False).iteritems()
+    ranked = rates[feature_label].sort_values(ascending=False).iteritems()
     while len(regions) < 20:
         (OGid, start, stop, _), _ = next(ranked)
         if (OGid, start, stop) in regions:
@@ -293,6 +323,55 @@ for feature_label in rate.columns:
         plt.savefig(f'out/rates/{feature_label}/{len(regions)-1}_{OGid}-{start}-{stop}.png', bbox_inches='tight')
         plt.close()
 
+# 4 ROOTS
+if not os.path.exists('out/roots/'):
+    os.makedirs('out/roots/')
+
+# 4.1 Plot root distributions
+disorder = roots.loc[pdidx[:, :, :, True, :], :]
+order = roots.loc[pdidx[:, :, :, False, :], :]
+for feature_label in roots.columns:
+    fig, axs = plt.subplots(2, 1, sharex=True)
+    xmin, xmax = roots[feature_label].min(), roots[feature_label].max()
+    axs[0].hist(disorder[feature_label], bins=linspace(xmin, xmax, 75), color='C0', label='disorder')
+    axs[1].hist(order[feature_label], bins=linspace(xmin, xmax, 75), color='C1', label='order')
+    axs[1].set_xlabel(f'Inferred root value ({feature_label})')
+    for i in range(2):
+        axs[i].set_ylabel('Number of regions')
+        axs[i].legend()
+    plt.savefig(f'out/roots/hist_numregions-{feature_label}.png')
+    plt.close()
+
+# 4.2 Plot correlations of roots and feature means
+mean = features.groupby(['OGid', 'start', 'stop', 'disorder']).mean()
+df = mean.merge(roots, how='inner', on=['OGid', 'start', 'stop', 'disorder'])
+for feature_label in mean.columns.intersection(roots.columns):
+    plt.scatter(df[feature_label + '_x'], df[feature_label + '_y'], s=5, alpha=0.1, edgecolor='none')
+    plt.xlabel('Tip mean')
+    plt.ylabel('Inferred root value')
+    plt.title(feature_label)
+
+    x, y = df[feature_label + '_x'], df[feature_label + '_y']
+    m = ((x - x.mean())*(y - y.mean())).sum() / ((x - x.mean())**2).sum()
+    b = y.mean() - m * x.mean()
+    r2 = 1 - ((y - m * x - b)**2).sum() / ((y - y.mean())**2).sum()
+
+    xmin, xmax = plt.xlim()
+    plt.plot([xmin, xmax], [m*xmin+b, m*xmax+b], color='black', linewidth=1)
+    plt.annotate('$\mathregular{R^2}$' + f' = {round(r2, 2)}', (0.85, 0.75), xycoords='axes fraction')
+    plt.savefig(f'out/roots/scatter_root-mean_{feature_label}.png')
+    plt.close()
+
+# 4.3 Plot correlation of roots and rates
+df = roots.merge(rates, how='inner', on=['OGid', 'start', 'stop', 'disorder'])
+for feature_label in roots.columns.intersection(rates.columns):
+    plt.scatter(df[feature_label + '_x'], df[feature_label + '_y'], s=5, alpha=0.1, edgecolor='none')
+    plt.xlabel('Inferred root value')
+    plt.ylabel('Rate')
+    plt.title(feature_label)
+    plt.savefig(f'out/roots/scatter_rate-root_{feature_label}.png')
+    plt.close()
+
 """
 DEPENDENCIES
 ../../ortho_search/seq_meta/seq_meta.py
@@ -303,4 +382,7 @@ DEPENDENCIES
     ../aucpred_filter/out/regions_30.tsv
 ../get_contrasts/get_contrasts.py
     ../get_contrasts/out/contrasts.tsv
+    ../get_contrasts/out/roots.tsv
+../get_features/get_features.py
+    ../get_features/out/features.tsv
 """
