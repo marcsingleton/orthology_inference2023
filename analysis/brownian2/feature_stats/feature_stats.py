@@ -41,9 +41,9 @@ for feature_label in mean.columns:
     axs[1].hist(order[feature_label], bins=linspace(xmin, xmax, 75), color='C1', label='order')
     axs[1].set_xlabel(f'Mean {feature_label}')
     for i in range(2):
-        axs[i].set_ylabel('Number of OGs')
+        axs[i].set_ylabel('Number of regions')
         axs[i].legend()
-    plt.savefig(f'out/hist_numOGs-{feature_label}.png')
+    plt.savefig(f'out/hist_numregions-{feature_label}.png')
     plt.close()
 
 
