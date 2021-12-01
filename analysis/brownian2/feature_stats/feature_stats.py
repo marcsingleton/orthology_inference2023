@@ -49,20 +49,20 @@ for feature_label in mean.columns:
 
 # Individual PCAs
 pca = PCA(n_components=10)
+colors = ['#e15759', '#499894', '#59a14f', '#f1ce63', '#b07aa1', '#d37295', '#9d7660', '#bab0ac',
+          '#ff9d9a', '#86bcb6', '#8cd17d', '#b6992d', '#d4a6c8', '#fabfd2', '#d7b5a6', '#79706e']
+
 plots = [(disorder, 'disorder', 'unnorm'),
          (order, 'order', 'unnorm'),
          ((disorder - disorder.mean()) / disorder.std(), 'disorder', 'z-score'),
          ((order - order.mean()) / order.std(), 'order', 'z-score'),
          ((disorder - disorder.min()) / (disorder.max() - disorder.min()), 'disorder', 'min-max'),
          ((order - order.min()) / (order.max() - order.min()), 'order', 'min-max')]
-colors = ['#e15759', '#499894', '#59a14f', '#f1ce63', '#b07aa1', '#d37295', '#9d7660', '#bab0ac',
-          '#ff9d9a', '#86bcb6', '#8cd17d', '#b6992d', '#d4a6c8', '#fabfd2', '#d7b5a6', '#79706e']
-
 for data, data_label, norm_label in plots:
     color = 'C0' if data_label == 'disorder' else 'C1'
+    transform = pca.fit_transform(data.to_numpy())
 
     # PCA without arrows
-    transform = pca.fit_transform(data.to_numpy())
     plt.scatter(transform[:, 0], transform[:, 1], label=data_label, color=color, s=5, alpha=0.1, edgecolors='none')
     plt.xlabel('PC1')
     plt.ylabel('PC2')
@@ -99,7 +99,7 @@ for data, data_label, norm_label in plots:
     plt.ylabel('Explained variance ratio')
     plt.title(norm_label)
     plt.legend()
-    plt.savefig(f'out/bar_{data_label}_{norm_label}.png')
+    plt.savefig(f'out/bar_scree_{data_label}_{norm_label}.png')
     plt.close()
 
 """

@@ -169,7 +169,7 @@ plt.title('raw means')
 legend = plt.legend(markerscale=2)
 for lh in legend.legendHandles:
     lh.set_alpha(1)
-plt.savefig(f'out/means/pca_mean.png')
+plt.savefig(f'out/means/scatter_pca_mean.png')
 plt.close()
 
 idx = std.index.get_level_values('disorder').array.astype(bool)
@@ -182,7 +182,7 @@ plt.title('standardized means')
 legend = plt.legend(markerscale=2)
 for lh in legend.legendHandles:
     lh.set_alpha(1)
-plt.savefig(f'out/means/pca_mean_std.png')
+plt.savefig(f'out/means/scatter_pca_mean_std.png')
 plt.close()
 
 # 2.4 Plot regions with extreme means
@@ -234,16 +234,16 @@ for feature_label in rates.columns:
     plt.savefig(f'out/rates/hist_numregions-{feature_label}_log.png')
     plt.close()
 
-# 3.2 Plot rate PCAs
+# 3.2.1 Plot rate PCAs (combined)
 pca = PCA(n_components=10)
-idx = rates.index.get_level_values('disorder').array.astype(bool)
-records = [(rates, 'unnorm'),
-           ((rates-rates.mean())/rates.std(), 'z-score'),
-           ((rates-rates.min())/(rates.max()-rates.min()), 'min-max')]
 colors = ['#e15759', '#499894', '#59a14f', '#f1ce63', '#b07aa1', '#d37295', '#9d7660', '#bab0ac',
           '#ff9d9a', '#86bcb6', '#8cd17d', '#b6992d', '#d4a6c8', '#fabfd2', '#d7b5a6', '#79706e']
+idx = rates.index.get_level_values('disorder').array.astype(bool)
 
-for data, label in records:
+plots = [(rates, 'unnorm'),
+         ((rates-rates.mean())/rates.std(), 'z-score'),
+         ((rates-rates.min())/(rates.max()-rates.min()), 'min-max')]
+for data, label in plots:
     transform = pca.fit_transform(data.to_numpy())
 
     # PCs 1 and 2
@@ -287,7 +287,7 @@ for data, label in records:
         handles.append(Line2D([], [], color=colors[i%len(colors)], label=feature_label))
         plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 5, 'headlength': 5, 'width': 0.5, 'color': colors[i%len(colors)]})
     plt.legend(handles=handles, fontsize=6, loc='center', bbox_to_anchor=(1, 0.5))
-    plt.savefig(f'out/rates/scatter_pca_{label}2_arrows.png')
+    plt.savefig(f'out/rates/scatter_pca-arrow_{label}2.png')
     plt.close()
 
     # Scree plot
@@ -296,6 +296,68 @@ for data, label in records:
     plt.ylabel('Explained variance ratio')
     plt.title(label)
     plt.savefig(f'out/rates/bar_scree_{label}.png')
+    plt.close()
+
+# 3.2.2 Plot rate PCAs (individual)
+plots = [(disorder, 'disorder', 'unnorm'),
+         (order, 'order', 'unnorm'),
+         ((disorder - disorder.mean()) / disorder.std(), 'disorder', 'z-score'),
+         ((order - order.mean()) / order.std(), 'order', 'z-score'),
+         ((disorder - disorder.min()) / (disorder.max() - disorder.min()), 'disorder', 'min-max'),
+         ((order - order.min()) / (order.max() - order.min()), 'order', 'min-max')]
+for data, data_label, norm_label in plots:
+    color = 'C0' if data_label == 'disorder' else 'C1'
+    transform = pca.fit_transform(data.to_numpy())
+
+    # PCs 1 and 2
+    plt.scatter(transform[:, 0], transform[:, 1], label=data_label, s=5, color=color, alpha=0.1, edgecolors='none')
+    plt.xlabel('PC1')
+    plt.ylabel('PC2')
+    plt.title(norm_label)
+    legend = plt.legend(markerscale=2)
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+    plt.savefig(f'out/rates/scatter_pca_{data_label}_{norm_label}1.png')
+    plt.close()
+
+    # PCs 2 and 3
+    plt.scatter(transform[:, 1], transform[:, 2], label=data_label, s=5, color=color, alpha=0.1, edgecolors='none')
+    plt.xlabel('PC2')
+    plt.ylabel('PC3')
+    plt.title(norm_label)
+    legend = plt.legend(markerscale=2)
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+    plt.savefig(f'out/rates/scatter_pca_{data_label}_{norm_label}2.png')
+    plt.close()
+
+    # PCs 2 and 3 with arrows
+    plt.scatter(transform[:, 1], transform[:, 2], label=data_label, color=color, s=5, alpha=0.1, edgecolors='none')
+    plt.xlabel('PC2')
+    plt.ylabel('PC3')
+    plt.title(norm_label)
+
+    xmin, xmax = plt.xlim()
+    ymin, ymax = plt.ylim()
+    scale = (xmax + ymax - xmin - ymin) / 4
+    projections = sorted(zip(data.columns, pca.components_[1:3].transpose()), key=lambda x: x[1][0]**2 + x[1][1]**2, reverse=True)
+
+    handles = []
+    for i in range(len(colors)):
+        feature_label, (x, y) = projections[i]
+        handles.append(Line2D([], [], color=colors[i%len(colors)], label=feature_label))
+        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 5, 'headlength': 5, 'width': 0.5, 'color': colors[i%len(colors)]})
+    plt.legend(handles=handles, fontsize=6, loc='center', bbox_to_anchor=(1, 0.5))
+    plt.savefig(f'out/rates/scatter_pca-arrow_{data_label}_{norm_label}2.png')
+    plt.close()
+
+    # Scree plot
+    plt.bar(range(1, len(pca.explained_variance_ratio_) + 1), pca.explained_variance_ratio_, label=data_label, color=color)
+    plt.xlabel('Principal component')
+    plt.ylabel('Explained variance ratio')
+    plt.title(norm_label)
+    plt.legend()
+    plt.savefig(f'out/rates/bar_scree_{data_label}_{norm_label}.png')
     plt.close()
 
 # 3.3 Plot regions with extreme rates
