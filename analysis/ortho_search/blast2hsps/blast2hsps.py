@@ -74,7 +74,7 @@ def get_bhsps(ihsps):
         if bs_max == bs_maxs[0][2]:
             gnids.add(gnid)  # Add gnid to allowable list if bitscore is equal to highest
         if gnid not in gnids:
-            cutoff = bs_max  # Find cutoff separately in case an accepted gnid has the same bitscore as the cutoff
+            cutoff = bs_max  # Choose cutoff as the maximum bitscore associated with the next best gene
             break
 
     # Extract groups
@@ -151,10 +151,12 @@ polypeptides, since it is possible for there to be multiple hits to different se
 taken as the HSP with the largest bitscore. However, all other HSPs from this hit are recorded. Proceeding from highest
 to lowest bitscore, these HSPs are marked as disjoint if they do not overlap with any HSPs previously marked as
 disjoint. Additionally other polypeptide hits are recorded if the strongest HSP in that hit exceeds the bitscore of
-the strongest hit to a polypeptide that is not associated with the same gene as the best polypeptide hit. If there are
-multiple HSPs with the same best bitscore, then they are both treated as the best hit. Overall, this means a single
-polypeptide can records of multiple HSPs which in turn are part of multiple polypeptides which are in turn part of
-multiple genes.
+the strongest HSP to a polypeptide that is not associated with the same gene as the best polypeptide hit. In other
+words, this approach takes a broad "gene-centric" approach to initially filtering the raw BLAST output where all hits
+associated with the best gene are recorded as long as the bitscore of their strongest HSP exceeds that of the next best
+gene. If there are multiple HSPs with the same best bitscore, then they are both treated as the best hit. This means a
+single polypeptide can have hits to multiple genes which in turn contain multiple polypeptides which in turn contain
+multiple HSPs.
 
 Regarding genes, a strict adherence to the top hit criterion would allow only polypeptide per gene. This can create
 mutually exclusive sets of polypeptide hits within a single orthologous group, a more flexible strategy is allowing
