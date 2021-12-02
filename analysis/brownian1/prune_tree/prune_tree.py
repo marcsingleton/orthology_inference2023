@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import os
 
 # Input variables
-path = '../../../data/d_tree_25/drosophila-25spec-tree.tre'
+path = '../../../data/drosophila_tree_25/drosophila-25spec-tree.tre'
 remain = set(['ananassae', 'erecta', 'grimshawi',
               'melanogaster', 'mojavensis', 'persimilis',
               'pseudoobscura', 'virilis', 'yakuba', 'willistoni'])
@@ -28,5 +28,5 @@ plt.savefig('out/drosophila-10spec-tree.png')
 
 """
 DEPENDENCIES
-../../../data/d_tree_25/drosophila-25spec-tree.tre
+../../../data/drosophila_tree_25/drosophila-25spec-tree.tre
 """

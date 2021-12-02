@@ -56,7 +56,7 @@ def block_contrasts(grouptree):
 
 # Input variables
 path_features = '../feature_calc/out/features.tsv'
-path_tree = '../prune_tree_25/out/drosophila-10spec-tree.nwk'
+path_tree = '../prune_tree/out/drosophila-10spec-tree.nwk'
 num_processes = int(os.environ['SLURM_NTASKS'])
 taxon_ids = {'ananassae': 7217,
              'erecta': 7220,
@@ -100,6 +100,6 @@ The somewhat awkward zipping of the group and trees lists is due to a limitation
 DEPENDENCIES
 ../feature_calc/feature_calc.py
     ../feature_calc/out/features.tsv
-../prune_tree_25/prune_tree_25.py
-    ../prune_tree_25/out/drosophila-10spec-tree.nwk
+../prune_tree/prune_tree.py
+    ../prune_tree/out/drosophila-10spec-tree.nwk
 """
