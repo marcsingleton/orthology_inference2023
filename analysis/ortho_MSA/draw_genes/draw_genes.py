@@ -73,10 +73,10 @@ for row in df.dropna().itertuples():
 
 """
 DEPENDENCIES
-../../ortho_search/seq_meta/seq_meta.py
-    ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
     ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
+../../ortho_search/seq_meta/seq_meta.py
+    ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py

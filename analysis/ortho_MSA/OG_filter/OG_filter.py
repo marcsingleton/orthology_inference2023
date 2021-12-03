@@ -93,7 +93,7 @@ OGs.to_csv('out/OG_filter.tsv', sep='\t', index=False)
 
 """
 OUTPUT
-Total filtered OGs: 8531
+Total filtered OGs: 8551
 
 DEPENDENCIES
 ../../ortho_search/seq_meta/seq_meta.py
