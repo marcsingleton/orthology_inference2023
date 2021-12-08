@@ -278,15 +278,15 @@ for data, label in plots:
 
     xmin, xmax = plt.xlim()
     ymin, ymax = plt.ylim()
-    scale = (xmax + ymax - xmin - ymin) / 4
+    scale = (xmax + ymax - xmin - ymin) / 3
     projections = sorted(zip(data.columns, pca.components_[1:3].transpose()), key=lambda x: x[1][0]**2 + x[1][1]**2, reverse=True)
 
     handles = []
     for i in range(len(colors)):
         feature_label, (x, y) = projections[i]
-        handles.append(Line2D([], [], color=colors[i%len(colors)], label=feature_label))
-        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 5, 'headlength': 5, 'width': 0.5, 'color': colors[i%len(colors)]})
-    plt.legend(handles=handles, fontsize=6, loc='center', bbox_to_anchor=(1, 0.5))
+        handles.append(Line2D([], [], color=colors[i%len(colors)], linewidth=2, label=feature_label))
+        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 6, 'headlength': 6, 'width': 1.75, 'color': colors[i%len(colors)]})
+    plt.legend(handles=handles, fontsize=8, loc='right', bbox_to_anchor=(1.05, 0.5))
     plt.savefig(f'out/rates/scatter_pca-arrow_{label}2.png')
     plt.close()
 
@@ -339,15 +339,15 @@ for data, data_label, norm_label in plots:
 
     xmin, xmax = plt.xlim()
     ymin, ymax = plt.ylim()
-    scale = (xmax + ymax - xmin - ymin) / 4
+    scale = (xmax + ymax - xmin - ymin) / 3
     projections = sorted(zip(data.columns, pca.components_[1:3].transpose()), key=lambda x: x[1][0]**2 + x[1][1]**2, reverse=True)
 
     handles = []
     for i in range(len(colors)):
         feature_label, (x, y) = projections[i]
-        handles.append(Line2D([], [], color=colors[i%len(colors)], label=feature_label))
-        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 5, 'headlength': 5, 'width': 0.5, 'color': colors[i%len(colors)]})
-    plt.legend(handles=handles, fontsize=6, loc='center', bbox_to_anchor=(1, 0.5))
+        handles.append(Line2D([], [], color=colors[i%len(colors)], linewidth=2, label=feature_label))
+        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 6, 'headlength': 6, 'width': 1.75, 'color': colors[i%len(colors)]})
+    plt.legend(handles=handles, fontsize=8, loc='right', bbox_to_anchor=(1.05, 0.5))
     plt.savefig(f'out/rates/scatter_pca-arrow_{data_label}_{norm_label}2.png')
     plt.close()
 
