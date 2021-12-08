@@ -141,6 +141,10 @@ plt.ylabel('Number of unique terms')
 plt.savefig('out/bar_numterms-df_aspect.png')
 plt.close()
 
+# Write dfs to file
+for df, label in [(df3, 'filter'), (df4, 'merge'), (df5, 'propagate'), (df6, 'drop')]:
+    df.to_csv(f'out/GAF_{label}.tsv', sep='\t', index=False)
+
 """
 DEPENDENCIES
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/precomputed_files/gene_association_v2.1.fb
