@@ -29,4 +29,4 @@ Only `analysis/` and `src/`, which together contain all code written for this pr
 - `ortho_search/`: Scripts to run and parse BLAST searches for all genomes used in `ortho_cluster2/`
 - `seg_condiv/`: Clustering of features calculated from diverged segments in EggNOGv5 orthologs
 - `seg_idr/`: Clustering of features calculated from disordered segments identified by IUPRED in EggNOGv5 orthologs
-- `TF_CF/`: Analyses to parse and deduplicate lists of transcription factors and cofactors found in [Stampfel *et al.*](https://pubmed.ncbi.nlm.nih.gov/26550828/) and [Hens *et al.*](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3929264/)
+- `TF_CF_ids/`: Analyses to parse and deduplicate lists of transcription factors and cofactors found in [Stampfel *et al.*](https://pubmed.ncbi.nlm.nih.gov/26550828/) and [Hens *et al.*](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3929264/)
