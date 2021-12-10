@@ -5,7 +5,7 @@ from itertools import groupby
 
 
 def line2key(line):
-    fields = line.split()
+    fields = line.rstrip('\n').split('\t')
     return fields[0], fields[3]
 
 

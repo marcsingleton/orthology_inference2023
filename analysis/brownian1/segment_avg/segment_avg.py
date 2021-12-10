@@ -19,7 +19,7 @@ seg_num = 0  # Counter for numbering rows
 
 with open(path) as file:
     for line in file:
-        fields = line.split('\t')
+        fields = line.rstrip('\n').split('\t')
         ali_id = fields[1]
         with gzip.open(dir + ali_id + '.raw_alg.faa.gz', 'rt') as file_MSA:  # read, text mode
             MSA = AlignIO.read(file_MSA, 'fasta')

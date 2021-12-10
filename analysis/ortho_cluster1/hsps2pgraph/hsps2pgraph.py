@@ -7,7 +7,7 @@ pgraph = {}
 with open('../blast2hsps/out/hsps.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        fields = line.split()
+        fields = line.rstrip('\n').split('\t')
         qppid, sppid = fields[0], fields[3]
         try:
             pgraph[qppid].add(sppid)

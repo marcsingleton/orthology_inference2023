@@ -20,7 +20,7 @@ if not os.path.exists('out/raw'):
 with open(path_outmembers, 'w') as file_outmembers:
     with open(path_inmembers) as file_inmembers:
         for line in file_inmembers:
-            fields = line.rstrip().split('\t')
+            fields = line.rstrip('\n').split('\t')
             alignment_id = fields[1]
             with gzip.open('../../../data/EggNOGv5/drosophilidae/7214/' + alignment_id + '.raw_alg.faa.gz', 'rt') as file_MSA:  # read, text mode
                 MSA = AlignIO.read(file_MSA, 'fasta')

@@ -64,7 +64,7 @@ OGid2meta = {}
 with open('../OG_filter/out/OG_filter.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        fields = line.split()
+        fields = line.rstrip('\n').split('\t')
         OGid, sqidnum, gnidnum = fields[1], int(fields[6]), int(fields[7])
         OGid2meta[OGid] = (sqidnum, gnidnum)
 

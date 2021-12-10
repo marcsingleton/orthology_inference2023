@@ -30,7 +30,7 @@ OGid2labels = {}
 with open('../config/segments.tsv') as file:
     file.readline()
     for line in file:
-        fields = line.split()
+        fields = line.rstrip('\n').split('\t')
         OGid, start, stop, state = fields
         if OGid in OGid2labels:
             OGid2labels[OGid][state].append((int(start), int(stop)))

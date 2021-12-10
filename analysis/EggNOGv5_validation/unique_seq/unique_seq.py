@@ -7,7 +7,7 @@ pp2ali = {}
 num_seqs = 0
 with open(path) as file:
     for line in file:
-        fields = line.rstrip().split('\t')
+        fields = line.rstrip('\n').split('\t')
         alignment = fields[1]
         proteins = fields[4].split(',')
         for protein in proteins:

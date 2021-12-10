@@ -37,7 +37,7 @@ for path, root in zip(paths, roots):
         dist_nspecies = {}  # Number of species in alignments
         dist_ndup = {}  # Number of duplicate species in alignments
         for line in file:
-            fields = line.rstrip().split('\t')
+            fields = line.rstrip('\n').split('\t')
             txids = [ppid[:4] for ppid in fields[4].split(',')]  # Gets txid
             alinum += 1
             ppidnum += len(fields[4].split(','))

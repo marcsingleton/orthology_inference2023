@@ -17,7 +17,7 @@ for path_members, dir_msa in pathdir:
         ali_data = []
         seq_data = []
         for line in file_member:
-            fields = line.rstrip().split('\t')
+            fields = line.rstrip('\n').split('\t')
             # Alignment metrics
             ali_id = fields[1]
             seqs = []  # Sequence IDs in alignment

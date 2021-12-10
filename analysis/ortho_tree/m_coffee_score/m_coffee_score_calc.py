@@ -11,7 +11,7 @@ def read_msf(path):
         for line in file:
             if line == '//\n':
                 header = True
-            elif header and line.rstrip():
+            elif header and line.rstrip('\n'):
                 fields = line.split()
                 seqid = fields[0]
                 seqline = ''.join(fields[1:])

@@ -21,7 +21,7 @@ for inpath in inpaths:
         num_filters = [0 for _ in outpaths]
         num_alignments = 0
         for line in infile:
-            fields = line.rstrip().split('\t')
+            fields = line.rstrip('\n').split('\t')
             conditions = ['7227' in fields[5].split(','),  # Contains D. melanogaster
                           fields[2] == '10' and fields[3] == '10',  # Contains 10 total sequences and 10 unique species
                           fields[2] == fields[3] and int(fields[3]) > 5]  # Total sequences and unique species are equal and contains greater than 5 species

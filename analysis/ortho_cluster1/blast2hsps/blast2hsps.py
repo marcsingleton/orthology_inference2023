@@ -77,7 +77,7 @@ for query_spid, subject_spid in permutations(genomes, 2):
 
             # Record hits
             while line and not line.startswith('#'):
-                fields = line.split()
+                fields = line.rstrip('\n').split('\t')
                 subject_ppid = re.search(pp_regex[genomes[subject_spid]], fields[1]).group(1)
                 subject_gnid = ppid2gnid[subject_ppid]
                 values = [query_ppid, query_gnid, query_spid,

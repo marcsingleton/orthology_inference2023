@@ -59,7 +59,7 @@ def hsps2hit(hsps):
 
 
 def line2key(line):
-    fields = line.split()
+    fields = line.rstrip('\n').split('\t')
     return fields[0], fields[3]
 
 

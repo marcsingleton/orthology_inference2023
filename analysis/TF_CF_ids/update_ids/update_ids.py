@@ -24,7 +24,7 @@ FBgn2type = {}
 with open('../../../data/TF_CF_ids/nature15545-s1.csv') as file:
     file.readline()  # Skip header
     for line in file:
-        fields = line.split(',')
+        fields = line.rstrip('\n').split(',')
         if fields[2] in FBgn2type:
             raise RuntimeError('Duplicate FBgns detected.')
         FBgn2type[fields[2]] = fields[0]
@@ -34,7 +34,7 @@ TFs1, CFs, FBids = set(), set(), set()
 with open('../../../data/TF_CF_ids/nature15545-s1_map.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        fields = line.split()
+        fields = line.rstrip('\n').split('\t')
         if len(fields) == 3 or fields[3] == 'True':
             FBgn1, FBgn2 = fields[0], fields[1]
             if FBgn1 in FBids:
@@ -50,7 +50,7 @@ TFs2, FBids = set(), set()
 with open('../../../data/TF_CF_ids/nmeth.1763-S2_map.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        fields = line.split()
+        fields = line.rstrip('\n').split('\t')
         if len(fields) == 3 or fields[3] == 'True':
             FBgn1, FBgn2 = fields[0], fields[1]
             if FBgn1 in FBids:

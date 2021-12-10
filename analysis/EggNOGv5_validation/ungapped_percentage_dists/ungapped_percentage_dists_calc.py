@@ -28,7 +28,7 @@ for path_members, dir_msa in pathdir:
     members = []
     with open(path_members) as file_member:
         for line in file_member:
-            fields = line.rstrip().split('\t')
+            fields = line.rstrip('\n').split('\t')
             members.append(fields[1])
 
     # Open alignments and calculate statistics

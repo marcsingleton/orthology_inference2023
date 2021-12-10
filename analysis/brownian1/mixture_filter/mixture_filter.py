@@ -24,7 +24,7 @@ model_paths = {}
 with open('../mixture_pic/out/models.tsv') as file:
     line = file.readline()  # Skip header
     for line in file:
-        fields = line.rstrip().split('\t')
+        fields = line.rstrip('\n').split('\t')
         model_paths[fields[0]] = fields[1]
 
 # Make output directory
