@@ -7,7 +7,7 @@ import os
 def to_dict(path, dtype):
     dict = {}
     with open(path) as file:
-        file.readline()  # Skip first line
+        file.readline()  # Skip header
         for line in file:
             key, val = line.rstrip().split('\t')
             dict[key] = dtype(val)

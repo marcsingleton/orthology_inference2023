@@ -22,7 +22,7 @@ pics_lt = pics[(pics.index.get_level_values('min_length') >= lt) &
 # Read model selection into dictionary
 model_paths = {}
 with open('../mixture_pic/out/models.tsv') as file:
-    line = file.readline()  # Skip header
+    file.readline()  # Skip header
     for line in file:
         fields = line.rstrip('\n').split('\t')
         model_paths[fields[0]] = fields[1]
