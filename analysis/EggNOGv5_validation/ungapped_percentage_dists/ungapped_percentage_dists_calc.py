@@ -7,13 +7,6 @@ import scipy.stats as stats
 from Bio import AlignIO
 from numpy import quantile
 
-pathdir = [('../../../data/EggNOGv5/drosophilidae/7214_members.tsv', '../../../data/EggNOGv5/drosophilidae/7214/'),
-           ('../filter_unknown_realign/out/7214_noX_members.tsv', '../filter_unknown_realign/out/align/'),
-           ('../filter_count/out/7214_members/equal_+5_members.tsv', '../filter_unknown_realign/out/align/'),
-           ('../../TF_CF_lists/EggNOGv5_intersect/equal_+5_members_CF.tsv', '../filter_unknown_realign/out/align/'),
-           ('../../TF_CF_lists/EggNOGv5_intersect/7214_noX_members_CF.tsv', '../filter_unknown_realign/out/align/'),
-           ('../../TF_CF_lists/EggNOGv5_intersect/equal_+5_members_TF.tsv', '../filter_unknown_realign/out/align/'),
-           ('../../TF_CF_lists/EggNOGv5_intersect/7214_noX_members_TF.tsv', '../filter_unknown_realign/out/align/')]
 
 def fraction_ungapped(MSA):
     fractions = []
@@ -23,6 +16,9 @@ def fraction_ungapped(MSA):
     return fractions
 
 
+pathdir = [('../../../data/EggNOGv5/drosophilidae/7214_members.tsv', '../../../data/EggNOGv5/drosophilidae/7214/'),
+           ('../filter_unknown_realign/out/7214_noX_members.tsv', '../filter_unknown_realign/out/align/'),
+           ('../filter_count/out/7214_members/equal_+5_members.tsv', '../filter_unknown_realign/out/align/')]
 for path_members, dir_msa in pathdir:
     # Create list of alignments
     members = []
@@ -65,9 +61,4 @@ DEPENDENCIES
     ../filter_unknown_realign/out/align/
 ../filter_count/filter_count.py
     ../filter_count/out/7214_members/equal_+5_members.tsv
-../../TF_CF_lists/EggNOGv5_intersect/EggNOGv5_intersect.py
-    ../../TF_CF_lists/EggNOGv5_intersect/equal_+5_members_CF.tsv
-    ../../TF_CF_lists/EggNOGv5_intersect/7214_noX_members_CF.tsv
-    ../../TF_CF_lists/EggNOGv5_intersect/equal_+5_members_TF.tsv
-    ../../TF_CF_lists/EggNOGv5_intersect/7214_noX_members_TF.tsv
 """
