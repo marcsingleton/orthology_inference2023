@@ -426,12 +426,29 @@ for feature_label in means.columns.intersection(roots.columns):
 
 # 4.3 Plot correlation of roots and rates
 df = roots.merge(rates, how='inner', on=['OGid', 'start', 'stop', 'disorder'])
+disorder = df.loc[pdidx[:, :, :, True, :], :]
+order = df.loc[pdidx[:, :, :, False, :], :]
 for feature_label in roots.columns.intersection(rates.columns):
-    plt.scatter(df[feature_label + '_x'], df[feature_label + '_y'], s=5, alpha=0.1, edgecolor='none')
+    plt.scatter(df[feature_label + '_x'], df[feature_label + '_y'], s=5, alpha=0.15, edgecolor='none')
     plt.xlabel('Inferred root value')
     plt.ylabel('Rate')
     plt.title(feature_label)
-    plt.savefig(f'out/roots/scatter_rate-root_{feature_label}.png')
+    plt.savefig(f'out/roots/scatter_rate-root_{feature_label}1.png')
+    plt.close()
+
+    fig, axs = plt.subplots(2, 1, sharex=True)
+    axs[0].scatter(disorder[feature_label + '_x'], disorder[feature_label + '_y'],
+                   label='disorder', s=5, alpha=0.15, facecolor='C0', edgecolor='none')
+    axs[1].scatter(order[feature_label + '_x'], order[feature_label + '_y'],
+                   label='order', s=5, alpha=0.15, facecolor='C1', edgecolor='none')
+    axs[1].set_xlabel('Inferred root value')
+    for i in range(2):
+        axs[i].set_ylabel('Rate')
+        leg = axs[i].legend(markerscale=2)
+        for lh in leg.legendHandles:
+            lh.set_alpha(1)
+    fig.suptitle(feature_label)
+    plt.savefig(f'out/roots/scatter_rate-root_{feature_label}2.png')
     plt.close()
 
 """
