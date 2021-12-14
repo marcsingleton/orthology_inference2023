@@ -49,10 +49,10 @@ for label in ['norm1', 'norm2']:
         # Load decoded states
         posterior = []
         with open(f'../insertion_trim/out/{row.OGid}.tsv') as file:
-            header = file.readline().split()
+            header = file.readline().rstrip('\n').split('\t')
             for line in file:
-                d = {key: float(value) for key, value in zip(header, line.split())}
-                posterior.append(d['2'] + d['3'])
+                fields = {key: float(value) for key, value in zip(header, line.rstrip('\n').split('\t'))}
+                posterior.append(fields['2'] + fields['3'])
         posterior = np.array(posterior)
         gradient = np.gradient(posterior)
 
