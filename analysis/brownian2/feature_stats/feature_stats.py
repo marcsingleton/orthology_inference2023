@@ -8,6 +8,7 @@ from matplotlib.lines import Line2D
 from numpy import linspace
 from sklearn.decomposition import PCA
 
+pdidx = pd.IndexSlice
 
 # Load features
 features = pd.read_table('../get_features/out/features.tsv')
@@ -24,19 +25,18 @@ with open('../aucpred_filter/out/regions_30.tsv') as file:
             rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True', 'ppid': ppid})
 segments = pd.DataFrame(rows).merge(features, how='left', on=['OGid', 'start', 'stop', 'ppid'])
 regions = segments.groupby(['OGid', 'start', 'stop', 'disorder'])
-mean = regions.mean()
 
-pdidx = pd.IndexSlice
-disorder = mean.loc[pdidx[:, :, :, True], :]
-order = mean.loc[pdidx[:, :, :, False], :]
+means = regions.mean()
+disorder = means.loc[pdidx[:, :, :, True], :]
+order = means.loc[pdidx[:, :, :, False], :]
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Feature histograms
-for feature_label in mean.columns:
+for feature_label in means.columns:
     fig, axs = plt.subplots(2, 1, sharex=True)
-    xmin, xmax = mean[feature_label].min(), mean[feature_label].max()
+    xmin, xmax = means[feature_label].min(), means[feature_label].max()
     axs[0].hist(disorder[feature_label], bins=linspace(xmin, xmax, 75), color='C0', label='disorder')
     axs[1].hist(order[feature_label], bins=linspace(xmin, xmax, 75), color='C1', label='order')
     axs[1].set_xlabel(f'Mean {feature_label}')

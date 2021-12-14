@@ -31,8 +31,8 @@ def load_msa(path):
     return msa
 
 
-spid_regex = r'spid=([a-z]+)'
 pdidx = pd.IndexSlice
+spid_regex = r'spid=([a-z]+)'
 
 # Load contrasts and tree
 features = pd.read_table('../get_features/out/features.tsv')
@@ -50,7 +50,7 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
         ppid, _, spid, _ = line.split()
         ppid2spid[ppid] = spid
 
-# Parse segments
+# Load regions
 rows, region2spids = [], {}
 with open('../aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header
@@ -58,10 +58,11 @@ with open('../aucpred_filter/out/regions_30.tsv') as file:
         OGid, start, stop, disorder, ppids = line.split()
         rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True'})
         region2spids[(OGid, int(start), int(stop))] = [ppid2spid[ppid] for ppid in ppids.split(',')]
-segments = pd.DataFrame(rows)
-features = segments.merge(features, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder'])
-contrasts = segments.merge(contrasts, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder', 'contrast_id'])
-roots = segments.merge(roots, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder'])
+regions = pd.DataFrame(rows)
+
+features = regions.merge(features, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder'])
+contrasts = regions.merge(contrasts, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder', 'contrast_id'])
+roots = regions.merge(roots, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder'])
 
 # 1 CONTRASTS
 if not os.path.exists('out/contrasts/'):
@@ -92,7 +93,7 @@ for feature_label in df.columns:
         os.makedirs(f'out/contrasts/{feature_label}/')
 
     regions = set()
-    ranked = df[feature_label].sort_values(ascending=False).iteritems()
+    ranked = df[feature_label].sort_values(ascending=False).iteritems()  # Series have no itertuples method
     while len(regions) < 20:
         (OGid, start, stop, _, _), _ = next(ranked)
         if (OGid, start, stop) in regions:
@@ -116,12 +117,12 @@ if not os.path.exists('out/means/'):
     os.makedirs('out/means/')
 
 # 2.1 Plot contrast means distributions
-mean = contrasts.groupby(['OGid', 'start', 'stop', 'disorder']).mean()
-disorder = mean.loc[pdidx[:, :, :, True, :], :]
-order = mean.loc[pdidx[:, :, :, False, :], :]
-for feature_label in mean.columns:
+means = contrasts.groupby(['OGid', 'start', 'stop', 'disorder']).mean()
+disorder = means.loc[pdidx[:, :, :, True, :], :]
+order = means.loc[pdidx[:, :, :, False, :], :]
+for feature_label in means.columns:
     fig, axs = plt.subplots(2, 1, sharex=True)
-    xmin, xmax = mean[feature_label].min(), mean[feature_label].max()
+    xmin, xmax = means[feature_label].min(), means[feature_label].max()
     axs[0].hist(disorder[feature_label], bins=linspace(xmin, xmax, 150), color='C0', label='disorder')
     axs[1].hist(order[feature_label], bins=linspace(xmin, xmax, 150), color='C1', label='order')
     axs[1].set_xlabel(f'Mean contrast value ({feature_label})')
@@ -138,14 +139,14 @@ for feature_label in mean.columns:
 # Regions with constant contrasts will have 0 variance, so the normalization will result in a NaN
 # While it is possible for a tree with unequal tip values to yield constant (non-zero) contrasts, it is unlikely
 # Thus constant contrasts are assumed to equal zero
-var = ((contrasts**2).groupby(['OGid', 'start', 'stop', 'disorder']).mean())
-size = contrasts.groupby(['OGid', 'start', 'stop', 'disorder']).size()
-std = (mean / (var.div(size, axis=0))**0.5).fillna(0)
-disorder = std.loc[pdidx[:, :, :, True, :], :]
-order = std.loc[pdidx[:, :, :, False, :], :]
-for feature_label in std.columns:
+variances = ((contrasts**2).groupby(['OGid', 'start', 'stop', 'disorder']).mean())
+sizes = contrasts.groupby(['OGid', 'start', 'stop', 'disorder']).size()
+stds = (means / (variances.div(sizes, axis=0))**0.5).fillna(0)
+disorder = stds.loc[pdidx[:, :, :, True, :], :]
+order = stds.loc[pdidx[:, :, :, False, :], :]
+for feature_label in stds.columns:
     fig, axs = plt.subplots(2, 1, sharex=True)
-    xmin, xmax = std[feature_label].min(), std[feature_label].max()
+    xmin, xmax = stds[feature_label].min(), stds[feature_label].max()
     axs[0].hist(disorder[feature_label], density=True, bins=linspace(xmin, xmax, 150), color='C0', label='disorder')
     axs[1].hist(order[feature_label], density=True, bins=linspace(xmin, xmax, 150), color='C1', label='order')
     axs[1].set_xlabel(f'Standardized mean contrast value ({feature_label})')
@@ -158,9 +159,9 @@ for feature_label in std.columns:
 
 # 2.3 Plot contrast mean PCAs
 pca = PCA(n_components=10)
-idx = mean.index.get_level_values('disorder').array.astype(bool)
+idx = means.index.get_level_values('disorder').array.astype(bool)
 
-transform = pca.fit_transform(mean.to_numpy())
+transform = pca.fit_transform(means.to_numpy())
 plt.scatter(transform[idx, 0], transform[idx, 1], label='disorder', s=5, color='C0', alpha=0.1, edgecolors='none')
 plt.scatter(transform[~idx, 0], transform[~idx, 1], label='order', s=5, color='C1', alpha=0.1, edgecolors='none')
 plt.xlabel('PC1')
@@ -172,8 +173,8 @@ for lh in legend.legendHandles:
 plt.savefig(f'out/means/scatter_pca_mean.png')
 plt.close()
 
-idx = std.index.get_level_values('disorder').array.astype(bool)
-transform = pca.fit_transform(std.to_numpy())
+idx = stds.index.get_level_values('disorder').array.astype(bool)
+transform = pca.fit_transform(stds.to_numpy())
 plt.scatter(transform[idx, 0], transform[idx, 1], label='disorder', s=5, color='C0', alpha=0.1, edgecolors='none')
 plt.scatter(transform[~idx, 0], transform[~idx, 1], label='order', s=5, color='C1', alpha=0.1, edgecolors='none')
 plt.xlabel('PC1')
@@ -186,13 +187,13 @@ plt.savefig(f'out/means/scatter_pca_mean_std.png')
 plt.close()
 
 # 2.4 Plot regions with extreme means
-df = mean.abs()
+df = means.abs()
 for feature_label in df.columns:
     if not os.path.exists(f'out/means/{feature_label}/'):
         os.makedirs(f'out/means/{feature_label}/')
 
     regions = set()
-    ranked = df[feature_label].sort_values(ascending=False).iteritems()
+    ranked = df[feature_label].sort_values(ascending=False).iteritems()  # Series have no itertuples method
     while len(regions) < 20:
         (OGid, start, stop, _), _ = next(ranked)
         if (OGid, start, stop) in regions:
@@ -366,7 +367,7 @@ for feature_label in rates.columns:
         os.makedirs(f'out/rates/{feature_label}/')
 
     regions = set()
-    ranked = rates[feature_label].sort_values(ascending=False).iteritems()
+    ranked = rates[feature_label].sort_values(ascending=False).iteritems()  # Series have no itertuples method
     while len(regions) < 20:
         (OGid, start, stop, _), _ = next(ranked)
         if (OGid, start, stop) in regions:
@@ -405,9 +406,8 @@ for feature_label in roots.columns:
     plt.close()
 
 # 4.2 Plot correlations of roots and feature means
-mean = features.groupby(['OGid', 'start', 'stop', 'disorder']).mean()
-df = mean.merge(roots, how='inner', on=['OGid', 'start', 'stop', 'disorder'])
-for feature_label in mean.columns.intersection(roots.columns):
+df = features.groupby(['OGid', 'start', 'stop', 'disorder']).mean().merge(roots, how='inner', on=['OGid', 'start', 'stop', 'disorder'])
+for feature_label in means.columns.intersection(roots.columns):
     plt.scatter(df[feature_label + '_x'], df[feature_label + '_y'], s=5, alpha=0.1, edgecolor='none')
     plt.xlabel('Tip mean')
     plt.ylabel('Inferred root value')
