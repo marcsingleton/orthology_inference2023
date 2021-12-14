@@ -15,7 +15,6 @@ def get_ancestors(GO, GOid):
         ancestors.update(get_ancestors(GO, parent))
     return ancestors
 
-
 # Load seq metadata
 ppid2gnid = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
@@ -23,18 +22,16 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
         ppid, gnid, _, sqid = line.split()
         ppid2gnid[ppid] = gnid
 
-# Load OGs
+# Load regions
 rows = []
-with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
+with open('../../brownian2/aucpred_filter/out/regions_30.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        CCid, OGid, edges = line.rstrip().split(':')
-        ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
-        for ppid in ppids:
+        OGid, start, stop, disorder, ppids = line.split()
+        for ppid in ppids.split(','):
             gnid = ppid2gnid[ppid]
-            rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid})
-OG_gnids = pd.DataFrame(rows).drop_duplicates()  # All OGs with genes
-OG_filter = pd.read_table('../../ortho_MSA/OG_filter/out/OG_filter.tsv', usecols=['CCid', 'OGid', 'gOGid'])  # OGs after filtering
-OGs = OG_filter.merge(OG_gnids, how='left', on=['OGid', 'CCid'])  # Filtered OGs with genes
+            rows.append({'OGid': OGid, 'start': start, 'stop': stop, 'disorder': disorder, 'gnid': gnid})
+regions = pd.DataFrame(rows)
 
 # Read ontology
 GO = {}
@@ -67,9 +64,9 @@ with open('../../../data/GO/go-basic.obo') as file:
 # Find term ancestors
 rows = []
 for GOid in GO:
-    rows.append({'GOid': GOid, 'ancestor': GOid})  # Include self as ancestor so merge keeps original term
-    for ancestor in get_ancestors(GO, GOid):
-        rows.append({'GOid': GOid, 'ancestor': ancestor})
+    rows.append({'GOid': GOid, 'ancestor_id': GOid, 'ancestor_name': GO[GOid]['name']})  # Include self as ancestor so merge keeps original term
+    for ancestor_id in get_ancestors(GO, GOid):
+        rows.append({'GOid': GOid, 'ancestor_id': ancestor_id, 'ancestor_name': GO[ancestor_id]['name']})
 ancestors = pd.DataFrame(rows)
 
 # Read raw table and add term names
@@ -114,7 +111,7 @@ print()
 print('TOTAL', (length-6-len(total))*' ' + total)
 print()
 
-# Rename ids
+# Update ids
 df4 = df3.copy()
 df4['GOid'] = df4['GOid'].apply(lambda x: GO[x]['primary_id'])
 
@@ -128,16 +125,16 @@ print()
 print('TOTAL', (length-6-len(total))*' ' + total)
 print()
 
-# Intersect with OGs
-df5 = OGs.merge(df4, on='gnid')
+# Join with regions
+df5 = regions.merge(df4, on='gnid')
 
 # Propagate ancestors to table and drop poorly represented annotations
-df6 = df5.merge(ancestors, on='GOid').drop('GOid', axis=1).rename(columns={'ancestor': 'GOid'}).drop_duplicates()
-df7 = df6.groupby('GOid').filter(lambda x: len(x) >= 30)
+df6 = df5.merge(ancestors, on='GOid').drop(['GOid', 'name'], axis=1).rename(columns={'ancestor_id': 'GOid', 'ancestor_name': 'name'}).drop_duplicates()
+df7 = df6.groupby(['GOid', 'disorder']).filter(lambda x: x['gnid'].nunique() >= 50)
 
 # Make plots
 dfs = [df2, df3, df4, df5, df6, df7]
-labels = ['original', 'filter', 'merge', 'intersect', 'propagate', 'drop']
+labels = ['original', 'filter', 'update', 'join', 'propagate', 'drop']
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -242,10 +239,8 @@ TOTAL                                                                           
 DEPENDENCIES
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/precomputed_files/gene_association_v2.1.fb
 ../../../data/GO/go-basic.obo
-../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
-    ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
-../../ortho_MSA/OG_filter/OG_filter.py
-    ../../ortho_MSA/OG_filter/out/OG_filter.tsv
+../../brownian2/aucpred_filter/aucpred_filter.py
+    ../../brownian2/aucpred_filter/out/regions_30.tsv
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 """
