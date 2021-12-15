@@ -8,7 +8,6 @@ import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
 
-
 pdidx = pd.IndexSlice
 
 # Load seq metadata
@@ -52,7 +51,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 rows = []
-for data, label in [(rates, 'combined'), (disorder, 'disorder'), (order, 'order')]:
+for data, label, color in [(disorder, 'disorder', 'C0'), (order, 'order', 'C1'), (rates, 'combined', 'C2')]:
     corrs = data.corr()
     plt.figure(figsize=(8, 6))
     plt.imshow(corrs, vmin=0, vmax=1)
@@ -66,9 +65,10 @@ for data, label in [(rates, 'combined'), (disorder, 'disorder'), (order, 'order'
     pca = PCA(n_components=10)
     transform = pca.fit_transform(data.to_numpy())[:, :5]
 
-    plt.bar(range(1, len(pca.explained_variance_ratio_) + 1), pca.explained_variance_ratio_)
+    plt.bar(range(1, len(pca.explained_variance_ratio_) + 1), pca.explained_variance_ratio_, label=label, color=color)
     plt.xlabel('Principal component')
     plt.ylabel('Explained variance ratio')
+    plt.legend()
     plt.savefig(f'out/bar_scree_{label}.png')
     plt.close()
 
@@ -86,7 +86,7 @@ for data, label in [(rates, 'combined'), (disorder, 'disorder'), (order, 'order'
         prec = sum([(y1 == y2) and y1 for y1, y2 in zip(y_true, y_pred)]) / sum(y_pred)
 
         rows.append({'GOid': GOid, 'label': label,
-                     'acc': acc, 'sens': sens, 'spec': spec, 'prec': prec,
+                     'accuracy': acc, 'sensitivty': sens, 'specificity': spec, 'precision': prec,
                      **{f'beta{i}': beta for i, beta in enumerate(logit.coef_[0])}})
 results = pd.DataFrame(rows)
 results.to_csv('out/models.tsv', sep='\t', index=False)
