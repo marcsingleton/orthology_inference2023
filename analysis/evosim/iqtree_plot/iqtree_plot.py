@@ -28,8 +28,8 @@ with open('WAG.txt') as file:
     # Parse equilibrium frequencies
     for _ in range(2):
         line = file.readline()
-    WAG_freqs = [float(value) for value in line.split()]
-rate = (np.array(WAG_freqs) * WAG_matrix.sum(axis=1)).sum()
+    WAG_freqs = np.array([float(value) for value in line.split()])
+rate = (WAG_freqs * (WAG_freqs * WAG_matrix).sum(axis=1)).sum()
 WAG_matrix = WAG_matrix / rate
 
 # Read IQ-TREE matrices
@@ -58,6 +58,7 @@ for label in labels:
             syms.append(match.group(1))
             freqs.append(float(match.group(2)))
             line = file.readline()
+        freqs = np.array(freqs)
 
         if syms != order:
             raise RuntimeError('Symbols in matrix are not in expected order.')
@@ -69,7 +70,7 @@ for label in labels:
             matrix[i+1, j] = value
             matrix[j, i+1] = value
 
-    rate = (np.array(freqs) * matrix.sum(axis=1)).sum()
+    rate = (freqs * (freqs * matrix).sum(axis=1)).sum()
     matrix = matrix / rate
     records.append((label, matrix, freqs))
 
@@ -92,6 +93,7 @@ plt.savefig('out/heatmap_all.png', bbox_inches='tight')
 plt.close()
 
 # 2 DOT PLOT
+scale = 0.0325
 fig, axs = plt.subplots(2, 3, figsize=(8, 6))
 for ax, (label, matrix, _) in zip(axs.ravel(), records):
     ax.set_title(label)
@@ -109,13 +111,13 @@ for ax, (label, matrix, _) in zip(axs.ravel(), records):
         for j, value in enumerate(row):
             if j >= i:
                 continue
-            c = Circle((j+1, 20-i), 0.7*value, color='black')
+            c = Circle((j+1, 20-i), scale*value, color='black')
             ax.add_patch(c)
 plt.savefig('out/dotplot_all.png', bbox_inches='tight')
 plt.close()
 
 # 3 DOT COMPARISONS
-scale = 0.65
+scale = 0.03
 pairs = [(records[1][0], records[1][1], 'black', 'WAG', WAG_matrix, 'white'),
          (records[4][0], records[4][1], 'grey', 'WAG', WAG_matrix, 'white'),
          (records[1][0], records[1][1], 'black', records[4][0], records[4][1], 'grey')]
@@ -196,7 +198,7 @@ for l1, m1, l2, m2 in pairs:
     plt.close()
 
 # 5 DIFFERENCE DOT COMPARISONS
-scale = 1
+scale = 0.06
 pairs = [(records[1][0], records[1][1], 'WAG', WAG_matrix),
          (records[4][0], records[4][1], 'WAG', WAG_matrix),
          (records[1][0], records[1][1], records[4][0], records[4][1])]
@@ -222,7 +224,7 @@ for l1, m1, l2, m2 in pairs:
 
     # Make legend
     y1, y2 = 10, 15
-    rs = [0.1, 0.35, 0.6]
+    rs = [1, 4, 7]
     dy = (y2 - y1 - sum([2*scale*r for r in rs])) / len(rs)
     ys, y = [], y1
     for r in rs:
@@ -232,9 +234,9 @@ for l1, m1, l2, m2 in pairs:
         ax.add_patch(Circle((22, y), scale*r, facecolor='grey', edgecolor='black', clip_on=False))
         ax.text(23, y, f'|D| = {r}', size=8, va='center', clip_on=False)
 
-    ax.add_patch(Circle((22, 8), 0.35*scale, facecolor='black', edgecolor='black', clip_on=False))
+    ax.add_patch(Circle((22, 8), 4*scale, facecolor='black', edgecolor='black', clip_on=False))
     ax.text(23, 8, 'D > 0', size=8, va='center', clip_on=False)
-    ax.add_patch(Circle((22, 6.5), 0.35*scale, facecolor='white', edgecolor='black', clip_on=False))
+    ax.add_patch(Circle((22, 6.5), 4*scale, facecolor='white', edgecolor='black', clip_on=False))
     ax.text(23, 6.5, 'D < 0', size=8, va='center', clip_on=False)
 
     plt.savefig(f'out/dotplot_diff_{l1}-{l2}.png')
