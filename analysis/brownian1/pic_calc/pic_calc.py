@@ -9,18 +9,13 @@ from copy import deepcopy
 
 def get_contrasts(node, results):
     leaf1, leaf2 = node.clades
-
-    if leaf1.is_terminal() and leaf2.is_terminal():
+    if leaf1.is_terminal():
         val1, bl1 = leaf1.value, leaf1.branch_length
-        val2, bl2 = leaf2.value, leaf2.branch_length
-    elif leaf1.is_terminal():
-        val1, bl1 = leaf1.value, leaf1.branch_length
-        val2, bl2 = get_contrasts(leaf2, results)
-    elif leaf2.is_terminal():
-        val1, bl1 = get_contrasts(leaf1, results)
-        val2, bl2 = leaf2.value, leaf2.branch_length
     else:
         val1, bl1 = get_contrasts(leaf1, results)
+    if leaf2.is_terminal():
+        val2, bl2 = leaf2.value, leaf2.branch_length
+    else:
         val2, bl2 = get_contrasts(leaf2, results)
 
     bl_sum = bl1 + bl2
