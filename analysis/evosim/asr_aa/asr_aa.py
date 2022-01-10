@@ -58,7 +58,7 @@ for OGid, records in OGid2segments.items():
         with open(f'out/{prefix}.mfa', 'w') as file:
             for ppid, spid, seq in msa:
                 if ppid in ppids:
-                    seqstring = '\n'.join([seq[start:stop][i:i+80] for i in range(0, len(seq), 80)]) + '\n'
+                    seqstring = '\n'.join([seq[start:stop][i:i+80] for i in range(0, stop-start, 80)]) + '\n'
                     file.write(f'>{spid} {OGid}_{start}-{stop}|{ppid}\n' + seqstring)
 
         # Prune missing species from tree
@@ -66,7 +66,7 @@ for OGid, records in OGid2segments.items():
         tree = tree_template.shear(spids)
         skbio.io.write(tree, format='newick', into=f'out/{prefix}.nwk')
 
-        run(f'../../../bin/iqtree -s out/{prefix}.mfa -m 50red_D.txt+I+G -te out/{prefix}.nwk -asr -wslr -pre out/{prefix}', shell=True, check=True)
+        run(f'../../../bin/iqtree -s out/{prefix}.mfa -m 50red_D.txt+I+G -te out/{prefix}.nwk -keep-ident -pre out/{prefix}', shell=True, check=True)
 
 """
 NOTES
@@ -83,4 +83,5 @@ DEPENDENCIES
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../../brownian2/aucpred_filter/aucpred_filter.py
     ../../brownian2/aucpred_filter/out/regions_30.tsv
+./50red_D.txt
 """

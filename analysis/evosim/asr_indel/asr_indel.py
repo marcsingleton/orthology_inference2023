@@ -68,6 +68,10 @@ for OGid, records in OGid2segments.items():
                         characters[(s.start, s.stop)] = {(ppid, spid)}
         characters = sorted(characters.items(), key=lambda x: (x[0][0], -x[0][1]))  # Fix order of characters
 
+        # Skip region if no indels
+        if not characters:
+            continue
+
         # Make character alignment and table
         mca = {(ppid, spid): [] for ppid, spid, _ in msa if ppid in ppids}
         for character, keys1 in characters:
@@ -90,7 +94,7 @@ for OGid, records in OGid2segments.items():
         tree = tree_template.shear(spids)
         skbio.io.write(tree, format='newick', into=f'out/{prefix}.nwk')
 
-        run(f'../../../bin/iqtree -s out/{prefix}.mfa -m GTR2+FO+G+ATR -te out/{prefix}.nwk -asr -wslr -pre out/{prefix}', shell=True, check=True)
+        run(f'../../../bin/iqtree -s out/{prefix}.mfa -m GTR2+FO+G+ATR -te out/{prefix}.nwk -blfix -pre out/{prefix}', shell=True, check=True)
 
 """
 DEPENDENCIES
