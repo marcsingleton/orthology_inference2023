@@ -79,7 +79,7 @@ for prefix in prefixes:
 
     # Load trees
     tree1 = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
-    with open(f'../asr_aa/out/{prefix}.iqtree') as file:
+    with open(f'../asr_indel/out/{prefix}.iqtree') as file:
         line = file.readline()
         while line != 'Tree in newick format:\n':
             line = file.readline()

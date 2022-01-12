@@ -95,7 +95,7 @@ for OGid, records in OGid2segments.items():
         tree = tree_template.shear(spids)
         skbio.io.write(tree, format='newick', into=f'out/{prefix}.nwk')
 
-        run(f'../../../bin/iqtree -s out/{prefix}.mfa -m GTR2+FO+G+ASC -te out/{prefix}.nwk -blfix -keep-ident -pre out/{prefix}', shell=True, check=True)
+        run(f'../../../bin/iqtree -s out/{prefix}.mfa -m GTR2+FO+G+ASC -te out/{prefix}.nwk -keep-ident -pre out/{prefix}', shell=True, check=True)
 
 """
 NOTES
