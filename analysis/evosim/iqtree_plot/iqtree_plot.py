@@ -15,10 +15,10 @@ order = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
 labels = ['0red_D', '50red_D', '100red_D',
           '0red_O', '50red_O', '100red_O']
 
-# Read WAG matrix
-WAG_matrix = np.zeros((20, 20))
+# Read WAG model
 with open('WAG.txt') as file:
     # Parse exchangeability matrix
+    WAG_matrix = np.zeros((20, 20))
     for i in range(19):
         line = file.readline()
         for j, value in enumerate(line.split()):
