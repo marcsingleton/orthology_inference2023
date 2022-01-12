@@ -55,48 +55,56 @@ for OGid, records in OGid2segments.items():
     for start, stop, ppids in records:
         prefix = f'{OGid}_{start}-{stop}'
 
-        # Map deletions to characters
-        characters = {}
+        # Make list of gaps for each sequence
+        ids2characters = {}
         for ppid, spid, seq in msa:
             if ppid in ppids:
                 binary = [1 if sym in ['-', '.'] else 0 for sym in seq[start:stop]]
                 slices = ndimage.find_objects(ndimage.label(binary)[0])
-                for s, in slices:
-                    try:
-                        characters[(s.start, s.stop)].add((ppid, spid))
-                    except KeyError:
-                        characters[(s.start, s.stop)] = {(ppid, spid)}
-        characters = sorted(characters.items(), key=lambda x: (x[0][0], -x[0][1]))  # Fix order of characters
+                ids2characters[(ppid, spid)] = [(s.start, s.stop) for s, in slices]
+        character_set = set().union(*ids2characters.values())
+        character_set = sorted(character_set, key=lambda x: (x[0], -x[1]))  # Fix order of characters
 
         # Skip region if no indels
-        if not characters:
+        if not character_set:
             continue
 
         # Make character alignment and table
-        mca = {(ppid, spid): [] for ppid, spid, _ in msa if ppid in ppids}
-        for character, keys1 in characters:
-            for key in keys1:
-                mca[key].append('1')
-            keys0 = set(mca) - keys1
-            for key in keys0:
-                mca[key].append('0')
+        mca = {}
+        for ids, characters in ids2characters.items():
+            charseq = []
+            for (start1, stop1) in character_set:
+                for (start2, stop2) in characters:
+                    if (start2 <= start1) and (stop2 >= stop1):
+                        charseq.append('1')
+                        break
+                else:
+                    charseq.append('0')
+            mca[ids] = charseq
         with open(f'out/{prefix}.mfa', 'w') as file:
             for (ppid, spid), charseq in sorted(mca.items(), key=lambda x: x[0][1]):
                 seqstring = '\n'.join([''.join(charseq[i:i+80]) for i in range(0, len(charseq), 80)]) + '\n'
                 file.write(f'>{spid} {OGid}_{start}-{stop}|{ppid}\n' + seqstring)
         with open(f'out/{prefix}.tsv', 'w') as file:
             file.write('index\tstart\tstop\n')
-            for idx, ((s1, s2), _) in enumerate(characters):
-                file.write(f'{idx+1}\t{s1}\t{s2}\n')
+            for idx, (s1, s2) in enumerate(character_set):
+                file.write(f'{idx}\t{s1}\t{s2}\n')
 
         # Prune missing species from tree
         spids = set([spid for ppid, spid, _ in msa if ppid in ppids])
         tree = tree_template.shear(spids)
         skbio.io.write(tree, format='newick', into=f'out/{prefix}.nwk')
 
-        run(f'../../../bin/iqtree -s out/{prefix}.mfa -m GTR2+FO+G+ATR -te out/{prefix}.nwk -blfix -pre out/{prefix}', shell=True, check=True)
+        run(f'../../../bin/iqtree -s out/{prefix}.mfa -m GTR2+FO+G+ASC -te out/{prefix}.nwk -blfix -keep-ident -pre out/{prefix}', shell=True, check=True)
 
 """
+NOTES
+Test reconstructions showed that treating every character as independent underestimates the probability of gaps. I
+believe the issue is if a region with consistent gaps has "ragged" ends, each gap with a unique start or stop position
+is coded as a separate character. In the most extreme case, a gap common to every sequence but one may differ by at
+least one at each stop position, like a staircase. Thus, the nested structure of the gaps is not reflected in the
+character codings.
+
 DEPENDENCIES
 ../../brownian2/insertion_trim/insertion_trim.py
     ../../brownian2/insertion_trim/out/*.mfa
