@@ -6,6 +6,8 @@ from io import StringIO
 import numpy as np
 import skbio
 from asr import get_conditional, get_tree
+from scipy.special import gammainc
+from scipy.stats import gamma
 
 
 def load_msa(path):
@@ -25,6 +27,8 @@ def load_msa(path):
             msa.append((header, seq))
     return msa
 
+
+num_submodels = 4
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -67,15 +71,19 @@ for prefix in prefixes:
     tree = get_tree(tree1, tree2)
 
     # Load rate categories
-    rates = []
     with open(f'../asr_indel/out/{prefix}.iqtree') as file:
         line = file.readline()
-        while line != ' Category  Relative_rate  Proportion\n':
+        while not line.startswith('Gamma shape alpha:'):
             line = file.readline()
-        for _ in range(4):
-            line = file.readline()
-            fields = line.split()
-            rates.append((fields[0], float(fields[1]), float(fields[2])))
+        alpha = float(line.rstrip().split(': ')[1])
+    igfs = []  # Incomplete gamma function evaluations
+    for i in range(num_submodels+1):
+        x = gamma.ppf(i/num_submodels, a=alpha, scale=1/alpha)
+        igfs.append(gammainc(alpha+1, alpha*x))
+    rates = []  # Normalized rates
+    for i in range(num_submodels):
+        rate = num_submodels * (igfs[i+1] - igfs[i])
+        rates.append((i, rate, num_submodels))
 
     # Load sequence and convert to vectors at base of tree
     msa = load_msa(f'../asr_indel/out/{prefix}.mfa')
@@ -99,6 +107,9 @@ for prefix in prefixes:
     np.save(f'out/{prefix}_indel.npy', likelihoods)
 
 """
+NOTES
+See notes in aa.py for reasoning for re-calculating rates from alpha.
+
 DEPENDENCIES
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
