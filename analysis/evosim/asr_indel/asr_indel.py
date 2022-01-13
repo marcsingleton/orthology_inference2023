@@ -26,6 +26,15 @@ def load_msa(path):
     return msa
 
 
+def is_nested(character, characters):
+    """Return if character is nested in one of intervals in characters."""
+    start1, stop1 = character
+    for start2, stop2 in characters:
+        if (start2 <= start1) and (stop2 >= stop1):
+            return True
+    return False
+
+
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 spid_regex = r'spid=([a-z]+)'
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
@@ -52,14 +61,14 @@ for OGid, records in OGid2segments.items():
     msa = load_msa(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
     msa = [(re.search(ppid_regex, header).group(1), re.search(spid_regex, header).group(1), seq) for header, seq in msa]
 
-    for start, stop, ppids in records:
-        prefix = f'{OGid}_{start}-{stop}'
+    for region_start, region_stop, ppids in records:
+        prefix = f'{OGid}_{region_start}-{region_stop}'
 
         # Make list of gaps for each sequence
         ids2characters = {}
         for ppid, spid, seq in msa:
             if ppid in ppids:
-                binary = [1 if sym in ['-', '.'] else 0 for sym in seq[start:stop]]
+                binary = [1 if sym in ['-', '.'] else 0 for sym in seq[region_start:region_stop]]
                 slices = ndimage.find_objects(ndimage.label(binary)[0])
                 ids2characters[(ppid, spid)] = [(s.start, s.stop) for s, in slices]
         character_set = set().union(*ids2characters.values())
@@ -69,26 +78,49 @@ for OGid, records in OGid2segments.items():
         if not character_set:
             continue
 
-        # Make character alignment and table
-        mca = {}
-        for ids, characters in ids2characters.items():
+        # Make character alignment
+        mca = []
+        for (ppid, spid), characters in ids2characters.items():
             charseq = []
-            for start1, stop1 in character_set:
-                for start2, stop2 in characters:
-                    if (start2 <= start1) and (stop2 >= stop1):
-                        charseq.append('1')
-                        break
-                else:  # If loop completes without overlap
+            for character in character_set:
+                if is_nested(character, characters):
+                    charseq.append('1')
+                else:
                     charseq.append('0')
-            mca[ids] = charseq
-        with open(f'out/{prefix}.mfa', 'w') as file:
-            for (ppid, spid), charseq in sorted(mca.items(), key=lambda x: x[0][1]):
-                seqstring = '\n'.join([''.join(charseq[i:i+80]) for i in range(0, len(charseq), 80)]) + '\n'
-                file.write(f'>{spid} {OGid}_{start}-{stop}|{ppid}\n' + seqstring)
+            mca.append((ppid, spid, charseq))
+        mca = sorted(mca, key=lambda x: x[1])
+
+        # Identify invariant characters
+        is_invariants = []
+        for j in range(len(mca[0][2])):
+            is_invariant = True
+            for i in range(len(mca)):
+                if mca[i][2][j] == '0':
+                    is_invariant = False
+                    break
+            is_invariants.append(is_invariant)
+
+        # Write character table to file
+        idx = 0
         with open(f'out/{prefix}.tsv', 'w') as file:
             file.write('index\tstart\tstop\n')
-            for idx, (s1, s2) in enumerate(character_set):
-                file.write(f'{idx}\t{s1}\t{s2}\n')
+            for is_invariant, (start, stop) in zip(is_invariants, character_set):
+                if is_invariant:
+                    file.write(f'-1\t{start}\t{stop}\n')
+                else:
+                    file.write(f'{idx}\t{start}\t{stop}\n')
+                    idx += 1
+
+        # Skip model fit if all characters are invariant
+        if all(is_invariants):
+            continue
+
+        # Write alignment to file
+        with open(f'out/{prefix}.mfa', 'w') as file:
+            for ppid, spid, charseq in mca:
+                charseq = [sym for is_invariant, sym in zip(is_invariants, charseq) if not is_invariant]  # Filter invariant characters
+                seqstring = '\n'.join([''.join(charseq[i:i+80]) for i in range(0, len(charseq), 80)]) + '\n'
+                file.write(f'>{spid} {OGid}_{start}-{stop}|{ppid}\n' + seqstring)
 
         # Prune missing species from tree
         spids = set([spid for ppid, spid, _ in msa if ppid in ppids])

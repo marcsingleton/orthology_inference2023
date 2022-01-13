@@ -101,17 +101,17 @@ for prefix in prefixes:
     # (Background probability for symbol if invariant; otherwise 0)
     likelihood = np.zeros((len(syms), len(msa[0][1])))
     for j in range(len(msa[0][1])):
-        invariant = True
+        is_invariant = True
         sym0 = msa[0][1][j]
-        if sym0 not in sym2idx:
-            invariant = False
+        if sym0 not in sym2idx:  # Gaps or ambiguous characters are not invariant
+            is_invariant = False
         else:
             for i in range(1, len(msa)):
                 sym = msa[i][1][j]
                 if sym != sym0:
-                    invariant = False
+                    is_invariant = False
                     break
-        if invariant:
+        if is_invariant:
             idx = sym2idx[sym0]
             likelihood[idx, j] = freqs[idx]
     likelihood = likelihood * rates[0][2]  # Multiply by prior for submodel
