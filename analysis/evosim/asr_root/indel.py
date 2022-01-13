@@ -28,8 +28,6 @@ def load_msa(path):
     return msa
 
 
-num_submodels = 4
-
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
@@ -73,17 +71,18 @@ for prefix in prefixes:
     # Load rate categories
     with open(f'../asr_indel/out/{prefix}.iqtree') as file:
         line = file.readline()
-        while not line.startswith('Gamma shape alpha:'):
+        while not line.startswith('Model of rate heterogeneity:'):
             line = file.readline()
-        alpha = float(line.rstrip().split(': ')[1])
+        num_categories = int(line.rstrip().split(' Gamma with ')[1][0])
+        alpha = float(file.readline().rstrip().split(': ')[1])
     igfs = []  # Incomplete gamma function evaluations
-    for i in range(num_submodels+1):
-        x = gamma.ppf(i/num_submodels, a=alpha, scale=1/alpha)
+    for i in range(num_categories+1):
+        x = gamma.ppf(i/num_categories, a=alpha, scale=1/alpha)
         igfs.append(gammainc(alpha+1, alpha*x))
     rates = []  # Normalized rates
-    for i in range(num_submodels):
-        rate = num_submodels * (igfs[i+1] - igfs[i])
-        rates.append((i, rate, num_submodels))
+    for i in range(num_categories):
+        rate = num_categories * (igfs[i+1] - igfs[i])
+        rates.append((i, rate, 1/num_categories))
 
     # Load sequence and convert to vectors at base of tree
     msa = load_msa(f'../asr_indel/out/{prefix}.mfa')

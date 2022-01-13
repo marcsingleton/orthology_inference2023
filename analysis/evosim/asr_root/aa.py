@@ -28,7 +28,6 @@ def load_msa(path):
     return msa
 
 
-num_submodels = 4
 syms = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
 sym2idx = {sym: idx for idx, sym in enumerate(syms)}
 
@@ -70,18 +69,19 @@ for prefix in prefixes:
     # Load rate categories
     with open(f'../asr_aa/out/{prefix}.iqtree') as file:
         line = file.readline()
-        while not line.startswith('Proportion of invariable sites:'):
+        while not line.startswith('Model of rate heterogeneity:'):
             line = file.readline()
-        p = float(line.rstrip().split(': ')[1])
+        num_categories = int(line.rstrip().split(' Invar+Gamma with ')[1][0])
+        p = float(file.readline().rstrip().split(': ')[1])
         alpha = float(file.readline().rstrip().split(': ')[1])
     igfs = []  # Incomplete gamma function evaluations
-    for i in range(num_submodels+1):
-        x = gamma.ppf(i/num_submodels, a=alpha, scale=1/alpha)
+    for i in range(num_categories+1):
+        x = gamma.ppf(i/num_categories, a=alpha, scale=1/alpha)
         igfs.append(gammainc(alpha+1, alpha*x))
     rates = [(0, 0, p)]  # Normalized rates
-    for i in range(num_submodels):
-        rate = num_submodels/(1-p) * (igfs[i+1] - igfs[i])
-        rates.append((i+1, rate, (1-p)/num_submodels))
+    for i in range(num_categories):
+        rate = num_categories/(1-p) * (igfs[i+1] - igfs[i])
+        rates.append((i+1, rate, (1-p)/num_categories))
 
     # Load sequence and convert to vectors at base of tree
     msa = load_msa(f'../asr_aa/out/{prefix}.mfa')
