@@ -73,12 +73,12 @@ for OGid, records in OGid2segments.items():
         mca = {}
         for ids, characters in ids2characters.items():
             charseq = []
-            for (start1, stop1) in character_set:
-                for (start2, stop2) in characters:
+            for start1, stop1 in character_set:
+                for start2, stop2 in characters:
                     if (start2 <= start1) and (stop2 >= stop1):
                         charseq.append('1')
                         break
-                else:
+                else:  # If loop completes without overlap
                     charseq.append('0')
             mca[ids] = charseq
         with open(f'out/{prefix}.mfa', 'w') as file:

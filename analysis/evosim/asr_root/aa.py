@@ -64,8 +64,7 @@ for prefix in prefixes:
             line = file.readline()
         for _ in range(2):
             line = file.readline()
-    file = StringIO(line)
-    tree2 = skbio.read(file, 'newick', skbio.TreeNode)
+    tree2 = skbio.read(StringIO(line), 'newick', skbio.TreeNode)
     tree = get_tree(tree1, tree2)
 
     # Load rate categories
@@ -94,7 +93,7 @@ for prefix in prefixes:
             if sym in sym2idx:
                 i = sym2idx[sym]
                 conditional[i, j] = 1
-            else:
+            else:  # Use uniform distribution for ambiguous symbols
                 conditional[:, j] = 1 / len(syms)
         tip.conditional = conditional
 
