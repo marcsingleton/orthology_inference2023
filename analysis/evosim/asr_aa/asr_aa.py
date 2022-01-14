@@ -48,21 +48,32 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 for OGid, records in OGid2segments.items():
-    msa = load_msa(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
-    msa = [(re.search(ppid_regex, header).group(1), re.search(spid_regex, header).group(1), seq) for header, seq in msa]
+    msa0 = load_msa(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
+    msa0 = [(re.search(ppid_regex, header).group(1), re.search(spid_regex, header).group(1), seq) for header, seq in msa0]
 
     for start, stop, ppids in records:
         prefix = f'{OGid}_{start}-{stop}'
+        msa1 = [(ppid, spid, seq[start:stop]) for ppid, spid, seq in msa0 if ppid in ppids]
+
+        # Skip region if is invariant
+        is_invariant = True
+        for j in range(len(msa1[0][2])):
+            sym0 = msa1[0][2][j]
+            if any([msa1[i][2][j] != sym0 for i in range(1, len(msa1))]):
+                is_invariant = False
+                break
+        if is_invariant:
+            continue
 
         # Write region as MSA
         with open(f'out/{prefix}.mfa', 'w') as file:
-            for ppid, spid, seq in msa:
+            for ppid, spid, seq in msa1:
                 if ppid in ppids:
-                    seqstring = '\n'.join([seq[start:stop][i:i+80] for i in range(0, stop-start, 80)]) + '\n'
+                    seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
                     file.write(f'>{spid} {OGid}_{start}-{stop}|{ppid}\n' + seqstring)
 
         # Prune missing species from tree
-        spids = set([spid for ppid, spid, _ in msa if ppid in ppids])
+        spids = set([spid for ppid, spid, _ in msa1 if ppid in ppids])
         tree = tree_template.shear(spids)
         skbio.io.write(tree, format='newick', into=f'out/{prefix}.nwk')
 
