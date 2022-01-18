@@ -31,10 +31,10 @@ def load_msa(path):
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-prefixes = [path.rstrip('.iqtree') for path in os.listdir('../asr_indel/out/') if path.endswith('.iqtree')]
-for prefix in prefixes:
+OGids = [path[:-7] for path in os.listdir('../asr_indel/out/') if path.endswith('.iqtree')]
+for OGid in OGids:
     # Load substitution model
-    with open(f'../asr_indel/out/{prefix}.iqtree') as file:
+    with open(f'../asr_indel/out/{OGid}.iqtree') as file:
         line = file.readline()
         while line != 'State frequencies: (estimated with maximum likelihood)\n':
             line = file.readline()
@@ -59,7 +59,7 @@ for prefix in prefixes:
 
     # Load trees
     tree1 = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
-    with open(f'../asr_indel/out/{prefix}.iqtree') as file:
+    with open(f'../asr_indel/out/{OGid}.iqtree') as file:
         line = file.readline()
         while line != 'Tree in newick format:\n':
             line = file.readline()
@@ -69,7 +69,7 @@ for prefix in prefixes:
     tree = get_tree(tree1, tree2)
 
     # Load rate categories
-    with open(f'../asr_indel/out/{prefix}.iqtree') as file:
+    with open(f'../asr_indel/out/{OGid}.iqtree') as file:
         line = file.readline()
         while not line.startswith('Model of rate heterogeneity:'):
             line = file.readline()
@@ -82,10 +82,10 @@ for prefix in prefixes:
     rates = []  # Normalized rates
     for i in range(num_categories):
         rate = num_categories * (igfs[i+1] - igfs[i])
-        rates.append((i, rate, 1/num_categories))
+        rates.append((rate, 1/num_categories))
 
     # Load sequence and convert to vectors at base of tree
-    msa = load_msa(f'../asr_indel/out/{prefix}.mfa')
+    msa = load_msa(f'../asr_indel/out/{OGid}.mfa')
     tips = {tip.name: tip for tip in tree.tips()}
     for header, seq in msa:
         tip = tips[header[1:5]]
@@ -94,16 +94,16 @@ for prefix in prefixes:
             conditional[int(sym), j] = 1
         tip.conditional = conditional
 
-    # Get likelihoods for rate submodels
+    # Get likelihoods for rate categories
     likelihoods = []
-    for _, rate, prior in rates:
+    for rate, prior in rates:
         s, conditional = get_conditional(tree, rate*matrix)
         l = np.expand_dims(freqs, -1) * conditional
         likelihoods.append(np.exp(s) * l * prior)
 
     likelihoods = np.stack(likelihoods)
     likelihoods = likelihoods / likelihoods.sum(axis=(0, 1))
-    np.save(f'out/{prefix}_indel.npy', likelihoods)
+    np.save(f'out/{OGid}_indel.npy', likelihoods)
 
 """
 NOTES
