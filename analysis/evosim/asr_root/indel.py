@@ -97,7 +97,7 @@ for OGid in OGids:
     # Get likelihoods for rate categories
     likelihoods = []
     for rate, prior in rates:
-        s, conditional = get_conditional(tree, rate*matrix)
+        s, conditional = get_conditional(tree, rate * matrix)
         l = np.expand_dims(freqs, -1) * conditional
         likelihoods.append(np.exp(s) * l * prior)
 
