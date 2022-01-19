@@ -29,55 +29,64 @@ ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 spid_regex = r'spid=([a-z]+)'
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 
-# Parse segments
-OGid2segments = {}
-with open('../../brownian2/aucpred_filter/out/regions_30.tsv') as file:
+OGid2regions = {}
+with open('../../brownian2/aucpred_regions/out/regions.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid, start, stop, disorder, ppids = line.split()
-        if disorder != 'True':
-            continue
-
-        record = (int(start), int(stop), set(ppids.split(',')))
+        OGid, start, stop, disorder = line.split()
         try:
-            OGid2segments[OGid].append(record)
+            OGid2regions[OGid].append((int(start), int(stop), True if disorder == 'True' else False))
         except KeyError:
-            OGid2segments[OGid] = [record]
+            OGid2regions[OGid] = [(int(start), int(stop), True if disorder == 'True' else False)]
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-for OGid, records in OGid2segments.items():
-    msa0 = load_msa(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
-    msa0 = [(re.search(ppid_regex, header).group(1), re.search(spid_regex, header).group(1), seq) for header, seq in msa0]
+OGids = [path[:-4] for path in os.listdir('../../brownian2/insertion_trim/out/') if path.endswith('.mfa')]
+for OGid in OGids:
+    msa = load_msa(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
+    msa = [(re.search(ppid_regex, header).group(1), re.search(spid_regex, header).group(1), seq) for header, seq in msa]
 
-    for start, stop, ppids in records:
-        prefix = f'{OGid}_{start}-{stop}'
-        msa1 = [(ppid, spid, seq[start:stop]) for ppid, spid, seq in msa0 if ppid in ppids]
+    # Skip MSA if is invariant
+    is_invariant = True
+    for j in range(len(msa[0][2])):
+        sym0 = msa[0][2][j]
+        if any([msa[i][2][j] != sym0 for i in range(1, len(msa))]):
+            is_invariant = False
+            break
+    if is_invariant:
+        continue
 
-        # Skip region if is invariant
-        is_invariant = True
-        for j in range(len(msa1[0][2])):
-            sym0 = msa1[0][2][j]
-            if any([msa1[i][2][j] != sym0 for i in range(1, len(msa1))]):
-                is_invariant = False
-                break
-        if is_invariant:
-            continue
+    # Write region as MSA
+    with open(f'out/{OGid}.mfa', 'w') as file:
+        for ppid, spid, seq in msa:
+            seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
+            file.write(f'>{spid} {ppid}\n' + seqstring)
 
-        # Write region as MSA
-        with open(f'out/{prefix}.mfa', 'w') as file:
-            for ppid, spid, seq in msa1:
-                if ppid in ppids:
-                    seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-                    file.write(f'>{spid} {OGid}_{start}-{stop}|{ppid}\n' + seqstring)
+    # Make NEXUS partition file
+    regions = OGid2regions[OGid]
+    disorder_regions = [f'{start+1}-{stop}' for start, stop, disorder in regions if disorder]
+    order_regions = [f'{start+1}-{stop}' for start, stop, disorder in regions if not disorder]
+    with open(f'out/{OGid}.nex', 'w') as file:
+        partitions = []
+        file.write('#nexus\nbegin sets;\n')
+        if disorder_regions:
+            disorder_string = ' '.join(disorder_regions)
+            partitions.append('50red_D.txt+I+G:disorder')
+            file.write(f'    charset disorder = {disorder_string};\n')
+        if order_regions:
+            order_string = ' '.join(order_regions)
+            partitions.append('WAG+I+G:order')
+            file.write(f'    charset order = {order_string};\n')
+        partition_string = ', '.join(partitions)
+        file.write(f'    charpartition mine = {partition_string};\nend;\n')
 
-        # Prune missing species from tree
-        spids = set([spid for ppid, spid, _ in msa1 if ppid in ppids])
-        tree = tree_template.shear(spids)
-        skbio.io.write(tree, format='newick', into=f'out/{prefix}.nwk')
+    # Prune missing species from tree
+    spids = set([spid for _, spid, _ in msa])
+    tree = tree_template.shear(spids)
+    skbio.io.write(tree, format='newick', into=f'out/{OGid}.nwk')
 
-        run(f'../../../bin/iqtree -s out/{prefix}.mfa -m 50red_D.txt+I+G -te out/{prefix}.nwk -keep-ident -pre out/{prefix}', shell=True, check=True)
+    run(f'../../../bin/iqtree -s out/{OGid}.mfa -spp out/{OGid}.nex -te out/{OGid}.nwk -keep-ident -pre out/{OGid}', shell=True, check=True)
 
 """
 NOTES
