@@ -53,7 +53,7 @@ def load_msa(path):
 syms = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
 sym2idx = {sym: idx for idx, sym in enumerate(syms)}
 
-models = {'WAG': load_model('../config/WAG.txt'), '50red_D.txt': load_model('../asr_aa/50red_D.txt')}
+models = {'WAG': load_model('../config/WAG.txt'), '../config/50red_D.txt': load_model('../config/50red_D.txt')}
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -127,7 +127,7 @@ for OGid in OGids:
         partition_msa = []
         for header, seq in msa:
             partition_seq = ''.join([seq[start:stop] for start, stop in partition['regions']])
-            partition_msa.append((header, seq))
+            partition_msa.append((header, partition_seq))
 
         # Convert to vectors at base of tree
         tips = {tip.name: tip for tip in tree.tips()}
@@ -144,13 +144,13 @@ for OGid in OGids:
 
         # Calculate rates for non-invariant categories
         igfs = []  # Incomplete gamma function evaluations
-        for i in range(num_categories + 1):
-            x = gamma.ppf(i / num_categories, a=alpha, scale=1 / alpha)
-            igfs.append(gammainc(alpha + 1, alpha * x))
+        for i in range(num_categories+1):
+            x = gamma.ppf(i/num_categories, a=alpha, scale=1/alpha)
+            igfs.append(gammainc(alpha+1, alpha*x))
         rates = []  # Normalized rates
         for i in range(num_categories):
-            rate = num_categories / (1 - pinv) * (igfs[i + 1] - igfs[i])
-            rates.append((rate, (1 - pinv) / num_categories))
+            rate = num_categories / (1-pinv) * (igfs[i + 1] - igfs[i])
+            rates.append((rate, (1-pinv) / num_categories))
 
         # Calculate likelihoods
         likelihoods = []
@@ -176,7 +176,7 @@ for OGid in OGids:
 
         # Get likelihoods for rate categories
         for rate, prior in rates:
-            s, conditional = get_conditional(tree, partition['speed']*rate*matrix)
+            s, conditional = get_conditional(tree, partition['speed'] * rate * matrix)
             l = np.expand_dims(freqs, -1) * conditional
             likelihoods.append(np.exp(s) * l * prior)
 
@@ -192,6 +192,7 @@ for OGid in OGids:
     concatenate = []
     for partition_id, start0, stop0 in regions:
         start, stop = partitions[partition_id]['transform'][(start0, stop0)]
+        likelihoods = partitions[partition_id]['likelihoods']
         concatenate.append(likelihoods[:, :, start:stop])
     concatenate = np.concatenate(concatenate, axis=2)
 
@@ -207,8 +208,8 @@ submodels with the invariant submodel.
 DEPENDENCIES
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
-../asr_aa/50red_D.txt
 ../asr_aa/asr_aa.py
     ../asr_aa/out/*.iqtree
     ../asr_aa/out/*.mfa
+../config/50red_D.txt
 """

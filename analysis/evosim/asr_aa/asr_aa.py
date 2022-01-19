@@ -72,7 +72,7 @@ for OGid in OGids:
         file.write('#nexus\nbegin sets;\n')
         if disorder_regions:
             disorder_string = ' '.join(disorder_regions)
-            partitions.append('50red_D.txt+I+G:disorder')
+            partitions.append('../config/50red_D.txt+I+G:disorder')
             file.write(f'    charset disorder = {disorder_string};\n')
         if order_regions:
             order_string = ' '.join(order_regions)
@@ -103,5 +103,5 @@ DEPENDENCIES
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../../brownian2/aucpred_filter/aucpred_filter.py
     ../../brownian2/aucpred_filter/out/regions_30.tsv
-./50red_D.txt
+../config/50red_D.txt
 """
