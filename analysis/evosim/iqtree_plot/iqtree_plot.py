@@ -16,7 +16,7 @@ labels = ['0red_D', '50red_D', '100red_D',
           '0red_O', '50red_O', '100red_O']
 
 # Read WAG model
-with open('WAG.txt') as file:
+with open('../config/WAG.txt') as file:
     # Parse exchangeability matrix
     WAG_matrix = np.zeros((20, 20))
     for i in range(19):
@@ -30,7 +30,7 @@ with open('WAG.txt') as file:
         line = file.readline()
     WAG_freqs = np.array([float(value) for value in line.split()])
 rate = (WAG_freqs * (WAG_freqs * WAG_matrix).sum(axis=1)).sum()
-WAG_matrix = WAG_matrix / rate
+WAG_matrix = WAG_matrix / rate  # Normalize average rate to 1
 
 # Read IQ-TREE matrices
 records = []
@@ -262,5 +262,5 @@ plt.close()
 DEPENDENCEIES
 ../iqtree_fit/iqtree_fit.py
     ../iqtree_fit/out/*.iqtree
-./WAG.txt
+../config/WAG.txt
 """
