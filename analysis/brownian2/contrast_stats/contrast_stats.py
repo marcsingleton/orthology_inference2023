@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import skbio
 from matplotlib.lines import Line2D
-from numpy import linspace
+from numpy import linspace, quantile
 from src.draw import plot_msa
 from sklearn.decomposition import PCA
 
@@ -239,7 +239,7 @@ for feature_label in rates.columns:
 pca = PCA(n_components=10)
 colors = ['#e15759', '#499894', '#59a14f', '#f1ce63', '#b07aa1', '#d37295', '#9d7660', '#bab0ac',
           '#ff9d9a', '#86bcb6', '#8cd17d', '#b6992d', '#d4a6c8', '#fabfd2', '#d7b5a6', '#79706e']
-idx = rates.index.get_level_values('disorder').array.astype(bool)
+idx1 = rates.index.get_level_values('disorder').array.astype(bool)
 
 plots = [(rates, 'unnorm'),
          ((rates-rates.mean())/rates.std(), 'z-score'),
@@ -248,8 +248,8 @@ for data, label in plots:
     transform = pca.fit_transform(data.to_numpy())
 
     # PCs 1 and 2
-    plt.scatter(transform[idx, 0], transform[idx, 1], label='disorder', s=5, color='C0', alpha=0.1, edgecolors='none')
-    plt.scatter(transform[~idx, 0], transform[~idx, 1], label='order', s=5, color='C1', alpha=0.1, edgecolors='none')
+    plt.scatter(transform[idx1, 0], transform[idx1, 1], label='disorder', s=5, color='C0', alpha=0.1, edgecolors='none')
+    plt.scatter(transform[~idx1, 0], transform[~idx1, 1], label='order', s=5, color='C1', alpha=0.1, edgecolors='none')
     plt.xlabel('PC1')
     plt.ylabel('PC2')
     plt.title(label)
@@ -260,8 +260,8 @@ for data, label in plots:
     plt.close()
 
     # PCs 2 and 3
-    plt.scatter(transform[idx, 1], transform[idx, 2], label='disorder', s=5, color='C0', alpha=0.1, edgecolors='none')
-    plt.scatter(transform[~idx, 1], transform[~idx, 2], label='order', s=5, color='C1', alpha=0.1, edgecolors='none')
+    plt.scatter(transform[idx1, 1], transform[idx1, 2], label='disorder', s=5, color='C0', alpha=0.1, edgecolors='none')
+    plt.scatter(transform[~idx1, 1], transform[~idx1, 2], label='order', s=5, color='C1', alpha=0.1, edgecolors='none')
     plt.xlabel('PC2')
     plt.ylabel('PC3')
     plt.title(label)
@@ -271,15 +271,30 @@ for data, label in plots:
     plt.savefig(f'out/rates/scatter_pca_{label}2.png')
     plt.close()
 
-    # PCs 2 and 3 with arrows
-    plt.scatter(transform[:, 1], transform[:, 2], label=label, color='C0', s=5, alpha=0.1, edgecolors='none')
+    # PCs 2 and 3 with trimmed range
+    r2 = transform[:, 1]**2 + transform[:, 2]**2  # radius**2 from center
+    idx2 = r2 <= quantile(r2, 0.999, interpolation='lower')  # Capture at least 99.9% of the data
+
+    plt.scatter(transform[idx1 & idx2, 1], transform[idx1 & idx2, 2], label='disorder', s=5, color='C0', alpha=0.2, edgecolors='none')
+    plt.scatter(transform[~idx1 & idx2, 1], transform[~idx1 & idx2, 2], label='order', s=5, color='C1', alpha=0.2, edgecolors='none')
+    plt.xlabel('PC2')
+    plt.ylabel('PC3')
+    plt.title(label)
+    legend = plt.legend(markerscale=2)
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+    plt.savefig(f'out/rates/scatter_pca_{label}3.png')
+    plt.close()
+
+    # PCs 2 and 3 with trimmed range and arrows
+    plt.scatter(transform[idx2, 1], transform[idx2, 2], label=label, color='C0', s=5, alpha=0.2, edgecolors='none')
     plt.xlabel('PC2')
     plt.ylabel('PC3')
     plt.title(label)
 
     xmin, xmax = plt.xlim()
     ymin, ymax = plt.ylim()
-    scale = (xmax + ymax - xmin - ymin) / 3
+    scale = (xmax + ymax - xmin - ymin) / 2.5
     projections = sorted(zip(data.columns, pca.components_[1:3].transpose()), key=lambda x: x[1][0]**2 + x[1][1]**2, reverse=True)
 
     handles = []
@@ -288,7 +303,7 @@ for data, label in plots:
         handles.append(Line2D([], [], color=colors[i%len(colors)], linewidth=2, label=feature_label))
         plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 6, 'headlength': 6, 'width': 1.75, 'color': colors[i%len(colors)]})
     plt.legend(handles=handles, fontsize=8, loc='right', bbox_to_anchor=(1.05, 0.5))
-    plt.savefig(f'out/rates/scatter_pca-arrow_{label}2.png')
+    plt.savefig(f'out/rates/scatter_pca_{label}3_arrow.png')
     plt.close()
 
     # Scree plot
@@ -332,15 +347,29 @@ for data, data_label, norm_label in plots:
     plt.savefig(f'out/rates/scatter_pca_{data_label}_{norm_label}2.png')
     plt.close()
 
-    # PCs 2 and 3 with arrows
-    plt.scatter(transform[:, 1], transform[:, 2], label=data_label, color=color, s=5, alpha=0.1, edgecolors='none')
+    # PCs 2 and 3 with trimmed range
+    r2 = transform[:, 1]**2 + transform[:, 2]**2  # radius**2 from center
+    idx = r2 <= quantile(r2, 0.999, interpolation='lower')  # Capture at least 99.9% of the data
+
+    plt.scatter(transform[idx, 1], transform[idx, 2], label=data_label, s=5, color=color, alpha=0.2, edgecolors='none')
+    plt.xlabel('PC2')
+    plt.ylabel('PC3')
+    plt.title(norm_label)
+    legend = plt.legend(markerscale=2)
+    for lh in legend.legendHandles:
+        lh.set_alpha(1)
+    plt.savefig(f'out/rates/scatter_pca_{data_label}_{norm_label}3.png')
+    plt.close()
+
+    # PCs 2 and 3 with trimmed range and arrows
+    plt.scatter(transform[idx, 1], transform[idx, 2], label=data_label, color=color, s=5, alpha=0.2, edgecolors='none')
     plt.xlabel('PC2')
     plt.ylabel('PC3')
     plt.title(norm_label)
 
     xmin, xmax = plt.xlim()
     ymin, ymax = plt.ylim()
-    scale = (xmax + ymax - xmin - ymin) / 3
+    scale = (xmax + ymax - xmin - ymin) / 2.5
     projections = sorted(zip(data.columns, pca.components_[1:3].transpose()), key=lambda x: x[1][0]**2 + x[1][1]**2, reverse=True)
 
     handles = []
@@ -349,7 +378,7 @@ for data, data_label, norm_label in plots:
         handles.append(Line2D([], [], color=colors[i%len(colors)], linewidth=2, label=feature_label))
         plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 6, 'headlength': 6, 'width': 1.75, 'color': colors[i%len(colors)]})
     plt.legend(handles=handles, fontsize=8, loc='right', bbox_to_anchor=(1.05, 0.5))
-    plt.savefig(f'out/rates/scatter_pca-arrow_{data_label}_{norm_label}2.png')
+    plt.savefig(f'out/rates/scatter_pca_{data_label}_{norm_label}3_arrow.png')
     plt.close()
 
     # Scree plot
