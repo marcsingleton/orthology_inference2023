@@ -29,6 +29,13 @@ ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 spid_regex = r'spid=([a-z]+)'
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 
+OGids = set()
+with open('../../brownian2/aucpred_filter/out/regions_30.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        OGid, start, stop, disorder, ppids = line.split()
+        OGids.add(OGid)
+
 OGid2regions = {}
 with open('../../brownian2/aucpred_regions/out/regions.tsv') as file:
     file.readline()  # Skip header
@@ -42,10 +49,25 @@ with open('../../brownian2/aucpred_regions/out/regions.tsv') as file:
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = [path[:-4] for path in os.listdir('../../brownian2/insertion_trim/out/') if path.endswith('.mfa')]
 for OGid in OGids:
     msa = load_msa(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
     msa = [(re.search(ppid_regex, header).group(1), re.search(spid_regex, header).group(1), seq) for header, seq in msa]
+
+    # Check regions and merge if necessary
+    regions = OGid2regions[OGid]
+    disorder_length = sum([stop-start for start, stop, disorder in regions if disorder])
+    order_length = sum([stop-start for start, stop, disorder in regions if not disorder])
+    if disorder_length >= 30 and order_length >= 30:
+        disorder_regions = [f'{start+1}-{stop}' for start, stop, disorder in regions if disorder]
+        order_regions = [f'{start+1}-{stop}' for start, stop, disorder in regions if not disorder]
+    elif disorder_length >= 30:
+        disorder_regions = [f'1-{len(msa[0][2])}']
+        order_regions = []
+    elif order_length >= 30:
+        disorder_regions = []
+        order_regions = [f'1-{len(msa[0][2])}']
+    else:
+        continue
 
     # Skip MSA if is invariant
     is_invariant = True
@@ -64,9 +86,6 @@ for OGid in OGids:
             file.write(f'>{spid} {ppid}\n' + seqstring)
 
     # Make NEXUS partition file
-    regions = OGid2regions[OGid]
-    disorder_regions = [f'{start+1}-{stop}' for start, stop, disorder in regions if disorder]
-    order_regions = [f'{start+1}-{stop}' for start, stop, disorder in regions if not disorder]
     with open(f'out/{OGid}.nex', 'w') as file:
         partitions = []
         file.write('#nexus\nbegin sets;\n')
@@ -96,12 +115,29 @@ combination with -blscale will also fix the tree topology but it will scale all 
 Finally, using -t alone will perform a full tree search and branch length optimization starting at the given tree (as
 described in the documentation.)
 
+When the number of parameters exceeds the number of columns, IQ-TREE cautions that the parameter estimates are
+unreliable. Since a majority of the parameters are branch lengths, I attempted to reduce the model complexity by using
+the -blscale option. Unfortunately, the -blscale option does not play nicely with partitioned models, and IQ-TREE
+crashes when both are used together. While this is not ideal, it is likely of minor importance. Since the overall goal
+is to generate a sample of plausible ancestral sequences, the exact parameter estimates are unimportant. Furthermore,
+the model itself (with its heuristic treatment of indels) is likely a poor approximation for the process that generated
+the sequences. I instead consider this model as a "better" consensus that incorporates evolutionary relationships and
+prior expectations about the frequencies and exchangeabilities of amino acids.
+
+To prevent poor fits from a lack of data, a partition is only created if there are a minimum of 30 columns in that 
+class. If one of the classes has 30 columns but the other does not, the small class is consolidated into the large one.
+If neither class has 30 columns, the alignment is skipped. These rules ensure that any alignment with region in the 
+final set of regions is reconstructed. They also ensure any regions in the final set are reconstructed with a model that
+is (largely) fit to its class.
+
 DEPENDENCIES
+../../brownian2/aucpred_filter/aucpred_filter.py
+    ../../brownian2/aucpred_filter/out/regions_30.tsv
+../../brownian2/aucpred_regions/get_regions.py
+    ../../brownian2/aucpred_regions/out/regions.tsv
 ../../brownian2/insertion_trim/insertion_trim.py
     ../../brownian2/insertion_trim/out/*.mfa
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
-../../brownian2/aucpred_filter/aucpred_filter.py
-    ../../brownian2/aucpred_filter/out/regions_30.tsv
 ../config/50red_D.txt
 """

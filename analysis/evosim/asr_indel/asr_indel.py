@@ -39,13 +39,36 @@ ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 spid_regex = r'spid=([a-z]+)'
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 
+OGids = set()
+with open('../../brownian2/aucpred_filter/out/regions_30.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        OGid, start, stop, disorder, ppids = line.split()
+        OGids.add(OGid)
+
+OGid2regions = {}
+with open('../../brownian2/aucpred_regions/out/regions.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        OGid, start, stop, disorder = line.split()
+        try:
+            OGid2regions[OGid].append((int(start), int(stop), True if disorder == 'True' else False))
+        except KeyError:
+            OGid2regions[OGid] = [(int(start), int(stop), True if disorder == 'True' else False)]
+
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = [path[:-4] for path in os.listdir('../../brownian2/insertion_trim/out/') if path.endswith('.mfa')]
 for OGid in OGids:
     msa = load_msa(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
     msa = [(re.search(ppid_regex, header).group(1), re.search(spid_regex, header).group(1), seq) for header, seq in msa]
+
+    # Check regions (continuing only if alignment is fit by asr_aa.py)
+    regions = OGid2regions[OGid]
+    disorder_length = sum([stop-start for start, stop, disorder in regions if disorder])
+    order_length = sum([stop-start for start, stop, disorder in regions if not disorder])
+    if disorder_length <= 30 and order_length <= 30:
+        continue
 
     # Make list of gaps for each sequence
     ids2characters = {}
@@ -120,6 +143,10 @@ least one at each stop position, like a staircase. Thus, the nested structure of
 character codings.
 
 DEPENDENCIES
+../../brownian2/aucpred_filter/aucpred_filter.py
+    ../../brownian2/aucpred_filter/out/regions_30.tsv
+../../brownian2/aucpred_regions/get_regions.py
+    ../../brownian2/aucpred_regions/out/regions.tsv
 ../../brownian2/insertion_trim/insertion_trim.py
     ../../brownian2/insertion_trim/out/*.mfa
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
