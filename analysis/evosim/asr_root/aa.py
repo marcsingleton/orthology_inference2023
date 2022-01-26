@@ -78,7 +78,7 @@ for OGid in OGids:
     with open(f'../asr_aa/out/{OGid}.iqtree') as file:
         # Get partition ID and name
         line = file.readline()
-        while line != '  ID  Name      Type	Seq	Site	Unique	Infor	Invar	Const\n':
+        while line.split() != ['ID', 'Name', 'Type', 'Seq', 'Site', 'Unique', 'Infor', 'Invar', 'Const']:  # Spacing can differ so check for fields
             line = file.readline()
         line = file.readline()
         while line != '\n':
