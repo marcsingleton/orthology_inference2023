@@ -65,7 +65,7 @@ for label in ['norm1', 'norm2']:
         tree = tree_template.shear([spid for spid, _ in msa])
         order = {tip.name: i for i, tip in enumerate(tree.tips())}
         msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
-        plot_msa_lines(msa, [posterior, trims])
+        plot_msa_lines(msa, [posterior, trims], figsize=(15, 6))
         plt.savefig(f'out/{label}/{i}_{row.OGid}.png', bbox_inches='tight')
         plt.close()
 

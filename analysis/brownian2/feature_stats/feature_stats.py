@@ -8,6 +8,7 @@ from matplotlib.lines import Line2D
 from numpy import linspace
 from sklearn.decomposition import PCA
 
+pdidx = pd.IndexSlice
 
 # Load features
 features = pd.read_table('../get_features/out/features.tsv')
@@ -24,45 +25,44 @@ with open('../aucpred_filter/out/regions_30.tsv') as file:
             rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True', 'ppid': ppid})
 segments = pd.DataFrame(rows).merge(features, how='left', on=['OGid', 'start', 'stop', 'ppid'])
 regions = segments.groupby(['OGid', 'start', 'stop', 'disorder'])
-mean = regions.mean()
 
-pdidx = pd.IndexSlice
-disorder = mean.loc[pdidx[:, :, :, True], :]
-order = mean.loc[pdidx[:, :, :, False], :]
+means = regions.mean()
+disorder = means.loc[pdidx[:, :, :, True], :]
+order = means.loc[pdidx[:, :, :, False], :]
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Feature histograms
-for feature_label in mean.columns:
+for feature_label in means.columns:
     fig, axs = plt.subplots(2, 1, sharex=True)
-    xmin, xmax = mean[feature_label].min(), mean[feature_label].max()
+    xmin, xmax = means[feature_label].min(), means[feature_label].max()
     axs[0].hist(disorder[feature_label], bins=linspace(xmin, xmax, 75), color='C0', label='disorder')
     axs[1].hist(order[feature_label], bins=linspace(xmin, xmax, 75), color='C1', label='order')
     axs[1].set_xlabel(f'Mean {feature_label}')
     for i in range(2):
-        axs[i].set_ylabel('Number of OGs')
+        axs[i].set_ylabel('Number of regions')
         axs[i].legend()
-    plt.savefig(f'out/hist_numOGs-{feature_label}.png')
+    plt.savefig(f'out/hist_numregions-{feature_label}.png')
     plt.close()
 
 
 # Individual PCAs
 pca = PCA(n_components=10)
+colors = ['#e15759', '#499894', '#59a14f', '#f1ce63', '#b07aa1', '#d37295', '#9d7660', '#bab0ac',
+          '#ff9d9a', '#86bcb6', '#8cd17d', '#b6992d', '#d4a6c8', '#fabfd2', '#d7b5a6', '#79706e']
+
 plots = [(disorder, 'disorder', 'unnorm'),
          (order, 'order', 'unnorm'),
          ((disorder - disorder.mean()) / disorder.std(), 'disorder', 'z-score'),
          ((order - order.mean()) / order.std(), 'order', 'z-score'),
          ((disorder - disorder.min()) / (disorder.max() - disorder.min()), 'disorder', 'min-max'),
          ((order - order.min()) / (order.max() - order.min()), 'order', 'min-max')]
-colors = ['#e15759', '#499894', '#59a14f', '#f1ce63', '#b07aa1', '#d37295', '#9d7660', '#bab0ac',
-          '#ff9d9a', '#86bcb6', '#8cd17d', '#b6992d', '#d4a6c8', '#fabfd2', '#d7b5a6', '#79706e']
-
 for data, data_label, norm_label in plots:
     color = 'C0' if data_label == 'disorder' else 'C1'
+    transform = pca.fit_transform(data.to_numpy())
 
     # PCA without arrows
-    transform = pca.fit_transform(data.to_numpy())
     plt.scatter(transform[:, 0], transform[:, 1], label=data_label, color=color, s=5, alpha=0.1, edgecolors='none')
     plt.xlabel('PC1')
     plt.ylabel('PC2')
@@ -81,15 +81,15 @@ for data, data_label, norm_label in plots:
 
     xmin, xmax = plt.xlim()
     ymin, ymax = plt.ylim()
-    scale = (xmax + ymax - xmin - ymin) / 4
+    scale = (xmax + ymax - xmin - ymin) / 3
     projections = sorted(zip(data.columns, pca.components_[:2].transpose()), key=lambda x: x[1][0]**2 + x[1][1]**2, reverse=True)
 
     handles = []
     for i in range(len(colors)):
         feature_label, (x, y) = projections[i]
-        handles.append(Line2D([], [], color=colors[i%len(colors)], label=feature_label))
-        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 5, 'headlength': 5, 'width': 0.5, 'color': colors[i%len(colors)]})
-    plt.legend(handles=handles, fontsize=6, loc='center', bbox_to_anchor=(1, 0.5))
+        handles.append(Line2D([], [], color=colors[i%len(colors)], linewidth=2, label=feature_label))
+        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 6, 'headlength': 6, 'width': 1.75, 'color': colors[i%len(colors)]})
+    plt.legend(handles=handles, fontsize=8, loc='right', bbox_to_anchor=(1.05, 0.5))
     plt.savefig(f'out/scatter_pca-arrow_{data_label}_{norm_label}.png')
     plt.close()
 
@@ -99,7 +99,7 @@ for data, data_label, norm_label in plots:
     plt.ylabel('Explained variance ratio')
     plt.title(norm_label)
     plt.legend()
-    plt.savefig(f'out/bar_{data_label}_{norm_label}.png')
+    plt.savefig(f'out/bar_scree_{data_label}_{norm_label}.png')
     plt.close()
 
 """
