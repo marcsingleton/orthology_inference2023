@@ -3,8 +3,6 @@
 import re
 import os
 
-import scipy.stats as stats
-
 
 def load_msa(path):
     msa = []
