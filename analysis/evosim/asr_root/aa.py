@@ -82,7 +82,7 @@ for OGid in OGids:
             line = file.readline()
         line = file.readline()
         while line != '\n':
-            fields = line.split()
+            fields = line.split()  # File is not explicitly delimited, so just split on whitespace
             partition_id, name = int(fields[0]), fields[1]
             partitions[partition_id] = {'name': name}
             line = file.readline()
@@ -92,7 +92,7 @@ for OGid in OGids:
             line = file.readline()
         line = file.readline()
         while line != '\n':
-            fields = line.split()
+            fields = line.split()  # File is not explicitly delimited, so just split on whitespace
             partition_id, speed, parameters = int(fields[0]), float(fields[2]), fields[3]
             groupdict = re.search(r'(?P<model>[^+]+)\+I\{(?P<pinv>[0-9.e-]+)\}\+G(?P<num_categories>[0-9]+)\{(?P<alpha>[0-9.e-]+)\}', parameters).groupdict()
             partition = partitions[partition_id]

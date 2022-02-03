@@ -51,7 +51,7 @@ colpools = [('100red', lambda col: is_redundant(col, 1), []),
             ('50red_ni', lambda col: is_redundant(col, 0.5) and not is_invariant(col), []),
             ('0red', lambda col: is_redundant(col, 0), []),
             ('0red_ni', lambda col: is_redundant(col, 0) and not is_invariant(col), [])]
-for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_aa2nt/out/')):
+for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_aa2nt/out/')):  # Because inputs are not sorted, results are not guaranteed to be consistent
     msa = load_msa(f'../align_aa2nt/out/{file_id}')
     for i in range(len(msa[0][1])):
         col = [Column(header[-4:], seq[i]) for header, seq in msa]

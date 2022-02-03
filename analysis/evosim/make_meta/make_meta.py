@@ -52,7 +52,7 @@ colpools = [('100red_D', lambda col: is_redundant(col, 1), []),
             ('50red_O', lambda col: is_redundant(col, 0.5), []),
             ('0red_D', lambda col: is_redundant(col, 0), []),
             ('0red_O', lambda col: is_redundant(col, 0), [])]
-for OGid, regions in OGid2regions.items():
+for OGid, regions in OGid2regions.items():  # Because inputs are not sorted, results are not guaranteed to be consistent
     msa = load_msa(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
     if len(msa) < 31:  # Only use alignments with all species
         continue
