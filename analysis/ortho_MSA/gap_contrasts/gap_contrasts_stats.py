@@ -9,25 +9,7 @@ import numpy as np
 import pandas as pd
 import skbio
 from src.draw import draw_msa
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                spid = re.search(r'spid=([a-z]+)', line).group(1)
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((spid, seq))
-    return msa
-
+from src.utils import read_fasta
 
 OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
@@ -101,9 +83,10 @@ for label in ['norm1', 'norm2']:
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
         if row.sqidnum == row.gnidnum:
-            msa = load_msa(f'../align_fastas1/out/{row.OGid}.mfa')
+            msa = read_fasta(f'../align_fastas1/out/{row.OGid}.mfa')
         else:
-            msa = load_msa(f'../align_fastas2-2/out/{row.OGid}.mfa')
+            msa = read_fasta(f'../align_fastas2-2/out/{row.OGid}.mfa')
+        msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
         tree = tree_template.shear([spid for spid, _ in msa])
         order = {tip.name: i for i, tip in enumerate(tree.tips())}

@@ -7,25 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import skbio
 from src.draw import draw_msa
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                spid = re.search(r'spid=([a-z]+)', line).group(1)
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((spid, seq))
-    return msa
-
+from src.utils import read_fasta
 
 # Load seq metadata
 ppid2meta = {}
@@ -63,9 +45,10 @@ df.to_csv('out/OGs.tsv', sep='\t', index=False)
 
 for row in df.dropna().itertuples():
     if row.sqidnum == row.gnidnum:
-        msa = load_msa(f'../align_fastas1/out/{row.OGid}.mfa')
+        msa = read_fasta(f'../align_fastas1/out/{row.OGid}.mfa')
     else:
-        msa = load_msa(f'../align_fastas2-2/out/{row.OGid}.mfa')
+        msa = read_fasta(f'../align_fastas2-2/out/{row.OGid}.mfa')
+    msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
     msa = [seq for _, seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
     im = draw_msa(msa)

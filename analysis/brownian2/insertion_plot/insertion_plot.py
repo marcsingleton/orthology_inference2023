@@ -9,25 +9,7 @@ import pandas as pd
 import skbio
 from src.draw import plot_msa_lines
 from src.brownian2.trim import trim_terminals, get_slices
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                spid = re.search(r'spid=([a-z]+)', line).group(1)
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((spid, seq))
-    return msa
-
+from src.utils import read_fasta
 
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 spids = set([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
@@ -44,7 +26,8 @@ for label in ['norm1', 'norm2']:
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
         # Load msa and trim terminal insertions
-        msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer2/out/{row.OGid}.mfa'))
+        msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in read_fasta(f'../../ortho_MSA/realign_hmmer2/out/{row.OGid}.mfa')]
+        msa = trim_terminals(msa)
 
         # Load decoded states
         posterior = []

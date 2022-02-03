@@ -6,6 +6,7 @@ import re
 import numpy as np
 import pandas as pd
 import skbio
+from src.utils import read_fasta
 
 
 def get_contrasts(node):
@@ -28,24 +29,6 @@ def get_contrasts(node):
     return contrasts, value, branch_length
 
 
-def load_msa(path):
-    msa = {}
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                spid = re.search(r'spid=([a-z]+)', line).group(1)
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa[spid] = seq
-    return msa
-
-
 # Load tree
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 spids = set([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
@@ -61,9 +44,10 @@ totals = []
 rows = []
 for record in OG_filter.itertuples():
     if record.sqidnum == record.gnidnum:
-        msa = load_msa(f'../align_fastas1/out/{record.OGid}.mfa')
+        msa = read_fasta(f'../align_fastas1/out/{record.OGid}.mfa')
     else:
-        msa = load_msa(f'../align_fastas2-2/out/{record.OGid}.mfa')
+        msa = read_fasta(f'../align_fastas2-2/out/{record.OGid}.mfa')
+    msa = {re.search(r'spid=([a-z]+)', header).group(1): seq for header, seq in msa}
 
     tree = tree_template.deepcopy().shear(msa.keys())
     for tip in tree.tips():
