@@ -9,32 +9,15 @@ import pandas as pd
 import scipy.ndimage as ndimage
 import skbio
 from src.ortho_MSA.trim import trim_conserved, trim_insertions
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
+from src.utils import read_fasta
 
 
 def trim(OGid):
     # 0 Load MSA
     try:
-        msa1 = load_msa(f'../align_fastas1/out/{OGid}.mfa')
+        msa1 = read_fasta(f'../align_fastas1/out/{OGid}.mfa')
     except FileNotFoundError:
-        msa1 = load_msa(f'../align_fastas2-2/out/{OGid}.mfa')
+        msa1 = read_fasta(f'../align_fastas2-2/out/{OGid}.mfa')
 
     # 1 Calculate shared variables
     gaps_array = np.full((len(msa1), len(msa1[0][1])), False)

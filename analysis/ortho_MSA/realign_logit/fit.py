@@ -12,6 +12,7 @@ import skbio
 from src.ortho_MSA.trim import trim_insertions
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, log_loss
+from src.utils import read_fasta
 
 
 def fit_model(OGid2msa,
@@ -89,24 +90,6 @@ def get_regressors(OGid, msa, scores, gaps_array,
     return ds
 
 
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
-
 # Load parameters
 num_processes = int(os.environ['SLURM_NTASKS'])
 
@@ -134,9 +117,9 @@ if __name__ == '__main__':
     OGid2msa = {}
     for OGid in labels['OGid'].drop_duplicates():
         try:
-            msa = load_msa(f'../align_fastas1/out/{OGid}.mfa')
+            msa = read_fasta(f'../align_fastas1/out/{OGid}.mfa')
         except FileNotFoundError:
-            msa = load_msa(f'../align_fastas2-2/out/{OGid}.mfa')
+            msa = read_fasta(f'../align_fastas2-2/out/{OGid}.mfa')
 
         gaps_array = np.full((len(msa), len(msa[0][1])), False)
         for i, (_, seq) in enumerate(msa):

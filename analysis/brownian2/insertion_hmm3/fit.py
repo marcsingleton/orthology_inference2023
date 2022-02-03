@@ -11,6 +11,7 @@ import scipy.stats as stats
 import src.hmm as hmm
 from numpy import exp, log
 from scipy.special import beta, digamma
+from src.utils import read_fasta
 
 
 # Probability classes and functions
@@ -167,24 +168,6 @@ def get_expts(t_dists_norm, e_dists_norm, start_dist, record):
     return record
 
 
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
-
 eta = 1E-4
 epsilon = 1E-2
 iter_num = 200
@@ -209,7 +192,7 @@ if __name__ == '__main__':
     records = []
     for OGid, regions in OGid2regions.items():
         # Load MSA and trim terminal insertions
-        msa = load_msa(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa')
+        msa = read_fasta(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa')
         if regions[-1][2] == '0':
             start, _, _ = regions[-1]
             regions = regions[:-1]

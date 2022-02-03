@@ -8,25 +8,7 @@ import numpy as np
 import scipy.ndimage as ndimage
 import skbio
 from src.draw import plot_msa_lines
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
+from src.utils import read_fasta
 
 # WAG background frequencies
 prior = {'A': 0.0866279, 'R': 0.0439720, 'N': 0.0390894, 'D': 0.0570451, 'C': 0.0193078,
@@ -40,7 +22,7 @@ tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newi
 
 records = []
 for OGid in [path.split('.mfa')[0] for path in os.listdir('../realign_hmmer1/out/') if path.endswith('.mfa')]:
-    msa = [(re.search(spid_regex, header).group(1), seq.upper()) for header, seq in load_msa(f'../realign_hmmer1/out/{OGid}.mfa')]
+    msa = [(re.search(spid_regex, header).group(1), seq.upper()) for header, seq in read_fasta(f'../realign_hmmer1/out/{OGid}.mfa')]
 
     idx = 0
     for j in range(len(msa[0][1])):

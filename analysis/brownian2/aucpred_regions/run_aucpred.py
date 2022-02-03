@@ -5,27 +5,11 @@ import os
 import re
 import subprocess
 
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
+from src.utils import read_fasta
 
 
 def run_aucpred(OGid):
-    msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
+    msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
     prefix = f'out/raw/{OGid}/'
 
     if not os.path.exists(prefix):

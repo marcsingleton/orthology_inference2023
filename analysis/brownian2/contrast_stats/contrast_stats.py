@@ -11,25 +11,7 @@ from matplotlib.lines import Line2D
 from numpy import linspace, quantile
 from src.draw import plot_msa
 from sklearn.decomposition import PCA
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
+from src.utils import read_fasta
 
 pdidx = pd.IndexSlice
 spid_regex = r'spid=([a-z]+)'
@@ -101,7 +83,7 @@ for feature_label in df.columns:
         regions.add((OGid, start, stop))
 
         # Load MSA, filter seqs, and re-order
-        msa1 = load_msa(f'../insertion_trim/out/{OGid}.mfa')
+        msa1 = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
         msa1 = {re.search(spid_regex, header).group(1): seq for header, seq in msa1}
 
         spids = region2spids[(OGid, start, stop)]
@@ -201,7 +183,7 @@ for feature_label in df.columns:
         regions.add((OGid, start, stop))
 
         # Load MSA, filter seqs, and re-order
-        msa1 = load_msa(f'../insertion_trim/out/{OGid}.mfa')
+        msa1 = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
         msa1 = {re.search(spid_regex, header).group(1): seq for header, seq in msa1}
 
         spids = region2spids[(OGid, start, stop)]
@@ -404,7 +386,7 @@ for feature_label in rates.columns:
         regions.add((OGid, start, stop))
 
         # Load MSA, filter seqs, and re-order
-        msa1 = load_msa(f'../insertion_trim/out/{OGid}.mfa')
+        msa1 = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
         msa1 = {re.search(spid_regex, header).group(1): seq for header, seq in msa1}
 
         spids = region2spids[(OGid, start, stop)]

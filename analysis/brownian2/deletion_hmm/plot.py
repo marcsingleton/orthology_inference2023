@@ -6,6 +6,7 @@ import re
 import matplotlib.pyplot as plt
 import src.hmm as hmm
 import src.draw as draw
+from src.utils import read_fasta
 
 
 class msaBernoulli:
@@ -23,24 +24,6 @@ class msaBernoulli:
         # Required for HMM since it has a simulate method
         # Simulations aren't used here, so it's an empty method
         pass
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
 
 
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
@@ -61,7 +44,7 @@ with open('segments.tsv') as file:
 # Plot alignments
 for OGid, ppid in ids:
     # Load msa and trim terminal insertions
-    msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
+    msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
     seq = [seq for header, seq in msa if re.search(ppid_regex, header).group(1) == ppid][0]
 
     # Create Bernoulli sequence

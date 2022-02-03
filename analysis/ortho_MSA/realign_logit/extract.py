@@ -8,25 +8,7 @@ import pandas as pd
 import scipy.ndimage as ndimage
 import skbio
 from src.ortho_MSA.trim import get_segments
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
+from src.utils import read_fasta
 
 # Load parameters
 with open('../config/trim_params.json') as file:
@@ -46,9 +28,9 @@ OGids = ['4bb0', '13ff', '15e6', '39c2', '3f97', '1417', '1832', '06ef',
 rows = []
 for OGid in OGids:
     try:
-        msa = load_msa(f'../align_fastas1/out/{OGid}.mfa')
+        msa = read_fasta(f'../align_fastas1/out/{OGid}.mfa')
     except FileNotFoundError:
-        msa = load_msa(f'../align_fastas2-2/out/{OGid}.mfa')
+        msa = read_fasta(f'../align_fastas2-2/out/{OGid}.mfa')
 
     gaps_array = np.full((len(msa), len(msa[0][1])), False)
     for i, (_, seq) in enumerate(msa):

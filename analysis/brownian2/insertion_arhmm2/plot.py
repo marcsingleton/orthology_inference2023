@@ -9,6 +9,7 @@ import src.hmm as hmm
 import src.draw as draw
 from scipy.linalg import solve
 from src.brownian2.trim import trim_terminals
+from src.utils import read_fasta
 
 
 class ar1_betabinom_gen:
@@ -134,24 +135,6 @@ def get_stationary_dist(n, a0, b0, a1, b1):
     return stats.rv_discrete(values=(np.arange(n+1), pi))
 
 
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
-
 # Load model parameters
 with open('out/model.json') as file:
     params = json.load(file)
@@ -166,7 +149,7 @@ with open('../config/segments.tsv') as file:
 
 # Load msa and trim terminal insertions
 for OGid in OGids:
-    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa'))
+    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa'))
 
     # Create emission sequence
     emits = []

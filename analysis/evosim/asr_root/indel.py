@@ -8,25 +8,7 @@ import skbio
 from asr import get_conditional, get_tree
 from scipy.special import gammainc
 from scipy.stats import gamma
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
+from src.utils import read_fasta
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -85,7 +67,7 @@ for OGid in OGids:
         rates.append((rate, 1/num_categories))
 
     # Load sequence and convert to vectors at base of tree
-    msa = load_msa(f'../asr_indel/out/{OGid}.mfa')
+    msa = read_fasta(f'../asr_indel/out/{OGid}.mfa')
     tips = {tip.name: tip for tip in tree.tips()}
     for header, seq in msa:
         tip = tips[header[1:5]]

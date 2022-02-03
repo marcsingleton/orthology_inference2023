@@ -7,25 +7,7 @@ import scipy.stats as stats
 import src.hmm as hmm
 import src.draw as draw
 from src.brownian2.trim import trim_terminals
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
+from src.utils import read_fasta
 
 # Load model parameters
 with open('out/model.json') as file:
@@ -42,7 +24,7 @@ with open('../config/segments.tsv') as file:
 # Plot alignments
 for OGid in OGids:
     # Load msa and trim terminal insertions
-    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa'))
+    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa'))
 
     # Create emission sequence
     emits = []

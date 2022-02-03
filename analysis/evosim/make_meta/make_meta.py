@@ -4,23 +4,7 @@ import os
 from collections import namedtuple
 from random import randrange, seed
 
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
+from src.utils import read_fasta
 
 
 def is_redundant(col, cutoff):
@@ -53,7 +37,7 @@ colpools = [('100red_D', lambda col: is_redundant(col, 1), []),
             ('0red_D', lambda col: is_redundant(col, 0), []),
             ('0red_O', lambda col: is_redundant(col, 0), [])]
 for OGid, regions in OGid2regions.items():  # Because inputs are not sorted, results are not guaranteed to be consistent
-    msa = load_msa(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
+    msa = read_fasta(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
     if len(msa) < 31:  # Only use alignments with all species
         continue
 

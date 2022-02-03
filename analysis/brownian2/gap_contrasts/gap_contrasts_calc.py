@@ -5,6 +5,7 @@ import re
 
 import numpy as np
 import skbio
+from src.utils import read_fasta
 
 
 def get_contrasts(node):
@@ -25,24 +26,6 @@ def get_contrasts(node):
     contrasts.append((val1 - val2) / bl_sum)
 
     return contrasts, value, branch_length
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
 
 
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
@@ -68,7 +51,7 @@ totals = []
 rows = []
 for OGid, start, stop, ppids in regions:
     msa = {}
-    for header, seq in load_msa(f'../insertion_trim/out/{OGid}.mfa'):
+    for header, seq in read_fasta(f'../insertion_trim/out/{OGid}.mfa'):
         ppid = re.search(ppid_regex, header).group(1)
         spid = re.search(spid_regex, header).group(1)
         if ppid in ppids:

@@ -3,23 +3,7 @@
 import re
 import os
 
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
+from src.utils import read_fasta
 
 
 def load_posteriors(path):
@@ -69,7 +53,7 @@ with open('../aucpred_regions/out/regions.tsv') as file:
 # Filter regions
 record_sets = {i: [] for i in range(10, 35, 5)}
 for OGid, regions in OGid2regions.items():
-    msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
+    msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
     posteriors = load_posteriors(f'../deletion_decode/out/{OGid}.tsv')
 
     for region in regions:

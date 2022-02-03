@@ -4,23 +4,7 @@ import multiprocessing as mp
 import os
 from subprocess import run
 
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
+from src.utils import read_fasta
 
 
 def hmm_align(OGid):
@@ -33,7 +17,7 @@ def hmm_align(OGid):
     run(f'../../../bin/hmmalign --outformat afa out/{OGid}.hmm {path} > out/{OGid}_temp.mfa', shell=True, check=True)
 
     # Remove excess gaps
-    msa = load_msa(f'out/{OGid}_temp.mfa')
+    msa = read_fasta(f'out/{OGid}_temp.mfa')
     slices, idx = [], None
     for j in range(len(msa[0][1])):
         for i in range(len(msa)):

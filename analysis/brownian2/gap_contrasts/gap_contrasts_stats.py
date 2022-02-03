@@ -9,29 +9,10 @@ import numpy as np
 import pandas as pd
 import skbio
 from src.draw import draw_msa
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
+from src.utils import read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 spid_regex = r'spid=([a-z]+)'
-
 
 # Load regions
 rows = []
@@ -115,7 +96,7 @@ for label in ['norm1', 'norm2']:
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
         msa = []
-        for header, seq in load_msa(f'../insertion_trim/out/{row.OGid}.mfa'):
+        for header, seq in read_fasta(f'../insertion_trim/out/{row.OGid}.mfa'):
             ppid = re.search(ppid_regex, header).group(1)
             spid = re.search(spid_regex, header).group(1)
             if ppid in row.ppids:

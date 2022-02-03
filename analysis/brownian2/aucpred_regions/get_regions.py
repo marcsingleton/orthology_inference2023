@@ -4,24 +4,7 @@ import os
 import re
 
 import numpy as np
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
+from src.utils import read_fasta
 
 
 def load_scores(path):
@@ -62,7 +45,7 @@ ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 records = []
 for OGid in os.listdir('out/raw/'):
     # Load MSA
-    msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
+    msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
     msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
     # Map outputs to MSA columns

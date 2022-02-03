@@ -9,6 +9,7 @@ import skbio
 from asr import get_conditional, get_tree
 from scipy.special import gammainc
 from scipy.stats import gamma
+from src.utils import read_fasta
 
 
 def load_model(path):
@@ -30,24 +31,6 @@ def load_model(path):
     matrix = matrix / rate  # Normalize average rate to 1
     np.fill_diagonal(matrix, -matrix.sum(axis=1))
     return matrix, freqs
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
 
 
 syms = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
@@ -119,7 +102,7 @@ for OGid in OGids:
                 partition_id += 1
 
     # Calculate likelihoods
-    msa = load_msa(f'../asr_aa/out/{OGid}.mfa')
+    msa = read_fasta(f'../asr_aa/out/{OGid}.mfa')
     for partition in partitions.values():
         # Unpack partition parameters and partition MSA
         matrix, freqs = models[partition['model']]

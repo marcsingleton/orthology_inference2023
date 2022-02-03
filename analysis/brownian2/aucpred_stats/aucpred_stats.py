@@ -7,25 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from numpy import linspace
 from sklearn.decomposition import PCA
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
+from src.utils import read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 min_lengths = sorted([int(path.split('_')[1][:-4]) for path in os.listdir('../aucpred_filter/out/') if path.endswith('.tsv')])
@@ -44,7 +26,7 @@ for min_length in min_lengths:
         for line in file:
             OGid, start, stop, disorder, ppids = line.split()
 
-            msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
+            msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
             msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
             for ppid in ppids.split(','):

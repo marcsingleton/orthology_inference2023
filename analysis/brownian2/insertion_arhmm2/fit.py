@@ -7,24 +7,7 @@ import numpy as np
 import scipy.optimize as opt
 import scipy.stats as stats
 from numpy import log
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
+from src.utils import read_fasta
 
 
 def create_ar1_betabinom_likelihood(data, n):
@@ -102,7 +85,7 @@ start_t_count = {state: 1 for state in states}
 # Get observed counts
 for OGid, regions in OGid2regions.items():
     # Load MSA and trim terminal insertions
-    msa = load_msa(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa')
+    msa = read_fasta(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa')
     if regions[-1][2] == '0':
         start, _, _ = regions[-1]
         regions = regions[:-1]

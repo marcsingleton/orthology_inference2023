@@ -4,23 +4,7 @@ import os
 from collections import namedtuple
 from random import randrange, seed
 
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
+from src.utils import read_fasta
 
 
 def is_redundant(col, cutoff):
@@ -52,7 +36,7 @@ colpools = [('100red', lambda col: is_redundant(col, 1), []),
             ('0red', lambda col: is_redundant(col, 0), []),
             ('0red_ni', lambda col: is_redundant(col, 0) and not is_invariant(col), [])]
 for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_fastas/out/')):  # Because inputs are not sorted, results are not guaranteed to be consistent
-    msa = load_msa(f'../align_fastas/out/{file_id}')
+    msa = read_fasta(f'../align_fastas/out/{file_id}')
     for i in range(len(msa[0][1])):
         col = [Column(header[-4:], seq[i]) for header, seq in msa]
         for _, condition, colpool in colpools:

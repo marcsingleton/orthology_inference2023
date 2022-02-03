@@ -6,6 +6,7 @@ import os
 
 import scipy.stats as stats
 import src.hmm as hmm
+from src.utils import read_fasta
 
 
 class bernoulli_betabinom_gen:
@@ -40,27 +41,9 @@ class bernoulli_betabinom_frozen:
         return self._dist.rvs(self.p, self.n, self.a, self.b, size=size)
 
 
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
-
 def decode(OGid, params):
     # Load msa and trim terminal insertions
-    msa = load_msa(f'../../ortho_MSA/realign_hmmer2/out/{OGid}.mfa')
+    msa = read_fasta(f'../../ortho_MSA/realign_hmmer2/out/{OGid}.mfa')
 
     idx = 0
     for j in range(len(msa[0][1])):

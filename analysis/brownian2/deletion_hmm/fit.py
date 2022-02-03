@@ -9,6 +9,7 @@ from itertools import accumulate, product
 
 import src.hmm as hmm
 from numpy import exp, log
+from src.utils import read_fasta
 
 
 # Probability classes and functions
@@ -128,24 +129,6 @@ def get_expts(t_dists_norm, e_param_norm, start_dist, record):
     return record
 
 
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
-
-
 eta = 1E-2
 epsilon = 1E-2
 iter_num = 200
@@ -170,7 +153,7 @@ if __name__ == '__main__':
     records = []
     for (OGid, ppid), regions in OGid2regions.items():
         # Load MSA and extract seq
-        msa = load_msa(f'../insertion_trim/out/{OGid}.mfa')
+        msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
         seq = [seq for header, seq in msa if re.search(ppid_regex, header).group(1) == ppid][0]
 
         # Create Bernoulli sequence

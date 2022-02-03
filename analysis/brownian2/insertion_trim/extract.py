@@ -4,30 +4,13 @@ import os
 
 import numpy as np
 from src.brownian2.trim import trim_terminals, get_slices
-
-
-def load_msa(path):
-    msa = []
-    with open(path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line.rstrip()
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            msa.append((header, seq))
-    return msa
+from src.utils import read_fasta
 
 
 OGids = [path.split('.')[0] for path in os.listdir('../../ortho_MSA/realign_hmmer2/out/') if path.endswith('.mfa')]
 for OGid in OGids:
     # Load msa and trim terminal insertions
-    msa = trim_terminals(load_msa(f'../../ortho_MSA/realign_hmmer2/out/{OGid}.mfa'))
+    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer2/out/{OGid}.mfa'))
 
     # Load decoded states and calculate derivative
     posterior = []
