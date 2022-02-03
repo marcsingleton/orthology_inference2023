@@ -8,4 +8,4 @@ fi
 
 # DEPENDENCIES
 # ../make_metaAA/make_metaAA.py
-#   ../make_metaAA/out/*/*.phy
+#   ../make_metaAA/out/*/*.fasta

@@ -36,7 +36,7 @@ def run_aucpred(OGid):
         seq = seq.translate({ord('-'): None, ord('.'): None})
         if len(seq) < 10000:  # AUCpreD uses PSIPRED which has a length limit of 10000
             with open(f'{prefix}{ppid}.fasta', 'w') as file:
-                seqstring = '\n'.join([seq[i:i + 80] for i in range(0, len(seq), 80)]) + '\n'
+                seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
                 file.write(header + '\n' + seqstring)
             subprocess.run(f'../../../bin/Predict_Property/AUCpreD.sh -i {prefix}{ppid}.fasta -o {prefix}',
                            check=True, shell=True)

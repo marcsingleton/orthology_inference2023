@@ -4,7 +4,23 @@ import os
 from collections import namedtuple
 from random import randrange, seed
 
-from skbio import io, TabularMSA, Protein
+
+def load_msa(path):
+    msa = []
+    with open(path) as file:
+        line = file.readline()
+        while line:
+            if line.startswith('>'):
+                header = line.rstrip()
+                line = file.readline()
+
+            seqlines = []
+            while line and not line.startswith('>'):
+                seqlines.append(line.rstrip())
+                line = file.readline()
+            seq = ''.join(seqlines)
+            msa.append((header, seq))
+    return msa
 
 
 def is_redundant(col, cutoff):
@@ -29,22 +45,22 @@ Column = namedtuple('Column', ['spid', 'sym'])
 seed(930715)  # Set seed to make results consistent
 
 # Extract column pools
-colpools = {'100red': (lambda col: is_redundant(col, 1), []),
-            '100red_ni': (lambda col: is_redundant(col, 1) and not is_invariant(col), []),
-            '50red': (lambda col: is_redundant(col, 0.5), []),
-            '50red_ni': (lambda col: is_redundant(col, 0.5) and not is_invariant(col), []),
-            '0red': (lambda col: is_redundant(col, 0), []),
-            '0red_ni': (lambda col: is_redundant(col, 0) and not is_invariant(col), [])}
+colpools = [('100red', lambda col: is_redundant(col, 1), []),
+            ('100red_ni', lambda col: is_redundant(col, 1) and not is_invariant(col), []),
+            ('50red', lambda col: is_redundant(col, 0.5), []),
+            ('50red_ni', lambda col: is_redundant(col, 0.5) and not is_invariant(col), []),
+            ('0red', lambda col: is_redundant(col, 0), []),
+            ('0red_ni', lambda col: is_redundant(col, 0) and not is_invariant(col), [])]
 for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_aa2nt/out/')):
-    msa = io.read(f'../align_aa2nt/out/{file_id}', 'fasta', into=TabularMSA, constructor=Protein)
-    for i in range(msa.shape[1]):
-        col = [Column(seq.metadata['id'][-4:], str(seq)[i]) for seq in msa]
-        for condition, colpool in colpools.values():
+    msa = load_msa(f'../align_aa2nt/out/{file_id}')
+    for i in range(len(msa[0][1])):
+        col = [Column(header[-4:], seq[i]) for header, seq in msa]
+        for _, condition, colpool in colpools:
             if condition(col):
                 colpool.append(col)
 
 # Make meta alignments
-for label, (_, colpool) in colpools.items():
+for label, _, colpool in colpools:
     if not os.path.exists(f'out/{label}/'):
         os.makedirs(f'out/{label}/')
 
@@ -59,9 +75,10 @@ for label, (_, colpool) in colpools.items():
                 except KeyError:
                     seqs[spid] = [sym]
 
-        msa = TabularMSA([Protein(''.join(seq), metadata={'id': spid, 'description': f'{label}_{samplenum}'})
-                          for spid, seq in seqs.items()], minter='id')  # Sets index to id (for writing in Phylip)
-        msa.write(f'out/{label}/meta_{samplenum}.fasta', 'fasta', max_width=80)
+        with open(f'out/{label}/meta_{samplenum}.fasta', 'w') as file:
+            for spid, seq in sorted(seqs.items()):
+                seqstring = '\n'.join([''.join(seq[i:i+80]) for i in range(0, len(seq), 80)]) + '\n'
+                file.write(f'>{spid} {label}_{samplenum}\n' + seqstring)
 
 """
 OUTPUT

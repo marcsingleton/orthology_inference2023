@@ -14,18 +14,13 @@ def get_args(grouped, tree):
 
 def get_contrasts(node):
     child1, child2 = node.children
-
-    if child1.is_tip() and child2.is_tip():
+    if child1.is_tip():
         contrasts1, val1, bl1 = [], child1.value, child1.length
-        contrasts2, val2, bl2 = [], child2.value, child2.length
-    elif child1.is_tip():
-        contrasts1, val1, bl1 = [], child1.value, child1.length
-        contrasts2, val2, bl2 = get_contrasts(child2)
-    elif child2.is_tip():
-        contrasts1, val1, bl1 = get_contrasts(child1)
-        contrasts2, val2, bl2 = [], child2.value, child2.length
     else:
         contrasts1, val1, bl1 = get_contrasts(child1)
+    if child2.is_tip():
+        contrasts2, val2, bl2 = [], child2.value, child2.length
+    else:
         contrasts2, val2, bl2 = get_contrasts(child2)
 
     bl_sum = bl1 + bl2
