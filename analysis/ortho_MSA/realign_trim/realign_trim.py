@@ -91,10 +91,13 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
+../config/BLOSUM62.txt
+../config/trim_params.json
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
 ../align_fastas2-2/align_fastas2-2.py
     ../align_fastas2-2/out/*.mfa
 ../OG_filter/OG_filter.py
     ../OG_filter/out/OG_filter.tsv
+./trim_params.json
 """

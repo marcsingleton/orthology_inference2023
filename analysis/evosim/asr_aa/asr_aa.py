@@ -117,7 +117,7 @@ DEPENDENCIES
     ../../brownian2/aucpred_filter/out/regions_30.tsv
 ../../brownian2/aucpred_regions/get_regions.py
     ../../brownian2/aucpred_regions/out/regions.tsv
-../../brownian2/insertion_trim/insertion_trim.py
+../../brownian2/insertion_trim/extract.py
     ../../brownian2/insertion_trim/out/*.mfa
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt

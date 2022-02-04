@@ -20,7 +20,6 @@ ZNORM
     Both classes largely have no structure and the projections do not vary greatly with length cutoff.
 
 DEPENDENCIES
-../../../src/seg_scripts/plot/pca_separate.py
 ../sample_feats/run_sample_feats.py
     ../sample_feats/out/features_*.tsv
 """

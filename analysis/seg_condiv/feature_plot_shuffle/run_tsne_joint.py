@@ -19,7 +19,6 @@ ZNORM
     Projections comparisons are the same as the minmax feature set relative to the norm feature set.
 
 DEPENDENCIES
-../../../src/feature_calc_scripts/tsne_joint.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
     ../feature_calc_shuffle/out/features_*.tsv
 """

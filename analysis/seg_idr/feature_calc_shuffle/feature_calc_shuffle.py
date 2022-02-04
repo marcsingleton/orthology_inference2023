@@ -39,7 +39,6 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
 
 """
 DEPENDENCIES
-../../../src/seg_scripts/seqfeat.py
 ../segment_shuffle/segment_shuffle.py
     ../segment_shuffle/out/shuffseq_*.tsv
 """

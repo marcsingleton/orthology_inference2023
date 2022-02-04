@@ -130,6 +130,6 @@ for record in outliers:
 DEPENDENCIES
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/*.mfa
+../realign_hmmer1/realign_hmmer1.py
+    ../realign_hmmer1/out/*.mfa
 """

@@ -21,7 +21,6 @@ ZNORM
     At length cutoffs >= 16, the two classes begin to clearly separate.
 
 DEPENDENCIES
-../../../src/seg_scripts/plot/pca_joint.py
 ../sample_feats/run_sample_feats.py
     ../sample_feats/out/features_*.tsv
 """

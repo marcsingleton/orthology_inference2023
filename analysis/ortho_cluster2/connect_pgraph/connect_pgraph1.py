@@ -25,7 +25,6 @@ with open('out/pconnect1.txt', 'w') as outfile:
 
 """
 DEPENDENCIES
-../../../src/ortho_cluster/DFS.py
 ../hits2pgraph/hits2pgraph1.py
     ../hits2pgraph/out/pgraph1.tsv
 """

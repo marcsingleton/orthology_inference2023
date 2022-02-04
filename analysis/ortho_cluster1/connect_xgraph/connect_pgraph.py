@@ -40,7 +40,6 @@ with open('out/pconnect.txt', 'w') as outfile:
 
 """
 DEPENDENCIES
-../../../src/ortho_cluster/DFS.py
 ../hsps2pgraph/hsps2pgraph.py
     ../hsps2pgraph/out/pgraph.tsv
 """

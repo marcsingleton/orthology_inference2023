@@ -110,7 +110,6 @@ Type 3: 243
 Type 4: 237
 
 DEPENDENCIES
-../../../src/ortho_cluster/triDFS.py
 ../connect_xgraph/connect_pgraph.py
     ../connect_xgraph/out/pconnect.txt
 ../hsps2pgraph/hsps2pgraph.py

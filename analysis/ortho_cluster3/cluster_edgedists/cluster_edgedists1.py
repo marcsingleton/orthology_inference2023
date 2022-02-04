@@ -111,6 +111,6 @@ DEPENDENCIES
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../clique4+_pcommunity/clique4+_pcommunity1.py
     ../clique4+_pcommunity/out/pgraph1/4clique/pclusters.txt
-../hits2pgraph/out/hits2pgraph1.py
+../hits2pgraph/hits2pgraph1.py
     ../hits2pgraph/out/pgraph1.tsv
 """

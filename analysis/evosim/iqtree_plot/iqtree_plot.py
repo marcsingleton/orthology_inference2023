@@ -261,8 +261,8 @@ plt.savefig('out/bar_freqs.png')
 plt.close()
 
 """
-DEPENDENCEIES
-../iqtree_fit/iqtree_fit.py
+DEPENDENCIES
+../iqtree_fit/iqtree_fit.sh
     ../iqtree_fit/out/*.iqtree
 ../config/WAG.txt
 """

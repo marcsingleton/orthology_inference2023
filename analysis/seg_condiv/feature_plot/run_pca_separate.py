@@ -34,7 +34,6 @@ ZNORM
                 As the number of possible sequences increase, the sequences are more uniformly distributed in sequence space
 
 DEPENDENCIES
-../../../src/seg_scripts/plot/pca_separate.py
 ../sample_feats/run_sample_feats.py
     ../sample_feats/out/features_*.tsv
 """

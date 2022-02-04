@@ -28,7 +28,6 @@ ZNORM
     At high cutoffs, the shuffled projections are more uniform and Gaussian whereas the observed projections are angular and compressed.
 
 DEPENDENCIES
-../../../src/seg_scripts/plot/pca_separate.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
     ../feature_calc_shuffle/out/features_*.tsv
 """

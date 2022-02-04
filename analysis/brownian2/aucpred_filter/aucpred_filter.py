@@ -105,6 +105,8 @@ for min_length, records in record_sets.items():
 DEPENDENCIES
 ../aucpred_regions/get_regions.py
     ../aucpred_regions/out/regions.tsv
+../deletion_decode/decode.py
+    ../deletion_decode/out/*.tsv
 ../insertion_trim/extract.py
     ../insertion_trim/out/*.mfa
 """

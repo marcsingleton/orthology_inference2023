@@ -37,7 +37,6 @@ In future experiments, the data should be displayed using "cross" transformation
     This will normalize for the effect of the analyses having dramatically different "views" of the data.
 
 DEPENDENCIES
-../../../src/seg_scripts/plot/pca_joint.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
     ../feature_calc_shuffle/out/features_*.tsv
 """

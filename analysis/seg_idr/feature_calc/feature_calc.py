@@ -35,7 +35,6 @@ if __name__ == '__main__':  # Multiprocessing can only occur in top-level script
 
 """
 DEPENDENCIES
-../../../src/seg_scripts/seqfeat.py
 ../segment_iupred2a/segment_iupred2a.py
     ../segment_iupred2a/out/segment_iupred2a.tsv
 """

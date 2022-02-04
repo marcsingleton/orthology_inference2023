@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../aucpred_regions/regions.py
+../aucpred_regions/get_regions.py
     ../aucpred_regions/out/regions.tsv
 ../insertion_trim/extract.py
     ../insertion_trim/out/*.mfa

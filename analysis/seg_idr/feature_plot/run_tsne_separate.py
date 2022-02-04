@@ -20,7 +20,6 @@ ZNORM
     The projections are nearly identical to their joint counterparts, excluding the separation of the central cluster into subclusters of the two classes.
 
 DEPENDENCIES
-../../../src/seg_scripts/plot/tsne_separate.py
 ../sample_feats/run_sample_feats.py
     ../sample_feats/out/features_*.tsv
 """

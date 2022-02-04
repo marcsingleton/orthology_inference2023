@@ -31,7 +31,6 @@ ZNORM
         Additionally, the diverged projections are less punctate and more diffuse, similar to the conserved projections.            
 
 DEPENDENCIES
-../../../src/seg_scripts/plot/tsne_separate.py
 ../sample_feats/run_sample_feats.py
     ../sample_feats/out/features_*.tsv
 """

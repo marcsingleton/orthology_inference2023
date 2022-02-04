@@ -6,7 +6,6 @@ run('python ../../../src/seg_scripts/plot/dists.py ../feature_calc_shuffle/out/ 
 
 """
 DEPENDENCIES
-../../../src/seg_scripts/plot/dists.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
     ../feature_calc_shuffle/out/features_*.tsv
 """

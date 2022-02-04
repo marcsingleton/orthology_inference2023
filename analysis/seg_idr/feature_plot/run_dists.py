@@ -6,7 +6,6 @@ run('python ../../../src/seg_scripts/plot/dists.py ../sample_feats/out/ 3 ordere
 
 """
 DEPENDENCIES
-../../../src/seg_scripts/plot/dists.py
 ../sample_feats/run_sample_feats.py
     ../sample_feats/out/features_*.tsv
 """

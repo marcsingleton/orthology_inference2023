@@ -108,8 +108,9 @@ for OGid in OGids:
 
 """
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer/realign_hmmer1.py
+../../ortho_MSA/realign_hmmer1/realign_hmmer1.py
     ../../ortho_MSA/realign_hmmer1/out/*.mfa
+../config/segments.tsv
 ./fit.py
     ./out/model.json
 """

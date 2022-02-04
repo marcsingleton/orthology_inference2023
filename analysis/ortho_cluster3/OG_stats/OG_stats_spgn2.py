@@ -271,6 +271,6 @@ These plots are largely based off those in analysis/EggNOGv5_validation/ali_stat
 DEPENDENCIES
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
-../clique4+_pcommunity/clique4+_gcommunity2.py
+../clique4+_pcommunity/clique4+_pcommunity2.py
     ../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
 """

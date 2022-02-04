@@ -35,7 +35,6 @@ In conclusion, the presence of prolines or charged residues appears non-random, 
     Previous studies have suggested that charge (either its presence or its patterning) is a conserved feature of IDRs
 
 DEPENDENCIES
-../../../src/seg_scripts/plot/pca_joint.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
     ../feature_calc_shuffle/out/features_*.tsv
 """

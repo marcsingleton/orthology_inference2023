@@ -33,7 +33,6 @@ ZNORM
         These observations are consistent with the conclusion that shuffled sequences are more "average" and observed sequences have a higher proportion of outliers.
 
 DEPENDENCIES
-../../../src/seg_scripts/plot/pca_separate.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
     ../feature_calc_shuffle/out/features_*.tsv
 """

@@ -28,7 +28,6 @@ ZNORM
         At high cutoffs, the shuffled projections are potentially more uniform as a whole, but they also appear to contain a few more bands and nodes than the observed projections.
 
 DEPENDENCIES
-../../../src/feature_calc_scripts/tsne_joint.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
     ../feature_calc_shuffle/out/features_*.tsv
 """

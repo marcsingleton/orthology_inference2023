@@ -26,7 +26,6 @@ ZNORM
         However, within these periphery clusters, the distribution is uniform in contrast to the highly concentrated vertices.
 
 DEPENDENCIES
-../../../src/seg_scripts/plot/tsne_separate.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
     ../feature_calc_shuffle/out/features_*.tsv
 """

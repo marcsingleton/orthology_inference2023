@@ -79,8 +79,8 @@ OUTPUT
 0red_O: 3420469
 
 DEPENDENCIES
-../aucpred_regions/aucpred_regions.py
-    ../aucpred_regions/out/regions.tsv
-../insertion_trim/insertion_trim.py
-    ../insertion_trim/out/*.mfa
+../../brownian2/aucpred_regions/get_regions.py
+    ../..brownian2/aucpred_regions/out/regions.tsv
+../../brownian2/insertion_trim/extract.py
+    ../../brownian2/insertion_trim/out/*.mfa
 """

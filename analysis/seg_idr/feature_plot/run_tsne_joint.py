@@ -26,7 +26,6 @@ ZNORM
         The ordered and disordered subsequences form nearly separate subclusters at opposite sides of the central cluster.
 
 DEPENDENCIES
-../../../src/feature_calc_scripts/tsne_joint.py
 ../sample_feats/run_sample_feats.py
     ../sample_feats/out/features_*.tsv
 """

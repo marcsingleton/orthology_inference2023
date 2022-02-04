@@ -108,6 +108,7 @@ for label in ['norm1', 'norm2']:
         plt.imsave(f'out/{label}/{i}_{row.OGid}-{row.start}-{row.stop}.png', im)
 
 """
+DEPENDENCIES
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../insertion_trim/extract.py

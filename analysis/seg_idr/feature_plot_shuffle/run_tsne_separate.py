@@ -22,7 +22,6 @@ ZNORM
         At high cutoffs and high perplexities, a band is visible in the shuffled projections that is absent from the observed projections.
 
 DEPENDENCIES
-../../../src/seg_scripts/plot/tsne_separate.py
 ../feature_calc_shuffle/run_feature_calc_shuffle.py
     ../feature_calc_shuffle/out/features_*.tsv
 """

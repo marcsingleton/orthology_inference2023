@@ -33,7 +33,6 @@ for feature in pics:
 
 """
 DEPENDENCIES
-../../../src/draw.py
 ../pic_calc/pic_calc.py
     ../pic_calc/out/pics.tsv
 ../segment_avg/segment_avg.py

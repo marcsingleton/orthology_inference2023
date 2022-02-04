@@ -25,7 +25,6 @@ with open('out/gclusters.txt', 'w') as outfile:
 
 """
 DEPENDENCIES
-../../../src/ortho_cluster/triDFS.py
 ../hsps2ggraph/hsps2ggraph.py
     ../hsps2ggraph/out/ggraph.tsv
 """

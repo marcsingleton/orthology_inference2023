@@ -99,7 +99,6 @@ Type 3: 469
 Type 4: 2066
 
 DEPENDENCIES
-../../../src/ortho_cluster/triDFS.py
 ../connect_pgraph/connect_pgraph1.py
     ../connect_pgraph/out/pconnect1.txt
 ../hits2pgraph/hits2pgraph1.py

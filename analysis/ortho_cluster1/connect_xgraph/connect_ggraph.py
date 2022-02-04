@@ -24,8 +24,6 @@ with open('out/gconnect.txt', 'w') as outfile:
         outfile.write(CCid + ':' + ','.join(CC) + '\n')
 
 """
-DEPENDENCIES
-../../../src/ortho_cluster/DFS.py
 ../hsps2ggraph/hsps2ggraph.py
     ../hsps2ggraph/out/ggraph.tsv
 """
