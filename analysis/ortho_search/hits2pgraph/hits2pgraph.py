@@ -8,7 +8,7 @@ def add_edge(qppid, sppid, bitscore, pgraph):
     try:
         pgraph[qppid].add((sppid, bitscore))
     except KeyError:
-        pgraph[qppid] = set([(sppid, bitscore)])
+        pgraph[qppid] = {(sppid, bitscore)}
 
 
 columns = {'qppid': str, 'qgnid': str, 'qspid': str,

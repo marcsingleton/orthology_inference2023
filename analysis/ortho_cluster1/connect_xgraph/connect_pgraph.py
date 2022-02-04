@@ -23,7 +23,7 @@ for qppid, sppids in pgraph.items():
             try:
                 rpgraph[qppid].add(sppid)
             except KeyError:
-                rpgraph[qppid] = set([sppid])
+                rpgraph[qppid] = {sppid}
 
 # Find connected components
 CCs = connect(rpgraph)

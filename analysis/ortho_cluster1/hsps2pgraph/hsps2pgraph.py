@@ -12,7 +12,7 @@ with open('../blast2hsps/out/hsps.tsv') as file:
         try:
             pgraph[qppid].add(sppid)
         except KeyError:
-            pgraph[qppid] = set([sppid])
+            pgraph[qppid] = {sppid}
 
 # Make output directory
 if not os.path.exists('out/'):

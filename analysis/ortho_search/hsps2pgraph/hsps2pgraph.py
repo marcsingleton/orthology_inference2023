@@ -20,7 +20,7 @@ for qspid in os.listdir('../blast2hsps/out/hsps/'):
                 try:
                     graph[qppid].add(sppid)
                 except KeyError:
-                    graph[qppid] = set([sppid])
+                    graph[qppid] = {sppid}
 
 # Make output directory
 if not os.path.exists('out/'):

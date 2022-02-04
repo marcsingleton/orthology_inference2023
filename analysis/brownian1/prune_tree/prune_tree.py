@@ -6,9 +6,7 @@ import os
 
 # Input variables
 path = '../../../data/drosophila_tree_25/drosophila-25spec-tree.tre'
-remain = set(['ananassae', 'erecta', 'grimshawi',
-              'melanogaster', 'mojavensis', 'persimilis',
-              'pseudoobscura', 'virilis', 'yakuba', 'willistoni'])
+remain = {'ananassae', 'erecta', 'grimshawi', 'melanogaster', 'mojavensis', 'persimilis', 'pseudoobscura', 'virilis', 'yakuba', 'willistoni'}
 
 # Read data and filter
 tree = Phylo.read(path, 'newick')

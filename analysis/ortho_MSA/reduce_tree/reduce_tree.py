@@ -73,7 +73,7 @@ def update_tip_names(tree):
     """Cache tip names in internal nodes of tree."""
     for node in tree.postorder():
         if node.is_tip():
-            node.tip_names = set([node.name])
+            node.tip_names = {node.name}
         else:
             node.tip_names = set().union(*[child.tip_names for child in node.children])
 
@@ -117,10 +117,10 @@ def reduce(OGid, OG):
         # Remove non-minimal tips in single-species clades
         for node in tree.postorder():
             if node.is_tip():
-                node.min_tips = set([(node.name, node.length)])
+                node.min_tips = {(node.name, node.length)}
             elif len(set([name.split(':')[1] for child in node.children for name, _ in child.min_tips])) == 1:
                 name, length = min([min_tip for child in node.children for min_tip in child.min_tips], key=lambda x: x[1])
-                node.min_tips = set([(name, length + node.length)])
+                node.min_tips = {(name, length + node.length)}
             else:
                 node.min_tips = set([min_tip for child in node.children for min_tip in child.min_tips])
         min_names = set([tip_name for tip_name, _ in tree.min_tips])

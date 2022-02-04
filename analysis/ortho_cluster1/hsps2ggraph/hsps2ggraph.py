@@ -20,7 +20,7 @@ for row in hsps.itertuples():
         try:
             ggraph[qgnid].add(sgnid)
         except KeyError:
-            ggraph[qgnid] = set([sgnid])
+            ggraph[qgnid] = {sgnid}
 
 # Make output directory
 if not os.path.exists('out/'):
