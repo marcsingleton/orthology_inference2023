@@ -279,8 +279,9 @@ for data, label in plots:
     handles = []
     for i in range(len(colors)):
         feature_label, (x, y) = projections[i]
-        handles.append(Line2D([], [], color=colors[i%len(colors)], linewidth=2, label=feature_label))
-        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 6, 'headlength': 6, 'width': 1.75, 'color': colors[i%len(colors)]})
+        handles.append(Line2D([], [], color=colors[i % len(colors)], linewidth=2, label=feature_label))
+        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0),
+                     arrowprops={'headwidth': 6, 'headlength': 6, 'width': 1.75, 'color': colors[i % len(colors)]})
     plt.legend(handles=handles, fontsize=8, loc='right', bbox_to_anchor=(1.05, 0.5))
     plt.savefig(f'out/rates/scatter_pca_{label}3_arrow.png')
     plt.close()
@@ -354,8 +355,9 @@ for data, data_label, norm_label in plots:
     handles = []
     for i in range(len(colors)):
         feature_label, (x, y) = projections[i]
-        handles.append(Line2D([], [], color=colors[i%len(colors)], linewidth=2, label=feature_label))
-        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 6, 'headlength': 6, 'width': 1.75, 'color': colors[i%len(colors)]})
+        handles.append(Line2D([], [], color=colors[i % len(colors)], linewidth=2, label=feature_label))
+        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0),
+                     arrowprops={'headwidth': 6, 'headlength': 6, 'width': 1.75, 'color': colors[i % len(colors)]})
     plt.legend(handles=handles, fontsize=8, loc='right', bbox_to_anchor=(1.05, 0.5))
     plt.savefig(f'out/rates/scatter_pca_{data_label}_{norm_label}3_arrow.png')
     plt.close()
@@ -426,7 +428,7 @@ for feature_label in means.columns.intersection(roots.columns):
 
     xmin, xmax = plt.xlim()
     plt.plot([xmin, xmax], [m*xmin+b, m*xmax+b], color='black', linewidth=1)
-    plt.annotate('$\mathregular{R^2}$' + f' = {round(r2, 2)}', (0.85, 0.75), xycoords='axes fraction')
+    plt.annotate(r'$\mathregular{R^2}$' + f' = {round(r2, 2)}', (0.85, 0.75), xycoords='axes fraction')
     plt.savefig(f'out/roots/scatter_root-mean_{feature_label}.png')
     plt.close()
 

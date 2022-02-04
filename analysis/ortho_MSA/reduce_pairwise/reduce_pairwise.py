@@ -1,7 +1,6 @@
 """Reduce gene clusters to representative polypeptides using pairwise comparisons."""
 
 import os
-import re
 from itertools import chain, product, combinations
 
 import skbio

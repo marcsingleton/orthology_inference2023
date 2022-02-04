@@ -233,7 +233,7 @@ for data_label, df in [('all', df0), ('reciprocal', df1)]:
 
     # Correlation of gene hits with number of associated polypeptides
     gnid_nums = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t',
-                               index_col='gnid', dtype={'gnid': 'string'})
+                            index_col='gnid', dtype={'gnid': 'string'})
     corr = sgnid_hitnum.join(gnid_nums)
     yo_gns = corr['spid'].isin(['dpse', 'dyak'])
 

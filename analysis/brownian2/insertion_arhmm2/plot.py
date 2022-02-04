@@ -60,7 +60,7 @@ class ar1_binom_gen:
 
     def rvs(self, i, n, p0, p1, size=None, random_state=None):
         js = list(range(n+1))
-        ps = [self.pmf(i, j, n, a0, b0, a1, b1) for j in js]
+        ps = [self.pmf(i, j, n, p0, p1) for j in js]
         rvs = stats.rv_discrete(values=(js, ps)).rvs(size=size, random_state=random_state)
         return rvs
 

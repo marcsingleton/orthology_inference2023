@@ -87,8 +87,9 @@ for data, data_label, norm_label in plots:
     handles = []
     for i in range(len(colors)):
         feature_label, (x, y) = projections[i]
-        handles.append(Line2D([], [], color=colors[i%len(colors)], linewidth=2, label=feature_label))
-        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0), arrowprops={'headwidth': 6, 'headlength': 6, 'width': 1.75, 'color': colors[i%len(colors)]})
+        handles.append(Line2D([], [], color=colors[i % len(colors)], linewidth=2, label=feature_label))
+        plt.annotate('', xy=(scale*x, scale*y), xytext=(0, 0),
+                     arrowprops={'headwidth': 6, 'headlength': 6, 'width': 1.75, 'color': colors[i % len(colors)]})
     plt.legend(handles=handles, fontsize=8, loc='right', bbox_to_anchor=(1.05, 0.5))
     plt.savefig(f'out/scatter_pca-arrow_{data_label}_{norm_label}.png')
     plt.close()

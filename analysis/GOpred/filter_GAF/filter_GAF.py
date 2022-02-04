@@ -15,6 +15,7 @@ def get_ancestors(GO, GOid):
         ancestors.update(get_ancestors(GO, parent))
     return ancestors
 
+
 # Load seq metadata
 ppid2gnid = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:

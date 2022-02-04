@@ -14,7 +14,7 @@ from pymix.mixture import MixtureModel
 def make_plots(pics_lt, dirpath, filename):
     # Load model, sorting components by scale and instantiating distributions from names
     with open(dirpath + '/' + filename) as file:
-            model = json.load(file)
+        model = json.load(file)
     model_params, name = model[:-1], model[-1]
     dist_names, params, params_fix, weights = [list(x) for x in zip(*sorted(zip(*model[:-1]), key=lambda y: y[1]['scale']))]
     dists = [dists_dict[dist_name] for dist_name in dist_names]

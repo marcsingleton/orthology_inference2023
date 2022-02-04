@@ -33,7 +33,7 @@ def fraction_regex(seq, regex):
     matches = re.findall(regex, seq)
     count = 0
     for match in matches:
-     count += len(match)
+        count += len(match)
     return count / len(seq)
 
 

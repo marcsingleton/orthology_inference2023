@@ -28,7 +28,7 @@ def grouped_bar(groups, group_width, bar_width, file_label, bar_labels=None, bar
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 'small'})
     plt.subplots_adjust(bottom=0.2, left=0.1, right=0.9)
     plt.savefig(f'out/{file_label}.png')
-    plt.close
+    plt.close()
 
 
 # Count nucleotides
