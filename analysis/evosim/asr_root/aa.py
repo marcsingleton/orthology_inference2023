@@ -77,7 +77,7 @@ for OGid in OGids:
         while line != '\n':
             fields = line.split()  # File is not explicitly delimited, so just split on whitespace
             partition_id, speed, parameters = int(fields[0]), float(fields[2]), fields[3]
-            groupdict = re.search(r'(?P<model>[^+]+)\+I\{(?P<pinv>[0-9.e-]+)\}\+G(?P<num_categories>[0-9]+)\{(?P<alpha>[0-9.e-]+)\}', parameters).groupdict()
+            groupdict = re.search(r'(?P<model>[^+]+)\+I{(?P<pinv>[0-9.e-]+)}\+G(?P<num_categories>[0-9]+){(?P<alpha>[0-9.e-]+)}', parameters).groupdict()
             partition = partitions[partition_id]
             partition.update({'model': groupdict['model'], 'speed': speed,
                               'pinv': float(groupdict['pinv']), 'alpha': float(groupdict['alpha']), 'num_categories': int(groupdict['num_categories'])})

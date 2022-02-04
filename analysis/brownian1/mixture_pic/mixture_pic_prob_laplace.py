@@ -21,7 +21,7 @@ pics_lt = pics[(pics.index.get_level_values('min_length') >= lt) &
                (~pics.index.get_level_values('ordered').array.astype(bool))]
 
 for feature in os.listdir('out'):
-    model_paths = [x for x in os.listdir('out/' + feature) if re.match('model_laplace.\.json', x)]
+    model_paths = [x for x in os.listdir('out/' + feature) if re.match(r'model_laplace.\.json', x)]
     fig, axs = plt.subplots(len(model_paths), 1, figsize=(6, 3.5))
     fig.suptitle(f'{feature}:\nPosterior Probabilities of Mixture Model Components', y=0.95, size=10)
     fig.subplots_adjust(top=0.85)

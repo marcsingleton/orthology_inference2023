@@ -27,7 +27,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 pcas = {}
-paths = filter(lambda x: re.match('segments_[0-9]+\.tsv', x), os.listdir(segment_dir))
+paths = filter(lambda x: re.match(r'segments_[0-9]+\.tsv', x), os.listdir(segment_dir))
 for path in paths:
     # Read data and split segments
     segs = pd.read_csv(segment_dir + path, sep='\t', keep_default_na=False)

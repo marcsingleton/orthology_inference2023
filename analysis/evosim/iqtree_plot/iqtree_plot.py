@@ -56,7 +56,7 @@ for plot_label, file_label in labels:
 
         syms, freqs = [], []
         while line != '\n':
-            match = re.search('pi\(([A-Z])\) = (0.[0-9]+)', line)
+            match = re.search(r'pi\(([A-Z])\) = (0.[0-9]+)', line)
             syms.append(match.group(1))
             freqs.append(float(match.group(2)))
             line = file.readline()

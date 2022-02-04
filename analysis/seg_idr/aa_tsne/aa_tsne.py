@@ -27,7 +27,7 @@ n_components = 5
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-paths = filter(lambda x: re.match('segments_[0-9]+\.tsv', x), os.listdir(segment_dir))
+paths = filter(lambda x: re.match(r'segments_[0-9]+\.tsv', x), os.listdir(segment_dir))
 for path in paths:
     kl_divs = []
 

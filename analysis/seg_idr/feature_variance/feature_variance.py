@@ -24,7 +24,7 @@ type_name = 'ordered'  # Name of column denoting segment type
 T_name = 'Ordered'  # Name of True type in sentence case
 F_name = 'Disordered'  # Name of False type in sentence case
 
-paths = filter(lambda x: re.match('features_[0-9]+\.tsv', x), os.listdir(feature_dir))
+paths = filter(lambda x: re.match(r'features_[0-9]+\.tsv', x), os.listdir(feature_dir))
 for path in paths:
     # Read data
     features = pd.read_csv(feature_dir + path, sep='\t', index_col=list(range(num_idx)))

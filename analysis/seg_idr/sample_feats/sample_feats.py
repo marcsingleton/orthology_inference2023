@@ -18,7 +18,7 @@ features = pd.read_csv(features_path, sep='\t', index_col=list(range(num_idx)))
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-paths = filter(lambda x: re.match('segments_[0-9]+\.tsv', x), os.listdir(segment_dir))
+paths = filter(lambda x: re.match(r'segments_[0-9]+\.tsv', x), os.listdir(segment_dir))
 for path in paths:
     # Read data
     segs = pd.read_csv(segment_dir + path, sep='\t', keep_default_na=False)
