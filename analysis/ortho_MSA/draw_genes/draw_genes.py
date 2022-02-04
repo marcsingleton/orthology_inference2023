@@ -33,8 +33,7 @@ genes = pd.read_table('genes.tsv')
 
 # Load tree
 tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
-tree = tree.shear([tip.name for tip in tree.tips() if tip.name != 'sleb'])
-order = {tip.name: i for i, tip in enumerate(tree.tips())}
+tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
 # Draw alignments
 if not os.path.exists('out/'):
@@ -50,7 +49,7 @@ for row in df.dropna().itertuples():
         msa = read_fasta(f'../align_fastas2-2/out/{row.OGid}.mfa')
     msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
-    msa = [seq for _, seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
+    msa = [seq for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
     im = draw_msa(msa)
     plt.imsave(f'out/{row.OGid}.png', im)
 

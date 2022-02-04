@@ -9,8 +9,9 @@ import skbio
 from src.draw import draw_msa
 from src.utils import read_fasta
 
-tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
-spids = set([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
+tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
+spids = set([tip.name for tip in tree.tips() if tip.name != 'sleb'])
 
 OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
 df = pd.read_table('../gap_contrasts/out/total_sums.tsv').merge(OG_filter[['OGid', 'sqidnum']], on='OGid', how='left')  # total_sums.tsv has gnidnum already
@@ -26,9 +27,7 @@ for label in ['norm1', 'norm2']:
         msa = read_fasta(f'../realign_hmmer2/out/{row.OGid}.mfa')
         msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
-        tree = tree_template.shear([spid for spid, _ in msa])
-        order = {tip.name: i for i, tip in enumerate(tree.tips())}
-        msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
+        msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
         im = draw_msa(msa)
         plt.imsave(f'out/{label}/{i}_{row.OGid}.png', im)
 

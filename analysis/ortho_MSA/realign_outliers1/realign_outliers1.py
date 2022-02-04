@@ -18,7 +18,8 @@ prior = {'A': 0.0866279, 'R': 0.0439720, 'N': 0.0390894, 'D': 0.0570451, 'C': 0.
          'U': 0, 'X': 0, '-': 0}
 a = 1E-3  # Coefficient of outlier curve
 spid_regex = r'spid=([a-z]+)'
-tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
 records = []
 for OGid in [path.split('.mfa')[0] for path in os.listdir('../realign_hmmer1/out/') if path.endswith('.mfa')]:
@@ -117,9 +118,7 @@ for record in outliers:
     OGids.add(OGid)
 
     # Plot MSA with regions
-    tree = tree_template.shear([spid for spid, _ in msa])
-    order = {tip.name: i for i, tip in enumerate(tree.tips())}
-    msa = [seq for _, seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
+    msa = [seq for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
     line = np.zeros(len(msa[0]))
     for region in regions:
         line[region] = 1

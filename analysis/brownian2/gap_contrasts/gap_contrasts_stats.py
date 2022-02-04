@@ -25,8 +25,9 @@ with open('../aucpred_filter/out/regions_30.tsv') as file:
 regions = pd.DataFrame(rows)
 
 # Load tree
-tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
-spids = set([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
+tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
+spids = set([tip.name for tip in tree.tips() if tip.name != 'sleb'])
 num_contrasts = len(spids) - 1
 
 # 1 PLOT STATISTICS (OGS WITH ALL SPECIES)
@@ -102,9 +103,7 @@ for label in ['norm1', 'norm2']:
             if ppid in row.ppids:
                 msa.append((spid, seq[row.start:row.stop]))
 
-        tree = tree_template.shear([spid for spid, _ in msa])
-        order = {tip.name: i for i, tip in enumerate(tree.tips())}
-        msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: order[x[0]])]  # Re-order sequences and extract seq only
+        msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
         im = draw_msa(msa)
         plt.imsave(f'out/{label}/{i}_{row.OGid}-{row.start}-{row.stop}.png', im)
 
