@@ -17,17 +17,17 @@ def load_scores(path):
     return scores
 
 
-def gaussian_filter(input, sigma):
+def gaussian_filter(array, sigma):
     # Make stack of Gaussian kernels
     radius = int(4 * sigma + 0.5)  # Truncate filter at 4 standard deviations rounded to nearest integer
-    x = np.stack([np.arange(-radius, radius+1) for _ in range(input.shape[0])])
+    x = np.stack([np.arange(-radius, radius+1) for _ in range(array.shape[0])])
     kernel = np.exp(-x**2 / (2 * sigma**2))
 
     # Apply filter ignoring masked values
-    padded = np.ma.masked_invalid(np.pad(input, [(0, 0), (radius, radius)], mode='edge'))
-    mean_array = np.zeros(input.shape[1])
-    var_array = np.zeros(input.shape[1])
-    for j in range(input.shape[1]):  # Output has as many columns as input; slicing always grabs correct window even though actual centers are offset
+    padded = np.ma.masked_invalid(np.pad(array, [(0, 0), (radius, radius)], mode='edge'))
+    mean_array = np.zeros(array.shape[1])
+    var_array = np.zeros(array.shape[1])
+    for j in range(array.shape[1]):  # Output has as many columns as input; slicing always grabs correct window even though actual centers are offset
         window = padded[:, j:j+2*radius+1]
         weight = (~window.mask * kernel).sum()
         mean = (window * kernel).sum() / weight
