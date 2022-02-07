@@ -204,7 +204,7 @@ class HMM:
         the sum over all states at each time point is 1. The unscaled value at
         time i is given by s_0i*fs[state][i] where s_0i is the product of all
         scaling factors from 0 to i, inclusive. See section 3.6 of Durbin's
-        Biological sequence analysis for more details.
+        Biological Sequence Analysis for more details.
 
         Parameters
         ----------
@@ -253,7 +253,7 @@ class HMM:
         the sum over all states at each time point is 1. The unscaled value at
         time i is given by s_iN*bs[state][i] where s_iN is the product of all
         scaling factors from i to N, inclusive. See section 3.6 of Durbin's
-        Biological sequence analysis for more details.
+        Biological Sequence Analysis for more details.
 
         Parameters
         ----------
