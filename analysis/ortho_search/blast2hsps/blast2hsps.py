@@ -6,11 +6,11 @@ import re
 from itertools import groupby, permutations
 
 
-def parse_blast(query_spid, subject_spid):
-    ohsps = []
+def parse_file(query_spid, subject_spid):
+    output_hsps = []
     nulls = []
     with open(f'../blast_AAA/out/{query_spid}/{subject_spid}.blast') as file:
-        query_ppid, ihsps = None, []
+        query_ppid, input_hsps = None, []
         line = file.readline()
         while line:
             # Record query
@@ -22,7 +22,7 @@ def parse_blast(query_spid, subject_spid):
                     query_gnid = ppid2gnid[query_ppid]
                 line = file.readline()
 
-            # Record hits
+            # Record HSPs
             while line and not line.startswith('#'):
                 fields = line.rstrip('\n').split('\t')
                 subject_ppid = re.search(pp_regex[genomes[subject_spid]], fields[1]).group(1)
@@ -31,18 +31,18 @@ def parse_blast(query_spid, subject_spid):
                           subject_ppid, subject_gnid, subject_spid,
                           *fields[2:],
                           False, False]
-                ihsps.append({column: f(value) for (column, f), value in zip(columns.items(), values)})
+                input_hsps.append({column: f(value) for (column, f), value in zip(columns.items(), values)})
                 line = file.readline()
 
             # Add best from HSP list (and catch cases where the last search returned no HSPs)
-            if ihsps:
-                ohsps.extend(get_bhsps(ihsps))
+            if input_hsps:
+                output_hsps.extend(filter_hsps(input_hsps))
             else:
                 nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_spid, 'sspid': subject_spid})
 
             if line.startswith('# BLAST processed'):
                 break
-            query_ppid, ihsps = None, []  # Signals current search was successfully recorded
+            query_ppid, input_hsps = None, []  # Signals current search was successfully recorded
 
     # Make output directories
     if not os.path.exists(f'out/hsps/{query_spid}/'):
@@ -53,64 +53,72 @@ def parse_blast(query_spid, subject_spid):
     # Write HSPs and nulls to file
     with open(f'out/hsps/{query_spid}/{subject_spid}.tsv', 'w') as file:
         file.write('\t'.join(columns) + '\n')
-        for ohsp in ohsps:
-            file.write('\t'.join([str(ohsp[column]) for column in columns]) + '\n')
+        for hsp in output_hsps:
+            file.write('\t'.join([str(hsp[column]) for column in columns]) + '\n')
     with open(f'out/nulls/{query_spid}/{subject_spid}.tsv', 'w') as file:
         file.write('\t'.join(['qppid', 'qgnid', 'qspid', 'sspid']) + '\n')
         for null in nulls:
             file.write('\t'.join([null[column] for column in ['qppid', 'qgnid', 'qspid', 'sspid']]) + '\n')
 
 
-def get_bhsps(ihsps):
-    ihsps = sorted(ihsps, key=lambda x: (x['sppid'], x['sgnid']))
-    groups = {key: list(group) for key, group in groupby(ihsps, lambda x: (x['sppid'], x['sgnid']))}
-    bs_maxs = sorted([(ppid, gnid, max([ihsp['bitscore'] for ihsp in ihsps])) for (ppid, gnid), ihsps in groups.items()],
-                     key=lambda x: x[2], reverse=True)
+def filter_hsps(input_hsps):
+    # Sort and group HSPs by sppid and sgnid then extract max bitscore within groups
+    input_hsps = sorted(input_hsps, key=lambda x: (x['sppid'], x['sgnid']))
+    groups = {key: list(group) for key, group in groupby(input_hsps, lambda x: (x['sppid'], x['sgnid']))}
+    bitscores = sorted([(ppid, gnid, max([hsp['bitscore'] for hsp in hsps])) for (ppid, gnid), hsps in groups.items()],
+                       key=lambda x: x[2], reverse=True)
 
-    # Get cutoff
+    # Get bitscore cutoff
     cutoff = 0
     gnids = set()
-    for ppid, gnid, bs_max in bs_maxs:
-        if bs_max == bs_maxs[0][2]:
-            gnids.add(gnid)  # Add gnid to allowable list if bitscore is equal to highest
+    for ppid, gnid, bitscore in bitscores:
+        if bitscore == bitscores[0][2]:  # Check if equal to max, i.e. the first in the sorted list
+            gnids.add(gnid)  # Add gnid to allowable list if bitscore is equal to max
         if gnid not in gnids:
-            cutoff = bs_max  # Choose cutoff as the maximum bitscore associated with the next best gene
+            cutoff = bitscore  # Choose cutoff as the maximum bitscore associated with the next best gene
             break
 
-    # Extract groups
+    # Identify groups that pass bitscore filter
     keys = []
-    for ppid, gnid, bs_max in bs_maxs:
-        if bs_max <= cutoff:  # Stop recording hits once bitscore is lower than cutoff
+    for ppid, gnid, bitscore in bitscores:
+        if bitscore <= cutoff:  # Stop recording hits once bitscore is lower than cutoff
             break
         keys.append((ppid, gnid))
 
-    # Optimize HSPs
-    bhsps = []
+    # Identify index and disjoint HSPs
+    output_hsps = []
     for key in keys:
         group = sorted(groups[key], key=lambda x: x['bitscore'], reverse=True)
         group[0]['index_hsp'] = True  # Mark "best" HSP as index for subsequent filtering
-        chsps = []
-        for ihsp in group:
-            if not has_overlap(ihsp, chsps, True) and not has_overlap(ihsp, chsps, False):
-                ihsp['disjoint'] = True  # Mark HSPs as disjoint greedily, beginning with highest score
-                chsps.append(ihsp)
-            bhsps.append(ihsp)  # Track all HSPs
+        disjoint_hsps = []
+        for hsp in group:
+            if is_disjoint(hsp, disjoint_hsps, 'query') and is_disjoint(hsp, disjoint_hsps, 'subject'):
+                hsp['disjoint'] = True  # Mark HSPs as disjoint greedily, beginning with highest score
+                disjoint_hsps.append(hsp)
+            output_hsps.append(hsp)
 
-    return bhsps
+    return output_hsps
 
 
-def has_overlap(ihsp, ohsps, query=True):
-    if query:
+def is_disjoint(hsp, hsp_list, key_type):
+    """Return if hsp is disjoint with all HSPs in hsp_list.
+
+    For each test_hsp in hsp_list, hsp must start after test_hsp ends or end
+    before test_hsp starts. If so, returns True, else returns False.
+    """
+    if key_type == 'query':
         start_key = 'qstart'
         end_key = 'qend'
-    else:
+    elif key_type == 'subject':
         start_key = 'sstart'
         end_key = 'send'
+    else:
+        raise ValueError('key_type is not query or subject')
 
-    for ohsp in ohsps:
-        if not (ihsp[start_key] > ohsp[end_key] or ohsp[start_key] > ihsp[end_key]):
-            return True
-    return False
+    for test_hsp in hsp_list:
+        if not (hsp[start_key] > test_hsp[end_key] or test_hsp[start_key] > hsp[end_key]):
+            return False
+    return True
 
 
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
@@ -142,7 +150,7 @@ with open('../config/genomes.tsv') as file:
 # Parse BLAST results
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        pool.starmap(parse_blast, permutations(genomes, 2))
+        pool.starmap(parse_file, permutations(genomes, 2))
 
 """
 NOTES
