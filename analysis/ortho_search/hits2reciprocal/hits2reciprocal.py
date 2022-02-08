@@ -21,7 +21,7 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'slen': int, 'nsa': int, 'cnsa': int,
            'bitscore': float}
 
-# Load pgraphs
+# Load graphs
 graph1 = {}
 with open('../hits2pgraph/out/pgraph1.tsv') as file:
     for line in file:
@@ -40,9 +40,9 @@ for qspid in os.listdir('../hsps2hits/out/'):
         with open(f'../hsps2hits/out/{qspid}/{sspid}') as file:
             file.readline()  # Skip header
             for line in file:
-                d = {column: f(field) for (column, f), field in zip(columns.items(), line.split())}
-                qppid, sppid = d['qppid'], d['sppid']
-                qlen, cnqa = d['qlen'], d['cnqa']
+                hit = {column: f(field) for (column, f), field in zip(columns.items(), line.split())}
+                qppid, sppid = hit['qppid'], hit['sppid']
+                qlen, cnqa = hit['qlen'], hit['cnqa']
 
                 r1 = check_edge(qppid, sppid, graph1)
                 r2 = cnqa / qlen >= 0.5 and check_edge(qppid, sppid, graph2)

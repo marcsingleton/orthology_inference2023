@@ -29,8 +29,8 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
         ppid, gnid, spid, sqid = line.split()
         ppid2meta[ppid] = (gnid, spid, sqid)
 
-# Load pgraph
-pgraph = {}
+# Load graph
+graph = {}
 with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
@@ -38,7 +38,7 @@ with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
         for adj in adjs.split(','):
             adj_node, adj_bitscore = adj.split(':')
             bitscores[adj_node] = float(adj_bitscore)
-        pgraph[node] = bitscores
+        graph[node] = bitscores
 
 # Load gOGs
 OGid2gOGid = {}
@@ -60,18 +60,18 @@ with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pcluster
         bitscore = 0
         for edge in edges.split('\t'):
             node1, node2 = edge.split(',')
-            bitscore += pgraph[node1][node2] + pgraph[node2][node1]
+            bitscore += graph[node1][node2] + graph[node2][node1]
 
         if len(gnids) == len(spids) >= 20 and spid_filter(spids):
             gOGid = OGid2gOGid[OGid]
-            d = {'CCid': CCid, 'OGid': OGid, 'gOGid': gOGid,
-                 'bitscore': round(bitscore, 1), 'edgenum': len(edges.split('\t')),
-                 'ppidnum': len(ppids), 'sqidnum': len(sqids),
-                 'gnidnum': len(gnids), 'spidnum': len(spids)}
+            record = {'CCid': CCid, 'OGid': OGid, 'gOGid': gOGid,
+                      'bitscore': round(bitscore, 1), 'edgenum': len(edges.split('\t')),
+                      'ppidnum': len(ppids), 'sqidnum': len(sqids),
+                      'gnidnum': len(gnids), 'spidnum': len(spids)}
             try:
-                gOGid2OGs[gOGid].append(d)
+                gOGid2OGs[gOGid].append(record)
             except KeyError:
-                gOGid2OGs[gOGid] = [d]
+                gOGid2OGs[gOGid] = [record]
 
 rows = []
 for OGs in gOGid2OGs.values():

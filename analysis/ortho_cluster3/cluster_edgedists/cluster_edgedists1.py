@@ -12,7 +12,7 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
         ppid, _, spid, _ = line.split()
         ppid2spid[ppid] = spid
 
-# Load pgraph
+# Load graph
 graph = {}
 with open('../hits2pgraph/out/pgraph1.tsv') as file:
     for line in file:

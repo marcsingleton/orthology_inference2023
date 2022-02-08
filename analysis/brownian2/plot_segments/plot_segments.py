@@ -17,9 +17,9 @@ with open('../config/segments.tsv') as file:
         if OGid in OGid2labels:
             OGid2labels[OGid][state].append((int(start), int(stop)))
         else:
-            d = {'0': [], '1A': [], '1B': [], '2': [], '3': []}
-            d[state].append((int(start), int(stop)))
-            OGid2labels[OGid] = d
+            labels = {'0': [], '1A': [], '1B': [], '2': [], '3': []}
+            labels[state].append((int(start), int(stop)))
+            OGid2labels[OGid] = labels
 
 if not os.path.exists('out/'):
     os.mkdir('out/')

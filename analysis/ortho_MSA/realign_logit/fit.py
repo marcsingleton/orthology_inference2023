@@ -43,16 +43,16 @@ def fit_model(OGid2msa,
     logit.fit(X, y_true)
 
     # Get model parameters
-    d = {'gp_sigma': gp_sigma, 'gd_window': gd_window, 'indel1_rate': indel1_rate, 'indel2_rate': indel2_rate}
+    row = {'gp_sigma': gp_sigma, 'gd_window': gd_window, 'indel1_rate': indel1_rate, 'indel2_rate': indel2_rate}
 
-    d['bias'] = logit.intercept_[0]
-    d.update({key: value for key, value in zip(regressors, logit.coef_[0])})
+    row['bias'] = logit.intercept_[0]
+    row.update({key: value for key, value in zip(regressors, logit.coef_[0])})
 
     y_pred = logit.predict(X)
-    d['log_loss'] = log_loss(y_true, y_pred)
-    d.update({key: value for key, value in zip(['tn', 'fp', 'fn', 'tp'], confusion_matrix(y_true, y_pred).ravel())})
+    row['log_loss'] = log_loss(y_true, y_pred)
+    row.update({key: value for key, value in zip(['tn', 'fp', 'fn', 'tp'], confusion_matrix(y_true, y_pred).ravel())})
 
-    return d
+    return row
 
 
 def get_regressors(OGid, msa, scores, gaps_array,
@@ -68,7 +68,7 @@ def get_regressors(OGid, msa, scores, gaps_array,
     nterm = min([region.start for region in regions])
     cterm = max([region.stop for region in regions])
 
-    ds = []
+    rows = []
     _, trims = trim_insertions(msa, scores, gaps_array,
                                gap_num, gap_rate, gap_minsig,
                                nongap_frac, nongap_minlen,
@@ -84,10 +84,10 @@ def get_regressors(OGid, msa, scores, gaps_array,
                 terminal = 0
 
             keys = ['index', 'length', 'support', 'gap_propensity', 'gap_diversity', 'indel_bias1', 'indel_bias2']
-            d = {'OGid': OGid, 'start': region.start, 'stop': region.stop, 'terminal': terminal,
-                 **{key: trim[key] for key in keys}}
-            ds.append(d)
-    return ds
+            row = {'OGid': OGid, 'start': region.start, 'stop': region.stop, 'terminal': terminal,
+                   **{key: trim[key] for key in keys}}
+            rows.append(row)
+    return rows
 
 
 # Load parameters

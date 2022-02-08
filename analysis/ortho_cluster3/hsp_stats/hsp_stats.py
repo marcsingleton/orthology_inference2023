@@ -45,7 +45,7 @@ def hist2_1(dfs, bins, data_label, file_label, x_label, df_labels, colors, capit
     plt.ylabel(f'Number of {data_label} HSPs')
     plt.title(f'Distribution of {data_label} HSPs across' + ('\n' if wrap else ' ') + x_label)
     plt.legend()
-    plt.savefig(f'out/blast_{data_label}/hist2_1_{file_label}.png')
+    plt.savefig(f'out/blast_{data_label}/hist2-1_{file_label}.png')
     plt.close()
 
 
@@ -58,7 +58,7 @@ def hist2_2(dfs, bins, data_label, file_label, x_label, df_labels, colors, capit
         ax.legend()
     axs[1].set_xlabel(x_label[0].upper() + x_label[1:] if capital else x_label)
     fig.suptitle(f'Distribution of {data_label} HSPs across' + ('\n' if wrap else ' ') + x_label)
-    fig.savefig(f'out/blast_{data_label}/hist2_2_{file_label}.png')
+    fig.savefig(f'out/blast_{data_label}/hist2-2_{file_label}.png')
     plt.close()
 
 
@@ -93,19 +93,19 @@ if __name__ == '__main__':
         hsps0 = pd.concat(pool.starmap(load_hsp, permutations(spids, 2)))
         hsps1 = hsps0[hsps0['index_hsp']]
 
-    # 0 BEST AND DISJOINT SIZES
+    # 0 INDEX AND DISJOINT SIZES
     # Make output directory
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
-    plt.bar(['best', 'disjoint'], [len(hsps1), len(hsps0)], color=['C0', 'C3'], width=0.25)
+    plt.bar(['index', 'disjoint'], [len(hsps1), len(hsps0)], color=['C0', 'C3'], width=0.25)
     plt.xlim((-0.75, 1.75))
     plt.ylabel('Number of HSPs')
-    plt.savefig('out/bar_best-disjoint.png')
+    plt.savefig('out/bar_index-disjoint.png')
     plt.close()
 
     # 1 BLAST METRICS
-    for data_label, hsps, colors in [('best', hsps1, ['C0', 'C1']), ('disjoint', hsps0, ['C3', 'C6'])]:
+    for data_label, hsps, colors in [('index', hsps1, ['C0', 'C1']), ('disjoint', hsps0, ['C3', 'C6'])]:
         # Subset HSPs into non-reciprocal and reciprocal sets
         df0 = hsps
         df1 = hsps.query('reciprocal == True')
@@ -303,12 +303,12 @@ if __name__ == '__main__':
         counts = sppid_hspnum['sppid_hspnum'].value_counts().to_dict()
 
         bar_hsps(counts, data_label, 'all', ax_label)
-        bar_hsps({key: val for key, val in counts.items() if key > len(spids)}, data_label, f'{len(spids)}+', ax_label)
-        bar_hsps({key: val for key, val in counts.items() if key <= len(spids)}, data_label, f'{len(spids)}-', ax_label)
+        bar_hsps({key: value for key, value in counts.items() if key > len(spids)}, data_label, f'{len(spids)}+', ax_label)
+        bar_hsps({key: value for key, value in counts.items() if key <= len(spids)}, data_label, f'{len(spids)}-', ax_label)
 
 """
 OUTPUT
-Fraction of best HSPs reciprocal: 0.9411210016185043
+Fraction of index HSPs reciprocal: 0.9411210016185043
 Fraction of disjoint HSPs reciprocal: 0.9431534979669558
 
 DEPENDENCIES

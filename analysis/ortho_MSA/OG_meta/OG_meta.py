@@ -10,8 +10,8 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
         ppid, gnid, spid, sqid = line.split()
         ppid2meta[ppid] = (gnid, spid, sqid)
 
-# Load pgraph
-pgraph = {}
+# Load graph
+graph = {}
 with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
@@ -19,7 +19,7 @@ with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
         for adj in adjs.split(','):
             adj_node, adj_bitscore = adj.split(':')
             bitscores[adj_node] = float(adj_bitscore)
-        pgraph[node] = bitscores
+        graph[node] = bitscores
 
 # Load gOGs
 OGid2gOGid = {}
@@ -41,13 +41,13 @@ with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pcluster
         bitscore = 0
         for edge in edges.split('\t'):
             node1, node2 = edge.split(',')
-            bitscore += pgraph[node1][node2] + pgraph[node2][node1]
+            bitscore += graph[node1][node2] + graph[node2][node1]
 
-        d = {'CCid': CCid, 'OGid': OGid, 'gOGid': OGid2gOGid[OGid],
-             'bitscore': round(bitscore, 1), 'edgenum': len(edges.split('\t')),
-             'ppidnum': len(ppids), 'sqidnum': len(sqids),
-             'gnidnum': len(gnids), 'spidnum': len(spids)}
-        rows.append(d)
+        row = {'CCid': CCid, 'OGid': OGid, 'gOGid': OGid2gOGid[OGid],
+               'bitscore': round(bitscore, 1), 'edgenum': len(edges.split('\t')),
+               'ppidnum': len(ppids), 'sqidnum': len(sqids),
+               'gnidnum': len(gnids), 'spidnum': len(spids)}
+        rows.append(row)
 OGs = pd.DataFrame(rows)
 
 

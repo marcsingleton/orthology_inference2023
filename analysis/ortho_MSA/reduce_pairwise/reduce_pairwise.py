@@ -85,7 +85,7 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
         ppid, gnid, spid, sqid = line.split()
         ppid2meta[ppid] = (gnid, spid, sqid)
 
-# Load pgraph
+# Load graph
 graph = {}
 with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:

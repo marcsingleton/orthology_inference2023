@@ -45,7 +45,7 @@ def get_node_colors(graph, OGs):
     return node_colors
 
 
-# Load pgraph
+# Load graph
 graph = {}
 with open('../hits2pgraph/out/pgraph1.tsv') as file:
     for line in file:

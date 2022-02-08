@@ -44,9 +44,9 @@ for OGid in OGids:
     regions = [region for region, in ndimage.find_objects(mask)]
     for region in regions:
         for segment in get_segments(msa, region, matrix):
-            d = {'OGid': OGid, 'start': segment['region'].start, 'stop': segment['region'].stop, 'index': segment['index'],
-                 'length': sum([s.stop-s.start for s in segment['slices']])}
-            rows.append(d)
+            row = {'OGid': OGid, 'start': segment['region'].start, 'stop': segment['region'].stop, 'index': segment['index'],
+                   'length': sum([s.stop-s.start for s in segment['slices']])}
+            rows.append(row)
 
 if not os.path.exists('out/'):
     os.mkdir('out/')

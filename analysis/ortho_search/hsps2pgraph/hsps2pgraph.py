@@ -16,7 +16,7 @@ for qspid in os.listdir('../blast2hsps/out/hsps/'):
         with open(f'../blast2hsps/out/hsps/{qspid}/{sspid}') as file:
             file.readline()  # Skip header
             for key, _ in groupby(file, key=line2key):
-                qppid, sppid = key[0], key[1]
+                qppid, sppid = key
                 try:
                     graph[qppid].add(sppid)
                 except KeyError:

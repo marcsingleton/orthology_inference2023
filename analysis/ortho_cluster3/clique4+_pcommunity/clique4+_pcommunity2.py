@@ -101,7 +101,7 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
         if ppid != sqid:
             constituents.add(ppid)
 
-# Load pgraph
+# Load graph
 graph = {}
 with open('../hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:

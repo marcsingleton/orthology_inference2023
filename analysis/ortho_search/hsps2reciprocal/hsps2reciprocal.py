@@ -9,7 +9,7 @@ def line2key(line):
     return fields[0], fields[3]
 
 
-# Load pgraph
+# Load graph
 graph = {}
 with open('../hsps2pgraph/out/pgraph.tsv') as file:
     for line in file:
@@ -23,7 +23,7 @@ for qspid in os.listdir('../blast2hsps/out/hsps/'):
         with open(f'../blast2hsps/out/hsps/{qspid}/{sspid}') as file:
             file.readline()  # Skip header
             for key, group in groupby(file, key=line2key):
-                qppid, sppid = key[0], key[1]
+                qppid, sppid = key
                 try:
                     r = qppid in graph[sppid]
                 except KeyError:

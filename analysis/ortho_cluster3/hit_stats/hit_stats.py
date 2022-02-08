@@ -286,8 +286,8 @@ if __name__ == '__main__':
     counts = sppid_hitnum['sppid_hitnum'].value_counts().to_dict()
 
     bar_hits(counts, 'all')
-    bar_hits({key: val for key, val in counts.items() if key > len(spids)}, f'{len(spids)}+')
-    bar_hits({key: val for key, val in counts.items() if key <= len(spids)}, f'{len(spids)}-')
+    bar_hits({key: value for key, value in counts.items() if key > len(spids)}, f'{len(spids)}+')
+    bar_hits({key: value for key, value in counts.items() if key <= len(spids)}, f'{len(spids)}-')
 
 """
 DEPENDENCIES
