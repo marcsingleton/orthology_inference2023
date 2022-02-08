@@ -1,10 +1,12 @@
 ﻿"""Plot example alignments segmented via posterior decoding."""
 
 import json
+import re
 
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as stats
+import skbio
 import src.hmm as hmm
 import src.draw as draw
 from scipy.linalg import solve
@@ -81,9 +83,14 @@ with open('../config/segments.tsv') as file:
         OGid = line.split()[0]
         OGids.add(OGid)
 
+# Load tree
+tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
+
 # Load msa and trim terminal insertions
 for OGid in OGids:
     msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa'))
+    msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
     # Create emission sequence
     emits = []
@@ -98,11 +105,13 @@ for OGid in OGids:
 
     # Decode states and plot
     fbs = model.forward_backward(emits)
-    draw.plot_msa_lines([seq.upper() for _, seq in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(15, 6))
+    msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
+
+    draw.plot_msa_lines(msa, [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(15, 6))
     plt.savefig(f'out/{OGid}_wide.png', bbox_inches='tight')
     plt.close()
 
-    draw.plot_msa_lines([seq.upper() for _, seq in msa], [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(8, 8))
+    draw.plot_msa_lines(msa, [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(8, 8))
     plt.savefig(f'out/{OGid}_tall.png', bbox_inches='tight')
     plt.close()
 
@@ -110,6 +119,8 @@ for OGid in OGids:
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer1/realign_hmmer1.py
     ../../ortho_MSA/realign_hmmer1/out/*.mfa
+../../ortho_tree/ctree_WAG/ctree_WAG.py
+    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../config/segments.tsv
 ./fit.py
     ./out/model.json
