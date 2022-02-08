@@ -168,9 +168,9 @@ def get_expts(t_dists_norm, e_dists_norm, start_dist, record):
     return record
 
 
-eta = 1E-4
-epsilon = 1E-2
-iter_num = 200
+eta = 1E-4  # Learning rate
+epsilon = 1E-2  # Convergence criterion
+iter_num = 200  # Max number of iterations
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
 if __name__ == '__main__':
@@ -281,7 +281,7 @@ if __name__ == '__main__':
                 mn_sum = sum([mijs[(s1, s2)] - nijs[(s1, s2)] for s2 in state_set])
                 z_sum = sum([exp(z) for z in t_dist.values()])
                 for s2, z in t_dist.items():
-                    d = -(mijs[(s1, s2)] - nijs[(s1, s2)] - exp(z)/z_sum * mn_sum)
+                    d = -(mijs[(s1, s2)] - nijs[(s1, s2)] - exp(z)/z_sum * mn_sum)  # Equation 2.17
                     t_dist[s2] -= eta * d
 
             # Update e_dists
@@ -289,6 +289,7 @@ if __name__ == '__main__':
                 p, a, b = 1 / (1 + exp(-zp)), exp(za), exp(zb)
                 dzp, dza, dzb = 0, 0, 0
                 for i, emit in enumerate(emit_seq):
+                    # Equations 2.15 and 2.16 (emission parameter phi only)
                     mn = mis[s][i] - nis[s][i]
                     dzp -= mn / bernoulli_pmf(emit[0], p) * bernoulli_pmf_prime(emit[0], p) * p / (1 + exp(zp))
                     dza -= mn / beta_binom_pmf(emit[1], n-1, a, b) * beta_binom_pmf_prime1(emit[1], n-1, a, b) * a
@@ -306,6 +307,10 @@ if __name__ == '__main__':
 
 """
 NOTES
+This HMM uses a beta-binomial emission distribution on the gap counts. It also uses a Bernoulli distribution on if the
+pattern of gaps is the same as in the previous column. The parameters are trained discriminatively using gradient
+descent.
+
 The gradients are calculated using the formulas in:
 Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 
