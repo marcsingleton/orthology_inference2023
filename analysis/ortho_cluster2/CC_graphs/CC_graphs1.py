@@ -30,7 +30,7 @@ CCids = sorted(CCs, key=lambda x: len(CCs[x]), reverse=True)
 for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
     subgraph = {node: graph[node] for node in CCs[CCid]}
 
-    # Create graph and segment nodes by data source
+    # Create graph
     G = nx.Graph()
     for node, adjs in subgraph.items():
         G.add_node(node)
@@ -116,7 +116,7 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
 """
 DEPENDENCIES
 ../connect_pgraph/connect_pgraph1.py
-    ../connect_pgraph/out/gconnect1.txt
+    ../connect_pgraph/out/pconnect1.txt
 ../hits2pgraph/hits2pgraph1.py
     ../hits2pgraph/out/pgraph1.tsv
 """

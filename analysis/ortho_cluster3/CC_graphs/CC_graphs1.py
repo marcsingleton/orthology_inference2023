@@ -118,7 +118,7 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
         locs.remove(loc)
 
     # Draw graph labeled by source
-    node_size = 25/(1 + exp(0.01*(len(subgraph)-400))) + 10  # Adjust node size
+    node_size = 25 / (1 + exp(0.01 * (len(subgraph) - 400))) + 10  # Adjust node size
     FB = [node for node in G.nodes if node.startswith('FBpp')]
     NCBI = G.nodes - FB
 
@@ -144,7 +144,7 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
         plt.close()
 
     # Draw graph labeled by edge
-    node_size = 20/(1 + exp(0.01*(len(subgraph)-400))) + 10  # Adjust node size
+    node_size = 20 / (1 + exp(0.01 * (len(subgraph) - 400))) + 10  # Adjust node size
     edges = sorted(G.edges, key=lambda x: G.get_edge_data(*x)['weight'])
 
     ws = [G.get_edge_data(*edge)['weight'] for edge in edges]

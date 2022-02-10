@@ -272,5 +272,5 @@ DEPENDENCIES
 ../../ortho_search/seq_meta/seq_meta.py
     ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../subcluster_pgraph/subcluster_pgraph1.py
-    ../subcluster_pgraph/pgraph1/out/pclusters.tsv
+    ../subcluster_pgraph/pgraph1/out/pclusters.txt
 """

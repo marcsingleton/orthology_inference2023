@@ -345,8 +345,8 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../../ortho_search/blast2hits/blast2hits.py
-    ../../ortho_search/blast2hsps/out/*/*.tsv
+../../ortho_search/hsps2hits/hsps2hits.py
+    ../../ortho_search/hsps2hits/out/*/*.tsv
 ../../ortho_search/hits2reciprocal/hits2reciprocal.py
     ../../ortho_search/hits2reciprocal/out/*/*.tsv
 ../config/genomes.tsv

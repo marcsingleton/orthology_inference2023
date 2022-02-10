@@ -8,7 +8,7 @@ from math import exp
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from numpy import linspace
 
-# Load pgraph
+# Load graph
 graph = {}
 with open('../hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:
@@ -30,7 +30,7 @@ CCids = sorted(CCs, key=lambda x: len(CCs[x]), reverse=True)
 for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
     subgraph = {node: graph[node] for node in CCs[CCid]}
 
-    # Create graph and segment nodes by data source
+    # Create graph
     G = nx.Graph()
     for node, adjs in subgraph.items():
         G.add_node(node)
@@ -116,7 +116,7 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
 """
 DEPENDENCIES
 ../connect_pgraph/connect_pgraph2.py
-    ../connect_pgraph/out/gconnect2.txt
+    ../connect_pgraph/out/pconnect2.txt
 ../hits2pgraph/hits2pgraph2.py
     ../hits2pgraph/out/pgraph2.tsv
 """
