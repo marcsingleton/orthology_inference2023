@@ -16,7 +16,7 @@ def parse_file(qspid, sspid):
             hsps = []
             for line in group:
                 hsp = {column: f(field) for (column, f), field in zip(hsp_columns.items(), line.split())}
-                if hsp['bitscore'] >= 50:
+                if hsp['compatible']:  # Use compatible HSPs only (which pass the bitscore cutoff)
                     hsps.append(hsp)
             if hsps:
                 hits.append(hsps2hit(hsps))
@@ -33,27 +33,23 @@ def parse_file(qspid, sspid):
 
 
 def hsps2hit(hsps):
-    # Calculate values from disjoint HSPs only
-    output_hsps = [hsp for hsp in hsps if hsp['disjoint']]
-    hit = {**{key: output_hsps[0][key] for key in ['qppid', 'qgnid', 'qspid', 'sppid', 'sgnid', 'sspid', 'qlen', 'slen']},
-           'hspnum': len(output_hsps),
-           'nqa': sum([hsp['qend'] - hsp['qstart'] + 1 for hsp in output_hsps]),
-           'nsa': sum([hsp['send'] - hsp['sstart'] + 1 for hsp in output_hsps]),
-           'bitscore': sum([hsp['bitscore'] for hsp in output_hsps])}
-
-    # Calculate values from disjoint and compatible HSPs
-    nondisjoint_hsps = [hsp for hsp in hsps if not hsp['disjoint']]
-    for hsp in nondisjoint_hsps:
-        if is_compatible(hsp, output_hsps, 'query') and is_compatible(hsp, output_hsps, 'subject'):
-            output_hsps.append(hsp)
-    hit['chspnum'] = len(output_hsps)
-    qcov = np.zeros((1, output_hsps[0]['qlen']), dtype=bool)
-    scov = np.zeros((1, output_hsps[0]['slen']), dtype=bool)
-    for hsp in output_hsps:
+    # Calculate values from all HSPs
+    hit = {key: hsps[0][key] for key in ['qppid', 'qgnid', 'qspid', 'sppid', 'sgnid', 'sspid', 'qlen', 'slen']}
+    hit['chspnum'] = len(hsps)
+    qcov = np.zeros((1, hsps[0]['qlen']), dtype=bool)
+    scov = np.zeros((1, hsps[0]['slen']), dtype=bool)
+    for hsp in hsps:
         qcov[0, hsp['qstart']-1:hsp['qend']] = True
         scov[0, hsp['sstart']-1:hsp['send']] = True
     hit['cnqa'] = qcov.sum()
     hit['cnsa'] = scov.sum()
+
+    # Calculate values from disjoint HSPs only
+    disjoint_hsps = [hsp for hsp in hsps if hsp['disjoint']]
+    hit['hspnum'] = len(disjoint_hsps)
+    hit['nqa'] = sum([hsp['qend'] - hsp['qstart'] + 1 for hsp in disjoint_hsps])
+    hit['nsa'] = sum([hsp['send'] - hsp['sstart'] + 1 for hsp in disjoint_hsps])
+    hit['bitscore'] = sum([hsp['bitscore'] for hsp in disjoint_hsps])
 
     return hit
 
@@ -63,31 +59,6 @@ def line2key(line):
     return fields[0], fields[3]
 
 
-def is_compatible(hsp, hsp_list, key_type):
-    """Return if hsp is compatible with all HSPs in hsp_list.
-
-    For each test_hsp in hsp_list, overlap of hsp and test_hsp must not exceed
-    50% of the length of either. If so, returns True, else returns False.
-    """
-    if key_type == 'query':
-        start_key = 'qstart'
-        end_key = 'qend'
-    elif key_type == 'subject':
-        start_key = 'sstart'
-        end_key = 'send'
-    else:
-        raise ValueError('key_type is not query or subject')
-
-    for test_hsp in hsp_list:
-        if not (hsp[start_key] > test_hsp[end_key] or test_hsp[start_key] > hsp[end_key]):
-            start = max(hsp[start_key], test_hsp[start_key])
-            end = min(hsp[end_key], test_hsp[end_key])
-            length = end-start
-            if length / (hsp[end_key]-hsp[start_key]) >= 0.5 or length / (test_hsp[end_key]-test_hsp[start_key]) >= 0.5:
-                return False
-    return True
-
-
 hsp_columns = {'qppid': str, 'qgnid': str, 'qspid': str,
                'sppid': str, 'sgnid': str, 'sspid': str,
                'length': int, 'nident': int, 'gaps': int,
@@ -95,7 +66,8 @@ hsp_columns = {'qppid': str, 'qgnid': str, 'qspid': str,
                'slen': int, 'sstart': int, 'send': int,
                'evalue': float, 'bitscore': float,
                'index_hsp': lambda x: x == 'True',
-               'disjoint': lambda x: x == 'True'}
+               'disjoint': lambda x: x == 'True',
+               'compatible': lambda x: x == 'True'}
 hit_columns = ['qppid', 'qgnid', 'qspid',
                'sppid', 'sgnid', 'sspid',
                'hspnum', 'chspnum',

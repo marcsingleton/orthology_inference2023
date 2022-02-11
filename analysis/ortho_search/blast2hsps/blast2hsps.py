@@ -30,7 +30,7 @@ def parse_file(query_spid, subject_spid):
                 values = [query_ppid, query_gnid, query_spid,
                           subject_ppid, subject_gnid, subject_spid,
                           *fields[2:],
-                          False, False]
+                          False, False, False]
                 input_hsps.append({column: f(value) for (column, f), value in zip(columns.items(), values)})
                 line = file.readline()
 
@@ -68,34 +68,44 @@ def filter_hsps(input_hsps):
     bitscores = sorted([(ppid, gnid, max([hsp['bitscore'] for hsp in hsps])) for (ppid, gnid), hsps in groups.items()],
                        key=lambda x: x[2], reverse=True)
 
-    # Get bitscore cutoff
-    cutoff = 0
+    # Get target bitscore cutoff
+    target_cutoff = 0
     gnids = set()
     for ppid, gnid, bitscore in bitscores:
         if bitscore == bitscores[0][2]:  # Check if equal to max, i.e. the first in the sorted list
             gnids.add(gnid)  # Add gnid to allowable list if bitscore is equal to max
         if gnid not in gnids:
-            cutoff = bitscore  # Choose cutoff as the maximum bitscore associated with the next best gene
+            target_cutoff = bitscore  # Choose target cutoff as the maximum bitscore associated with the next best gene
             break
 
-    # Identify groups that pass bitscore filter
+    # Identify groups that pass target bitscore filter
     keys = []
     for ppid, gnid, bitscore in bitscores:
-        if bitscore <= cutoff:  # Stop recording hits once bitscore is lower than cutoff
+        if bitscore <= target_cutoff:  # Stop recording groups once bitscore is lower than target cutoff
             break
         keys.append((ppid, gnid))
 
-    # Identify index and disjoint HSPs
+    # Identify index, disjoint, and compatible HSPs
     output_hsps = []
     for key in keys:
         group = sorted(groups[key], key=lambda x: x['bitscore'], reverse=True)
         group[0]['index_hsp'] = True  # Mark "best" HSP as index for subsequent filtering
+
         disjoint_hsps = []
         for hsp in group:
             if is_disjoint(hsp, disjoint_hsps, 'query') and is_disjoint(hsp, disjoint_hsps, 'subject'):
                 hsp['disjoint'] = True  # Mark HSPs as disjoint greedily, beginning with highest score
+                if hsp['bitscore'] >= compatible_cutoff:
+                    hsp['compatible'] = True  # Disjoint HSPs are compatible if they pass the cutoff
                 disjoint_hsps.append(hsp)
-            output_hsps.append(hsp)
+
+        compatible_hsps = [hsp for hsp in group if hsp['compatible']]
+        for hsp in group:
+            if is_compatible(hsp, compatible_hsps, 'query') and is_compatible(hsp, compatible_hsps, 'subject') and hsp['bitscore'] > compatible_cutoff:
+                hsp['compatible'] = True
+                compatible_hsps.append(hsp)
+
+        output_hsps.extend(group)  # Add all HSPs in this group to output for query sequence
 
     return output_hsps
 
@@ -121,6 +131,31 @@ def is_disjoint(hsp, hsp_list, key_type):
     return True
 
 
+def is_compatible(hsp, hsp_list, key_type):
+    """Return if hsp is compatible with all HSPs in hsp_list.
+
+    For each test_hsp in hsp_list, overlap of hsp and test_hsp must not exceed
+    50% of the length of either. If so, returns True, else returns False.
+    """
+    if key_type == 'query':
+        start_key = 'qstart'
+        end_key = 'qend'
+    elif key_type == 'subject':
+        start_key = 'sstart'
+        end_key = 'send'
+    else:
+        raise ValueError('key_type is not query or subject')
+
+    for test_hsp in hsp_list:
+        if not (hsp[start_key] > test_hsp[end_key] or test_hsp[start_key] > hsp[end_key]):
+            start = max(hsp[start_key], test_hsp[start_key])
+            end = min(hsp[end_key], test_hsp[end_key])
+            length = end-start
+            if length / (hsp[end_key]-hsp[start_key]) >= 0.5 or length / (test_hsp[end_key]-test_hsp[start_key]) >= 0.5:
+                return False
+    return True
+
+
 pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
             'NCBI': r'([NXY]P_[0-9]+)'}
 columns = {'qppid': str, 'qgnid': str, 'qspid': str,
@@ -129,7 +164,8 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'qlen': int, 'qstart': int, 'qend': int,
            'slen': int, 'sstart': int, 'send': int,
            'evalue': float, 'bitscore': float,
-           'index_hsp': bool, 'disjoint': bool}
+           'index_hsp': bool, 'disjoint': bool, 'compatible': bool}
+compatible_cutoff = 50  # Bitscore cutoff for accepting HSPs as compatible
 num_processes = int(os.environ['SLURM_NTASKS'])
 
 # Load seq metadata
