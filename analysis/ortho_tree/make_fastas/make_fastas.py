@@ -4,6 +4,7 @@ import os
 import re
 
 import pandas as pd
+from src.utils import read_fasta
 
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
               'NCBI': r'([NXY]P_[0-9]+)'}
@@ -27,19 +28,10 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
 # Load seqs
 ppid2seq = {}
 for source, prot_path in genomes:
-    with open(prot_path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                ppid = re.search(ppid_regex[source], line).group(1)
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            ppid2seq[ppid] = seq
+    fasta = read_fasta(prot_path)
+    for header, seq in fasta:
+        ppid = re.search(ppid_regex[header], line).group(1)
+        ppid2seq[ppid] = seq
 
 # Load OGs and OG metadata
 OGs = {}

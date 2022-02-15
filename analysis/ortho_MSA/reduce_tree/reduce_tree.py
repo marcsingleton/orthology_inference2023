@@ -8,6 +8,7 @@ from itertools import combinations, product
 import numpy as np
 import skbio.stats.distance as distance
 import skbio.tree
+from src.utils import read_fasta
 
 
 def get_ktuples(seq, k):
@@ -184,20 +185,10 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
 # Load seqs
 ppid2seq = {}
 for _, source, prot_path in genomes:
-    with open(prot_path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                ppid = re.search(ppid_regex[source], line).group(1)
-                gnid = ppid2meta[ppid][0]
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            ppid2seq[ppid] = seq
+    fasta = read_fasta(prot_path)
+    for header, seq in fasta:
+        ppid = re.search(ppid_regex[header], line).group(1)
+        ppid2seq[ppid] = seq
 
 # Load OGs
 OGs = {}
