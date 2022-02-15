@@ -18,14 +18,14 @@ def parse_file(query_spid, subject_spid):
                 if line == '# BLASTP 2.10.1+\n' and query_ppid is not None:  # Only add if previous search returned no hits
                     nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_spid, 'sspid': subject_spid})
                 elif line.startswith('# Query:'):
-                    query_ppid = re.search(pp_regex[genomes[query_spid]], line).group(1)
+                    query_ppid = re.search(ppid_regex[genomes[query_spid]], line).group(1)
                     query_gnid = ppid2gnid[query_ppid]
                 line = file.readline()
 
             # Record HSPs
             while line and not line.startswith('#'):
                 fields = line.rstrip('\n').split('\t')
-                subject_ppid = re.search(pp_regex[genomes[subject_spid]], fields[1]).group(1)
+                subject_ppid = re.search(ppid_regex[genomes[subject_spid]], fields[1]).group(1)
                 subject_gnid = ppid2gnid[subject_ppid]
                 values = [query_ppid, query_gnid, query_spid,
                           subject_ppid, subject_gnid, subject_spid,
@@ -156,8 +156,8 @@ def is_compatible(hsp, hsp_list, key_type):
     return True
 
 
-pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+)'}
+ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
+              'NCBI': r'([NXY]P_[0-9]+)'}
 columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'sppid': str, 'sgnid': str, 'sspid': str,
            'length': int, 'nident': int, 'gaps': int,

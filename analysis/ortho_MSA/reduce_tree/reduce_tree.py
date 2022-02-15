@@ -153,8 +153,8 @@ def reduce(OGid, OG):
     return OGid, rOG
 
 
-pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+)'}
+ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
+              'NCBI': r'([NXY]P_[0-9]+)'}
 table = {ord('I'): '!', ord('L'): '!', ord('M'): '!', ord('V'): '!',
          ord('F'): '@', ord('W'): '@', ord('Y'): '@',
          ord('A'): '#', ord('S'): '#', ord('T'): '#',
@@ -187,7 +187,7 @@ for _, source, prot_path in genomes:
         line = file.readline()
         while line:
             if line.startswith('>'):
-                ppid = re.search(pp_regex[source], line).group(1)
+                ppid = re.search(ppid_regex[source], line).group(1)
                 gnid = ppid2meta[ppid][0]
                 line = file.readline()
 

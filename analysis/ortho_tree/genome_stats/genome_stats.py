@@ -16,8 +16,8 @@ def get_Xmax(seq):
         return 0
 
 
-pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+)'}
+ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
+              'NCBI': r'([NXY]P_[0-9]+)'}
 
 # Load seq metadata
 ppid2gnid = {}
@@ -43,7 +43,7 @@ for spid, (source, prot_path) in genomes.items():
         line = file.readline()
         while line:
             if line.startswith('>'):
-                ppid0 = re.search(pp_regex[source], line).group(1)
+                ppid0 = re.search(ppid_regex[source], line).group(1)
                 gnid = ppid2gnid[ppid0]
                 line = file.readline()
 

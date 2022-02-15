@@ -5,8 +5,8 @@ import re
 
 import pandas as pd
 
-pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+)'}
+ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
+              'NCBI': r'([NXY]P_[0-9]+)'}
 
 # Parse genomes
 genomes = []
@@ -30,7 +30,7 @@ for spid, source, prot_path in genomes:
         line = file.readline()
         while line:
             if line.startswith('>'):
-                ppid = re.search(pp_regex[source], line).group(1)
+                ppid = re.search(ppid_regex[source], line).group(1)
                 line = file.readline()
 
             seqlines = []
