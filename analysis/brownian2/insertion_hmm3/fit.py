@@ -6,44 +6,11 @@ import os
 from math import comb
 from functools import reduce
 
-import scipy.stats as stats
 import src.brownian2.hmm as hmm
+import utils
 from numpy import exp, log
 from scipy.special import beta, digamma
 from src.utils import read_fasta
-
-
-# Probability classes and functions
-class bernoulli_betabinom_gen:
-    def pmf(self, x, p, n, a, b):
-        pmf0 = stats.bernoulli.pmf(x[0], p)
-        pmf1 = stats.betabinom.pmf(x[1], n, a, b)
-        return pmf0 * pmf1
-
-    def rvs(self, p, n, a, b, size=None, random_state=None):
-        rvs0 = stats.bernoulli.rvs(p, size=size, random_state=random_state)
-        rvs1 = stats.betabinom.rvs(n, a, b, size=size, random_state=random_state)
-        if size is None:
-            return rvs0, rvs1
-        else:
-            return list(zip(rvs0, rvs1))
-
-bernoulli_betabinom = bernoulli_betabinom_gen()
-
-
-class bernoulli_betabinom_frozen:
-    def __init__(self, p, n, a, b):
-        self._dist = bernoulli_betabinom_gen()
-        self.p = p
-        self.n = n
-        self.a = a
-        self.b = b
-
-    def pmf(self, x):
-        return self._dist.pmf(x, self.p, self.n, self.a, self.b)
-
-    def rvs(self, size=None):
-        return self._dist.rvs(self.p, self.n, self.a, self.b, size=size)
 
 
 # Gradient functions
@@ -95,7 +62,7 @@ def get_expectations(t_dists_norm, e_dists_norm, start_dist, record):
     # Instantiate model
     n, state_seq, emit_seq = record['n'], record['state_seq'], record['emit_seq']
     model = hmm.HMM(t_dists_norm,
-                    {state: bernoulli_betabinom_frozen(p, n-1, a, b) for state, (p, a, b) in e_dists_norm.items()},
+                    {state: utils.bernoulli_betabinom_frozen(p, n-1, a, b) for state, (p, a, b) in e_dists_norm.items()},
                     start_dist)
 
     # Get expectations
