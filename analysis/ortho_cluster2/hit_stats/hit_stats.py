@@ -22,25 +22,10 @@ def load_hit(qspid, sspid):
                      usecols=hit_dtypes.keys(), dtype=hit_dtypes, memory_map=True)
     r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal2'], memory_map=True)
-    bs_max = df.groupby('qppid')['bitscore'].max().rename('bs_max')
-    dfr = df.join(r).join(bs_max, on='qppid')
+    max_bitscore = df.groupby('qppid')['bitscore'].max().rename('bitscore_max')
+    dfr = df.join(r).join(max_bitscore, on='qppid')
 
     return dfr
-
-
-# Cutoff functions
-def bs_cutoff(x, hsps0):
-    hsps1 = hsps0[hsps0['bitscore'] >= x]
-    y1 = len(hsps1) / len(hsps0)
-    y2 = len(hsps1[['qppid', 'sppid']].drop_duplicates()) / len(hsps0[['qppid', 'sppid']].drop_duplicates())
-    return y1, y2
-
-
-def cfqa_cutoff(x, hits0):
-    hits1 = hits0[hits0['cfqa'] >= x]
-    y1 = hits1['hspnum'].sum() / hits0['hspnum'].sum()
-    y2 = len(hits1) / len(hits0)
-    return y1, y2
 
 
 # Plot functions
@@ -64,7 +49,7 @@ def hist3(dfs, bins, file_label, x_label, df_labels, colors, wrap=False):
     axs[1].set_ylabel('Number of hits')
     fig.suptitle('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     fig.subplots_adjust(left=0.175)
-    fig.savefig(f'out/blast/hist3_{file_label}.png')
+    fig.savefig(f'out/blast/hist_{file_label}_3.png')
     plt.close()
 
 
@@ -132,7 +117,7 @@ if __name__ == '__main__':
         hits0['xfqa'] = hits0['cfqa'] - hits0['fqa']
         hits0['xhspnum'] = hits0['chspnum'] - hits0['hspnum']
 
-        hits1 = hits0[hits0['bitscore'] == hits0['bs_max']]
+        hits1 = hits0[hits0['bitscore'] == hits0['max_bitscore']]
         hits2 = hits1[hits1['cfqa'] >= 0.5]
         hits3 = hits2[hits2['reciprocal2']]
         hits = [hits0, hits1, hits2, hits3]
