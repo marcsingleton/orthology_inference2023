@@ -56,6 +56,7 @@ if __name__ == '__main__':
     # Load seq metadata
     ppid2spid = {}
     with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+        file.readline()  # Skip header
         for line in file:
             ppid, _, spid, _ = line.split()
             ppid2spid[ppid] = spid
