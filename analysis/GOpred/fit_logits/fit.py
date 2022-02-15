@@ -13,6 +13,7 @@ pdidx = pd.IndexSlice
 # Load seq metadata
 ppid2gnid = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, _ = line.split()
         ppid2gnid[ppid] = gnid

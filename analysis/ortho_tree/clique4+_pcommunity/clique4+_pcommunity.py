@@ -92,6 +92,7 @@ def save_results(OGs, CCtypes, k):
 sqid2ppids = {}
 constituents = set()  # Constituent ppids
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
         ppid, _, _, sqid = line.split()
         try:
@@ -197,6 +198,8 @@ Type 3: 720
 Type 4: 1627
 
 DEPENDENCIES
+../../ortho_search/seq_meta/seq_meta.py
+    ../../ortho_search/seq_meta/out/seq_meta.tsv
 ../connect_pgraph/connect_pgraph.py
     ../connect_pgraph/out/pconnect.txt
 ../hits2pgraph/hits2pgraph.py

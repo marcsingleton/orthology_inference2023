@@ -16,14 +16,15 @@ def load_hsp(qspid, sspid):
                      usecols=dtypes.keys(), dtype=dtypes, memory_map=True)
     r = pd.read_csv(f'../../ortho_search/hsps2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
                     usecols=['reciprocal'], memory_map=True)
+    dfr = df.join(r)
 
-    df['pident'] = df['nident'] / df['length']
-    df['nqa'] = df['qend'] - df['qstart'] + 1
-    df['fqa'] = df['nqa'] / df['qlen']
-    df['nsa'] = df['send'] - df['sstart'] + 1
-    df['fsa'] = df['nsa'] / df['slen']
-    df['logevalue'] = df['evalue'].apply(lambda x: log10(x) if x > 0 else -180)
-    return df[df['disjoint']].join(r)
+    dfr['pident'] = dfr['nident'] / dfr['length']
+    dfr['nqa'] = dfr['qend'] - dfr['qstart'] + 1
+    dfr['fqa'] = dfr['nqa'] / dfr['qlen']
+    dfr['nsa'] = dfr['send'] - dfr['sstart'] + 1
+    dfr['fsa'] = dfr['nsa'] / dfr['slen']
+    dfr['logevalue'] = dfr['evalue'].apply(lambda x: log10(x) if x > 0 else -180)
+    return dfr
 
 
 # Plot functions
@@ -45,7 +46,7 @@ def hist2_1(dfs, bins, data_label, file_label, x_label, df_labels, colors, capit
     plt.ylabel(f'Number of {data_label} HSPs')
     plt.title(f'Distribution of {data_label} HSPs across' + ('\n' if wrap else ' ') + x_label)
     plt.legend()
-    plt.savefig(f'out/blast_{data_label}/hist2-1_{file_label}.png')
+    plt.savefig(f'out/blast_{data_label}/hist_{file_label}_2-1.png')
     plt.close()
 
 
@@ -58,14 +59,14 @@ def hist2_2(dfs, bins, data_label, file_label, x_label, df_labels, colors, capit
         ax.legend()
     axs[1].set_xlabel(x_label[0].upper() + x_label[1:] if capital else x_label)
     fig.suptitle(f'Distribution of {data_label} HSPs across' + ('\n' if wrap else ' ') + x_label)
-    fig.savefig(f'out/blast_{data_label}/hist2-2_{file_label}.png')
+    fig.savefig(f'out/blast_{data_label}/hist_{file_label}_2-2.png')
     plt.close()
 
 
-def bar_hsps(counts, data_label, file_label, ax_label):
+def bar_hsps(counts, data_label, file_label, title_label):
     plt.bar(counts.keys(), counts.values(), width=1)
-    plt.title(f'Distribution of polypeptides across number of {ax_label}HSPs')
-    plt.xlabel(f'Number of {ax_label}HSPs to polypeptide')
+    plt.title(f'Distribution of polypeptides across\nnumber of {title_label}index HSPs')
+    plt.xlabel(f'Number of HSPs to polypeptide')
     plt.ylabel('Number of polypeptides')
     plt.savefig(f'out/hsps_{data_label}/hist_ppidnum-hspnum_{file_label}.png')
     plt.close()
@@ -77,8 +78,8 @@ dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
           'qlen': int, 'qstart': int, 'qend': int,
           'slen': int, 'sstart': int, 'send': int,
           'evalue': float, 'bitscore': float,
-          'index_hsp': bool, 'disjoint': bool}
-num_processes = 2
+          'index_hsp': bool, 'disjoint': bool, 'compatible': bool}
+num_processes = 4
 
 if __name__ == '__main__':
     # Parse genomes
@@ -91,21 +92,26 @@ if __name__ == '__main__':
     # Load data
     with mp.Pool(processes=num_processes) as pool:
         hsps0 = pd.concat(pool.starmap(load_hsp, permutations(spids, 2)))
-        hsps1 = hsps0[hsps0['index_hsp']]
+        hsps1 = hsps0[hsps0['compatible']]
+        hsps2 = hsps0[hsps0['disjoint']]
+        hsps3 = hsps0[hsps0['index_hsp']]
 
-    # 0 INDEX AND DISJOINT SIZES
+    # 0 COMPATIBLE, DISJOINT, AND INDEX SIZES
     # Make output directory
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
-    plt.bar(['index', 'disjoint'], [len(hsps1), len(hsps0)], color=['C0', 'C3'], width=0.25)
-    plt.xlim((-0.75, 1.75))
+    plt.bar(['all', 'compatible', 'disjoint', 'index'], [len(hsps0), len(hsps1), len(hsps2), len(hsps3)], color=('C7', 'C6', 'C3', 'C0'), width=0.5)
     plt.ylabel('Number of HSPs')
-    plt.savefig('out/bar_index-disjoint.png')
+    plt.savefig('out/bar_subsets.png')
     plt.close()
 
     # 1 BLAST METRICS
-    for data_label, hsps, colors in [('index', hsps1, ['C0', 'C1']), ('disjoint', hsps0, ['C3', 'C6'])]:
+    plots = [('all', hsps0, ('C7', 'C4')),
+             ('compatible', hsps1, ('C6', 'C5')),
+             ('disjoint', hsps2, ('C3', 'C2')),
+             ('index', hsps3, ('C0', 'C1'))]
+    for data_label, hsps, colors in plots:
         # Subset HSPs into non-reciprocal and reciprocal sets
         df0 = hsps
         df1 = hsps.query('reciprocal == True')
@@ -167,7 +173,7 @@ if __name__ == '__main__':
         g0 = df0.groupby('logevalue')
         x = g0['nqa'].min()
         fig, ax = plt.subplots()
-        ax.scatter(x.index, x.values, label=labels[0], color=colors[0], alpha=0.5, s=10, edgecolors='none')
+        ax.scatter(x.index, x.values, label=labels[0], color=colors[0], alpha=0.2, s=10, edgecolors='none')
         ax.set_xlabel('log10(E-value)')
         ax.set_ylabel('Minimum number of residues aligned')
         leg = ax.legend(markerscale=2)
@@ -179,7 +185,7 @@ if __name__ == '__main__':
         g1 = df1.groupby('logevalue')
         x = g1['nqa'].min()
         fig, ax = plt.subplots()
-        ax.scatter(x.index, x.values, label=labels[1], color=colors[1], alpha=0.5, s=10, edgecolors='none')
+        ax.scatter(x.index, x.values, label=labels[1], color=colors[1], alpha=0.2, s=10, edgecolors='none')
         ax.set_xlabel('log10(E-value)')
         ax.set_ylabel('Minimum number of residues aligned')
         leg = ax.legend(markerscale=2)
@@ -190,7 +196,7 @@ if __name__ == '__main__':
 
         x = g0['bitscore'].min()
         fig, ax = plt.subplots()
-        ax.scatter(x.index, x.values, label=labels[0], color=colors[0], alpha=0.5, s=10, edgecolors='none')
+        ax.scatter(x.index, x.values, label=labels[0], color=colors[0], alpha=0.2, s=10, edgecolors='none')
         ax.set_xlabel('log10(E-value)')
         ax.set_ylabel('Minimum bitscore')
         leg = ax.legend(markerscale=2)
@@ -201,7 +207,7 @@ if __name__ == '__main__':
 
         x = g1['bitscore'].min()
         fig, ax = plt.subplots()
-        ax.scatter(x.index, x.values, label=labels[1], color=colors[1], alpha=0.5, s=10, edgecolors='none')
+        ax.scatter(x.index, x.values, label=labels[1], color=colors[1], alpha=0.2, s=10, edgecolors='none')
         ax.set_xlabel('log10(E-value)')
         ax.set_ylabel('Minimum bitscore')
         leg = ax.legend(markerscale=2)
@@ -257,8 +263,8 @@ if __name__ == '__main__':
         plt.savefig(f'out/blast_{data_label}/hist2d_fsa-fqa_reciprocal.png')
         plt.close()
 
-    # 2 HIT METRICS
-    for data_label, hsps in [('all', hsps1), ('reciprocal', hsps1[hsps1['reciprocal']])]:
+    # 2 HSP METRICS
+    for data_label, hsps in [('all', hsps3), ('reciprocal', hsps3[hsps3['reciprocal']])]:
         # Make hits output directory
         if not os.path.exists(f'out/hsps_{data_label}/'):
             os.mkdir(f'out/hsps_{data_label}/')
@@ -284,7 +290,7 @@ if __name__ == '__main__':
         sgnid_hspnum_dmel.to_csv(f'out/hsps_{data_label}/sgnids_dmel.tsv', sep='\t', index_label='sgnid')
 
         # 2.3 PLOTS
-        ax_label = 'reciprocal ' if data_label == 'reciprocal' else ''
+        title_label = 'reciprocal ' if data_label == 'reciprocal' else ''
 
         # 2.3.1 Correlation of gene HSPs with number of associated polypeptides
         gnid_nums = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t',
@@ -294,22 +300,24 @@ if __name__ == '__main__':
         plt.scatter(corr['ppidnum'], corr['sgnid_hspnum'],
                     alpha=0.5, s=10, edgecolors='none')
         plt.xlabel('Number of polypeptides associated with gene')
-        plt.ylabel(f'Number of {ax_label}HSPs to gene')
-        plt.title(f'Correlation of number of {ax_label}HSPs to gene\nwith number of associated polypeptides')
+        plt.ylabel(f'Number of HSPs to gene')
+        plt.title(f'Correlation of number of {title_label}index HSPs to gene\nwith number of associated polypeptides')
         plt.savefig(f'out/hsps_{data_label}/scatter_hspnum-ppidnum.png')
         plt.close()
 
         # 2.3.2 Histograms of genes by number of HSPs
         counts = sppid_hspnum['sppid_hspnum'].value_counts().to_dict()
 
-        bar_hsps(counts, data_label, 'all', ax_label)
-        bar_hsps({key: value for key, value in counts.items() if key > len(spids)}, data_label, f'{len(spids)}+', ax_label)
-        bar_hsps({key: value for key, value in counts.items() if key <= len(spids)}, data_label, f'{len(spids)}-', ax_label)
+        bar_hsps(counts, data_label, 'all', title_label)
+        bar_hsps({key: value for key, value in counts.items() if key > len(spids)}, data_label, f'{len(spids)}+', title_label)
+        bar_hsps({key: value for key, value in counts.items() if key <= len(spids)}, data_label, f'{len(spids)}-', title_label)
 
 """
 OUTPUT
-Fraction of index HSPs reciprocal: 0.9411210016185043
+Fraction of all HSPs reciprocal: 0.9355282843106667
+Fraction of compatible HSPs reciprocal: 0.9553193485209691
 Fraction of disjoint HSPs reciprocal: 0.9431534979669558
+Fraction of index HSPs reciprocal: 0.9411210016185043
 
 DEPENDENCIES
 ../../ortho_search/blast2hsps/blast2hsps.py

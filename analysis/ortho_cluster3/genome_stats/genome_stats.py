@@ -1,11 +1,13 @@
 """Plot various statistics of the input genomes."""
 
-import matplotlib.pyplot as plt
 import os
-import pandas as pd
 import re
 from itertools import groupby
+
+import matplotlib.pyplot as plt
+import pandas as pd
 from numpy import linspace
+from src.utils import read_fasta
 
 
 def get_Xmax(seq):
@@ -16,15 +18,16 @@ def get_Xmax(seq):
         return 0
 
 
-pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+)'}
+ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
+              'NCBI': r'([NXY]P_[0-9]+)'}
 
 # Load seq metadata
-ppid2gnid = {}
+ppid2meta = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        ppid, gnid, _, _ = line.split()
-        ppid2gnid[ppid] = gnid
+        ppid, gnid, _, sqid = line.split()
+        ppid2meta[ppid] = (gnid, sqid)
 
 # Parse genomes
 genomes = {}
@@ -35,40 +38,14 @@ with open('../config/genomes.tsv') as file:
         genomes[spid] = (source, prot_path)
 
 # Parse polypeptides
-sqid0 = 0
-sqids = {}
 rows = []
 for spid, (source, prot_path) in genomes.items():
-    with open(prot_path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                ppid0 = re.search(pp_regex[source], line).group(1)
-                gnid = ppid2gnid[ppid0]
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq0 = ''.join(seqlines)
-
-            try:
-                for sqid1, seq1 in sqids[gnid]:
-                    if seq0 == seq1:
-                        rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': sqid1,
-                                     'sqlen': len(seq1), 'Xnum': seq1.upper().count('X'), 'Xmax': get_Xmax(seq1)})
-                        break
-                else:
-                    sqids[gnid].append((str(sqid0).zfill(8), seq0))
-                    rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
-                                 'sqlen': len(seq0), 'Xnum': seq0.upper().count('X'), 'Xmax': get_Xmax(seq0)})
-                    sqid0 += 1
-            except KeyError:
-                sqids[gnid] = [(str(sqid0).zfill(8), seq0)]
-                rows.append({'ppid': ppid0, 'gnid': gnid, 'spid': spid, 'sqid': str(sqid0).zfill(8),
-                             'sqlen': len(seq0), 'Xnum': seq0.upper().count('X'), 'Xmax': get_Xmax(seq0)})
-                sqid0 += 1
+    fasta = read_fasta(prot_path)
+    for header, seq in fasta:
+        ppid = re.search(ppid_regex[source], header).group(1)
+        gnid, sqid = ppid2meta[ppid]
+        rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqid': sqid,
+                     'seqlen': len(seq), 'Xnum': seq.upper().count('X'), 'Xmax': get_Xmax(seq)})
 
 # Make plots output directory
 if not os.path.exists('out/'):
@@ -153,8 +130,8 @@ plt.savefig('out/bar_gnidnum-species.png')
 plt.close()
 
 # 2 Distribution of polypeptides across length
-ncbi = df.loc[df['spid'].isin(ncbi_spids), 'sqlen']
-flybase = df.loc[df['spid'].isin(flybase_spids), 'sqlen']
+ncbi = df.loc[df['spid'].isin(ncbi_spids), 'seqlen']
+flybase = df.loc[df['spid'].isin(flybase_spids), 'seqlen']
 
 # NCBI and FlyBase
 bins = linspace(min(ncbi.min(), flybase.min()), max(ncbi.max(), flybase.max()), 100, endpoint=True)
@@ -167,7 +144,7 @@ fig.subplots_adjust(left=0.175)
 for ax in axs:
     ax.set_ylabel('Number of polypeptides')
     ax.legend()
-fig.savefig('out/hist_ppidnum-sqlen.png')
+fig.savefig('out/hist_ppidnum-seqlen.png')
 plt.close()
 
 # Individual
@@ -178,7 +155,7 @@ for data, data_label, color, file_label in [(ncbi, 'NCBI', 'C0', 'NCBI'),
     plt.ylabel('Number of polypeptides')
     plt.title('Distribution of polypeptides across length')
     plt.legend()
-    plt.savefig(f'out/hist_ppidnum-sqlen_{file_label}.png')
+    plt.savefig(f'out/hist_ppidnum-seqlen_{file_label}.png')
     plt.close()
 
 # Calculate counts grouped by gene
@@ -295,7 +272,7 @@ plt.savefig('out/hist_sqidnum-Xmax.png')
 plt.close()
 
 # 4.3 Distribution of fraction of unknown amino acids
-plt.hist(dfX['Xmax'] / dfX['sqlen'], bins=50)
+plt.hist(dfX['Xmax'] / dfX['seqlen'], bins=50)
 plt.xlabel('Fraction of unknown amino acids')
 plt.ylabel('Number of unique sequences')
 plt.title('Distribution of unique sequences across\nfraction of unknown amino acids')

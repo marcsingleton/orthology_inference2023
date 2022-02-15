@@ -6,6 +6,7 @@ import skbio
 
 
 def get_conditional(node, matrix):
+    """Return conditional probabilities of tree given tips and node state."""
     child1, child2 = node.children
 
     if child1.is_tip():

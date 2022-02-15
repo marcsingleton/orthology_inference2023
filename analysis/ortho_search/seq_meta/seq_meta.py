@@ -3,10 +3,12 @@
 import os
 import re
 
-pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+)'}
-gn_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
-            'NCBI': r'db_xref=GeneID:([0-9]+)'}
+from src.utils import read_fasta
+
+ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
+              'NCBI': r'([NXY]P_[0-9]+)'}
+gnid_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
+              'NCBI': r'db_xref=GeneID:([0-9]+)'}
 
 # Parse genomes
 genomes = []
@@ -17,66 +19,52 @@ with open('../config/genomes.tsv') as file:
         genomes.append((spid, source, prot_path, tcds_path))
 
 # Extract and count polypeptide IDs
-ppid_counts = {}  # Counts for each PPID to find duplicates
+counts = {}  # Counts for each PPID to find duplicates
 ppid2meta = {}  # PPID to gene and species
 gnid2seqs = {}  # GNID to PPIDs with unique sequences
-num_headers = 0
 for spid, source, prot_path, tcds_path in genomes:
     # Find parent genes in tcds headers
-    with open(tcds_path) as file:
-        for line in file:
-            if line.startswith('>'):
-                num_headers += 1
-                gn_match = re.search(gn_regex[source], line)
-                pp_match = re.search(pp_regex[source], line)
-                try:
-                    # First group is entire line, second is first match
-                    gnid = gn_match.group(1)
-                    ppid = pp_match.group(1)
-
-                    ppid2meta[ppid] = (gnid, spid)
-                    ppid_counts[ppid] = ppid_counts.get(ppid, 0) + 1
-                except AttributeError:
-                    print(line)
+    tcds_fasta = read_fasta(tcds_path)
+    for header, _ in tcds_fasta:
+        gn_match = re.search(gnid_regex[source], header)
+        pp_match = re.search(ppid_regex[source], header)
+        try:
+            # First group is entire line, second is first match
+            gnid = gn_match.group(1)
+            ppid = pp_match.group(1)
+            ppid2meta[ppid] = (gnid, spid)
+        except AttributeError:
+            print(header)
 
     # Find representative sequences in prot files
-    with open(prot_path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                ppid0 = re.search(pp_regex[source], line).group(1)
-                gnid, spid = ppid2meta[ppid0]
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq0 = ''.join(seqlines)
-
-            try:
-                for ppid1, seq1 in gnid2seqs[gnid]:
-                    if seq0 == seq1:
-                        ppid2meta[ppid0] = (gnid, spid, ppid1)
-                        break
-                else:
-                    gnid2seqs[gnid].append((ppid0, seq0))
-                    ppid2meta[ppid0] = (gnid, spid, ppid0)
-            except KeyError:
-                gnid2seqs[gnid] = [(ppid0, seq0)]
-                ppid2meta[ppid0] = (gnid, spid, ppid0)
+    prot_fasta = read_fasta(prot_path)
+    for header, seq in prot_fasta:
+        ppid = re.search(ppid_regex[source], header).group(1)
+        gnid, spid = ppid2meta[ppid]
+        counts[ppid] = counts.get(ppid, 0) + 1
+        if gnid in gnid2seqs:
+            seqs = gnid2seqs[gnid]  # Mapping from sequence to PPID
+            if seq in seqs:
+                ppid2meta[ppid] = (gnid, spid, seqs[seq])
+            else:
+                seqs[seq] = ppid
+                ppid2meta[ppid] = (gnid, spid, ppid)
+        else:
+            gnid2seqs[gnid] = {seq: ppid}
+            ppid2meta[ppid] = (gnid, spid, ppid)
 
 # Make output directory
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Write to file
-with open('out/seq_meta.tsv', 'w') as outfile:
+with open('out/seq_meta.tsv', 'w') as file:
+    file.write('ppid\tgnid\tspid\tsqid\n')
     for ppid, meta in ppid2meta.items():
-        outfile.write(ppid + '\t' + '\t'.join(meta) + '\n')
+        file.write(ppid + '\t' + '\t'.join(meta) + '\n')
 
-print('Total headers:', num_headers)
-print('Unique IDs:', len(ppid_counts))
+print('Total headers:', sum(counts.values()))
+print('Unique IDs:', len(counts))
 
 """
 OUTPUT

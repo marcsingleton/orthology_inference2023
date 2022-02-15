@@ -15,7 +15,16 @@ from src.utils import read_fasta
 
 
 # Probability classes and functions
-class modHMM(hmm.HMM):
+class HMM(hmm.HMM):
+    """A class that modifies the default HMM to accept pre-calculated intermediates.
+
+    Discriminative training requires decoding of both states and transitions.
+    Both of these calculations rely on the forward and backward variables.
+    Since these are the most computationally intensive steps in decoding and
+    both are used in state and transition decoding, this modified class accepts
+    the forward and backward variables as arguments rather than calculating
+    them from scratch each time.
+    """
     def forward_backward1(self, emits, fs, ss_f, bs, ss_b):
         """Posterior decoding of states."""
         p = reduce(lambda x, y: x+y, map(log, ss_f))
@@ -117,6 +126,7 @@ def bernoulli_pmf_prime(x, p):
 
 # Utility functions
 def count_transitions(state_seq, state_set):
+    """Return counts of transitions between states."""
     mijs, state0 = {p: 0 for p in product(state_set, state_set)}, state_seq[0]
     for state in state_seq[1:]:
         try:
@@ -128,6 +138,7 @@ def count_transitions(state_seq, state_set):
 
 
 def count_states(state_seq, state_set):
+    """Return counts of states."""
     mis = {state: [] for state in state_set}
     for state in state_seq:
         for s in state_set:
@@ -136,7 +147,7 @@ def count_states(state_seq, state_set):
 
 
 def norm_params(t_dists, e_dists):
-    """Convert parameters to their normalized values."""
+    """Return parameters as their normalized values."""
     t_dists_norm = {}
     for s1, t_dist in t_dists.items():
         z_sum = sum([exp(z) for z in t_dist.values()])
@@ -147,12 +158,13 @@ def norm_params(t_dists, e_dists):
     return t_dists_norm, e_dists_norm
 
 
-def get_expts(t_dists_norm, e_dists_norm, start_dist, record):
+def get_expectations(t_dists_norm, e_dists_norm, start_dist, record):
+    """Return record updated with expected values of states and transitions given model parameters."""
     # Instantiate model
     n, state_seq, emit_seq = record['n'], record['state_seq'], record['emit_seq']
-    model = modHMM(t_dists_norm,
-                   {state: bernoulli_betabinom_frozen(p, n-1, a, b) for state, (p, a, b) in e_dists_norm.items()},
-                   start_dist)
+    model = HMM(t_dists_norm,
+                {state: bernoulli_betabinom_frozen(p, n-1, a, b) for state, (p, a, b) in e_dists_norm.items()},
+                start_dist)
 
     # Get expectations
     fs, ss_f = model.forward(emit_seq)
@@ -252,7 +264,7 @@ if __name__ == '__main__':
         # Calculate expectations and likelihoods
         t_dists_norm, e_dists_norm = norm_params(t_dists, e_dists)
         with mp.Pool(processes=num_processes) as pool:
-            records = pool.starmap(get_expts, [(t_dists_norm, e_dists_norm, start_dist, record) for record in records])
+            records = pool.starmap(get_expectations, [(t_dists_norm, e_dists_norm, start_dist, record) for record in records])
 
         # Save and report updated parameters
         ll = sum([record['ll'] for record in records])

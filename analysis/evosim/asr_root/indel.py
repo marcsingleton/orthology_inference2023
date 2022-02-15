@@ -66,10 +66,10 @@ for OGid in OGids:
         rate = num_categories * (igfs[i+1] - igfs[i])
         rates.append((rate, 1/num_categories))
 
-    # Load sequence and convert to vectors at base of tree
-    msa = read_fasta(f'../asr_indel/out/{OGid}.mfa')
+    # Load sequence and convert to vectors at tips of tree
+    mca = read_fasta(f'../asr_indel/out/{OGid}.mfa')
     tips = {tip.name: tip for tip in tree.tips()}
-    for header, seq in msa:
+    for header, seq in mca:
         tip = tips[header[1:5]]
         conditional = np.zeros((2, len(seq)))
         for j, sym in enumerate(seq):

@@ -21,6 +21,8 @@ Only `analysis/` and `src/`, which together contain all code written for this pr
 - `brownian1/`: Application of Brownian motion model to EggNOGv5 orthologs segmented by IUPRED
 - `brownian2/`: Application of Brownian motion model to orthologs from NCBI annotations, among other phylogenetic analyses
 - `EggNOGv5_validation/`: Analyses to validate *Drosophila* orthologs downloaded from the [EggNOG v5.0](http://eggnog5.embl.de/) database
+- `evosim/`: Simulations of evolution of alignments from reconstructed ancestors
+- `GOpred/`: Prediction of GO terms associated with proteins using rates of feature evolution
 - `ortho_cluster1/`: Initial attempt at constructing orthologous groups using genome annotations largely from [Yang *et al.*](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6305970/)
 - `ortho_cluster2/`: Construction of orthologous groups using all *Drosophila* genome annotations obtained from [NCBI](https://www.ncbi.nlm.nih.gov/genome/annotation_euk/all/)
 - `ortho_cluster3/`: Final set of orthologous groups removing genomes which clustered poorly in `ortho_cluster2/`

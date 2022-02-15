@@ -8,6 +8,7 @@ from itertools import combinations, product
 import numpy as np
 import skbio.stats.distance as distance
 import skbio.tree
+from src.utils import read_fasta
 
 
 def get_ktuples(seq, k):
@@ -153,8 +154,8 @@ def reduce(OGid, OG):
     return OGid, rOG
 
 
-pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+)'}
+ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
+              'NCBI': r'([NXY]P_[0-9]+)'}
 table = {ord('I'): '!', ord('L'): '!', ord('M'): '!', ord('V'): '!',
          ord('F'): '@', ord('W'): '@', ord('Y'): '@',
          ord('A'): '#', ord('S'): '#', ord('T'): '#',
@@ -176,6 +177,7 @@ with open('../config/genomes.tsv') as file:
 # Load seq metadata
 ppid2meta = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, sqid = line.split()
         ppid2meta[ppid] = (gnid, spid, sqid)
@@ -183,20 +185,10 @@ with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
 # Load seqs
 ppid2seq = {}
 for _, source, prot_path in genomes:
-    with open(prot_path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                ppid = re.search(pp_regex[source], line).group(1)
-                gnid = ppid2meta[ppid][0]
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            seq = ''.join(seqlines)
-            ppid2seq[ppid] = seq
+    fasta = read_fasta(prot_path)
+    for header, seq in fasta:
+        ppid = re.search(ppid_regex[header], line).group(1)
+        ppid2seq[ppid] = seq
 
 # Load OGs
 OGs = {}

@@ -75,12 +75,10 @@ def get_distances(node, d0=0):
     return distances
 
 
-pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+)'}
-
 # Load seq metadata
 ppid2meta = {}
 with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, sqid = line.split()
         ppid2meta[ppid] = (gnid, spid, sqid)

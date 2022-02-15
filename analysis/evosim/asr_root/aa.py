@@ -112,7 +112,7 @@ for OGid in OGids:
             partition_seq = ''.join([seq[start:stop] for start, stop in partition['regions']])
             partition_msa.append((header, partition_seq))
 
-        # Convert to vectors at base of tree
+        # Convert to vectors at tips of tree
         tips = {tip.name: tip for tip in tree.tips()}
         for header, seq in partition_msa:
             tip = tips[header[1:5]]

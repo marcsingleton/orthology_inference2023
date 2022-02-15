@@ -4,6 +4,8 @@ import os
 import re
 import sys
 
+from src.utils import read_fasta
+
 
 def get_codons(nt_seq, aa_seq):
     delta = len(nt_seq) // 3 - len(aa_seq)
@@ -58,8 +60,8 @@ def get_codons(nt_seq, aa_seq):
     return codons
 
 
-pp_regex = {'FlyBase': r'(FBpp[0-9]+)',
-            'NCBI': r'([NXY]P_[0-9]+)'}
+ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
+              'NCBI': r'([NXY]P_[0-9]+)'}
 
 # Parse genomes
 genomes = []
@@ -81,42 +83,19 @@ with open('ttable.txt') as file:
 # Load CDSs
 ppid2cds = {}
 for spid, source, cds_path in genomes:
-    with open(cds_path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                ppid = re.search(pp_regex[source], line).group(1)
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            ppid2cds[ppid] = ''.join(seqlines)
+    fasta = read_fasta(cds_path)
+    for header, seq in fasta:
+        ppid = re.search(ppid_regex[header], line).group(1)
+        ppid2cds[ppid] = seq
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
 sys.stdout = open('out/out.txt', 'w')  # Redirect stdout to file
 for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_fastas/out/')):
-    # Load alignments
-    aa_aligns = []
-    with open('../align_fastas/out/' + file_id) as file:
-        line = file.readline()
-        while line:
-            if line.startswith('>'):
-                header = line
-                line = file.readline()
-
-            seqlines = []
-            while line and not line.startswith('>'):
-                seqlines.append(line.rstrip())
-                line = file.readline()
-            aa_aligns.append((header, ''.join(seqlines)))
-
     # Translate and write CDS
     nt_aligns = []
-    for header, aa_align in aa_aligns:
+    for header, aa_align in read_fasta('../align_fastas/out/' + file_id):
         ppid = re.search(r'ppid=([NXYPFBp0-9_.]+)\|', header)[1]
         aa_seq = aa_align.replace('-', '')
         nt_seq = ppid2cds[ppid]
