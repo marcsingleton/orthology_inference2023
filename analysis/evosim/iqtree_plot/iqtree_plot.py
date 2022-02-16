@@ -11,8 +11,7 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.lines import Line2D
 from matplotlib.patches import Circle, Ellipse
 
-order = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
-         'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
+alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
 labels = [('disorder_0%', '0red_D'), ('disorder_50%', '50red_D'), ('disorder_100%', '100red_D'),
           ('order_0%', '0red_O'), ('order_50%', '50red_O'), ('order_100%', '100red_O')]
 Record = namedtuple('Record', ['plot_label', 'file_label', 'matrix', 'freqs'])
@@ -62,7 +61,7 @@ for plot_label, file_label in labels:
             line = file.readline()
         freqs = np.array(freqs)
 
-        if syms != order:
+        if syms != alphabet:
             raise RuntimeError('Symbols in matrix are not in expected order.')
 
     # Make matrix and scale
@@ -87,9 +86,9 @@ for ax, record in zip(axs.ravel(), records):
     ax.imshow(record.matrix, vmax=vmax)
     ax.set_title(record.plot_label)
     ax.set_xticks(range(20))
-    ax.set_xticklabels(order, fontdict={'fontsize': 7})
+    ax.set_xticklabels(alphabet, fontdict={'fontsize': 7})
     ax.set_yticks(range(20))
-    ax.set_yticklabels(order, fontdict={'fontsize': 7})
+    ax.set_yticklabels(alphabet, fontdict={'fontsize': 7})
 fig.colorbar(ScalarMappable(Normalize(0, vmax)), ax=axs, fraction=0.025)
 plt.savefig('out/heatmap_all.png', bbox_inches='tight')
 plt.close()
@@ -101,10 +100,10 @@ for ax, record in zip(axs.ravel(), records):
     ax.set_title(record.plot_label)
     ax.set_xlim(0, 20)
     ax.set_xticks(range(1, 21))
-    ax.set_xticklabels(order, fontdict={'fontsize': 7})
+    ax.set_xticklabels(alphabet, fontdict={'fontsize': 7})
     ax.set_ylim(0, 20)
     ax.set_yticks(range(1, 21))
-    ax.set_yticklabels(order[::-1], fontdict={'fontsize': 7})
+    ax.set_yticklabels(alphabet[::-1], fontdict={'fontsize': 7})
     ax.grid(True)
     ax.set_axisbelow(True)
     ax.set_aspect(1)
@@ -127,10 +126,10 @@ for pl1, fl1, m1, c1, pl2, fl2, m2, c2 in pairs:
     fig, ax = plt.subplots(figsize=(9, 4))
     ax.set_xlim(0, 20)
     ax.set_xticks(range(1, 21))
-    ax.set_xticklabels(order, fontdict={'fontsize': 8})
+    ax.set_xticklabels(alphabet, fontdict={'fontsize': 8})
     ax.set_ylim(0, 20)
     ax.set_yticks(range(1, 21))
-    ax.set_yticklabels(order[::-1], fontdict={'fontsize': 8})
+    ax.set_yticklabels(alphabet[::-1], fontdict={'fontsize': 8})
     ax.grid(True)
     ax.set_axisbelow(True)
     ax.set_aspect(0.5)  # Scale vertical axis half of horizontal axis
@@ -164,10 +163,10 @@ for pl1, fl1, m1, pl2, fl2, m2 in pairs:
     ax.set_title(f'log10 ratio of {pl1} to {pl2}')
     ax.set_xlim(0, 20)
     ax.set_xticks(range(1, 21))
-    ax.set_xticklabels(order, fontdict={'fontsize': 8})
+    ax.set_xticklabels(alphabet, fontdict={'fontsize': 8})
     ax.set_ylim(0, 20)
     ax.set_yticks(range(1, 21))
-    ax.set_yticklabels(order[::-1], fontdict={'fontsize': 8})
+    ax.set_yticklabels(alphabet[::-1], fontdict={'fontsize': 8})
     ax.grid(True)
     ax.set_axisbelow(True)
     ax.set_aspect(1)
@@ -209,10 +208,10 @@ for pl1, fl1, m1, pl2, fl2, m2 in pairs:
     ax.set_title(f'Difference of {pl1} and {pl2}')
     ax.set_xlim(0, 20)
     ax.set_xticks(range(1, 21))
-    ax.set_xticklabels(order, fontdict={'fontsize': 8})
+    ax.set_xticklabels(alphabet, fontdict={'fontsize': 8})
     ax.set_ylim(0, 20)
     ax.set_yticks(range(1, 21))
-    ax.set_yticklabels(order[::-1], fontdict={'fontsize': 8})
+    ax.set_yticklabels(alphabet[::-1], fontdict={'fontsize': 8})
     ax.grid(True)
     ax.set_axisbelow(True)
     ax.set_aspect(1)
@@ -252,8 +251,8 @@ bars = [(records[1].plot_label, records[1].freqs, 'black'),
 plt.figure(figsize=(8, 4))
 for i, (plot_label, freqs, color) in enumerate(bars):
     dx = -len(bars)//2 + i + (1.5 if len(bars)%2 == 0 else 1)
-    plt.bar([x+width*dx for x in range(len(order))], freqs, label=plot_label, facecolor=color, edgecolor='black', width=width)
-plt.xticks(range(len(order)), order)
+    plt.bar([x+width*dx for x in range(len(alphabet))], freqs, label=plot_label, facecolor=color, edgecolor='black', width=width)
+plt.xticks(range(len(alphabet)), alphabet)
 plt.xlabel('Amino acid')
 plt.ylabel('Frequency')
 plt.legend()

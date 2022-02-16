@@ -15,7 +15,7 @@ from src.utils import read_fasta
 def load_model(path):
     with open(path) as file:
         # Parse exchangeability matrix
-        matrix = np.zeros((len(syms), len(syms)))
+        matrix = np.zeros((len(alphabet), len(alphabet)))
         for i in range(19):
             line = file.readline()
             for j, value in enumerate(line.split()):
@@ -33,8 +33,8 @@ def load_model(path):
     return matrix, freqs
 
 
-syms = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
-sym2idx = {sym: idx for idx, sym in enumerate(syms)}
+alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
+sym2idx = {sym: idx for idx, sym in enumerate(alphabet)}
 
 models = {'WAG': load_model('../config/WAG.txt'), '../config/50red_D.txt': load_model('../config/50red_D.txt')}
 
@@ -77,10 +77,10 @@ for OGid in OGids:
         while line != '\n':
             fields = line.split()  # File is not explicitly delimited, so just split on whitespace
             partition_id, speed, parameters = int(fields[0]), float(fields[2]), fields[3]
-            groupdict = re.search(r'(?P<model>[^+]+)\+I{(?P<pinv>[0-9.e-]+)}\+G(?P<num_categories>[0-9]+){(?P<alpha>[0-9.e-]+)}', parameters).groupdict()
+            match = re.search(r'(?P<model>[^+]+)\+I{(?P<pinv>[0-9.e-]+)}\+G(?P<num_categories>[0-9]+){(?P<alpha>[0-9.e-]+)}', parameters)
             partition = partitions[partition_id]
-            partition.update({'model': groupdict['model'], 'speed': speed,
-                              'pinv': float(groupdict['pinv']), 'alpha': float(groupdict['alpha']), 'num_categories': int(groupdict['num_categories'])})
+            partition.update({'model': match['model'], 'speed': speed,
+                              'pinv': float(match['pinv']), 'alpha': float(match['alpha']), 'num_categories': int(match['num_categories'])})
             line = file.readline()
 
     # Load partition regions
@@ -88,9 +88,9 @@ for OGid in OGids:
         partition_id = 1
         for line in file:
             if 'charset' in line:
-                groupdict = re.search(r'charset (?P<name>[a-zA-Z0-9]+) = (?P<regions>[0-9 -]+);', line)
+                match = re.search(r'charset (?P<name>[a-zA-Z0-9]+) = (?P<regions>[0-9 -]+);', line)
                 regions = []
-                for region in groupdict['regions'].split():
+                for region in match['regions'].split():
                     start, stop = region.split('-')
                     regions.append((int(start)-1, int(stop)))
                 transform, start0 = {}, 0
@@ -116,13 +116,13 @@ for OGid in OGids:
         tips = {tip.name: tip for tip in tree.tips()}
         for header, seq in partition_msa:
             tip = tips[header[1:5]]
-            conditional = np.zeros((len(syms), len(seq)))
+            conditional = np.zeros((len(alphabet), len(seq)))
             for j, sym in enumerate(seq):
                 if sym in sym2idx:
                     i = sym2idx[sym]
                     conditional[i, j] = 1
                 else:  # Use uniform distribution for ambiguous symbols
-                    conditional[:, j] = 1 / len(syms)
+                    conditional[:, j] = 1 / len(alphabet)
             tip.conditional = conditional
 
         # Calculate rates for non-invariant categories
@@ -140,7 +140,7 @@ for OGid in OGids:
 
         # Get likelihood for invariant category
         # (Background probability for symbol if invariant; otherwise 0)
-        likelihood = np.zeros((len(syms), len(partition_msa[0][1])))
+        likelihood = np.zeros((len(alphabet), len(partition_msa[0][1])))
         for j in range(len(partition_msa[0][1])):
             is_invariant = True
             sym0 = msa[0][1][j]
@@ -195,4 +195,5 @@ DEPENDENCIES
     ../asr_aa/out/*.iqtree
     ../asr_aa/out/*.mfa
 ../config/50red_D.txt
+../config/WAG.txt
 """
