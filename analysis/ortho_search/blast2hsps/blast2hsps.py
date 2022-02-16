@@ -166,7 +166,7 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'evalue': float, 'bitscore': float,
            'index_hsp': bool, 'disjoint': bool, 'compatible': bool}
 compatible_cutoff = 50  # Bitscore cutoff for accepting HSPs as compatible
-num_processes = int(os.environ['SLURM_NTASKS'])
+num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
 # Load seq metadata
 ppid2gnid = {}

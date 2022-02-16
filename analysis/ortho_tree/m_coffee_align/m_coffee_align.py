@@ -24,7 +24,7 @@ def run_cmd(aligner, ref, file_id, cmd):
     return aligner, ref, file_id, str(t1-t0)
 
 
-num_processes = int(os.environ['SLURM_NTASKS'])
+num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 bin_path = '../../../bin/'
 data_path = '../../../data/bb3_release/'
 

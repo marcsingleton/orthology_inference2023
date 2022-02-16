@@ -66,7 +66,7 @@ def trim(OGid):
 
 
 # Load parameters
-num_processes = int(os.environ['SLURM_NTASKS'])
+num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
 with open('trim_params.json') as file:
     tp = json.load(file)  # Trim parameters

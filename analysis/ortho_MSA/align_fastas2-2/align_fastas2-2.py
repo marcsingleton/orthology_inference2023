@@ -20,7 +20,7 @@ def run_cmd(file_id):
         return file_id, 'NaN'
 
 
-num_processes = int(os.environ['SLURM_NTASKS'])
+num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
 if __name__ == '__main__':
     if not os.path.exists('out/'):

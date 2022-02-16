@@ -91,7 +91,7 @@ def get_regressors(OGid, msa, scores, gaps_array,
 
 
 # Load parameters
-num_processes = int(os.environ['SLURM_NTASKS'])
+num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
 with open('../config/trim_params.json') as file:
     tp = json.load(file)
