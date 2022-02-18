@@ -1,7 +1,7 @@
 """Find connected components of ggraph."""
 
 import os
-from src.ortho_cluster.DFS import get_connected_components
+from src.ortho_cluster.graphs import get_connected_components
 
 # Load ggraph
 ggraph = {}

@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 import os
 from itertools import combinations
-from src.ortho_cluster.triDFS import get_triangle_clusters
+from src.ortho_cluster.graphs import get_triangle_clusters
 
 # Load graph
 graph = {}

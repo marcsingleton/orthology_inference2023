@@ -1,7 +1,7 @@
 """Cluster ggraph on triangle criterion."""
 
 import os
-from src.ortho_cluster.triDFS import get_triangle_clusters
+from src.ortho_cluster.graphs import get_triangle_clusters
 
 # Load ggraph
 ggraph = {}
