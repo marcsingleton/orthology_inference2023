@@ -1,7 +1,7 @@
 """Find connected components of ggraph."""
 
 import os
-from src.ortho_cluster.DFS import connect
+from src.ortho_cluster.DFS import get_connected_components
 
 # Load ggraph
 ggraph = {}
@@ -11,7 +11,7 @@ with open('../hsps2ggraph/out/ggraph.tsv') as file:
         ggraph[node] = adjs.split(',')
 
 # Find connected components
-CCs = connect(ggraph)
+CCs = get_connected_components(ggraph)
 
 # Make output directory
 if not os.path.exists('out/'):

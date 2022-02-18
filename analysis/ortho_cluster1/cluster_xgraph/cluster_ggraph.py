@@ -1,7 +1,7 @@
 """Cluster ggraph on triangle criterion."""
 
 import os
-from src.ortho_cluster.triDFS import cluster
+from src.ortho_cluster.triDFS import get_triangle_clusters
 
 # Load ggraph
 ggraph = {}
@@ -11,7 +11,7 @@ with open('../hsps2ggraph/out/ggraph.tsv') as file:
         ggraph[node] = set(adjs.split(','))
 
 # Cluster by triangle criterion
-OGs = cluster(ggraph)
+OGs = get_triangle_clusters(ggraph)
 
 # Make output directory
 if not os.path.exists('out/'):

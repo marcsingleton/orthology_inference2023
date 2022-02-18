@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 import os
 from itertools import combinations
-from src.ortho_cluster.triDFS import cluster
+from src.ortho_cluster.triDFS import get_triangle_clusters
 
 # Load graph
 graph = {}
@@ -25,7 +25,7 @@ for CC in CCs:
     subgraph = {node: graph[node] for node in CC}
 
     # Cluster by triangle criterion
-    subOGs = cluster(subgraph)
+    subOGs = get_triangle_clusters(subgraph)
     OGs.append(subOGs)
 
     # Classify CCs

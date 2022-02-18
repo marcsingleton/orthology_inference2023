@@ -1,7 +1,7 @@
 """Find connected components of pgraph."""
 
 import os
-from src.ortho_cluster.DFS import connect
+from src.ortho_cluster.DFS import get_connected_components
 
 # Load graph
 graph = {}
@@ -11,7 +11,7 @@ with open('../hits2pgraph/out/pgraph1.tsv') as file:
         graph[node] = [adj.split(':')[0] for adj in adjs.split(',')]
 
 # Find connected components
-CCs = connect(graph)
+CCs = get_connected_components(graph)
 
 # Make output directory
 if not os.path.exists('out/'):

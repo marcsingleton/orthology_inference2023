@@ -1,7 +1,7 @@
 """Find connected components of pgraph."""
 
 import os
-from src.ortho_cluster.DFS import connect
+from src.ortho_cluster.DFS import get_connected_components
 
 # Load pgraph
 pgraph = {}
@@ -26,7 +26,7 @@ for qppid, sppids in pgraph.items():
                 rpgraph[qppid] = {sppid}
 
 # Find connected components
-CCs = connect(rpgraph)
+CCs = get_connected_components(rpgraph)
 
 # Make output directory
 if not os.path.exists('out/'):

@@ -1,7 +1,7 @@
 """Cluster pgraph on triangle criterion."""
 
 import os
-from src.ortho_cluster.triDFS import cluster
+from src.ortho_cluster.triDFS import get_triangle_clusters
 
 # Load pgraph
 pgraph = {}
@@ -26,7 +26,7 @@ for qppid, sppids in pgraph.items():
                 rpgraph[qppid] = {sppid}
 
 # Cluster by triangle criterion
-OGs = cluster(rpgraph)
+OGs = get_triangle_clusters(rpgraph)
 
 # Make output directory
 if not os.path.exists('out/'):
