@@ -40,8 +40,7 @@ for OGid in OGids:
         for row in rows:
             seq = ppid2seq[row.ppid]
             seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-            file.write(f'>ppid={row.ppid}|gnid={row.gnid}|spid={row.spid}\n')
-            file.write(seqstring)
+            file.write(f'>ppid={row.ppid}|gnid={row.gnid}|spid={row.spid}\n' + seqstring)
 
 """
 DEPENDENCIES

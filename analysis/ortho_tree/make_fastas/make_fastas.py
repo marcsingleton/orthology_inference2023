@@ -61,8 +61,7 @@ for OGid in OGids:
     with open(f'out/{OGid}.tfa', 'w') as file:
         for seq, sqid, gnid, spid in sorted(records, key=lambda x: x[3]):
             seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-            file.write(f'>ppid={sqid}|gnid={gnid}|spid={spid}\n')
-            file.write(seqstring)
+            file.write(f'>ppid={sqid}|gnid={gnid}|spid={spid}\n' + seqstring)
 
 """
 DEPENDENCIES
