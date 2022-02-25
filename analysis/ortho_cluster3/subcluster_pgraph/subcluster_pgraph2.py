@@ -10,7 +10,7 @@ graph = {}
 with open('../hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        graph[node] = set([adj.split(':')[0] for adj in adjs.split(',')])
+        graph[node] = {adj.split(':')[0] for adj in adjs.split(',')}
 
 # Load connected components
 CCs = []
@@ -29,7 +29,7 @@ for CC in CCs:
     OGs.append(subOGs)
 
     # Classify CCs
-    subnOGs = [set([node for edge in subOG for node in edge]) for subOG in subOGs]
+    subnOGs = [{node for edge in subOG for node in edge} for subOG in subOGs]
     if len(subnOGs) == 0:
         CCtypes[0][len(subnOGs)] = CCtypes[0].get(len(subnOGs), 0) + 1  # Component has no OGs
     elif len(subnOGs) == 1:

@@ -107,7 +107,7 @@ graph = {}
 with open('../hits2pgraph/out/pgraph2.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        graph[node] = set([adj.split(':')[0] for adj in adjs.split(',')])
+        graph[node] = {adj.split(':')[0] for adj in adjs.split(',')}
 
 # Load connected components
 CCs = []

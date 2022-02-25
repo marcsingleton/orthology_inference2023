@@ -17,7 +17,7 @@ rows = []
 with open('../subcluster_pgraph/out/pgraph1/pclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
-        ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
+        ppids = {node for edge in edges.split('\t') for node in edge.split(',')}
         for ppid in ppids:
             gnid, spid = ppid2meta[ppid]
             rows.append({'CCid': CCid, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'spid': spid})

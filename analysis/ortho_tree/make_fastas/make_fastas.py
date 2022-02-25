@@ -38,7 +38,7 @@ OGs = {}
 with open('../clique4+_pcommunity/out/4clique/pclusters.txt') as file:
     for line in file:
         _, OGid, edges = line.rstrip().split(':')
-        sqids = set([ppid2meta[node][2] for edge in edges.split('\t') for node in edge.split(',')])
+        sqids = {ppid2meta[node][2] for edge in edges.split('\t') for node in edge.split(',')}
         OGs[OGid] = sqids
 OGs_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
 

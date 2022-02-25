@@ -113,20 +113,20 @@ def reduce(OGid, OG):
     msd = get_max_gnid_distances(dm)
 
     # Prune tree
-    gnids = set([ppid2meta[ppid][0] for ppid in OG])
+    gnids = {ppid2meta[ppid][0] for ppid in OG}
     while len(tree.tip_names) > len(gnids):
         # Remove non-minimal tips in single-species clades
         for node in tree.postorder():
             if node.is_tip():
                 node.min_tips = {(node.name, node.length)}
-            elif len(set([name.split(':')[1] for child in node.children for name, _ in child.min_tips])) == 1:
+            elif len({name.split(':')[1] for child in node.children for name, _ in child.min_tips}) == 1:
                 name, length = min([min_tip for child in node.children for min_tip in child.min_tips], key=lambda x: x[1])
                 node.min_tips = {(name, length + node.length)}
             else:
-                node.min_tips = set([min_tip for child in node.children for min_tip in child.min_tips])
-        min_names = set([tip_name for tip_name, _ in tree.min_tips])
+                node.min_tips = {min_tip for child in node.children for min_tip in child.min_tips}
+        min_names = {tip_name for tip_name, _ in tree.min_tips}
         if min_names < tree.tip_names:
-            tip_gnids = set([tip_name.split(':')[1] for tip_name in (tree.tip_names - min_names)])
+            tip_gnids = {tip_name.split(':')[1] for tip_name in (tree.tip_names - min_names)}
             tree = tree.shear(min_names)
             update_tip_names(tree)
             msd = update_max_gnid_distances(msd, dm, tree, tip_gnids)
@@ -134,8 +134,8 @@ def reduce(OGid, OG):
         # Split tree
         trees = []
         for node in tree.traverse(include_self=False):
-            tip_gnids1 = set([tip_name.split(':')[1] for tip_name in node.tip_names])
-            tip_gnids2 = set([tip_name.split(':')[1] for tip_name in (tree.tip_names - node.tip_names)])
+            tip_gnids1 = {tip_name.split(':')[1] for tip_name in node.tip_names}
+            tip_gnids2 = {tip_name.split(':')[1] for tip_name in (tree.tip_names - node.tip_names)}
 
             if tip_gnids1 == gnids:
                 tree1 = tree.shear(node.tip_names)
@@ -195,7 +195,7 @@ OGs = {}
 with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
     for line in file:
         _, OGid, edges = line.rstrip().split(':')
-        sqids = set([ppid2meta[node][2] for edge in edges.split('\t') for node in edge.split(',')])
+        sqids = {ppid2meta[node][2] for edge in edges.split('\t') for node in edge.split(',')}
         OGs[OGid] = sqids  # Ensure only representatives are selected for reduced clusters
 
 if __name__ == '__main__':

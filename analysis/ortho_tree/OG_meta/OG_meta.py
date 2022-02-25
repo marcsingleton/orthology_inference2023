@@ -27,10 +27,10 @@ rows = []
 with open('../clique4+_pcommunity/out/4clique/pclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
-        ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
-        gnids = set([ppid2meta[ppid][0] for ppid in ppids])
-        spids = set([ppid2meta[ppid][1] for ppid in ppids])
-        sqids = set([ppid2meta[ppid][2] for ppid in ppids])
+        ppids = {node for edge in edges.split('\t') for node in edge.split(',')}
+        gnids = {ppid2meta[ppid][0] for ppid in ppids}
+        spids = {ppid2meta[ppid][1] for ppid in ppids}
+        sqids = {ppid2meta[ppid][2] for ppid in ppids}
         bitscore = 0
         for edge in edges.split('\t'):
             node1, node2 = edge.split(',')

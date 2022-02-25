@@ -49,7 +49,7 @@ for OGid in os.listdir('out/raw/'):
     msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
     # Map outputs to MSA columns
-    ppids = set([path.split('.')[0] for path in os.listdir(f'out/raw/{OGid}/')])
+    ppids = {path.split('.')[0] for path in os.listdir(f'out/raw/{OGid}/')}
     if set(msa) != ppids:
         print(f'{OGid} has fewer predictions than sequences. Skipping segmentation.')
         continue

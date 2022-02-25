@@ -44,7 +44,7 @@ for CC in CCs:
     OGs.append(subOGs)
 
     # Classify CCs
-    subnOGs = [set([node for edge in subOG for node in edge]) for subOG in subOGs]
+    subnOGs = [{node for edge in subOG for node in edge} for subOG in subOGs]
     if len(subnOGs) == 0:
         CCtypes[0][len(subnOGs)] = CCtypes[0].get(len(subnOGs), 0) + 1  # Component has no OGs
     elif len(subnOGs) == 1:

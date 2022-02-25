@@ -40,9 +40,9 @@ def get_tree(tree1, tree2):
     # Find split and calculate ratio
     tree1 = tree1.shear([tip.name for tip in tree2.tips()])
     nodeA, nodeB = tree1.children
-    tipsA, tipsB = set([tip.name for tip in nodeA.tips()]), set([tip.name for tip in nodeB.tips()])
+    tipsA, tipsB = {tip.name for tip in nodeA.tips()}, {tip.name for tip in nodeB.tips()}
     for node in tree2.traverse():
-        tips = set([tip.name for tip in node.tips()])
+        tips = {tip.name for tip in node.tips()}
         if tips == tipsA:
             nodeA, nodeB = nodeB, nodeA  # Swap labels so nodeA is the preserved root clade
             ratio = nodeA.length / (nodeA.length + nodeB.length)

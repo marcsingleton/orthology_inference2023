@@ -83,7 +83,7 @@ for OGid in OGids:
         file.write(f'    charpartition mine = {partition_string};\nend;\n')
 
     # Prune missing species from tree
-    spids = set([spid for _, spid, _ in msa])
+    spids = {spid for _, spid, _ in msa}
     tree = tree_template.shear(spids)
     skbio.io.write(tree, format='newick', into=f'out/{OGid}.nwk')
 

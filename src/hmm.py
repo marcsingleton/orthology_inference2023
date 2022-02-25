@@ -81,7 +81,7 @@ class HMM:
 
         # Create random variates from e_dists
         if all_dicts:
-            emits = set([emit for e_dist in e_dists.values() for emit in e_dist])
+            emits = {emit for e_dist in e_dists.values() for emit in e_dist}
             emit2idx = {}
             idx2emit = {}
             _emits = set()
@@ -376,7 +376,7 @@ class ARHMM:
         self.start_e_dists = start_e_dists
         self._start_e_dists_rv = start_e_dists_rv
         self.start_states = start_states
-        self._start_states = set([state2idx[state] for state in self.start_states])
+        self._start_states = {state2idx[state] for state in self.start_states}
         self.stop_states = stop_states
         self._stop_states = [state2idx[state] for state in stop_states] if stop_states is not None else []
 

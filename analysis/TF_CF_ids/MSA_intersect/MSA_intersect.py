@@ -16,7 +16,7 @@ rows = []
 with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
-        ppids = set([node for edge in edges.split('\t') for node in edge.split(',')])
+        ppids = {node for edge in edges.split('\t') for node in edge.split(',')}
         for ppid in ppids:
             gnid = ppid2gnid[ppid]
             rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid})

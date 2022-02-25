@@ -7,9 +7,9 @@ import skbio
 
 
 def grouped_bar(groups, group_width, bar_width, file_label, bar_labels=None, bar_colors=None):
-    group_labels = sorted(list(groups))
+    group_labels = sorted(groups)
     if bar_labels is None:
-        bar_labels = list(set([bar_label for group in groups.values() for bar_label in group]))
+        bar_labels = list({bar_label for group in groups.values() for bar_label in group})
     if bar_colors is None:
         bar_colors = [f'C{i%10}' for i in range(len(bar_labels))]
 

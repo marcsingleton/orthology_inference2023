@@ -14,7 +14,7 @@ def load_OGs(path):
     with open(path) as file:
         for line in file:
             CCid, _, edges = line.rstrip().split(':')
-            gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
+            gnids = {node for edge in edges.split('\t') for node in edge.split(',')}
             try:
                 OGs[CCid].append(gnids)
             except KeyError:

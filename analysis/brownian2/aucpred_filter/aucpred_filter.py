@@ -86,7 +86,7 @@ for OGid, regions in OGid2regions.items():
         # Filter by phylogenetic diversity
         for min_length, segments in segment_sets.items():
             ppids = [ppid for ppid, _ in segments]
-            spids = set([spid for _, spid in segments])
+            spids = {spid for _, spid in segments}
             if len(spids) >= 20 and spid_filter(spids):
                 record_sets[min_length].append((OGid, str(start), str(stop), str(disorder), ','.join(ppids)))
 

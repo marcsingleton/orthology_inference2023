@@ -25,7 +25,7 @@ rows = []
 with open('../subcluster_xgraph/out/ggraph/gclusters.txt') as file:
     for line in file:
         CCid, OGid, edges = line.rstrip().split(':')
-        gnids = set([node for edge in edges.split('\t') for node in edge.split(',')])
+        gnids = {node for edge in edges.split('\t') for node in edge.split(',')}
         for gnid in gnids:
             rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid, 'spid': gnid2spid[gnid]})
 OGs = pd.DataFrame(rows)

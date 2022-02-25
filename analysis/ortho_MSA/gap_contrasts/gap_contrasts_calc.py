@@ -31,7 +31,7 @@ def get_contrasts(node):
 
 # Load tree
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
-spids = set([tip.name for tip in tree_template.tips() if tip.name != 'sleb'])
+spids = {tip.name for tip in tree_template.tips() if tip.name != 'sleb'}
 
 # Load representative OGs
 OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')

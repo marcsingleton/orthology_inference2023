@@ -17,7 +17,7 @@ OGid2gnids = {}
 with open('../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
     for line in file:
         _, OGid, edges = line.rstrip().split(':')
-        gnids = set([ppid2gnid[node] for edge in edges.split('\t') for node in edge.split(',')])
+        gnids = {ppid2gnid[node] for edge in edges.split('\t') for node in edge.split(',')}
         OGid2gnids[OGid] = gnids
 
 # Make OGgraph

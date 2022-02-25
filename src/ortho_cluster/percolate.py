@@ -151,7 +151,7 @@ def k_clique_communities_progressive(G, k, cliques=None):
 
 
 def edges2nodes(edges):
-    return set([node for edge in edges for node in edge])
+    return {node for edge in edges for node in edge}
 
 
 def k_percolates(clique, CC, k):

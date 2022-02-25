@@ -27,7 +27,7 @@ regions = pd.DataFrame(rows)
 # Load tree
 tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
-spids = set([tip.name for tip in tree.tips() if tip.name != 'sleb'])
+spids = {tip.name for tip in tree.tips() if tip.name != 'sleb'}
 num_contrasts = len(spids) - 1
 
 # 1 PLOT STATISTICS (OGS WITH ALL SPECIES)
