@@ -6,9 +6,9 @@ from io import StringIO
 
 import numpy as np
 import skbio
-from asr import get_conditional, get_tree
 from scipy.special import gammainc
 from scipy.stats import gamma
+from src.evosim.asr import get_conditional, get_tree
 from src.utils import read_fasta
 
 
