@@ -289,6 +289,7 @@ for path in os.listdir('../asr_generate/out/'):
             unaligned_records.append((spid, seq, list(evoseq.residue_ids)))
 
         # Align sequences
+        aligned_ids = []
         aligned_records = [(spid, []) for spid, _, _ in unaligned_records]
         spid2idx = {spid: 0 for spid, _, _ in unaligned_records}
         while any([spid2idx[spid] < len(seq) for spid, seq, _ in unaligned_records]):
@@ -301,16 +302,19 @@ for path in os.listdir('../asr_generate/out/'):
             # Find spids with priority id
             max_id = max([residue_id for _, residue_id, _ in idx_records])
             spids = {spid for _, residue_id, spid in idx_records if residue_id == max_id}
+            aligned_ids.append(str(max_id))
 
             # Append symbols to sequences
-            for (spid, seq), (sym, _, _) in zip(aligned_records, idx_records):
+            for (spid, seq), (sym, residue_id, _) in zip(aligned_records, idx_records):
                 if spid in spids:
                     seq.append(sym)
                     spid2idx[spid] += 1
                 else:
                     seq.append('-')
 
-        # Write alignment
+        # Write alignments
+        with open(f'out/{OGid}_{header[1:]}.txt', 'w') as file:
+            file.write(','.join(aligned_ids) + '\n')
         with open(f'out/{OGid}_{header[1:]}.mfa', 'w') as file:
             for spid, seq in sorted(aligned_records):
                 seqstring = '\n'.join([''.join(seq)[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
