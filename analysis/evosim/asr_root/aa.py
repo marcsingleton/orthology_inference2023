@@ -101,12 +101,25 @@ for OGid in OGids:
                 partition.update({'regions': regions, 'transform': transform})
                 partition_id += 1
 
+    # Load rate categories
+    for partition in partitions.values():
+        pinv, alpha, num_categories = partition['pinv'], partition['alpha'], partition['num_categories']
+        igfs = []  # Incomplete gamma function evaluations
+        for i in range(num_categories+1):
+            x = gamma.ppf(i/num_categories, a=alpha, scale=1/alpha)
+            igfs.append(gammainc(alpha+1, alpha*x))
+        rates = [(0, pinv)]
+        for i in range(num_categories):
+            rate = num_categories/(1-pinv) * (igfs[i+1] - igfs[i])
+            rates.append((partition['speed'] * rate, (1-pinv)/num_categories))
+        partition['rates'] = rates
+
     # Calculate likelihoods
     msa = read_fasta(f'../asr_aa/out/{OGid}.mfa')
     for partition in partitions.values():
         # Unpack partition parameters and partition MSA
         matrix, freqs = models[partition['model']]
-        pinv, alpha, num_categories = partition['pinv'], partition['alpha'], partition['num_categories']
+        rates = partition['rates']
         partition_msa = []
         for header, seq in msa:
             partition_seq = ''.join([seq[start:stop] for start, stop in partition['regions']])
@@ -124,16 +137,6 @@ for OGid in OGids:
                 else:  # Use uniform distribution for ambiguous symbols
                     conditional[:, j] = 1 / len(alphabet)
             tip.conditional = conditional
-
-        # Calculate rates for non-invariant categories
-        igfs = []  # Incomplete gamma function evaluations
-        for i in range(num_categories+1):
-            x = gamma.ppf(i/num_categories, a=alpha, scale=1/alpha)
-            igfs.append(gammainc(alpha+1, alpha*x))
-        rates = []  # Normalized rates
-        for i in range(num_categories):
-            rate = num_categories / (1-pinv) * (igfs[i + 1] - igfs[i])
-            rates.append((rate, (1-pinv) / num_categories))
 
         # Calculate likelihoods
         likelihoods = []
@@ -155,11 +158,11 @@ for OGid in OGids:
             if is_invariant:
                 idx = sym2idx[sym0]
                 likelihood[idx, j] = freqs[idx]
-        likelihoods.append(likelihood * pinv)  # Multiply by prior for category
+        likelihoods.append(likelihood * rates[0][1])  # Multiply by prior for category
 
         # Get likelihoods for rate categories
         for rate, prior in rates:
-            s, conditional = get_conditional(tree, partition['speed'] * rate * matrix)
+            s, conditional = get_conditional(tree, rate * matrix)
             l = np.expand_dims(freqs, -1) * conditional
             likelihoods.append(np.exp(s) * l * prior)
 
@@ -194,6 +197,7 @@ DEPENDENCIES
 ../asr_aa/asr_aa.py
     ../asr_aa/out/*.iqtree
     ../asr_aa/out/*.mfa
+    ../asr_aa/out/*.nex
 ../config/50red_D.txt
 ../config/WAG.txt
 """

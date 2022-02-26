@@ -61,7 +61,7 @@ for OGid in OGids:
     for i in range(num_categories+1):
         x = gamma.ppf(i/num_categories, a=alpha, scale=1/alpha)
         igfs.append(gammainc(alpha+1, alpha*x))
-    rates = []  # Normalized rates
+    rates = []
     for i in range(num_categories):
         rate = num_categories * (igfs[i+1] - igfs[i])
         rates.append((rate, 1/num_categories))
