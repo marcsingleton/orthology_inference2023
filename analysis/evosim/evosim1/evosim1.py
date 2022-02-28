@@ -41,8 +41,8 @@ class SeqEvolver:
     partition_ids: ndarray
         One-dimenionsal array with the partition integer identifier for each
         symbol in seq.
-    jump_matrices: dict of ndarrays
-        Dict keyed by partition_id where values are jump distributions.
+    rate_matrices: dict of ndarrays
+        Dict keyed by partition_id where values are normalized rate matrices.
     sym_dists: dict of nd arrays
         Dict keyed by partition_id where values are symbol distributions.
     insertion_dists: dict of rv_discrete
@@ -52,24 +52,40 @@ class SeqEvolver:
         Dict keyed by partition_id where values are rv_discrete for generating
         random deletion lengths. Values must support a rvs method.
     """
-    def __init__(self, seq, rates, activities, residue_ids, partition_ids, jump_matrices, sym_dists, insertion_dists, deletion_dists):
+    def __init__(self, seq, rate_coefficients, activities, residue_ids, partition_ids, rate_matrices, sym_dists, insertion_dists, deletion_dists):
         self.seq = seq
-        self.rates = rates
+        self.rate_coefficients = rate_coefficients
         self.activities = activities
         self.residue_ids = residue_ids
         self.partition_ids = partition_ids
-        self.jump_matrices = jump_matrices
+        self.rate_matrices = rate_matrices
         self.sym_dists = sym_dists
         self.insertion_dists = insertion_dists
         self.deletion_dists = deletion_dists
 
+        # Calculate rates from rate matrices and rate coefficients
+        rates = np.empty(len(seq))
+        for j, (idx, partition_id) in enumerate(zip(self.seq, self.partition_ids)):
+            rate = 0 if idx == -1 else -self.rate_matrices[partition_id][idx, idx]  # Check for "out-of-alphabet" symbols
+            rates[j] = rate
+        self.rates = rates * self.rate_coefficients
+
+        # Calculate jump matrices from rate matrices
+        jump_matrices = {}
+        for partition_id, rate_matrix in rate_matrices.items():
+            jump_matrix = np.copy(rate_matrix)
+            np.fill_diagonal(jump_matrix, 0)
+            jump_matrix = jump_matrix / np.expand_dims(jump_matrix.sum(axis=1), -1)  # Normalize rows to obtain jump matrix
+            jump_matrices[partition_id] = jump_matrix
+        self.jump_matrices = jump_matrices
+
     def __deepcopy__(self, memodict={}):
         seq = np.copy(self.seq)
-        rates = np.copy(self.rates)
+        rate_coefficients = np.copy(self.rate_coefficients)
         activities = np.copy(self.activities)
         residue_ids = np.copy(self.residue_ids)
         partition_ids = np.copy(self.partition_ids)
-        return SeqEvolver(seq, rates, activities, residue_ids, partition_ids, self.jump_matrices, self.sym_dists, self.insertion_dists, self.deletion_dists)
+        return SeqEvolver(seq, rate_coefficients, activities, residue_ids, partition_ids, self.rate_matrices, self.sym_dists, self.insertion_dists, self.deletion_dists)
 
     def mutate(self, residue_index):
         """Mutate the sequence."""
@@ -88,7 +104,11 @@ class SeqEvolver:
     def substitute(self, j, residue_index):
         """Substitute residue at index j."""
         jump_dist = self.jump_matrices[self.partition_ids[j]][self.seq[j]]
-        self.seq[j] = rng.choice(np.arange(len(jump_dist)), p=jump_dist)
+        idx = rng.choice(np.arange(len(jump_dist)), p=jump_dist)
+        rate = -self.rate_matrices[self.partition_ids[j]][idx, idx]
+
+        self.seq[j] = idx
+        self.rates[:, j] = rate * self.rate_coefficients[:, j]
 
         return residue_index
 
@@ -100,17 +120,19 @@ class SeqEvolver:
 
         # Make insertion arrays
         seq = rng.choice(np.arange(len(sym_dist)), size=length, p=sym_dist)
-        rates = np.full((3, length), np.expand_dims(self.rates[:, j], axis=-1))
+        rate_coefficients = np.full((length, 3), self.rate_coefficients[:, j])
         activities = np.full(length, True)
         residue_ids = np.arange(residue_index, residue_index+length)
         partition_ids = np.full(length, partition_id)
+        rates = np.array([-self.rate_matrices[partition_id][idx, idx] for idx in seq])
 
         # Insert insertion into arrays
         self.seq = np.insert(self.seq, j+1, seq)
-        self.rates = np.insert(self.rates, [j+1], rates, axis=1)  # Array insertion requires some special syntax
+        self.rate_coefficients = np.insert(self.rate_coefficients, j+1, rate_coefficients, axis=1)  # Insert matches first axis of inserted array to one given by axis keyword
         self.activities = np.insert(self.activities, j+1, activities)
         self.residue_ids = np.insert(self.residue_ids, j+1, residue_ids)
         self.partition_ids = np.insert(self.partition_ids, j+1, partition_ids)
+        self.rates = np.insert(self.rates, j+1, np.expand_dims(rates, -1) * rate_coefficients, axis=1)
 
         return residue_index + length
 
@@ -165,9 +187,10 @@ def load_model(path):
         for _ in range(2):
             line = file.readline()
         freqs = np.array([float(value) for value in line.split()])
-        freqs = freqs / freqs.sum()  # Re-normalize to ensure sums to 1 (in case of floating point errors)
     matrix = freqs * matrix
-    matrix = matrix / np.expand_dims(matrix.sum(axis=1), -1)  # Normalize rows to obtain jump matrix
+    rate = (freqs * matrix.sum(axis=1)).sum()
+    matrix = matrix / rate  # Normalize average rate to 1
+    np.fill_diagonal(matrix, -matrix.sum(axis=1))
     return matrix, freqs
 
 
@@ -175,14 +198,16 @@ rng = np.random.default_rng()
 alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
 sym2idx = {sym: i for i, sym in enumerate(alphabet)}
 idx2sym = {i: sym for i, sym in enumerate(alphabet)}
-insertion_rate = 0.008
+insertion_rate = 0.008  # Indel rates are relative to the substitution rate scaling factor
 deletion_rate = 0.01
 
 # Load models
 WAG_matrix, WAG_freqs = load_model('../config/WAG.txt')
 disorder_matrix, disorder_freqs = load_model('../config/50red_D.txt')
-jump_matrices = {1: WAG_matrix, 2: disorder_matrix}
-sym_dists = {1: WAG_freqs, 2: disorder_freqs}
+rate_matrices = {1: WAG_matrix,
+                 2: disorder_matrix}
+sym_dists = {1: WAG_freqs / WAG_freqs.sum(),  # Re-normalize to ensure sums to 1
+             2: disorder_freqs / disorder_freqs.sum()}
 
 # Make indel dists
 insertion_dists = {1: stats.geom(0.8), 2: stats.geom(0.75)}
@@ -265,15 +290,15 @@ for path in os.listdir('../asr_generate/out/'):
     aa_dist = np.load(f'../asr_root/out/{OGid}_aa.npy')
     for header, seq in fasta:
         # Construct sequence object
-        seq = np.array([sym2idx.get(sym, -1) for sym in seq])  # Use -1 for gap characters
+        seq = np.array([sym2idx.get(sym, -1) for sym in seq])  # Use -1 for gap symbols
         activities = np.array([False if sym == -1 else True for sym in seq])
-        rates = np.empty((3, length))
+        rate_coefficients = np.empty((3, length))
         for j, (i, partition_id) in enumerate(zip(seq, partition_ids)):
             ps = aa_dist[:, i, j] / aa_dist[:, i, j].sum()  # Posterior for rate categories given symbol
             rs = np.array([r for r, _ in partitions[partition_id]['rates']])  # Rates of rate categories
             rate = (ps*rs).sum()
-            rates[:, j] = [rate, insertion_rate*rate, deletion_rate*rate]
-        evoseq = SeqEvolver(seq, rates, activities, residue_ids, partition_ids, jump_matrices, sym_dists, insertion_dists, deletion_dists)
+            rate_coefficients[:, j] = [rate, insertion_rate*rate, deletion_rate*rate]
+        evoseq = SeqEvolver(seq, rate_coefficients, activities, residue_ids, partition_ids, rate_matrices, sym_dists, insertion_dists, deletion_dists)
 
         # Evolve! (and extract results)
         _, evoseqs = simulate_branch(tree, evoseq, length)
