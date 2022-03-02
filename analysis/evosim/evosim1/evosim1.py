@@ -23,6 +23,16 @@ class SeqEvolver:
     number of residues deleted is equal to the given length or no more residues
     remain.
 
+    An "immortal link" (Thorne et al., 1991) can be included at the beginning
+    to allow indels before the first symbol. The immortal link is never
+    inactive to ensure a sequence can always generate new symbols. Immortal
+    links are not officially supported in this implementation, but they can be
+    easily simulated by including an additional symbol at the beginning with a
+    non-zero insertion rate and a deletion rate of 0. As a result of how the
+    rate array is initialized, the symbol of the immortal link must have an
+    associated rate in the rate matrix. However, to keep this rate constant,
+    it is recommended to set the substitution rate to 0 as well.
+
     Parameters
     ----------
     seq: ndarray
@@ -33,13 +43,13 @@ class SeqEvolver:
         insertion, and deletion rates, respectively. The columns correspond to
         the index in seq.
     activities: ndarray
-        One-dimenionsal array with boolean values indicating if residue is
-        active. Deleted residues are inactive.
+        One-dimensional array with boolean values indicating if the symbol is
+        active. Deleted symbols are inactive.
     residue_ids: ndarray
         One-dimensional array with unique integer identifier for each symbol in
         seq.
     partition_ids: ndarray
-        One-dimenionsal array with the partition integer identifier for each
+        One-dimensional array with the partition integer identifier for each
         symbol in seq.
     rate_matrices: dict of ndarrays
         Dict keyed by partition_id where values are normalized rate matrices.
@@ -47,12 +57,13 @@ class SeqEvolver:
         Dict keyed by partition_id where values are symbol distributions.
     insertion_dists: dict of rv_discrete
         Dict keyed by partition_id where values are rv_discrete for generating
-        random insertion lengths. Values must support a rvs method.
+        random insertion lengths. Values must support an rvs method.
     deletion_dists: dict of rv_discrete
         Dict keyed by partition_id where values are rv_discrete for generating
-        random deletion lengths. Values must support a rvs method.
+        random deletion lengths. Values must support an rvs method.
     """
-    def __init__(self, seq, rate_coefficients, activities, residue_ids, partition_ids, rate_matrices, sym_dists, insertion_dists, deletion_dists):
+    def __init__(self, seq, rate_coefficients, activities, residue_ids, partition_ids,
+                 rate_matrices, sym_dists, insertion_dists, deletion_dists):
         self.seq = seq
         self.rate_coefficients = rate_coefficients
         self.activities = activities
@@ -217,9 +228,12 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 for path in os.listdir('../asr_generate/out/'):
+    # Load data and calculate "global" variables
     OGid = path[:4]
     fasta = read_fasta(f'../asr_generate/out/{OGid}_sample.mfa')
+    aa_dist = np.load(f'../asr_root/out/{OGid}_aa.npy')
     length = len(fasta[0][1])
+    residue_ids = np.arange(-1, length)
 
     # Load trees
     tree1 = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
@@ -261,7 +275,7 @@ for path in os.listdir('../asr_generate/out/'):
             line = file.readline()
 
     # Load partition regions
-    partition_ids = np.empty(length)
+    partition_template = np.empty(length)
     with open(f'../asr_aa/out/{OGid}.nex') as file:
         partition_id = 1
         for line in file:
@@ -269,7 +283,7 @@ for path in os.listdir('../asr_generate/out/'):
                 match = re.search(r'charset (?P<name>[a-zA-Z0-9]+) = (?P<regions>[0-9 -]+);', line)
                 for region in match['regions'].split():
                     start, stop = region.split('-')
-                    partition_ids[int(start)-1:int(stop)] = partition_id
+                    partition_template[int(start)-1:int(stop)] = partition_id
                 partition_id += 1
 
     # Load rate categories
@@ -286,19 +300,26 @@ for path in os.listdir('../asr_generate/out/'):
         partition['rates'] = rates
 
     # Evolve sequences along tree
-    residue_ids = np.arange(length)
-    aa_dist = np.load(f'../asr_root/out/{OGid}_aa.npy')
     for header, seq in fasta:
-        # Construct sequence object
+        # Construct root-specific SeqEvolver arrays
         seq = np.array([sym2idx.get(sym, -1) for sym in seq])  # Use -1 for gap symbols
         activities = np.array([False if sym == -1 else True for sym in seq])
         rate_coefficients = np.empty((3, length))
-        for j, (i, partition_id) in enumerate(zip(seq, partition_ids)):
+        for j, (i, partition_id) in enumerate(zip(seq, partition_template)):
             ps = aa_dist[:, i, j] / aa_dist[:, i, j].sum()  # Posterior for rate categories given symbol
             rs = np.array([r for r, _ in partitions[partition_id]['rates']])  # Rates of rate categories
             rate = (ps*rs).sum()
             rate_coefficients[:, j] = [rate, insertion_rate*rate, deletion_rate*rate]
-        evoseq = SeqEvolver(seq, rate_coefficients, activities, residue_ids, partition_ids, rate_matrices, sym_dists, insertion_dists, deletion_dists)
+
+        # Insert immortal link
+        j = np.nonzero(activities)[0][0]  # Index of first active symbol
+        seq = np.insert(seq, 0, seq[j])
+        rate_coefficients = np.insert(rate_coefficients, 0, [0, rate_coefficients[1, j], 0], axis=1)
+        activities = np.insert(activities, 0, True)
+        partition_ids = np.insert(partition_template, 0, partition_template[j])
+
+        evoseq = SeqEvolver(seq, rate_coefficients, activities, residue_ids, partition_ids,
+                            rate_matrices, sym_dists, insertion_dists, deletion_dists)
 
         # Evolve! (and extract results)
         _, evoseqs = simulate_branch(tree, evoseq, length)
@@ -306,12 +327,12 @@ for path in os.listdir('../asr_generate/out/'):
         unaligned_records = []
         for spid, evoseq in evoseqs:
             seq = []
-            for idx, activity in zip(evoseq.seq, evoseq.activities):
+            for idx, activity in zip(evoseq.seq[1:], evoseq.activities[1:]):  # Exclude immortal link
                 if activity:
                     seq.append(idx2sym.get(idx, '-'))
                 else:
                     seq.append('-')
-            unaligned_records.append((spid, seq, list(evoseq.residue_ids)))
+            unaligned_records.append((spid, seq, list(evoseq.residue_ids[1:])))
 
         # Align sequences
         aligned_ids = []
