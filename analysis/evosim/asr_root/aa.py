@@ -16,7 +16,7 @@ def load_model(path):
     with open(path) as file:
         # Parse exchangeability matrix
         matrix = np.zeros((len(alphabet), len(alphabet)))
-        for i in range(19):
+        for i in range(len(alphabet)-1):
             line = file.readline()
             for j, value in enumerate(line.split()):
                 matrix[i + 1, j] = float(value)

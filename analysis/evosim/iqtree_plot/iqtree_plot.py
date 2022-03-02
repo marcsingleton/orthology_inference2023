@@ -19,7 +19,7 @@ Record = namedtuple('Record', ['plot_label', 'file_label', 'matrix', 'freqs'])
 # Read WAG model
 with open('../config/WAG.txt') as file:
     # Parse exchangeability matrix
-    WAG_matrix = np.zeros((20, 20))
+    WAG_matrix = np.zeros((len(alphabet), len(alphabet)))
     for i in range(19):
         line = file.readline()
         for j, value in enumerate(line.split()):
