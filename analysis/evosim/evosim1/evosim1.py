@@ -38,10 +38,10 @@ class SeqEvolver:
     seq: ndarray
         One-dimensional array where symbols are stored as numerical indices.
         The indices must match the order given in jump_matrices and sym_dists.
-    rates: ndarray
+    rate_coefficients: ndarray
         Array with shape (3, len(seq)). The rows correspond to substitution,
-        insertion, and deletion rates, respectively. The columns correspond to
-        the index in seq.
+        insertion, and deletion rate coefficients, respectively. The columns
+        correspond to the index in seq.
     activities: ndarray
         One-dimensional array with boolean values indicating if the symbol is
         active. Deleted symbols are inactive.
@@ -287,6 +287,11 @@ for path in os.listdir('../asr_generate/out/'):
                 partition_id += 1
 
     # Load rate categories
+    # In IQ-TREE, only the shape parameter is fit and the rate parameter beta is set to alpha so the mean of gamma distribution is 1
+    # The calculations here directly correspond to equation 10 in Yang. J Mol Evol (1994) 39:306-314.
+    # Note the equation has a small typo where the difference in gamma function evaluations should be divided by the probability
+    # of that category since technically it is the rate given that category
+    # The order of arguments is also exchanged between the reference and scipy's implementation
     for partition in partitions.values():
         pinv, alpha, num_categories = partition['pinv'], partition['alpha'], partition['num_categories']
         igfs = []  # Incomplete gamma function evaluations

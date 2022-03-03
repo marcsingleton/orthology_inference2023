@@ -51,6 +51,10 @@ for OGid in OGids:
     tree = get_tree(tree1, tree2)
 
     # Load rate categories
+    # In IQ-TREE, only the shape parameter is fit and the rate parameter beta is set to alpha so the mean of gamma distribution is 1
+    # The calculations here directly correspond to equation 10 in Yang. J Mol Evol (1994) 39:306-314.
+    # Note the equation has a small typo where the difference in gamma function evaluations should be divided by the probability
+    # of that category since technically it is the rate given that category
     with open(f'../asr_indel/out/{OGid}.iqtree') as file:
         line = file.readline()
         while not line.startswith('Model of rate heterogeneity:'):
