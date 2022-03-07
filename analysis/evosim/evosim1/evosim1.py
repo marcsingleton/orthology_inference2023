@@ -114,9 +114,10 @@ class SeqEvolver:
 
     def substitute(self, j, residue_index):
         """Substitute residue at index j."""
-        jump_dist = self.jump_matrices[self.partition_ids[j]][self.seq[j]]
+        partition_id = self.partition_ids[j]
+        jump_dist = self.jump_matrices[partition_id][self.seq[j]]
         idx = rng.choice(np.arange(len(jump_dist)), p=jump_dist)
-        rate = -self.rate_matrices[self.partition_ids[j]][idx, idx]
+        rate = -self.rate_matrices[partition_id][idx, idx]
 
         self.seq[j] = idx
         self.rates[:, j] = rate * self.rate_coefficients[:, j]
@@ -130,12 +131,13 @@ class SeqEvolver:
         length = self.insertion_dists[partition_id].rvs()
 
         # Make insertion arrays
+        # (rate_coefficients and rates are transposed since it makes the insertion syntax simpler)
         seq = rng.choice(np.arange(len(sym_dist)), size=length, p=sym_dist)
         rate_coefficients = np.full((length, 3), self.rate_coefficients[:, j])
         activities = np.full(length, True)
         residue_ids = np.arange(residue_index, residue_index+length)
         partition_ids = np.full(length, partition_id)
-        rates = np.array([-self.rate_matrices[partition_id][idx, idx] for idx in seq])
+        rates = np.expand_dims([-self.rate_matrices[partition_id][idx, idx] for idx in seq], -1)
 
         # Insert insertion into arrays
         self.seq = np.insert(self.seq, j+1, seq)
@@ -143,7 +145,7 @@ class SeqEvolver:
         self.activities = np.insert(self.activities, j+1, activities)
         self.residue_ids = np.insert(self.residue_ids, j+1, residue_ids)
         self.partition_ids = np.insert(self.partition_ids, j+1, partition_ids)
-        self.rates = np.insert(self.rates, j+1, np.expand_dims(rates, -1) * rate_coefficients, axis=1)
+        self.rates = np.insert(self.rates, j+1, rates * rate_coefficients, axis=1)
 
         return residue_index + length
 
@@ -152,11 +154,7 @@ class SeqEvolver:
         partition_id = self.partition_ids[j]
         length = self.deletion_dists[partition_id].rvs()
 
-        while length > 0 and j < len(self.seq):
-            if self.activities[j]:
-                self.activities[j] = False
-                length -= 1
-            j += 1
+        self.activities[j:j+length] = False
 
         return residue_index
 
