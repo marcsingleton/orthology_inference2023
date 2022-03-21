@@ -5,92 +5,12 @@ import multiprocessing as mp
 import os
 from math import comb
 from functools import reduce
-from itertools import accumulate, product
 
-import scipy.stats as stats
-import src.hmm as hmm
+import src.brownian2.hmm as hmm
+import utils
 from numpy import exp, log
 from scipy.special import beta, digamma
 from src.utils import read_fasta
-
-
-# Probability classes and functions
-class HMM(hmm.HMM):
-    """A class that modifies the default HMM to accept pre-calculated intermediates.
-
-    Discriminative training requires decoding of both states and transitions.
-    Both of these calculations rely on the forward and backward variables.
-    Since these are the most computationally intensive steps in decoding and
-    both are used in state and transition decoding, this modified class accepts
-    the forward and backward variables as arguments rather than calculating
-    them from scratch each time.
-    """
-    def forward_backward1(self, emits, fs, ss_f, bs, ss_b):
-        """Posterior decoding of states."""
-        p = reduce(lambda x, y: x+y, map(log, ss_f))
-        ss_f = list(accumulate(map(log, ss_f)))
-        ss_b = list(accumulate(map(log, ss_b[::-1])))[::-1]
-
-        fbs = {state: [] for state in self.states}
-        for i in range(len(emits)):
-            for state, fb in fbs.items():
-                fbs[state].append(fs[state][i]*bs[state][i]*exp(ss_f[i]+ss_b[i]-p))
-
-        return fbs
-
-    def forward_backward2(self, emits, fs, ss_f, bs, ss_b):
-        """Posterior decoding of transitions."""
-        p = reduce(lambda x, y: x+y, map(log, ss_f))
-        ss_f = list(accumulate(map(log, ss_f)))
-        ss_b = list(accumulate(map(log, ss_b[::-1])))[::-1]
-
-        fbs = {p: [] for p in product(self.states, self.states)}
-        for i in range(len(emits)-1):
-            for s1, s2 in product(self.states, self.states):
-                fbs[(s1, s2)].append(fs[s1][i]*self.t_dists[s1][s2]*self.e_dists[s2].pmf(emits[i+1])*bs[s2][i+1]*exp(ss_f[i]+ss_b[i+1]-p))
-
-        return {p: sum(fb) for p, fb in fbs.items()}
-
-    def joint_likelihood(self, emits, states):
-        """Log-likelihood of emission and state sequence."""
-        states = [self._state2idx[state] for state in states]
-        p, state0 = log(self._e_dists_rv[states[0]].pmf(emits[0]) * self._start_dist_rv.pmf(states[0])), states[0]
-        for emit, state in zip(emits[1:], states[1:]):
-            p += log(self._e_dists_rv[state].pmf(emit) * self._t_dists_rv[state0].pmf(state))
-            state0 = state
-        return p
-
-
-class bernoulli_betabinom_gen:
-    def pmf(self, x, p, n, a, b):
-        pmf0 = stats.bernoulli.pmf(x[0], p)
-        pmf1 = stats.betabinom.pmf(x[1], n, a, b)
-        return pmf0 * pmf1
-
-    def rvs(self, p, n, a, b, size=None, random_state=None):
-        rvs0 = stats.bernoulli.rvs(p, size=size, random_state=random_state)
-        rvs1 = stats.betabinom.rvs(n, a, b, size=size, random_state=random_state)
-        if size is None:
-            return rvs0, rvs1
-        else:
-            return list(zip(rvs0, rvs1))
-
-bernoulli_betabinom = bernoulli_betabinom_gen()
-
-
-class bernoulli_betabinom_frozen:
-    def __init__(self, p, n, a, b):
-        self._dist = bernoulli_betabinom_gen()
-        self.p = p
-        self.n = n
-        self.a = a
-        self.b = b
-
-    def pmf(self, x):
-        return self._dist.pmf(x, self.p, self.n, self.a, self.b)
-
-    def rvs(self, size=None):
-        return self._dist.rvs(self.p, self.n, self.a, self.b, size=size)
 
 
 # Gradient functions
@@ -125,27 +45,6 @@ def bernoulli_pmf_prime(x, p):
 
 
 # Utility functions
-def count_transitions(state_seq, state_set):
-    """Return counts of transitions between states."""
-    mijs, state0 = {p: 0 for p in product(state_set, state_set)}, state_seq[0]
-    for state in state_seq[1:]:
-        try:
-            mijs[(state0, state)] += 1
-        except KeyError:
-            mijs[(state0, state)] = 1
-        state0 = state
-    return mijs
-
-
-def count_states(state_seq, state_set):
-    """Return counts of states."""
-    mis = {state: [] for state in state_set}
-    for state in state_seq:
-        for s in state_set:
-            mis[s].append(1 if state == s else 0)
-    return mis
-
-
 def norm_params(t_dists, e_dists):
     """Return parameters as their normalized values."""
     t_dists_norm = {}
@@ -162,9 +61,9 @@ def get_expectations(t_dists_norm, e_dists_norm, start_dist, record):
     """Return record updated with expected values of states and transitions given model parameters."""
     # Instantiate model
     n, state_seq, emit_seq = record['n'], record['state_seq'], record['emit_seq']
-    model = HMM(t_dists_norm,
-                {state: bernoulli_betabinom_frozen(p, n-1, a, b) for state, (p, a, b) in e_dists_norm.items()},
-                start_dist)
+    model = hmm.HMM(t_dists_norm,
+                    {state: utils.bernoulli_betabinom_frozen(p, n-1, a, b) for state, (p, a, b) in e_dists_norm.items()},
+                    start_dist)
 
     # Get expectations
     fs, ss_f = model.forward(emit_seq)
@@ -180,9 +79,9 @@ def get_expectations(t_dists_norm, e_dists_norm, start_dist, record):
     return record
 
 
-eta = 1E-4
-epsilon = 1E-2
-iter_num = 200
+eta = 1E-4  # Learning rate
+epsilon = 1E-2  # Convergence criterion
+iter_num = 200  # Max number of iterations
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
 if __name__ == '__main__':
@@ -241,8 +140,8 @@ if __name__ == '__main__':
             state_seq.extend((stop - start) * [state])
 
         # Create count dictionaries
-        mis = count_states(state_seq, state_set)
-        mijs = count_transitions(state_seq, state_set)
+        mis = hmm.count_states(state_seq, state_set)
+        mijs = hmm.count_transitions(state_seq, state_set)
 
         records.append({'OGid': OGid, 'n': len(msa), 'state_seq': state_seq, 'emit_seq': emit_seq,
                         'mis': mis, 'mijs': mijs})
@@ -293,7 +192,7 @@ if __name__ == '__main__':
                 mn_sum = sum([mijs[(s1, s2)] - nijs[(s1, s2)] for s2 in state_set])
                 z_sum = sum([exp(z) for z in t_dist.values()])
                 for s2, z in t_dist.items():
-                    d = -(mijs[(s1, s2)] - nijs[(s1, s2)] - exp(z)/z_sum * mn_sum)
+                    d = -(mijs[(s1, s2)] - nijs[(s1, s2)] - exp(z)/z_sum * mn_sum)  # Equation 2.17
                     t_dist[s2] -= eta * d
 
             # Update e_dists
@@ -301,6 +200,7 @@ if __name__ == '__main__':
                 p, a, b = 1 / (1 + exp(-zp)), exp(za), exp(zb)
                 dzp, dza, dzb = 0, 0, 0
                 for i, emit in enumerate(emit_seq):
+                    # Equations 2.15 and 2.16 (emission parameter phi only)
                     mn = mis[s][i] - nis[s][i]
                     dzp -= mn / bernoulli_pmf(emit[0], p) * bernoulli_pmf_prime(emit[0], p) * p / (1 + exp(zp))
                     dza -= mn / beta_binom_pmf(emit[1], n-1, a, b) * beta_binom_pmf_prime1(emit[1], n-1, a, b) * a
@@ -318,6 +218,10 @@ if __name__ == '__main__':
 
 """
 NOTES
+This HMM uses a beta-binomial emission distribution on the gap counts. It also uses a Bernoulli distribution on if the
+pattern of gaps is the same as in the previous column. The parameters are trained discriminatively using gradient
+descent.
+
 The gradients are calculated using the formulas in:
 Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 

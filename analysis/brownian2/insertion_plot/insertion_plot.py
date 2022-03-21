@@ -27,8 +27,8 @@ for label in ['norm1', 'norm2']:
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
         # Load msa and trim terminal insertions
-        msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in read_fasta(f'../../ortho_MSA/realign_hmmer2/out/{row.OGid}.mfa')]
-        msa = trim_terminals(msa)
+        msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer2/out/{row.OGid}.mfa'))
+        msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
         # Load decoded states
         posterior = []

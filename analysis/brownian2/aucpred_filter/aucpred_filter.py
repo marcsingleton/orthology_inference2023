@@ -38,6 +38,7 @@ def spid_filter(spids):
 threshold = 0.99
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 spid_regex = r'spid=([a-z]+)'
+alphabet = {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V'}
 
 # Load regions
 OGid2regions = {}
@@ -75,7 +76,7 @@ for OGid, regions in OGid2regions.items():
             for sym in segment:
                 if sym not in ['-', '.']:
                     length += 1
-                if sym in ['X', 'U']:
+                if sym not in alphabet:
                     is_standard = False
                     break
             posterior = posteriors[ppid][start:stop]

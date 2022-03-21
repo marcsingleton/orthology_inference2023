@@ -195,6 +195,10 @@ with open('out/model.json', 'w') as file:
     json.dump({'t_dists': t_dists, 'e_dists': e_dists, 'start_t_dist': start_t_dist}, file)
 
 """
+NOTES
+This ARHMM uses an beta-binomial emission distribution on the gap counts for states 1A and 3 and an AR(1)
+beta-binomial emission distribution for states 2 and 1B.
+
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer1/realign_hmmer1.py
     ../../ortho_MSA/realign_hmmer1/out/*.mfa

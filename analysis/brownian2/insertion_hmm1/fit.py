@@ -153,6 +153,9 @@ with open('out/model.json', 'w') as file:
     json.dump({'t_dists': t_dists, 'e_dists': e_dists, 'start_dist': start_dist}, file)
 
 """
+NOTES
+This HMM uses a beta-binomial emission distribution on the gap counts.
+
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer1/realign_hmmer1.py
     ../../ortho_MSA/realign_hmmer1/out/*.mfa
