@@ -1,13 +1,13 @@
 """Generate samples from ASR distributions."""
 
 import os
-import random
 
 import numpy as np
 
-random.seed(930715)  # Set seed to make results consistent
-syms = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
-idx2sym = {i: sym for i, sym in enumerate(syms)}
+rng = np.random.default_rng(930715)
+num_samples = 1000
+alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', '-']
+idx2sym = {i: sym for i, sym in enumerate(alphabet)}
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -19,13 +19,10 @@ for OGid in sorted(OGids):  # Ensure consistent order and thus consistent sample
     aa_marginal = aa_dist.sum(axis=0)
 
     seqs = []
-    for _ in range(1000):
-        seq = []
-        for i in range(aa_marginal.shape[1]):
-            idx, = random.choices(list(range(20)), aa_marginal[:, i])
-            sym = idx2sym[idx]
-            seq.append(sym)
-        seqs.append(seq)
+    for i in range(aa_marginal.shape[1]):
+        col = rng.choice(20, size=num_samples, p=aa_marginal[:, i])
+        seqs.append(col)
+    seqs = np.stack(seqs, axis=1)
 
     # Generate indels (if applicable)
     if os.path.exists(f'../asr_root/out/{OGid}_indel.npy'):
@@ -39,18 +36,18 @@ for OGid in sorted(OGids):  # Ensure consistent order and thus consistent sample
                 idx, start, stop = [int(field) for field in line.split()]
                 idx2indel[idx] = (start, stop)
 
-        for seq in seqs:
-            for i in range(indel_marginal.shape[1]):
-                p = random.random()
-                if p > indel_marginal[0, i]:
-                    start, stop = idx2indel[i]
-                    seq[start:stop] = (stop-start)*['-']
+        for j in range(indel_marginal.shape[1]):
+            ps = rng.random(size=num_samples) > indel_marginal[0, j]
+            for i, p in enumerate(ps):
+                if p:
+                    start, stop = idx2indel[j]
+                    seqs[i, start:stop] = len(alphabet) - 1  # The last symbol is gap
 
     with open(f'out/{OGid}_sample.mfa', 'w') as file:
-        for idx, seq in enumerate(seqs):
-            seq = ''.join(seq)
+        for i, seq in enumerate(seqs):
+            seq = ''.join([idx2sym[idx] for idx in seq])
             seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-            file.write(f'>seq{idx}\n' + seqstring)
+            file.write(f'>seq{i}\n' + seqstring)
 
 """
 NOTES

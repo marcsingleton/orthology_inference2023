@@ -6,17 +6,17 @@ from io import StringIO
 
 import numpy as np
 import skbio
-from asr import get_conditional, get_tree
 from scipy.special import gammainc
 from scipy.stats import gamma
+from src.evosim.asr import get_conditional, get_tree
 from src.utils import read_fasta
 
 
 def load_model(path):
     with open(path) as file:
         # Parse exchangeability matrix
-        matrix = np.zeros((len(syms), len(syms)))
-        for i in range(19):
+        matrix = np.zeros((len(alphabet), len(alphabet)))
+        for i in range(len(alphabet)-1):
             line = file.readline()
             for j, value in enumerate(line.split()):
                 matrix[i + 1, j] = float(value)
@@ -33,8 +33,8 @@ def load_model(path):
     return matrix, freqs
 
 
-syms = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
-sym2idx = {sym: idx for idx, sym in enumerate(syms)}
+alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
+sym2idx = {sym: idx for idx, sym in enumerate(alphabet)}
 
 models = {'WAG': load_model('../config/WAG.txt'), '../config/50red_D.txt': load_model('../config/50red_D.txt')}
 
@@ -77,10 +77,10 @@ for OGid in OGids:
         while line != '\n':
             fields = line.split()  # File is not explicitly delimited, so just split on whitespace
             partition_id, speed, parameters = int(fields[0]), float(fields[2]), fields[3]
-            groupdict = re.search(r'(?P<model>[^+]+)\+I{(?P<pinv>[0-9.e-]+)}\+G(?P<num_categories>[0-9]+){(?P<alpha>[0-9.e-]+)}', parameters).groupdict()
+            match = re.search(r'(?P<model>[^+]+)\+I{(?P<pinv>[0-9.e-]+)}\+G(?P<num_categories>[0-9]+){(?P<alpha>[0-9.e-]+)}', parameters)
             partition = partitions[partition_id]
-            partition.update({'model': groupdict['model'], 'speed': speed,
-                              'pinv': float(groupdict['pinv']), 'alpha': float(groupdict['alpha']), 'num_categories': int(groupdict['num_categories'])})
+            partition.update({'model': match['model'], 'speed': speed,
+                              'pinv': float(match['pinv']), 'alpha': float(match['alpha']), 'num_categories': int(match['num_categories'])})
             line = file.readline()
 
     # Load partition regions
@@ -88,9 +88,9 @@ for OGid in OGids:
         partition_id = 1
         for line in file:
             if 'charset' in line:
-                groupdict = re.search(r'charset (?P<name>[a-zA-Z0-9]+) = (?P<regions>[0-9 -]+);', line)
+                match = re.search(r'charset (?P<name>[a-zA-Z0-9]+) = (?P<regions>[0-9 -]+);', line)
                 regions = []
-                for region in groupdict['regions'].split():
+                for region in match['regions'].split():
                     start, stop = region.split('-')
                     regions.append((int(start)-1, int(stop)))
                 transform, start0 = {}, 0
@@ -101,12 +101,29 @@ for OGid in OGids:
                 partition.update({'regions': regions, 'transform': transform})
                 partition_id += 1
 
+    # Load rate categories
+    # In IQ-TREE, only the shape parameter is fit and the rate parameter beta is set to alpha so the mean of gamma distribution is 1
+    # The calculations here directly correspond to equation 10 in Yang. J Mol Evol (1994) 39:306-314.
+    # Note the equation has a small typo where the difference in gamma function evaluations should be divided by the probability
+    # of that category since technically it is the rate given that category
+    for partition in partitions.values():
+        pinv, alpha, num_categories = partition['pinv'], partition['alpha'], partition['num_categories']
+        igfs = []  # Incomplete gamma function evaluations
+        for i in range(num_categories+1):
+            x = gamma.ppf(i/num_categories, a=alpha, scale=1/alpha)
+            igfs.append(gammainc(alpha+1, alpha*x))
+        rates = [(0, pinv)]
+        for i in range(num_categories):
+            rate = num_categories/(1-pinv) * (igfs[i+1] - igfs[i])
+            rates.append((partition['speed'] * rate, (1-pinv)/num_categories))
+        partition['rates'] = rates
+
     # Calculate likelihoods
     msa = read_fasta(f'../asr_aa/out/{OGid}.mfa')
     for partition in partitions.values():
         # Unpack partition parameters and partition MSA
         matrix, freqs = models[partition['model']]
-        pinv, alpha, num_categories = partition['pinv'], partition['alpha'], partition['num_categories']
+        rates = partition['rates']
         partition_msa = []
         for header, seq in msa:
             partition_seq = ''.join([seq[start:stop] for start, stop in partition['regions']])
@@ -116,31 +133,21 @@ for OGid in OGids:
         tips = {tip.name: tip for tip in tree.tips()}
         for header, seq in partition_msa:
             tip = tips[header[1:5]]
-            conditional = np.zeros((len(syms), len(seq)))
+            conditional = np.zeros((len(alphabet), len(seq)))
             for j, sym in enumerate(seq):
                 if sym in sym2idx:
                     i = sym2idx[sym]
                     conditional[i, j] = 1
                 else:  # Use uniform distribution for ambiguous symbols
-                    conditional[:, j] = 1 / len(syms)
+                    conditional[:, j] = 1 / len(alphabet)
             tip.conditional = conditional
-
-        # Calculate rates for non-invariant categories
-        igfs = []  # Incomplete gamma function evaluations
-        for i in range(num_categories+1):
-            x = gamma.ppf(i/num_categories, a=alpha, scale=1/alpha)
-            igfs.append(gammainc(alpha+1, alpha*x))
-        rates = []  # Normalized rates
-        for i in range(num_categories):
-            rate = num_categories / (1-pinv) * (igfs[i + 1] - igfs[i])
-            rates.append((rate, (1-pinv) / num_categories))
 
         # Calculate likelihoods
         likelihoods = []
 
         # Get likelihood for invariant category
         # (Background probability for symbol if invariant; otherwise 0)
-        likelihood = np.zeros((len(syms), len(partition_msa[0][1])))
+        likelihood = np.zeros((len(alphabet), len(partition_msa[0][1])))
         for j in range(len(partition_msa[0][1])):
             is_invariant = True
             sym0 = msa[0][1][j]
@@ -155,11 +162,11 @@ for OGid in OGids:
             if is_invariant:
                 idx = sym2idx[sym0]
                 likelihood[idx, j] = freqs[idx]
-        likelihoods.append(likelihood * pinv)  # Multiply by prior for category
+        likelihoods.append(likelihood * rates[0][1])  # Multiply by prior for category
 
         # Get likelihoods for rate categories
         for rate, prior in rates:
-            s, conditional = get_conditional(tree, partition['speed'] * rate * matrix)
+            s, conditional = get_conditional(tree, rate * matrix)
             l = np.expand_dims(freqs, -1) * conditional
             likelihoods.append(np.exp(s) * l * prior)
 
@@ -194,5 +201,7 @@ DEPENDENCIES
 ../asr_aa/asr_aa.py
     ../asr_aa/out/*.iqtree
     ../asr_aa/out/*.mfa
+    ../asr_aa/out/*.nex
 ../config/50red_D.txt
+../config/WAG.txt
 """

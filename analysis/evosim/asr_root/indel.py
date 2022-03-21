@@ -5,9 +5,9 @@ from io import StringIO
 
 import numpy as np
 import skbio
-from asr import get_conditional, get_tree
 from scipy.special import gammainc
 from scipy.stats import gamma
+from src.evosim.asr import get_conditional, get_tree
 from src.utils import read_fasta
 
 if not os.path.exists('out/'):
@@ -51,6 +51,10 @@ for OGid in OGids:
     tree = get_tree(tree1, tree2)
 
     # Load rate categories
+    # In IQ-TREE, only the shape parameter is fit and the rate parameter beta is set to alpha so the mean of gamma distribution is 1
+    # The calculations here directly correspond to equation 10 in Yang. J Mol Evol (1994) 39:306-314.
+    # Note the equation has a small typo where the difference in gamma function evaluations should be divided by the probability
+    # of that category since technically it is the rate given that category
     with open(f'../asr_indel/out/{OGid}.iqtree') as file:
         line = file.readline()
         while not line.startswith('Model of rate heterogeneity:'):
@@ -61,7 +65,7 @@ for OGid in OGids:
     for i in range(num_categories+1):
         x = gamma.ppf(i/num_categories, a=alpha, scale=1/alpha)
         igfs.append(gammainc(alpha+1, alpha*x))
-    rates = []  # Normalized rates
+    rates = []
     for i in range(num_categories):
         rate = num_categories * (igfs[i+1] - igfs[i])
         rates.append((rate, 1/num_categories))
