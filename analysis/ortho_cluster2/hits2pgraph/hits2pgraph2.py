@@ -10,9 +10,9 @@ def load_hit(qspid, sspid):
     df = pd.read_csv(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=dtypes.keys(), dtype=dtypes, memory_map=True)
     r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
-                    usecols=['reciprocal2'], memory_map=True)
+                    usecols=['reciprocal'], memory_map=True)
 
-    return df[r['reciprocal2']]
+    return df[r['reciprocal']]
 
 
 dtypes = {'qppid': 'string', 'sppid': 'string',

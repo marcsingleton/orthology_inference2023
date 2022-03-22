@@ -21,7 +21,7 @@ def load_hit(qspid, sspid):
     df = pd.read_csv(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
                      usecols=hit_dtypes.keys(), dtype=hit_dtypes, memory_map=True)
     r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
-                    usecols=['reciprocal2'], memory_map=True)
+                    usecols=['reciprocal'], memory_map=True)
     max_bitscore = df.groupby('qppid')['bitscore'].max().rename('bitscore_max')
     dfr = df.join(r).join(max_bitscore, on='qppid')
 
@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
         hits1 = hits0[hits0['bitscore'] == hits0['max_bitscore']]
         hits2 = hits1[hits1['cfqa'] >= 0.5]
-        hits3 = hits2[hits2['reciprocal2']]
+        hits3 = hits2[hits2['reciprocal']]
         hits = [hits0, hits1, hits2, hits3]
 
         labels = ['bitscore ≥ 50', 'best', 'cFQA ≥ 0.5', 'reciprocal']

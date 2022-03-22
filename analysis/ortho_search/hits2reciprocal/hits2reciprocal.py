@@ -3,15 +3,15 @@
 import os
 
 
-def check_edge(qppid, sppid, graph):
+def is_reciprocal(qppid, sppid, graph):
     # Check both directions since not all hits are in graph
     try:
-        r1 = qppid in graph[sppid]
-        r2 = sppid in graph[qppid]
-        r = r1 and r2
+        reciprocal1 = qppid in graph[sppid]
+        reciprocal2 = sppid in graph[qppid]
+        reciprocal = reciprocal1 and reciprocal2
     except KeyError:
-        r = False
-    return r
+        reciprocal = False
+    return reciprocal
 
 
 columns = {'qppid': str, 'qgnid': str, 'qspid': str,
@@ -21,17 +21,12 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'slen': int, 'nsa': int, 'cnsa': int,
            'bitscore': float}
 
-# Load graphs
-graph1 = {}
-with open('../hits2pgraph/out/pgraph1.tsv') as file:
+# Load graph
+graph = {}
+with open('../hits2graph/out/hit_graph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
-        graph1[node] = {adj.split(':')[0] for adj in adjs.split(',')}
-graph2 = {}
-with open('../hits2pgraph/out/pgraph2.tsv') as file:
-    for line in file:
-        node, adjs = line.rstrip('\n').split('\t')
-        graph2[node] = {adj.split(':')[0] for adj in adjs.split(',')}
+        graph[node] = {adj.split(':')[0] for adj in adjs.split(',')}
 
 # Check reciprocity
 for qspid in os.listdir('../hsps2hits/out/'):
@@ -44,9 +39,8 @@ for qspid in os.listdir('../hsps2hits/out/'):
                 qppid, sppid = hit['qppid'], hit['sppid']
                 qlen, cnqa = hit['qlen'], hit['cnqa']
 
-                r1 = check_edge(qppid, sppid, graph1)
-                r2 = cnqa / qlen >= 0.5 and check_edge(qppid, sppid, graph2)
-                rows.append((qppid, sppid, str(r1), str(r2)))
+                reciprocal = cnqa / qlen >= 0.5 and is_reciprocal(qppid, sppid, graph)
+                rows.append((qppid, sppid, str(reciprocal)))
 
         # Make output directory
         if not os.path.exists(f'out/{qspid}/'):
@@ -54,7 +48,7 @@ for qspid in os.listdir('../hsps2hits/out/'):
 
         # Write to file
         with open(f'out/{qspid}/{sspid}', 'w') as file:
-            file.write('qppid\tsppid\treciprocal1\treciprocal2\n')
+            file.write('qppid\tsppid\treciprocal\n')
             for row in rows:
                 file.write('\t'.join(row) + '\n')
 
@@ -62,6 +56,6 @@ for qspid in os.listdir('../hsps2hits/out/'):
 DEPENDENCIES
 ../hsps2hits/hsps2hits.py
     ../hsps2hits/out/*/*.tsv
-../hits2pgraph/hits2pgraph.py
-    ../hits2pgraph/out/pgraph.tsv
+../hits2graph/hits2graph.py
+    ../hits2graph/out/hit_graph.tsv
 """
