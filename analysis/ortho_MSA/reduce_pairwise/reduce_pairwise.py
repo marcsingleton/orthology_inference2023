@@ -77,7 +77,7 @@ def get_distances(node, d0=0):
 
 # Load seq metadata
 ppid2meta = {}
-with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, sqid = line.split()
@@ -143,8 +143,8 @@ DEPENDENCIES
     ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
 ../../ortho_cluster3/hits2pgraph/hits2pgraph2.py
     ../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv
-../../ortho_search/seq_meta/seq_meta.py
-    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../../ortho_search/sequence_data/sequence_data.py
+    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 """

@@ -6,7 +6,7 @@ import pandas as pd
 
 # Load seq metadata
 ppid2meta = {}
-with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, _ = line.split()
@@ -270,8 +270,8 @@ NOTES
 These plots are largely based off those in analysis/EggNOGv5_validation/ali_stats/ali_stats.py
 
 DEPENDENCIES
-../../ortho_search/seq_meta/seq_meta.py
-    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../../ortho_search/sequence_data/sequence_data.py
+    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../clique4+_pcommunity/clique4+_pcommunity2.py
     ../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
 """

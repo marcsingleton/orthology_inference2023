@@ -19,7 +19,7 @@ with open('../config/genomes.tsv') as file:
 
 # Load seq metadata
 ppid2meta = {}
-with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, sqid = line.split()
@@ -67,8 +67,8 @@ for OGid in OGids:
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-../../ortho_search/seq_meta/seq_meta.py
-    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../../ortho_search/sequence_data/sequence_data.py
+    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../config/genomes.tsv
 ../clique4+_pcommunity/clique4+_pcommunity.py
     ../clique4+_pcommunity/out/4clique/pclusters.txt

@@ -11,7 +11,7 @@ from src.utils import read_fasta
 
 # Load seq metadata
 ppid2meta = {}
-with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, sqid = line.split()
@@ -58,8 +58,8 @@ for row in df.dropna().itertuples():
 DEPENDENCIES
 ../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
     ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
-../../ortho_search/seq_meta/seq_meta.py
-    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../../ortho_search/sequence_data/sequence_data.py
+    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../align_fastas1/align_fastas1.py

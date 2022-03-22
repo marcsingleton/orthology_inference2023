@@ -28,7 +28,7 @@ features.loc[features['omega'] == -1, 'omega'] = 1
 
 # Load seq metadata
 ppid2spid = {}
-with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, _, spid, _ = line.split()
@@ -462,8 +462,8 @@ for feature_label in roots.columns.intersection(rates.columns):
 
 """
 DEPENDENCIES
-../../ortho_search/seq_meta/seq_meta.py
-    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../../ortho_search/sequence_data/sequence_data.py
+    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../../ortho_tree/ctree_WAG/ctree_WAG.py
     ../../ortho_tree/ctree_WAG/out/100red_ni.txt
 ../aucpred_filter/aucpred_filter.py

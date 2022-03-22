@@ -21,7 +21,7 @@ ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
 
 # Load seq metadata
 ppid2gnid = {}
-with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, _ = line.split()
@@ -407,7 +407,7 @@ Fraction (genes with unknown amino acids): 0.043124246079613994
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-../../ortho_search/seq_meta/seq_meta.py
-    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../../ortho_search/sequence_data/sequence_data.py
+    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../config/genomes.tsv
 """

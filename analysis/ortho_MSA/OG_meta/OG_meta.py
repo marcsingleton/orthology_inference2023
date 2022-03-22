@@ -5,7 +5,7 @@ import pandas as pd
 
 # Load seq metadata
 ppid2meta = {}
-with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, sqid = line.split()
@@ -80,8 +80,8 @@ OGs with 31 genes, species, and sequences: 2047
 OGs with 31 genes, species, and unique sequences: 5091
 
 DEPENDENCIES
-../../ortho_search/seq_meta/seq_meta.py
-    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../../ortho_search/sequence_data/sequence_data.py
+    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
     ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
 ../../ortho_cluster3/connect_OGgraph/connect_OGgraph.py

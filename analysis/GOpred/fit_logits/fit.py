@@ -12,7 +12,7 @@ pdidx = pd.IndexSlice
 
 # Load seq metadata
 ppid2gnid = {}
-with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, _ = line.split()
@@ -96,8 +96,8 @@ results.to_csv('out/models.tsv', sep='\t', index=False)
 DEPENDENCIES
 ../../brownian2/aucpred_filter/aucpred_filter.py
     ../../brownian2/aucpred_filter/out/regions_30.tsv
-../../ortho_search/seq_meta/seq_meta.py
-    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../../ortho_search/sequence_data/sequence_data.py
+    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../filter_GAF/filter_GAF.py
     ../filter_GAF/out/GAF_drop.tsv
 """

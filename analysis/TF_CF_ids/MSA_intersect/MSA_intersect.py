@@ -5,7 +5,7 @@ import pandas as pd
 
 # Load seq metadata
 ppid2gnid = {}
-with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, sqid = line.split()
@@ -60,8 +60,8 @@ DEPENDENCIES
     ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
 ../../ortho_MSA/OG_filter/OG_filter.py
     ../../ortho_MSA/OG_filter/out/OG_filter.tsv
-../../ortho_search/seq_meta/seq_meta.py
-    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../../ortho_search/sequence_data/sequence_data.py
+    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../update_ids/update_ids.py
     ../update_ids/out/*.txt
 """

@@ -6,7 +6,7 @@ from itertools import combinations
 
 # Load seq metadata
 ppid2gnid = {}
-with open('../../ortho_search/seq_meta/out/seq_meta.tsv') as file:
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, _ = line.split()
@@ -38,8 +38,8 @@ with open('out/OGgraph.tsv', 'w') as file:
 
 """
 DEPENDENCIES
-../../ortho_search/seq_meta/seq_meta.py
-    ../../ortho_search/seq_meta/out/seq_meta.tsv
+../../ortho_search/sequence_data/sequence_data.py
+    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../clique4+_pcommunity/clique4+_pcommunity2.py
     ../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
 """

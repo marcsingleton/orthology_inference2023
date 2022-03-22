@@ -170,7 +170,7 @@ num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
 # Load seq metadata
 ppid2gnid = {}
-with open('../seq_meta/out/seq_meta.tsv') as file:
+with open('../sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, _ = line.split()
@@ -215,6 +215,6 @@ DEPENDENCIES
 ../config/genomes.tsv
 ../blast_AAA/blast_AAA.py
     ../blast_AAA/out/*
-../seq_meta/seq_meta.py
-    ../seq_meta/out/seq_meta.tsv
+../sequence_data/sequence_data.py
+    ../sequence_data/out/sequence_data.tsv
 """

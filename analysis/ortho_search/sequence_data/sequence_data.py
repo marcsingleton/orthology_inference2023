@@ -58,7 +58,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Write to file
-with open('out/seq_meta.tsv', 'w') as file:
+with open('out/sequence_data.tsv', 'w') as file:
     file.write('ppid\tgnid\tspid\tsqid\n')
     for ppid, meta in ppid2meta.items():
         file.write(ppid + '\t' + '\t'.join(meta) + '\n')
