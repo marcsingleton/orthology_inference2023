@@ -4,7 +4,7 @@ from itertools import combinations
 
 
 def get_connected_components(graph):
-    """Finds connected components of graph, implemented as a depth-first search."""
+    """Find connected components of graph, implemented as a depth-first search."""
     # INITIALIZE
     component = None
     components = []
@@ -20,7 +20,7 @@ def get_connected_components(graph):
             if node in marked:
                 continue
             component.add(node)
-            expand_stack.extend(graph[node])
+            expand_stack.extend(sorted(graph[node]))  # Sort to ensure consistent order
             marked.add(node)
         if component is not None:  # Only record component if not None; only False in first iteration
             components.append(component)
@@ -32,12 +32,12 @@ def get_connected_components(graph):
             if node in marked:  # Skip previously added nodes; necessary to prevent loops and incomplete components
                 continue
             component = {node}
-            expand_stack.extend(graph[node])
+            expand_stack.extend(sorted(graph[node]))  # Sort to ensure consistent order
     return components
 
 
 def get_triangle_clusters(graph):
-    """Clusters graph of protein BRHs by triangle criterion, implemented as a variant of a depth-first search."""
+    """Cluster graph of protein BRHs by triangle criterion, implemented as a variant of a depth-first search."""
     # INITIALIZE
     cluster = set()
     clusters = []
@@ -56,7 +56,7 @@ def get_triangle_clusters(graph):
             node1, node2 = edge
             for node3 in graph[node1]:
                 if node3 in graph[node2]:  # Assumes undirected
-                    edges = [frozenset([node1, node3]), frozenset([node2, node3])]
+                    edges = sorted([frozenset([node1, node3]), frozenset([node2, node3])])  # Sort to ensure consistent order
                     cluster |= set(edges)  # Sets check membership in constant time
                     expand_stack.extend(edges)
             marked.add(edge)
@@ -73,7 +73,7 @@ def get_triangle_clusters(graph):
             node1, node2 = edge
             for node3 in sorted(graph[node1]):  # Sort to ensure consistent order
                 if node3 in graph[node2]:  # Assumes undirected
-                    edges = [frozenset([label1, label2]) for label1, label2 in combinations([node1, node2, node3], 2)]
+                    edges = sorted([frozenset([label1, label2]) for label1, label2 in combinations([node1, node2, node3], 2)])  # Sort to ensure consistent order
                     cluster |= set(edges)  # Sets check membership in constant time
                     expand_stack.extend(edges)
                     break
