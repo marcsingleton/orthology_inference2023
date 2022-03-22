@@ -11,7 +11,7 @@ def line2key(line):
 
 # Load graph
 graph = {}
-with open('../hsps2pgraph/out/pgraph.tsv') as file:
+with open('../hsps2graph/out/hsp_graph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         graph[node] = set(adjs.split(','))
@@ -25,10 +25,10 @@ for qspid in os.listdir('../blast2hsps/out/hsps/'):
             for key, group in groupby(file, key=line2key):
                 qppid, sppid = key
                 try:
-                    r = qppid in graph[sppid]
+                    reciprocal = qppid in graph[sppid]
                 except KeyError:
-                    r = False
-                rows.extend([(qppid, sppid, str(r))] * len(list(group)))
+                    reciprocal = False
+                rows.extend([(qppid, sppid, str(reciprocal))] * len(list(group)))
 
         # Make output directory
         if not os.path.exists(f'out/{qspid}/'):
@@ -44,6 +44,6 @@ for qspid in os.listdir('../blast2hsps/out/hsps/'):
 DEPENDENCIES
 ../blast2hsps/blast2hsps.py
     ../blast2hsps/hsps/out/*/*.tsv
-../hsps2pgraph/hsps2pgraph.py
-    ../hsps2pgraph/out/pgraph.tsv
+../hsps2graph/hsps2graph.py
+    ../hsps2graph/out/hsp_graph.tsv
 """

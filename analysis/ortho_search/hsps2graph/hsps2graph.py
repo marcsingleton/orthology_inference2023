@@ -1,4 +1,4 @@
-"""Convert HSPs to a directed pgraph."""
+"""Convert HSPs to a directed graph."""
 
 import os
 from itertools import groupby
@@ -9,7 +9,7 @@ def line2key(line):
     return fields[0], fields[3]
 
 
-# Make pgraph
+# Make graph
 graph = {}
 for qspid in os.listdir('../blast2hsps/out/hsps/'):
     for sspid in os.listdir(f'../blast2hsps/out/hsps/{qspid}/'):
@@ -27,7 +27,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Write to file
-with open('out/pgraph.tsv', 'w') as file:
+with open('out/hsp_graph.tsv', 'w') as file:
     for qppid, sppids in graph.items():
         file.write(qppid + '\t' + ','.join(sppids) + '\n')
 
