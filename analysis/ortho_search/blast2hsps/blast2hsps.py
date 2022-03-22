@@ -9,7 +9,7 @@ from itertools import groupby, permutations
 def parse_file(query_spid, subject_spid):
     output_hsps = []
     nulls = []
-    with open(f'../blast_AAA/out/{query_spid}/{subject_spid}.blast') as file:
+    with open(f'../blast_search/out/{query_spid}/{subject_spid}.blast') as file:
         query_ppid, input_hsps = None, []
         line = file.readline()
         while line:
@@ -213,8 +213,8 @@ polypeptides in other genes, they should not be included since other stronger hi
 
 DEPENDENCIES
 ../config/genomes.tsv
-../blast_AAA/blast_AAA.py
-    ../blast_AAA/out/*
+../blast_search/blast_search.py
+    ../blast_search/out/*
 ../sequence_data/sequence_data.py
     ../sequence_data/out/sequence_data.tsv
 """

@@ -4,7 +4,7 @@
 # Set current directory and link to output in scratch
 cd "$(dirname "$0")"
 if [ ! -d out ]; then
-  out_dir=/global/scratch/users/singleton/IDREvoDevo/analysis/ortho_cluster2/blast_AAA/out/
+  out_dir=/global/scratch/users/singleton/IDREvoDevo/analysis/ortho_search/blast_search/out/
   if [ ! -d ${out_dir} ]; then
     mkdir -p ${out_dir}  # -p makes intermediate directory if they do not exist
   fi
@@ -30,14 +30,14 @@ do
 #SBATCH --cpus-per-task=24
 #
 # Reporting parameters
-#SBATCH --job-name=blast_AAA_${spid}
-#SBATCH --output=out/blast_AAA_${spid}.out
+#SBATCH --job-name=blast_search_${spid}
+#SBATCH --output=out/blast_search_${spid}.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
 module load python
-python blast_AAA.py ${spid} ${prot_path} ../../../bin/blast/blastp
+python blast_search.py ${spid} ${prot_path} ../../../bin/blast/blastp
 _EOF_
   fi
 done
