@@ -104,7 +104,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load graph
 graph = {}
-with open('../hits2pgraph/out/pgraph2.tsv') as file:
+with open('../hits2graph/out/hit_graph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         graph[node] = {adj.split(':')[0] for adj in adjs.split(',')}
@@ -202,6 +202,6 @@ DEPENDENCIES
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../connect_pgraph/connect_pgraph2.py
     ../connect_pgraph/out/pconnect2.txt
-../hits2pgraph/hits2pgraph2.py
-    ../hits2pgraph/out/pgraph2.tsv
+../hits2graph/hits2graph.py
+    ../hits2graph/out/hit_graph.tsv
 """

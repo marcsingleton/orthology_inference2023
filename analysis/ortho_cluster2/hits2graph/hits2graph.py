@@ -1,9 +1,10 @@
-"""Convert hits to an undirected pgraph."""
+"""Convert hits to an undirected graph."""
 
 import multiprocessing as mp
 import os
-import pandas as pd
 from itertools import permutations
+
+import pandas as pd
 
 
 def load_hit(qspid, sspid):
@@ -44,9 +45,9 @@ if __name__ == '__main__':
         os.mkdir('out/')
 
     # Write to file
-    with open('out/pgraph.tsv', 'w') as file:
-        for qgnid, edges in graph.items():
-            file.write(qgnid + '\t' + ','.join([sgnid + ':' + str(bitscore) for sgnid, bitscore in edges]) + '\n')
+    with open('out/hit_graph.tsv', 'w') as file:
+        for qppid, edges in graph.items():
+            file.write(qppid + '\t' + ','.join([sppid + ':' + str(bitscore) for sppid, bitscore in edges]) + '\n')
 
 """
 DEPENDENCIES

@@ -85,7 +85,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load graph
 graph = {}
-with open('../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv') as file:
+with open('../../ortho_cluster3/hits2graph/out/hit_graph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         bitscores = {}
@@ -141,8 +141,8 @@ with open('out/rclusters.tsv', 'w') as outfile:
 DEPENDENCIES
 ../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
     ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
-../../ortho_cluster3/hits2pgraph/hits2pgraph2.py
-    ../../ortho_cluster3/hits2pgraph/out/pgraph2.tsv
+../../ortho_cluster3/hits2graph/hits2graph.py
+    ../../ortho_cluster3/hits2graph/out/hit_graph.tsv
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../../ortho_tree/ctree_WAG/ctree_WAG.py

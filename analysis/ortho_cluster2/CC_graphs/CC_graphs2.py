@@ -10,7 +10,7 @@ from numpy import linspace
 
 # Load graph
 graph = {}
-with open('../hits2pgraph/out/pgraph2.tsv') as file:
+with open('../hits2graph/out/hit_graph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         graph[node] = [adj.split(':') for adj in adjs.split(',')]
@@ -117,6 +117,6 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
 DEPENDENCIES
 ../connect_pgraph/connect_pgraph2.py
     ../connect_pgraph/out/pconnect2.txt
-../hits2pgraph/hits2pgraph2.py
-    ../hits2pgraph/out/pgraph2.tsv
+../hits2graph/hits2graph.py
+    ../hits2graph/out/hit_graph.tsv
 """

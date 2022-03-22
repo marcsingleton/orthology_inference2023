@@ -13,7 +13,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load graph
 graph = {}
-with open('../hits2pgraph/out/pgraph.tsv') as file:
+with open('../hits2graph/out/hit_graph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         bitscores = {}
@@ -75,6 +75,6 @@ DEPENDENCIES
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../clique4+_pcommunity/clique4+_pcommunity.py
     ../../ortho_cluster3/clique4+_pcommunity/out/4clique/pclusters.txt
-../hits2pgraph/hits2pgraph.py
-    ../hits2pgraph/out/pgraph.tsv
+../hits2graph/hits2graph.py
+    ../hits2graph/out/hit_graph.tsv
 """

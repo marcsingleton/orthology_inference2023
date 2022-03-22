@@ -5,7 +5,7 @@ from src.ortho_cluster.graphs import get_connected_components
 
 # Load graph
 graph = {}
-with open('../hits2pgraph/out/pgraph2.tsv') as file:
+with open('../hits2graph/out/hit_graph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         graph[node] = [adj.split(':')[0] for adj in adjs.split(',')]
@@ -25,6 +25,6 @@ with open('out/pconnect2.txt', 'w') as outfile:
 
 """
 DEPENDENCIES
-../hits2pgraph/hits2pgraph2.py
-    ../hits2pgraph/out/pgraph2.tsv
+../hits2graph/hits2graph.py
+    ../hits2graph/out/hit_graph.tsv
 """
