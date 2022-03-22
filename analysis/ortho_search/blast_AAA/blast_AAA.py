@@ -27,7 +27,7 @@ for subject_spid in spids:
         # Generate args
         input_args = [blast_path, '-query', prot_path]
         output_args = ['-out', f'out/{query_spid}/{subject_spid}.blast']
-        search_args = ['-db', f'../blast_dbs/out/{subject_spid}_blastdb', '-evalue', '1', '-num_threads', num_threads]
+        search_args = ['-db', f'../blast_makedbs/out/{subject_spid}_blastdb', '-evalue', '1', '-num_threads', num_threads]
         format_args = ['-outfmt', '7 qacc sacc length nident gaps qlen qstart qend slen sstart send evalue bitscore']
 
         # Execute command
@@ -44,6 +44,6 @@ DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../config/genomes.tsv
-../blast_dbs/blast_dbs.sh
-    ../blast_dbs/out/*
+../blast_makedbs/blast_makedbs.sh
+    ../blast_makedbs/out/*
 """
