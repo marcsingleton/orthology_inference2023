@@ -54,9 +54,10 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
 
 # Load connected components
 CCs = {}
-with open('../connect_pgraph/out/pconnect2.txt') as file:
+with open('../connect_hit_graph/out/components.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        CCid, nodes = line.rstrip().split(':')
+        CCid, nodes = line.rstrip().split('\t')
         CCs[CCid] = set(nodes.split(','))
 
 # Load OGs
@@ -172,8 +173,8 @@ DEPENDENCIES
     ../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
     ../clique4+_pcommunity/out/pgraph2/5clique/pclusters.txt
     ../clique4+_pcommunity/out/pgraph2/6clique/pclusters.txt
-../connect_pgraph/connect_pgraph2.py
-    ../connect_pgraph/out/pconnect2.txt
+../connect_hit_graph/connect_hit_graph.py
+    ../connect_hit_graph/out/components.tsv
 ../hits2graph/hits2graph.py
     ../hits2graph/out/hit_graph.tsv
 ../subcluster_pgraph/subcluster_pgraph2.py

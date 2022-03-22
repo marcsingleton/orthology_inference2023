@@ -14,9 +14,10 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load CCs
 rows = []
-with open('../connect_pgraph/out/pconnect2.txt') as file:
+with open('../connect_hit_graph/out/components.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        CCid, nodes = line.rstrip().split(':')
+        CCid, nodes = line.rstrip().split('\t')
         for ppid in nodes.split(','):
             rows.append({'CCid': CCid, 'ppid': ppid})
 CCs = pd.DataFrame(rows)
@@ -158,8 +159,8 @@ DEPENDENCIES
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../clique4+_pcommunity/clique4+_pcommunity2.py
     ../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
-../connect_pgraph/connect_pgraph2.py
-    ../connect_pgraph/out/pconnect2.txt
+../connect_hit_graph/connect_hit_graph.py
+    ../connect_hit_graph/out/components.tsv
 ../hsp_stats/hsp_stats.py
     ../hsp_stats/out/hsps_reciprocal/sppids.tsv
 """

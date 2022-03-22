@@ -14,9 +14,10 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
 
 # Load connected components
 CCs = []
-with open('../connect_pgraph/out/pconnect2.txt') as file:
+with open('../connect_hit_graph/out/components.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        _, nodes = line.rstrip().split(':')
+        _, nodes = line.rstrip().split('\t')
         CCs.append(set(nodes.split(',')))
 
 OGs = []
@@ -99,8 +100,8 @@ Type 3: 514
 Type 4: 1918
 
 DEPENDENCIES
-../connect_pgraph/connect_pgraph2.py
-    ../connect_pgraph/out/pconnect2.txt
+../connect_hit_graph/connect_hit_graph.py
+    ../connect_hit_graph/out/components.tsv
 ../hits2graph/hits2graph.py
     ../hits2graph/out/hit_graph.tsv
 """
