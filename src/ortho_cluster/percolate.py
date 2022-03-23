@@ -134,24 +134,20 @@ def k_clique_communities_progressive(G, k, cliques=None):
     cliques = [frozenset(c) for c in cliques if len(c) >= k]
     cliques = sorted(cliques, key=lambda c: sum([len(G[node]) for node in c]) - len(c)*(len(c)-1))
 
-    CCs = [[cliques.pop()]] if cliques else []  # List of lists of cliques (frozensets of nodes)
+    components = [[cliques.pop()]] if cliques else []  # List of lists of cliques (frozensets of nodes)
     for clique in cliques:
         intersect = [clique]
         disjoint = []
-        for CC in CCs:
-            if k_percolates(clique, CC, k):
-                intersect.extend(CC)
+        for component in components:
+            if k_percolates(clique, component, k):
+                intersect.extend(component)
             else:
-                disjoint.append(CC)
-        CCs = [intersect]
-        CCs.extend(disjoint)
+                disjoint.append(component)
+        components = [intersect]
+        components.extend(disjoint)
 
-    for component in CCs:
+    for component in components:
         yield frozenset([frozenset(edge) for clique in component for edge in combinations(clique, 2)])
-
-
-def edges2nodes(edges):
-    return {node for edge in edges for node in edge}
 
 
 def k_percolates(clique, CC, k):
