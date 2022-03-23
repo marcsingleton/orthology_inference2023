@@ -1,10 +1,11 @@
 """Draw largest connected components."""
 
+import os
+from math import exp
+
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import networkx as nx
-import os
-from math import exp
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from numpy import linspace
 
@@ -14,12 +15,12 @@ def load_OGs(path):
     with open(path) as file:
         file.readline()  # Skip header
         for line in file:
-            CCid, _, _, edges = line.rstrip().split('\t')
+            component_id, _, _, edges = line.rstrip().split('\t')
             gnids = {node for edge in edges.split(',') for node in edge.split(':')}
             try:
-                OGs[CCid].append(gnids)
+                OGs[component_id].append(gnids)
             except KeyError:
-                OGs[CCid] = [gnids]
+                OGs[component_id] = [gnids]
     return OGs
 
 
@@ -30,11 +31,11 @@ def blend_colors(colors):
 
 
 def get_node_colors(graph, OGs):
-    cycle = ['4e79a7', 'f28e2b', 'e15759', '76b7b2', '59a14f', 'edc948', 'b07aa1', 'ff9da7', '9c755f', 'bab0ac']
+    cycle = ['4E79A7', 'F28E2B', 'E15759', '76B7B2', '59A14F', 'EDC948', 'B07AA1', 'FF9DA7', '9C755F', 'BAB0AC']
     node2colors = {node: [] for node in graph.nodes}
-    for j, OG in enumerate(OGs):
+    for i, OG in enumerate(OGs):
         for node in OG:
-            node2colors[node].append(cycle[j % 10])
+            node2colors[node].append(cycle[i % 10])
 
     node_colors = []
     for node in graph.nodes:
@@ -42,7 +43,7 @@ def get_node_colors(graph, OGs):
         if colors:
             node_colors.append(blend_colors(colors))
         else:
-            node_colors.append('#1b1b1b')
+            node_colors.append('#1B1B1B')
     return node_colors
 
 
@@ -54,12 +55,12 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
         graph[node] = [adj.split(':') for adj in adjs.split(',')]
 
 # Load connected components
-CCs = {}
+components = {}
 with open('../connect_hit_graph/out/components.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        CCid, nodes = line.rstrip().split('\t')
-        CCs[CCid] = set(nodes.split(','))
+        component_id, nodes = line.rstrip().split('\t')
+        components[component_id] = set(nodes.split(','))
 
 # Load OGs
 OG3s = load_OGs('../cluster3_graph/out/clusters.tsv')
@@ -68,30 +69,30 @@ OG5s = load_OGs('../cluster4+_graph/out/5clique/clusters.tsv')
 OG6s = load_OGs('../cluster4+_graph/out/6clique/clusters.tsv')
 
 # Make output directory
-if not os.path.exists('out/pgraph2/'):
-    os.makedirs('out/pgraph2/')  # Recursive folder creation
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
-CCids = sorted(CCs, key=lambda x: len(CCs[x]), reverse=True)
-for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
-    subgraph = {node: graph[node] for node in CCs[CCid]}
+component_records = sorted(components.items(), key=lambda x: len(x[1]), reverse=True)
+for i, (component_id, component) in enumerate(component_records[:50]):  # 50 largest components
+    subgraph = {node: graph[node] for node in component}
 
     # Create graph
-    G = nx.Graph()
+    nx_graph = nx.Graph()
     for node, adjs in subgraph.items():
-        G.add_node(node)
+        nx_graph.add_node(node)
         for adj, w in adjs:
-            if (node, adj) in G.edges:
-                edge_data = G.get_edge_data(node, adj)
+            if (node, adj) in nx_graph.edges:
+                edge_data = nx_graph.get_edge_data(node, adj)
                 edge_data['weight'] = edge_data.get('weight', 0) + float(w)  # Sum edge weights
             else:
-                G.add_edge(node, adj, weight=float(w))
+                nx_graph.add_edge(node, adj, weight=float(w))
 
     # Get positions and canvas limits
-    pos = nx.kamada_kawai_layout(G, weight=None)  # Weight is None as otherwise is used for layout
-    xs = [xy[0] for xy in pos.values()]
+    positions = nx.kamada_kawai_layout(nx_graph, weight=None)  # Weight is None as otherwise is used for layout
+    xs = [xy[0] for xy in positions.values()]
     xmin, xmax = min(xs), max(xs)
     xlen = xmax - xmin
-    ys = [xy[1] for xy in pos.values()]
+    ys = [xy[1] for xy in positions.values()]
     ymin, ymax = min(ys), max(ys)
     ylen = ymax - ymin
 
@@ -104,59 +105,56 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
 
     # Determine best position for legend
     locs = ['lower left', 'lower right', 'upper left', 'upper right']
-    delset = set()
-    for x, y in pos.values():
+    for x, y in positions.values():
         xnorm = (x-xmin)/(xmax-xmin)
         ynorm = (y-ymin)/(ymax-ymin)
         if xnorm > 0.85 and ynorm > 0.95:
-            delset.add('upper right')
+            locs.remove('upper right')
         elif xnorm < 0.15 and ynorm > 0.95:
-            delset.add('upper left')
+            locs.remove('upper left')
         elif xnorm > 0.85 and ynorm < 0.05:
-            delset.add('lower right')
+            locs.remove('lower right')
         elif xnorm < 0.15 and ynorm < 0.05:
-            delset.add('lower left')
-    for loc in delset:
-        locs.remove(loc)
+            locs.remove('lower left')
 
     # Draw graph labeled by source
     node_size = 25 / (1 + exp(0.01 * (len(subgraph) - 400))) + 10  # Adjust node size
-    FB = [node for node in G.nodes if node.startswith('FBpp')]
-    NCBI = G.nodes - FB
+    FB = [node for node in nx_graph.nodes if node.startswith('FBpp')]
+    NCBI = nx_graph.nodes - FB
 
     fig, ax = plt.subplots(figsize=figsize, dpi=300)
-    nx.draw_networkx_edges(G, pos, alpha=0.25, width=0.5)
-    nx.draw_networkx_nodes(NCBI, pos, node_size=node_size, linewidths=0, node_color='C0', label='NCBI')
-    nx.draw_networkx_nodes(FB, pos, node_size=node_size, linewidths=0, node_color='C1', label='FlyBase')
+    nx.draw_networkx_edges(nx_graph, positions, alpha=0.25, width=0.5)
+    nx.draw_networkx_nodes(NCBI, positions, node_size=node_size, linewidths=0, node_color='C0', label='NCBI')
+    nx.draw_networkx_nodes(FB, positions, node_size=node_size, linewidths=0, node_color='C1', label='FlyBase')
 
     fig.legend(markerscale=(1 if node_size > 22.5 else 22.5/node_size), loc=locs[-1])
     fig.tight_layout()
     ax.axis('off')
-    fig.savefig(f'out/pgraph2/{i}_{CCid}_source.png')
+    fig.savefig(f'out/{i:02}-{component_id}_source.png')
     plt.close()
 
     # Draw graph labeled by cluster
-    for j, OGjs in zip(range(3, 7), [OG3s, OG4s, OG5s, OG6s]):
+    for k, OGks in zip(range(3, 7), [OG3s, OG4s, OG5s, OG6s]):
         fig, ax = plt.subplots(figsize=figsize, dpi=300)
-        nx.draw_networkx_edges(G, pos, alpha=0.25, width=0.5)
-        nx.draw_networkx_nodes(G.nodes, pos, node_size=node_size, linewidths=0, node_color=get_node_colors(G, OGjs.get(CCid, [])))
+        nx.draw_networkx_edges(nx_graph, positions, alpha=0.25, width=0.5)
+        nx.draw_networkx_nodes(nx_graph.nodes, positions, node_size=node_size, linewidths=0, node_color=get_node_colors(nx_graph, OGks.get(component_id, [])))
         fig.tight_layout()
         ax.axis('off')
-        fig.savefig(f'out/pgraph2/{i}_{CCid}_OG{j}.png')
+        fig.savefig(f'out/{i:02}-{component_id}_OG{k}.png')
         plt.close()
 
     # Draw graph labeled by edge
     node_size = 20 / (1 + exp(0.01 * (len(subgraph) - 400))) + 10  # Adjust node size
-    edges = sorted(G.edges, key=lambda x: G.get_edge_data(*x)['weight'])
+    edges = sorted(nx_graph.edges, key=lambda x: nx_graph.get_edge_data(*x)['weight'])
 
-    ws = [G.get_edge_data(*edge)['weight'] for edge in edges]
+    ws = [nx_graph.get_edge_data(*edge)['weight'] for edge in edges]
     cmap0 = mpl.cm.get_cmap('magma_r', 320)
     cmap1 = mpl.colors.ListedColormap(cmap0(linspace(0.25, 1, 256)))
     norm = mpl.colors.Normalize(min(ws), max(ws))
 
     fig, ax = plt.subplots(figsize=figsize, dpi=300)
-    nx.draw_networkx_edges(G, pos, edgelist=edges, alpha=0.375, width=0.75, edge_color=ws, edge_cmap=cmap1)
-    nx.draw_networkx_nodes(G, pos, node_size=node_size, linewidths=0, node_color='#333333')
+    nx.draw_networkx_edges(nx_graph, positions, edgelist=edges, alpha=0.375, width=0.75, edge_color=ws, edge_cmap=cmap1)
+    nx.draw_networkx_nodes(nx_graph, positions, node_size=node_size, linewidths=0, node_color='#333333')
 
     cax = inset_axes(ax, width=1, height=0.1, loc=locs[-1])
     dws = max(ws) - min(ws)
@@ -165,7 +163,7 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
 
     fig.tight_layout()
     ax.axis('off')
-    fig.savefig(f'out/pgraph2/{i}_{CCid}_edge.png')
+    fig.savefig(f'out/{i:02}-{component_id}_edge.png')
     plt.close()
 
 """
