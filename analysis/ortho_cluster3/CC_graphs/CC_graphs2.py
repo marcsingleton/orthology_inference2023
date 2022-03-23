@@ -12,9 +12,10 @@ from numpy import linspace
 def load_OGs(path):
     OGs = {}
     with open(path) as file:
+        file.readline()  # Skip header
         for line in file:
-            CCid, _, edges = line.rstrip().split(':')
-            gnids = {node for edge in edges.split('\t') for node in edge.split(',')}
+            CCid, _, _, edges = line.rstrip().split('\t')
+            gnids = {node for edge in edges.split(',') for node in edge.split(':')}
             try:
                 OGs[CCid].append(gnids)
             except KeyError:
@@ -61,10 +62,10 @@ with open('../connect_hit_graph/out/components.tsv') as file:
         CCs[CCid] = set(nodes.split(','))
 
 # Load OGs
-OG3s = load_OGs('../subcluster_pgraph/out/pgraph2/pclusters.txt')
-OG4s = load_OGs('../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt')
-OG5s = load_OGs('../clique4+_pcommunity/out/pgraph2/5clique/pclusters.txt')
-OG6s = load_OGs('../clique4+_pcommunity/out/pgraph2/6clique/pclusters.txt')
+OG3s = load_OGs('../cluster3_graph/out/clusters.tsv')
+OG4s = load_OGs('../cluster4+_graph/out/4clique/clusters.tsv')
+OG5s = load_OGs('../cluster4+_graph/out/5clique/clusters.tsv')
+OG6s = load_OGs('../cluster4+_graph/out/6clique/clusters.tsv')
 
 # Make output directory
 if not os.path.exists('out/pgraph2/'):
@@ -169,14 +170,14 @@ for i, CCid in enumerate(CCids[:50]):  # 50 largest CCs
 
 """
 DEPENDENCIES
-../clique4+_pcommunity/clique4+_pcommunity2.py
-    ../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
-    ../clique4+_pcommunity/out/pgraph2/5clique/pclusters.txt
-    ../clique4+_pcommunity/out/pgraph2/6clique/pclusters.txt
+../cluster3_graph/cluster3_graph.py
+    ../cluster3_graph/out/clusters.tsv
+../cluster4+_graph/cluster4+_graph.py
+    ../cluster4+_graph/out/4clique/clusters.tsv
+    ../cluster4+_graph/out/5clique/clusters.tsv
+    ../cluster4+_graph/out/6clique/clusters.tsv
 ../connect_hit_graph/connect_hit_graph.py
     ../connect_hit_graph/out/components.tsv
 ../hits2graph/hits2graph.py
     ../hits2graph/out/hit_graph.tsv
-../subcluster_pgraph/subcluster_pgraph2.py
-    ../subcluster_pgraph/out/pgraph2/pclusters.txt
 """

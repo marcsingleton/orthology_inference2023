@@ -24,10 +24,11 @@ CCs = pd.DataFrame(rows)
 
 # Load OGs
 rows = []
-with open('../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
+with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        CCid, OGid, edges = line.rstrip().split(':')
-        ppids = {node for edge in edges.split('\t') for node in edge.split(',')}
+        CCid, OGid, _, edges = line.rstrip().split('\t')
+        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         for ppid in ppids:
             gnid, spid = ppid2meta[ppid]
             rows.append({'CCid': CCid, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'spid': spid})
@@ -157,8 +158,8 @@ plt.close()
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../clique4+_pcommunity/clique4+_pcommunity2.py
-    ../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
+../cluster4+_graph/cluster4+_graph.py
+    ../cluster4+_graph/out/4clique/clusters.tsv
 ../connect_hit_graph/connect_hit_graph.py
     ../connect_hit_graph/out/components.tsv
 ../hsp_stats/hsp_stats.py

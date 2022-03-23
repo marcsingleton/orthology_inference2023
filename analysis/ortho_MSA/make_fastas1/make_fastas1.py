@@ -35,10 +35,11 @@ for spid, source, prot_path in genomes:
 
 # Load OGs and OG metadata
 OGs = {}
-with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
+with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        _, OGid, edges = line.rstrip().split(':')
-        sqids = {ppid2meta[node][2] for edge in edges.split('\t') for node in edge.split(',')}
+        _, OGid, _, edges = line.rstrip().split('\t')
+        sqids = {ppid2meta[node][2] for edge in edges.split(',') for node in edge.split(':')}
         OGs[OGid] = sqids  # Ensure only representatives are selected for reduced clusters
 OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
 
@@ -62,8 +63,8 @@ for OGid in OGids:
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
-../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
-    ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
+../../ortho_cluster3/cluster4+_graph/cluster4+_graph.py
+    ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../config/genomes.tsv

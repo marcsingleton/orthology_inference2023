@@ -105,11 +105,12 @@ if __name__ == '__main__':
 
     # Load data
     rows = []
-    with open('../subcluster_pgraph/out/pgraph2/pclusters.txt') as file:
+    with open('../cluster3_graph/out/clusters.tsv') as file:
+        file.readline()  # Skip header
         for line in file:
-            CCid, OGid, edges = line.rstrip().split(':')
-            for edge in edges.split('\t'):
-                node1, node2 = edge.split(',')
+            CCid, OGid, _, edges = line.rstrip().split('\t')
+            for edge in edges.split('.'):
+                node1, node2 = edge.split(':')
                 rows.append({'CCid': CCid, 'OGid': OGid, 'qppid': node1, 'sppid': node2})
                 rows.append({'CCid': CCid, 'OGid': OGid, 'qppid': node2, 'sppid': node1})
     edges = pd.DataFrame(rows)
@@ -350,6 +351,6 @@ DEPENDENCIES
 ../../ortho_search/hits2reciprocal/hits2reciprocal.py
     ../../ortho_search/hits2reciprocal/out/*/*.tsv
 ../config/genomes.tsv
-../clique4+_pcommunity/clique4+_pcommunity2.py
-    ../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
+../cluster4+_graph/cluster4+_graph.py
+    ../cluster4+_graph/out/4clique/clusters.tsv
 """

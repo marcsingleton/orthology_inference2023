@@ -19,10 +19,11 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
+with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        CCid, OGid, edges = line.rstrip().split(':')
-        ppids = {node for edge in edges.split('\t') for node in edge.split(',')}
+        CCid, OGid, _, edges = line.rstrip().split('\t')
+        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         for ppid in ppids:
             gnid, sqid = ppid2meta[ppid]
             rows.append({'CCid': CCid, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'sqid': sqid})
@@ -56,8 +57,8 @@ for row in df.dropna().itertuples():
 
 """
 DEPENDENCIES
-../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
-    ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
+../../ortho_cluster3/cluster4+_graph/cluster4+_graph.py
+    ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../../ortho_tree/ctree_WAG/ctree_WAG.py

@@ -51,10 +51,11 @@ with open('../../ortho_cluster3/connect_OGgraph/out/OGconnect.txt') as file:
 
 # Load OGs
 gOGid2OGs = {}
-with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
+with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        CCid, OGid, edges = line.rstrip().split(':')
-        ppids = {node for edge in edges.split('\t') for node in edge.split(',')}
+        CCid, OGid, _, edges = line.rstrip().split('\t')
+        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         gnids = {ppid2meta[ppid][0] for ppid in ppids}
         spids = {ppid2meta[ppid][1] for ppid in ppids}
         sqids = {ppid2meta[ppid][2] for ppid in ppids}
@@ -99,8 +100,8 @@ Total filtered OGs: 8551
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
-    ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
+../../ortho_cluster3/cluster4+_graph/cluster4+_graph.py
+    ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
 ../../ortho_cluster3/connect_OGgraph/connect_OGgraph.py
     ../../ortho_cluster3/connect_OGgraph/out/OGconnect.txt
 ../../ortho_cluster3/hits2graph/hits2graph.py

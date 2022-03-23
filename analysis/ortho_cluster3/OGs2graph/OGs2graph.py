@@ -12,15 +12,16 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
         ppid, gnid, _, _ = line.split()
         ppid2gnid[ppid] = gnid
 
-# Load OGs
+# LoadOGs
 OGid2gnids = {}
-with open('../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
+with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        _, OGid, edges = line.rstrip().split(':')
-        gnids = {ppid2gnid[node] for edge in edges.split('\t') for node in edge.split(',')}
+        _, OGid, _, edges = line.rstrip().split('\t')
+        gnids = {ppid2gnid[node] for edge in edges.split(',') for node in edge.split(':')}
         OGid2gnids[OGid] = gnids
 
-# Make OGgraph
+# Make OG graph
 graph = {OGid: set() for OGid in OGid2gnids}
 for OGid1, OGid2 in combinations(OGid2gnids, 2):
     gnids1, gnids2 = OGid2gnids[OGid1], OGid2gnids[OGid2]
@@ -40,6 +41,6 @@ with open('out/OGgraph.tsv', 'w') as file:
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../clique4+_pcommunity/clique4+_pcommunity2.py
-    ../clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
+../cluster4+_graph/cluster4+_graph.py
+    ../cluster4+_graph/out/4clique/clusters.tsv
 """

@@ -24,10 +24,11 @@ CCs = pd.DataFrame(rows)
 
 # Load OGs
 rows = []
-with open('../subcluster_pgraph/out/pgraph2/pclusters.txt') as file:
+with open('../cluster3_graph/out/clusters.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        CCid, OGid, edges = line.rstrip().split(':')
-        ppids = {node for edge in edges.split('\t') for node in edge.split(',')}
+        CCid, OGid, _, edges = line.rstrip().split('\t')
+        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         for ppid in ppids:
             gnid, spid = ppid2meta[ppid]
             rows.append({'CCid': CCid, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'spid': spid})
@@ -157,10 +158,10 @@ plt.close()
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
+../cluster3_graph/cluster3_graph.py
+    ../cluster3_graph/out/clusters.tsv
 ../connect_hit_graph/connect_hit_graph.py
     ../connect_hit_graph/out/components.tsv
 ../hsp_stats/hsp_stats.py
     ../hsp_stats/out/hsps_reciprocal/sppids.tsv
-../subcluster_pgraph/subcluster_pgraph2.py
-    ../subcluster_pgraph/out/pgraph2/pclusters.txt
 """

@@ -14,10 +14,11 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../subcluster_pgraph/out/pgraph2/pclusters.txt') as file:
+with open('../cluster3_graph/out/clusters.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        CCid, OGid, edges = line.rstrip().split(':')
-        ppids = {node for edge in edges.split('\t') for node in edge.split(',')}
+        CCid, OGid, _, edges = line.rstrip().split('\t')
+        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         for ppid in ppids:
             gnid, spid = ppid2meta[ppid]
             rows.append({'CCid': CCid, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'spid': spid})
@@ -272,6 +273,6 @@ These plots are largely based off those in analysis/EggNOGv5_validation/ali_stat
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../subcluster_pgraph/subcluster_pgraph2.py
-    ../subcluster_pgraph/pgraph2/out/pclusters.txt
+../cluster3_graph/cluster3_graph.py
+    ../cluster3_graph/out/clusters.tsv
 """

@@ -13,10 +13,11 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
+with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        CCid, OGid, edges = line.rstrip().split(':')
-        ppids = {node for edge in edges.split('\t') for node in edge.split(',')}
+        CCid, OGid, _, edges = line.rstrip().split('\t')
+        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         for ppid in ppids:
             gnid = ppid2gnid[ppid]
             rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid})
@@ -56,8 +57,8 @@ OGs (as opposed to one gene potentially being in multiple OGs which is quite pos
 removed OGs with multiple representatives from each species, so the OGs also uniquely map to genes.
 
 DEPENDENCIES
-../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
-    ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
+../../ortho_cluster3/cluster4+_graph/cluster4+_graph.py
+    ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
 ../../ortho_MSA/OG_filter/OG_filter.py
     ../../ortho_MSA/OG_filter/out/OG_filter.tsv
 ../../ortho_search/sequence_data/sequence_data.py

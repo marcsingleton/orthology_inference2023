@@ -35,10 +35,11 @@ for source, prot_path in genomes:
 
 # Load OGs and OG metadata
 OGs = {}
-with open('../clique4+_pcommunity/out/4clique/pclusters.txt') as file:
+with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        _, OGid, edges = line.rstrip().split(':')
-        sqids = {ppid2meta[node][2] for edge in edges.split('\t') for node in edge.split(',')}
+        _, OGid, _, edges = line.rstrip().split('\t')
+        sqids = {ppid2meta[node][2] for edge in edges.split(',') for node in edge.split(':')}
         OGs[OGid] = sqids
 OGs_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
 
@@ -70,8 +71,8 @@ DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../config/genomes.tsv
-../clique4+_pcommunity/clique4+_pcommunity.py
-    ../clique4+_pcommunity/out/4clique/pclusters.txt
+../cluster4+_graph/cluster4+_graph.py
+    ../cluster4+_graph/out/4clique/clusters.tsv
 ../OG_meta/OG_meta.py
     ../OG_meta/out/OG_meta.tsv
 """

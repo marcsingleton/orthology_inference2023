@@ -96,10 +96,11 @@ with open('../../ortho_cluster3/hits2graph/out/hit_graph.tsv') as file:
 
 # Load OGs and tree
 OGs = {}
-with open('../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt') as file:
+with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        _, OGid, edges = line.rstrip().split(':')
-        sqids = {ppid2meta[node][2] for edge in edges.split('\t') for node in edge.split(',')}
+        _, OGid, _, edges = line.rstrip().split('\t')
+        sqids = {ppid2meta[node][2] for edge in edges.split(',') for node in edge.split(':')}
         OGs[OGid] = sqids  # Ensure only representatives are selected for reduced clusters
 
 tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
@@ -139,8 +140,8 @@ with open('out/rclusters.tsv', 'w') as outfile:
 
 """
 DEPENDENCIES
-../../ortho_cluster3/clique4+_pcommunity/clique4+_pcommunity2.py
-    ../../ortho_cluster3/clique4+_pcommunity/out/pgraph2/4clique/pclusters.txt
+../../ortho_cluster3/cluster4+_graph/cluster4+_graph.py
+    ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
 ../../ortho_cluster3/hits2graph/hits2graph.py
     ../../ortho_cluster3/hits2graph/out/hit_graph.tsv
 ../../ortho_search/sequence_data/sequence_data.py
