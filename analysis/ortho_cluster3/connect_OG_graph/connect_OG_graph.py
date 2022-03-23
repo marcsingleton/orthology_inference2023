@@ -11,17 +11,18 @@ with open('../OGs2graph/out/OG_graph.tsv') as file:
         graph[node] = [adj.split(':')[0] for adj in adjs.split(',')] if adjs else []
 
 # Find connected components
-CCs = get_connected_components(graph)
+components = get_connected_components(graph)
 
 # Make output directory
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-# Write clusters to file
-with open('out/OGconnect.txt', 'w') as outfile:
-    for i, CC in enumerate(CCs):
-        CCid = hex(i)[2:].zfill(4)
-        outfile.write(CCid + ':' + ','.join(CC) + '\n')
+# Write components to file
+with open('out/components.tsv', 'w') as outfile:
+    file.write('GGid\tOGids\n')
+    for i, component in enumerate(components):
+        GGid = hex(i)[2:].zfill(4).upper()
+        outfile.write(GGid + '\t' + ','.join(component) + '\n')
 
 """
 DEPENDENCIES

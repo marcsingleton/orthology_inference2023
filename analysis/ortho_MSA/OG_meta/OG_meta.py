@@ -24,9 +24,10 @@ with open('../../ortho_cluster3/hits2graph/out/hit_graph.tsv') as file:
 
 # Load gOGs
 OGid2gOGid = {}
-with open('../../ortho_cluster3/connect_OGgraph/out/OGconnect.txt') as file:
+with open('../../ortho_cluster3/connect_OG_graph/out/components.tsv') as file:
+    file.readline()  # Skip header
     for line in file:
-        gOGid, OGids = line.rstrip().split(':')
+        gOGid, OGids = line.rstrip().split('\t')
         for OGid in OGids.split(','):
             OGid2gOGid[OGid] = gOGid
 
@@ -85,8 +86,8 @@ DEPENDENCIES
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../../ortho_cluster3/cluster4+_graph/cluster4+_graph.py
     ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
-../../ortho_cluster3/connect_OGgraph/connect_OGgraph.py
-    ../../ortho_cluster3/connect_OGgraph/out/OGconnect.txt
+../../ortho_cluster3/connect_OG_graph/connect_OG_graph.py
+    ../../ortho_cluster3/connect_OG_graph/out/components.tsv
 ../../ortho_cluster3/hits2graph/hits2graph.py
     ../../ortho_cluster3/hits2graph/out/hit_graph.tsv
 """
