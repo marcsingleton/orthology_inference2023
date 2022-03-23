@@ -6,87 +6,43 @@ from itertools import combinations, product
 
 import matplotlib.pyplot as plt
 import networkx as nx
+import pandas as pd
+import src.ortho_cluster.percolate as percolate
 from networkx.algorithms.clique import find_cliques
 from networkx.algorithms.components import connected_components
 from networkx.algorithms.core import k_core
-import src.ortho_cluster.percolate as percolate
-from src.ortho_cluster.percolate import edges2nodes
 
 
-# Output functions
-def classify_CC(CCtypes, subOGs):
-    subnOGs = []
-    for subOG in subOGs:
-        subnOG = set()
-        for node1, node2 in subOG:
-            subnOG.update(sqid2ppids[node1])
-            subnOG.update(sqid2ppids[node2])
-        subnOGs.append(subnOG)
-    if len(subnOGs) == 0:
-        CCtypes[0][len(subnOGs)] = CCtypes[0].get(len(subnOGs), 0) + 1  # Component has no OGs
-    elif len(subnOGs) == 1:
-        if len(subnOGs[0]) == len(CC):
-            CCtypes[1][len(subnOGs)] = CCtypes[1].get(len(subnOGs), 0) + 1  # Component and OG are equal
+def get_component_type(OGs, component):
+    node_sets = []
+    for OG in OGs:
+        node_set = set()
+        for node1, node2 in OG:
+            node_set.update(sqid2ppids[node1])
+            node_set.update(sqid2ppids[node2])
+        node_sets.append(node_set)
+    if len(node_sets) == 0:
+        return 0  # Component has no OGs
+    elif len(node_sets) == 1:
+        if len(node_sets[0]) == len(component):
+            return 1  # Component and OG are equal
         else:
-            CCtypes[2][len(subnOGs)] = CCtypes[2].get(len(subnOGs), 0) + 1  # Component has single OG which is a subset of the component
-    elif any([set.intersection(nOG1, nOG2) for nOG1, nOG2 in combinations(subnOGs, 2)]):
-        CCtypes[4][len(subnOGs)] = CCtypes[4].get(len(subnOGs), 0) + 1  # Component has multiple non-disjoint OGs
+            return 2  # Component has single OG which is a subset of the component
+    elif any([set.intersection(set1, set2) for set1, set2 in combinations(node_sets, 2)]):
+        return 4  # Component has multiple non-disjoint OGs
     else:
-        CCtypes[3][len(subnOGs)] = CCtypes[3].get(len(subnOGs), 0) + 1  # Component has multiple pairwise disjoint OGs
+        return 3  # Component has multiple pairwise disjoint OGs
 
 
-def save_results(OGs, CCtypes, k):
-    # Make plots output directory
-    if not os.path.exists(f'out/{k}clique/'):
-        os.makedirs(f'out/{k}clique/')  # Recursive folder creation
+def get_sort_tuple(OG_record):
+    OG = OG_record[1]
+    nodes = sorted([node for edge in OG for node in edge])
+    return len(nodes), nodes
 
-    # Write OGs to file
-    j = 0
-    with open(f'out/{k}clique/pclusters.txt', 'w') as file:
-        for i, subOGs in enumerate(OGs):
-            CCid = hex(i)[2:].zfill(4)
-            for OG in sorted(subOGs, key=lambda x: sorted(edges2nodes(x))):  # Ensure consistent ids by keying on sorted node list
-                OGid = hex(j)[2:].zfill(4)
-                edgestring = '\t'.join([f'{n1},{n2}' for node1, node2 in OG for n1, n2 in product(sqid2ppids[node1], sqid2ppids[node2])])
-                file.write(CCid + ':' + OGid + ':' + edgestring + '\n')
-                j += 1
 
-    # Plots
-    plt.bar(CCtypes[0].keys(), CCtypes[0].values(), label='Type 0')
-    plt.bar(CCtypes[1].keys(), CCtypes[1].values(), label='Type 1')
-    plt.bar(CCtypes[2].keys(), CCtypes[2].values(), bottom=CCtypes[1].get(1, 0), label='Type 2')
-    plt.bar(CCtypes[3].keys(), CCtypes[3].values(), label='Type 3')
-    plt.bar(CCtypes[4].keys(), CCtypes[4].values(), bottom=[CCtypes[3].get(key, 0) for key in CCtypes[4]], label='Type 4')
-    plt.xlabel('Number of OGs in connected component')
-    plt.ylabel('Number of connected components')
-    plt.title('Distribution of connected components across number of OGs')
-    plt.legend()
-    plt.savefig(f'out/{k}clique/connectnum-OGnum_type_dist1-1.png')
-    plt.xlim((-1, 17))  # Adjust axis to truncate outliers
-    plt.savefig(f'out/{k}clique/connectnum-OGnum_type_dist1-2.png')
-    plt.close()
-
-    plt.bar(CCtypes[3].keys(), CCtypes[3].values(), label='Type 3', color='C3')
-    plt.bar(CCtypes[4].keys(), CCtypes[4].values(), bottom=[CCtypes[3].get(key, 0) for key in CCtypes[4]], label='Type 4', color='C4')
-    plt.xlabel('Number of OGs in connected component')
-    plt.ylabel('Number of connected components')
-    plt.title('Distribution of connected components across number of OGs')
-    plt.legend()
-    plt.savefig(f'out/{k}clique//connectnum-OGnum_type_dist2-1.png')
-    plt.xlim((-1, 17))  # Adjust axis to truncate outliers
-    plt.savefig(f'out/{k}clique/connectnum-OGnum_type_dist2-2.png')
-    plt.close()
-
-    plt.pie([sum(CCtype.values()) for CCtype in CCtypes], labels=[f'Type {i}' for i in range(len(CCtypes))])
-    plt.title('Connected components by type')
-    plt.savefig(f'out/{k}clique/type_pie.png')
-    plt.close()
-
-    print()
-    print(f'{k}-CLIQUE')
-    for i, CCtype in enumerate(CCtypes):
-        print(f'Type {i}:', sum(CCtype.values()))
-
+clique_timeout = 90
+percolate_timeout = 90
+k_core_components = ['03b2', '03b4', '03b6', '03b9', '03bb', '089f']  # Histones and other complex OGs which directly use k_core
 
 # Load seq metadata
 sqid2ppids = {}
@@ -110,63 +66,118 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
         graph[node] = {adj.split(':')[0] for adj in adjs.split(',')}
 
 # Load connected components
-CCs = []
+components = []
 with open('../connect_hit_graph/out/components.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        CCid, nodes = line.rstrip().split('\t')
-        CCs.append((CCid, set(nodes.split(','))))
+        component_id, nodes = line.rstrip().split('\t')
+        components.append((component_id, set(nodes.split(','))))
 
 ks = list(range(4, 7))
-OGs_ks = {k: [] for k in ks}
-CCtypes_ks = {k: [{} for _ in range(5)] for k in ks}
-for CCid, CC in CCs:
+OG_records_ks = [[] for _ in ks]
+rows_ks = [[] for _ in ks]
+for component_id, component in components:
     # Create graph
-    G = nx.Graph()
-    for node in CC:
+    subgraph = nx.Graph()
+    for node in component:
         if node in constituents:
             continue
-        G.add_node(node)
+        subgraph.add_node(node)
         for adj in filter(lambda x: x not in constituents, graph[node]):
-            G.add_edge(node, adj)
+            subgraph.add_edge(node, adj)
 
     # Handle cliques
     try:
-        signal.signal(signal.SIGALRM, percolate.clique_handler)
-        if CCid in ['03ae', '03b0', '03b2', '03b5', '03b7', '0893']:  # Skip histones and other complex OGs
+        if component_id in k_core_components:
             raise percolate.CliqueError
-        signal.alarm(90)
-        cliques = list(find_cliques(G))
+        signal.signal(signal.SIGALRM, percolate.clique_handler)
+        signal.alarm(clique_timeout)
+        cliques = list(find_cliques(subgraph))
         signal.alarm(0)
     except percolate.CliqueError:
-        print(f'CliqueError: {CCid}')
-        for k in ks:
-            subOGs = set()
-            core = k_core(G, k)
-            for component in connected_components(core):
-                subOGs.add(frozenset([frozenset(edge) for edge in core.edges(component)]))
-            OGs_ks[k].append(subOGs)
-            classify_CC(CCtypes_ks[k], subOGs)
+        print(f'CliqueError: {component_id}')
+        for k, OG_records_k, rows_k in zip(ks, OG_records_ks, rows_ks):
+            core = k_core(subgraph, k)
+            OGs = [core.edges(core_component) for core_component in connected_components(core)]
+            OG_records_k.extend([(component_id, OG, f'{k}core') for OG in OGs])
+            component_type = get_component_type(OGs, component)
+            rows_k.append({'component_id': component_id, 'component_type': component_type, 'OGnum': len(OGs)})
         continue  # Continue to next OG
 
     # Handle percolation
-    for k in ks:
+    for k, OG_records_k, rows_k in zip(ks, OG_records_ks, rows_ks):
         try:
             signal.signal(signal.SIGALRM, percolate.percolate_handler)
-            signal.alarm(90)
-            subOGs = list(percolate.k_clique_communities_progressive(G, k, cliques))
+            signal.alarm(percolate_timeout)
+            OGs = list(percolate.k_clique_communities_progressive(subgraph, k, cliques))
             signal.alarm(0)
+            algorithm = f'{k}clique'
         except percolate.PercolateError:
-            print(f'PercolateError: ({k}, {CCid})')
-            subOGs = set()
-            core = k_core(G, k)
-            for component in connected_components(core):
-                subOGs.add(frozenset([frozenset(edge) for edge in core.edges(component)]))
-        OGs_ks[k].append(subOGs)
-        classify_CC(CCtypes_ks[k], subOGs)
+            print(f'PercolateError: ({k}, {component_id})')
+            core = k_core(subgraph, k)
+            OGs = [core.edges(core_component) for core_component in connected_components(core)]
+            algorithm = f'{k}core'
+        OG_records_k.extend([(component_id, OG, algorithm) for OG in OGs])
+        component_type = get_component_type(OGs, component)
+        rows_k.append({'component_id': component_id, 'component_type': component_type, 'OGnum': len(OGs)})
 
-for k in ks:
-    save_results(OGs_ks[k], CCtypes_ks[k], k)
+for k, OG_records_k, rows_k in zip(ks, OG_records_ks, rows_ks):
+    # Make plots output directory
+    if not os.path.exists(f'out/{k}clique/'):
+        os.makedirs(f'out/{k}clique/')  # Recursive folder creation
+
+    # Write OGs to file
+    j = 0
+    with open(f'out/{k}clique/clusters.tsv', 'w') as file:
+        file.write('component_id\tOGid\talgorithm\tedges\n')
+        for component_id, OG, algorithm in sorted(OG_records_k, key=get_sort_tuple, reverse=True):
+            OGid = hex(j)[2:].zfill(4).upper()
+            edgestring = ','.join([f'{n1}:{n2}' for node1, node2 in OG for n1, n2 in product(sqid2ppids[node1], sqid2ppids[node2])])
+            file.write(f'{component_id}\t{OGid}\t{algorithm}\t' + edgestring + '\n')
+            j += 1
+
+    # Plots
+    df = pd.DataFrame(rows_k)
+    component_types = [df.loc[df['component_type'] == i, 'OGnum'].value_counts() for i in range(5)]
+
+    plt.bar(component_types[0].index, component_types[0].values, label='Type 0')
+    plt.bar(component_types[1].index, component_types[1].values, label='Type 1')
+    plt.bar(component_types[2].index, component_types[2].values,
+            bottom=component_types[1].get(1, 0), label='Type 2')
+    plt.bar(component_types[3].index, component_types[3].values, label='Type 3')
+    plt.bar(component_types[4].index, component_types[4].values,
+            bottom=[component_types[3].get(index, 0) for index in component_types[4].index], label='Type 4')
+    plt.xlabel('Number of OGs in connected component')
+    plt.ylabel('Number of connected components')
+    plt.title('Distribution of connected components across number of OGs')
+    plt.legend()
+    plt.savefig(f'out/{k}clique/bar_connectnum-OGnum_type_dist1-1.png')
+    plt.xlim((-1, 17))  # Adjust axis to truncate outliers
+    plt.savefig(f'out/{k}clique/bar_connectnum-OGnum_type_dist1-2.png')
+    plt.close()
+
+    plt.bar(component_types[3].index, component_types[3].values, label='Type 3', color='C3')
+    plt.bar(component_types[4].index, component_types[4].values,
+            bottom=[component_types[3].get(index, 0) for index in component_types[4].index], label='Type 4', color='C4')
+    plt.xlabel('Number of OGs in connected component')
+    plt.ylabel('Number of connected components')
+    plt.title('Distribution of connected components across number of OGs')
+    plt.legend()
+    plt.savefig(f'out/{k}clique/bar_connectnum-OGnum_type_dist2-1.png')
+    plt.xlim((-1, 17))  # Adjust axis to truncate outliers
+    plt.savefig(f'out/{k}clique/bar_connectnum-OGnum_type_dist2-2.png')
+    plt.close()
+
+    plt.pie([sum(component_type.values) for component_type in component_types],
+            labels=[f'Type {i}' for i in range(len(component_types))])
+    plt.title('Connected components by type')
+    plt.savefig(f'out/{k}clique/pie_component_types.png')
+    plt.close()
+
+    print()
+    print(f'{k}-CLIQUE')
+    for i, component_type in enumerate(component_types):
+        print(f'Type {i}:', sum(component_type.values))
 
 """
 OUTPUT
