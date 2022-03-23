@@ -3,6 +3,11 @@
 import os
 from src.ortho_cluster.graphs import get_connected_components
 
+
+def get_sort_tuple(component):
+    return len(component), sorted(component)
+
+
 # Load graph
 graph = {}
 with open('../OGs2graph/out/OG_graph.tsv') as file:
@@ -12,6 +17,7 @@ with open('../OGs2graph/out/OG_graph.tsv') as file:
 
 # Find connected components
 components = get_connected_components(graph)
+components = sorted(components, key=get_sort_tuple)
 
 # Make output directory
 if not os.path.exists('out/'):

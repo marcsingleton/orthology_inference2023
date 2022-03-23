@@ -3,6 +3,11 @@
 import os
 from src.ortho_cluster.graphs import get_connected_components
 
+
+def get_sort_tuple(component):
+    return len(component), sorted(component)
+
+
 # Load graph
 graph = {}
 with open('../hits2graph/out/hit_graph.tsv') as file:
@@ -12,6 +17,7 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
 
 # Find connected components
 components = get_connected_components(graph)
+components = sorted(filter(lambda x: len(x) > 1, components), key=get_sort_tuple)
 
 # Make output directory
 if not os.path.exists('out/'):
@@ -20,7 +26,7 @@ if not os.path.exists('out/'):
 # Write clusters to file
 with open('out/components.tsv', 'w') as file:
     file.write('component_id\tppids\n')
-    for i, component in enumerate(filter(lambda x: len(x) > 1, components)):
+    for i, component in components:
         component_id = hex(i)[2:].zfill(4).upper()
         file.write(component_id + '\t' + ','.join(component) + '\n')
 
