@@ -3,7 +3,6 @@
 import os
 from itertools import combinations
 
-
 # Load seq metadata
 ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
@@ -12,7 +11,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
         ppid, gnid, _, _ = line.split()
         ppid2gnid[ppid] = gnid
 
-# LoadOGs
+# Load OGs
 OGid2gnids = {}
 with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
@@ -29,11 +28,11 @@ for OGid1, OGid2 in combinations(OGid2gnids, 2):
         graph[OGid1].add(OGid2)
         graph[OGid2].add(OGid1)
 
-# Write OGgraph to file
+# Write OG graph to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-with open('out/OGgraph.tsv', 'w') as file:
+with open('out/OG_graph.tsv', 'w') as file:
     for node, adjs in graph.items():
         file.write(node + '\t' + ','.join(adjs) + '\n')
 

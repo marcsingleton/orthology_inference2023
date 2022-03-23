@@ -5,7 +5,7 @@ from src.ortho_cluster.graphs import get_connected_components
 
 # Load graph
 graph = {}
-with open('../OGs2graph/out/OGgraph.tsv') as file:
+with open('../OGs2graph/out/OG_graph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         graph[node] = [adj.split(':')[0] for adj in adjs.split(',')] if adjs else []
@@ -26,5 +26,5 @@ with open('out/OGconnect.txt', 'w') as outfile:
 """
 DEPENDENCIES
 ../OGs2graph/OGs2graph.py
-    ../OGs2graph/out/OGgraph.tsv
+    ../OGs2graph/out/OG_graph.tsv
 """
