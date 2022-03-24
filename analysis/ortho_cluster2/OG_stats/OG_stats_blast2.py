@@ -1,11 +1,12 @@
 """Plot various statistics of OGs relating to their BLAST parameters."""
 
-import matplotlib.colors as mpl_colors
-import matplotlib.pyplot as plt
 import multiprocessing as mp
 import os
-import pandas as pd
 from itertools import permutations
+
+import matplotlib.colors as mpl_colors
+import matplotlib.pyplot as plt
+import pandas as pd
 from numpy import linspace
 
 
@@ -20,50 +21,46 @@ def load_hit(qspid, sspid):
 
 
 # Plot functions
-def hist1(df, bins, file_label, title_label, x_label, df_label, color, wrap=False):
+def hist1(df, bins, file_label, x_label, y_label, df_label, color):
     plt.hist(df, bins=bins, label=df_label, color=color)
     plt.xlabel(x_label[0].upper() + x_label[1:])
-    plt.ylabel(f'Number of {title_label}')
-    plt.title(f'Distribution of {title_label} across' + ('\n' if wrap else ' ') + x_label)
+    plt.ylabel(f'Number of {y_label}')
     plt.legend()
-    plt.savefig(f'out/pgraph2/blast/hist_{file_label}.png')
+    plt.savefig(f'out/blast/hist_{file_label}.png')
     plt.close()
 
 
-def hist3(dfs, bins, file_label, title_label, x_label, df_labels, colors, wrap=False):
+def hist3(dfs, bins, file_label, x_label, y_label, df_labels, colors):
     fig, axs = plt.subplots(3, 1, figsize=(4.8, 6), sharex=True)
     b = linspace(min([df.min() for df in dfs]), max([df.max() for df in dfs]), bins, endpoint=True)
     for ax, df, data_label, color in zip(axs, dfs, df_labels, colors):
         ax.hist(df, bins=b, label=data_label, color=color)
         ax.legend()
     axs[2].set_xlabel(x_label[0].upper() + x_label[1:])
-    axs[1].set_ylabel(f'Number of {title_label}')
-    fig.suptitle(f'Distribution of {title_label} across' + ('\n' if wrap else ' ') + x_label)
+    axs[1].set_ylabel(f'Number of {y_label}')
     fig.subplots_adjust(left=0.175)
-    fig.savefig(f'out/pgraph2/blast/hist3_{file_label}.png')
+    fig.savefig(f'out/blast/hist_{file_label}_3.png')
     plt.close()
 
 
-def bar1(df, file_label, x_label, df_label, color, wrap=False):
+def bar1(df, file_label, x_label, df_label, color):
     plt.bar(df.index, df.values, label=df_label, color=color, width=1)
     plt.xlabel(x_label[0].upper() + x_label[1:])
     plt.ylabel('Number of hits')
-    plt.title('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     plt.legend()
-    plt.savefig(f'out/pgraph2/blast/hist_{file_label}.png')
+    plt.savefig(f'out/blast/hist_{file_label}.png')
     plt.close()
 
 
-def bar3(dfs, file_label, x_label, df_labels, colors, wrap=False):
+def bar3(dfs, file_label, x_label, df_labels, colors):
     fig, axs = plt.subplots(3, 1, figsize=(4.8, 6), sharex=True)
     for ax, df, df_label, color in zip(axs, dfs, df_labels, colors):
         ax.bar(df.index, df.values, label=df_label, color=color, width=1)
         ax.legend()
     axs[2].set_xlabel(x_label[0].upper() + x_label[1:])
     axs[1].set_ylabel('Number of hits')
-    fig.suptitle('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     fig.subplots_adjust(left=0.175)
-    fig.savefig(f'out/pgraph2/blast/hist_{file_label}.png')
+    fig.savefig(f'out/blast/hist_{file_label}.png')
     plt.close()
 
 
@@ -75,15 +72,15 @@ def scatter1(x, y, file_label, xy_label, df_label, color):
     leg = ax.legend(markerscale=2)
     for lh in leg.legendHandles:
         lh.set_alpha(1)
-    fig.savefig(f'out/pgraph2/blast/scatter_{file_label}.png')
+    fig.savefig(f'out/blast/scatter_{file_label}.png')
     plt.close()
 
 
 def scatter2(x, y, file_label, y_label):
     plt.scatter(x, y, alpha=0.5, s=10, label='all', color='C0', edgecolors='none')
-    plt.xlabel('Number of polypeptides in OG')
+    plt.xlabel('Number of proteins in OG')
     plt.ylabel(y_label)
-    plt.savefig(f'out/pgraph2/blast/scatter_{file_label}.png')
+    plt.savefig(f'out/blast/scatter_{file_label}.png')
     plt.close()
 
 
@@ -101,22 +98,23 @@ if __name__ == '__main__':
     with open('../config/genomes.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            spids.append(line.split()[0])
+            spid, _, _, _ = line.split()
+            spids.append(spid)
 
     # Load data
     rows = []
     with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            CCid, OGid, _, edges = line.rstrip().split('\t')
+            component_id, OGid, _, edges = line.rstrip().split('\t')
             for edge in edges.split(','):
                 node1, node2 = edge.split(':')
-                rows.append({'CCid': CCid, 'OGid': OGid, 'qppid': node1, 'sppid': node2})
-                rows.append({'CCid': CCid, 'OGid': OGid, 'qppid': node2, 'sppid': node1})
+                rows.append({'component_id': component_id, 'OGid': OGid, 'qppid': node1, 'sppid': node2})
+                rows.append({'component_id': component_id, 'OGid': OGid, 'qppid': node2, 'sppid': node1})
     edges = pd.DataFrame(rows)
 
     with mp.Pool(processes=num_processes) as pool:
-        hits0 = pd.concat(pool.starmap(load_hit, permutations(spids, 2)))
+        hits0 = pd.concat(pool.starmap(load_hit, permutations(spids[:3], 2)))
         hits0 = edges.merge(hits0, how='left', on=['qppid', 'sppid'])
         hits0['fqa'] = hits0['nqa'] / hits0['qlen']
         hits0['fsa'] = hits0['nsa'] / hits0['slen']
@@ -125,20 +123,17 @@ if __name__ == '__main__':
         hits0['xhspnum'] = hits0['chspnum'] - hits0['hspnum']
 
     # Segment OGs
-    OGs = hits0.groupby('OGid')
-    gns = hits0.groupby('qgnid')
+    OGid_groups = hits0.groupby('OGid')
+    gnid_groups = hits0.groupby('qgnid')
+    spidnum = OGid_groups['qspid'].nunique()
+    gnidnum = OGid_groups['qgnid'].nunique()
 
-    OG_spidnum = OGs['qspid'].nunique()
-    OG_gnidnum = OGs['qgnid'].nunique()
-    gn_OGidnum = gns['OGid'].nunique()
+    species_filter = spidnum[spidnum == len(spids)].index
+    gene_filter = gnidnum[gnidnum == len(spids)].index
+    bijective_filter = gnid_groups.filter(lambda x: len(x) == 1)['OGid']
 
-    OGs_sps = OG_spidnum[OG_spidnum == len(spids)].index
-    OGs_gns = OG_gnidnum[OG_gnidnum == len(spids)].index
-    gns_gn1OG = gn_OGidnum[gn_OGidnum > 1].index
-    OGs_gn1OG = hits0.loc[hits0['qgnid'].isin(gns_gn1OG), 'OGid'].unique()
-
-    OGs1 = set(OGs_sps) & set(OGs_gns)
-    OGs2 = OGs1 - set(OGs_gn1OG)
+    OGs1 = set(species_filter) & set(gene_filter)
+    OGs2 = OGs1 & set(bijective_filter)
 
     hits1 = hits0[hits0['OGid'].isin(OGs1)]
     hits2 = hits0[hits0['OGid'].isin(OGs2)]
@@ -149,75 +144,64 @@ if __name__ == '__main__':
     colors = ['C0', 'C1', 'C2']
 
     # Make output directory
-    if not os.path.exists('out/pgraph2/blast/'):
-        os.makedirs('out/pgraph2/blast/')
+    if not os.path.exists('out/blast/'):
+        os.makedirs('out/blast/')
 
     # 1 FILTER PLOT
     ys = [hit['OGid'].nunique() for hit in hits]
     plt.bar(labels, ys, color=colors, width=0.25)
     plt.xlim((-0.75, 2.75))
     plt.ylabel('Number of OGs')
-    plt.savefig('out/pgraph2/blast/bar_OGnum-filter.png')
+    plt.savefig('out/blast/bar_OGidnum-filter.png')
     plt.close()
 
     # 2 BITSCORE PLOTS
     # 2.1 Hit histograms
-    hist3([hit['bitscore'] for hit in hits], 200, 'hitnum-bitscore', 'hits in OGs', 'bitscore', labels, colors)
-    hist1(hits0['bitscore'], 200, 'hitnum-bitscore_all', 'hits in OGs', 'bitscore', labels[0], colors[0])
-    hist1(hits1['bitscore'], 200, 'hitnum-bitscore_filter1', 'hits in OGs', 'bitscore', labels[1], colors[1])
-    hist1(hits2['bitscore'], 200, 'hitnum-bitscore_filter2', 'hits in OGs', 'bitscore', labels[2], colors[2])
+    hist3([hit['bitscore'] for hit in hits], 200, 'hitnum-bitscore', 'bitscore', 'hits in OGs', labels, colors)
+    hist1(hits0['bitscore'], 200, 'hitnum-bitscore_all', 'bitscore', 'hits in OGs', labels[0], colors[0])
+    hist1(hits1['bitscore'], 200, 'hitnum-bitscore_filter1', 'bitscore', 'hits in OGs', labels[1], colors[1])
+    hist1(hits2['bitscore'], 200, 'hitnum-bitscore_filter2', 'bitscore', 'hits in OGs', labels[2], colors[2])
 
     # 2.2 OG histograms
-    hist3([OG['bitscore'].mean() for OG in OGs], 200, 'OGnum-bitscoremean', 'OGs',
-          'mean bitscore of hits in OG', labels, colors, wrap=True)
-    hist3([OG['bitscore'].var() for OG in OGs], 200, 'OGnum-bitscorevar', 'OGs',
-          'variance of bitscore of hits in OG', labels, colors, wrap=True)
+    hist3([OG['bitscore'].mean() for OG in OGs], 200, 'OGidnum-bitscoremean', 'mean bitscore of hits in OG', 'OGs', labels, colors)
+    hist3([OG['bitscore'].var() for OG in OGs], 200, 'OGidnum-bitscorevar', 'variance of bitscore of hits in OG', 'OGs', labels, colors)
 
     # 2.3 OG scatters
-    scatter1(OGs[0]['bitscore'].mean(), OGs[0]['bitscore'].var(),
-             'bitscorevar-bitscoremean_all.png', 'bitscore', labels[0], colors[0])
-    scatter1(OGs[1]['bitscore'].mean(), OGs[1]['bitscore'].var(),
-             'bitscorevar-bitscoremean_filter1.png', 'bitscore', labels[1], colors[1])
-    scatter1(OGs[2]['bitscore'].mean(), OGs[2]['bitscore'].var(),
-             'bitscorevar-bitscoremean_filter2.png', 'bitscore', labels[2], colors[2])
+    scatter1(OGs[0]['bitscore'].mean(), OGs[0]['bitscore'].var(), 'bitscorevar-bitscoremean_all.png', 'bitscore', labels[0], colors[0])
+    scatter1(OGs[1]['bitscore'].mean(), OGs[1]['bitscore'].var(), 'bitscorevar-bitscoremean_filter1.png', 'bitscore', labels[1], colors[1])
+    scatter1(OGs[2]['bitscore'].mean(), OGs[2]['bitscore'].var(), 'bitscorevar-bitscoremean_filter2.png', 'bitscore', labels[2], colors[2])
 
     # 3 HSPNUM HISTOGRAMS
     counts = [hit['hspnum'].value_counts() for hit in hits]
-    bar3(counts, 'hitnum-hspnum', 'number of disjoint HSPs in hit', labels, colors, wrap=True)
-    bar1(counts[0], 'hitnum-hspnum_all', 'number of disjoint HSPs in hit', labels[0], colors[0], wrap=True)
-    bar1(counts[1], 'hitnum-hspnum_filter1', 'number of disjoint HSPs in hit', labels[1], colors[1], wrap=True)
-    bar1(counts[2], 'hitnum-hspnum_filter2', 'number of disjoint HSPs in hit', labels[2], colors[2], wrap=True)
+    bar3(counts, 'hitnum-hspnum', 'number of disjoint HSPs in hit', labels, colors)
+    bar1(counts[0], 'hitnum-hspnum_all', 'number of disjoint HSPs in hit', labels[0], colors[0])
+    bar1(counts[1], 'hitnum-hspnum_filter1', 'number of disjoint HSPs in hit', labels[1], colors[1])
+    bar1(counts[2], 'hitnum-hspnum_filter2', 'number of disjoint HSPs in hit', labels[2], colors[2])
 
     # 4 cHSPNUM HISTOGRAMS
     counts = [hit['chspnum'].value_counts() for hit in hits]
-    bar3(counts, 'hitnum-chspnum', 'number of compatible HSPs in hit', labels, colors, wrap=True)
-    bar1(counts[0], 'hitnum-chspnum_all', 'number of compatible HSPs in hit', labels[0], colors[0], wrap=True)
-    bar1(counts[1], 'hitnum-chspnum_filter1', 'number of compatible HSPs in hit', labels[1], colors[1], wrap=True)
-    bar1(counts[2], 'hitnum-chspnum_filter2', 'number of compatible HSPs in hit', labels[2], colors[2], wrap=True)
+    bar3(counts, 'hitnum-chspnum', 'number of compatible HSPs in hit', labels, colors)
+    bar1(counts[0], 'hitnum-chspnum_all', 'number of compatible HSPs in hit', labels[0], colors[0])
+    bar1(counts[1], 'hitnum-chspnum_filter1', 'number of compatible HSPs in hit', labels[1], colors[1])
+    bar1(counts[2], 'hitnum-chspnum_filter2', 'number of compatible HSPs in hit', labels[2], colors[2])
 
     # 5 xHSPNUM HISTOGRAMS
     counts = [hit['xhspnum'].value_counts() for hit in hits]
-    bar3(counts, 'hitnum-xhspnum', 'excess number of HSPs in hit', labels, colors, wrap=True)
-    bar1(counts[0], 'hitnum-xhspnum_all', 'excess number of HSPs in hit', labels[0], colors[0], wrap=True)
-    bar1(counts[1], 'hitnum-xhspnum_filter1', 'excess number of HSPs in hit', labels[1], colors[1], wrap=True)
-    bar1(counts[2], 'hitnum-xhspnum_filter2', 'excess number of HSPs in hit', labels[2], colors[2], wrap=True)
+    bar3(counts, 'hitnum-xhspnum', 'excess number of HSPs in hit', labels, colors)
+    bar1(counts[0], 'hitnum-xhspnum_all', 'excess number of HSPs in hit', labels[0], colors[0])
+    bar1(counts[1], 'hitnum-xhspnum_filter1', 'excess number of HSPs in hit', labels[1], colors[1])
+    bar1(counts[2], 'hitnum-xhspnum_filter2', 'excess number of HSPs in hit', labels[2], colors[2])
 
     # 6 NQA PLOTS
     # 6.1 Hit histograms
-    hist3([hit['nqa'] for hit in hits], 200, 'hitnum-nqa', 'hits in OGs', 'number of query aligned',
-          labels, colors, wrap=True)
-    hist1(hits0['nqa'], 200, 'hitnum-nqa_all', 'hits in OGs', 'number of query aligned',
-          labels[0], colors[0], wrap=True)
-    hist1(hits1['nqa'], 200, 'hitnum-nqa_filter1', 'hits in OGs', 'number of query aligned',
-          labels[1], colors[1], wrap=True)
-    hist1(hits2['nqa'], 200, 'hitnum-nqa_filter2', 'hits in OGs', 'number of query aligned',
-          labels[2], colors[2], wrap=True)
+    hist3([hit['nqa'] for hit in hits], 200, 'hitnum-nqa', 'number of query aligned', 'hits in OGs', labels, colors)
+    hist1(hits0['nqa'], 200, 'hitnum-nqa_all', 'number of query aligned', 'hits in OGs', labels[0], colors[0])
+    hist1(hits1['nqa'], 200, 'hitnum-nqa_filter1', 'number of query aligned', 'hits in OGs', labels[1], colors[1])
+    hist1(hits2['nqa'], 200, 'hitnum-nqa_filter2', 'number of query aligned', 'hits in OGs', labels[2], colors[2])
 
     # 6.2 OG histograms
-    hist3([OG['nqa'].mean() for OG in OGs], 50, 'OGnum-nqamean', 'OGs', 'mean NQA of hits in OG',
-          labels, colors, wrap=True)
-    hist3([OG['nqa'].var() for OG in OGs], 50, 'OGnum-nqavar', 'OGs', 'variance of NQA of hits in OG',
-          labels, colors, wrap=True)
+    hist3([OG['nqa'].mean() for OG in OGs], 50, 'OGidnum-nqamean', 'mean NQA of hits in OG', 'OGs', labels, colors)
+    hist3([OG['nqa'].var() for OG in OGs], 50, 'OGidnum-nqavar', 'variance of NQA of hits in OG', 'OGs', labels, colors)
 
     # 6.3 OG scatters
     scatter1(OGs[0]['nqa'].mean(), OGs[0]['nqa'].var(), 'nqavar-nqamean_all.png', 'NQA', labels[0], colors[0])
@@ -226,20 +210,14 @@ if __name__ == '__main__':
 
     # 7 cNQA PLOTS
     # 7.1 Hit histograms
-    hist3([hit['cnqa'] for hit in hits], 200, 'hitnum-cnqa', 'hits in OGs', 'compatible number of query aligned',
-          labels, colors, wrap=True)
-    hist1(hits0['cnqa'], 200, 'hitnum-cnqa_all', 'hits in OGs', 'compatible number of query aligned',
-          labels[0], colors[0], wrap=True)
-    hist1(hits1['cnqa'], 200, 'hitnum-cnqa_filter1', 'hits in OGs', 'compatible number of query aligned',
-          labels[1], colors[1], wrap=True)
-    hist1(hits2['cnqa'], 200, 'hitnum-cnqa_filter2', 'hits in OGs', 'compatible number of query aligned',
-          labels[2], colors[2], wrap=True)
+    hist3([hit['cnqa'] for hit in hits], 200, 'hitnum-cnqa', 'compatible number of query aligned', 'hits in OGs', labels, colors)
+    hist1(hits0['cnqa'], 200, 'hitnum-cnqa_all', 'compatible number of query aligned', 'hits in OGs', labels[0], colors[0])
+    hist1(hits1['cnqa'], 200, 'hitnum-cnqa_filter1', 'compatible number of query aligned', 'hits in OGs', labels[1], colors[1])
+    hist1(hits2['cnqa'], 200, 'hitnum-cnqa_filter2', 'compatible number of query aligned', 'hits in OGs', labels[2], colors[2])
 
     # 7.2 OG histograms
-    hist3([OG['cnqa'].mean() for OG in OGs], 50, 'OGnum-cnqamean', 'OGs', 'mean cNQA of hits in OG',
-          labels, colors, wrap=True)
-    hist3([OG['cnqa'].var() for OG in OGs], 50, 'OGnum-cnqavar', 'OGs', 'variance of cNQA of hits in OG',
-          labels, colors, wrap=True)
+    hist3([OG['cnqa'].mean() for OG in OGs], 50, 'OGidnum-cnqamean', 'mean cNQA of hits in OG', 'OGs', labels, colors)
+    hist3([OG['cnqa'].var() for OG in OGs], 50, 'OGidnum-cnqavar', 'variance of cNQA of hits in OG', 'OGs', labels, colors)
 
     # 7.3 OG scatters
     scatter1(OGs[0]['cnqa'].mean(), OGs[0]['cnqa'].var(), 'cnqavar-cnqamean_all.png', 'cNQA', labels[0], colors[0])
@@ -248,20 +226,14 @@ if __name__ == '__main__':
 
     # 8 FQA PLOTS
     # 8.1 Hit histograms
-    hist3([hit['fqa'] for hit in hits], 50, 'hitnum-fqa', 'hits in OGs', 'fraction of query aligned',
-          labels, colors, wrap=True)
-    hist1(hits0['fqa'], 50, 'hitnum-fqa_all', 'hits in OGs', 'fraction of query aligned',
-          labels[0], colors[0], wrap=True)
-    hist1(hits1['fqa'], 50, 'hitnum-fqa_filter1', 'hits in OGs', 'fraction of query aligned',
-          labels[1], colors[1], wrap=True)
-    hist1(hits2['fqa'], 50, 'hitnum-fqa_filter2', 'hits in OGs', 'fraction of query aligned',
-          labels[2], colors[2], wrap=True)
+    hist3([hit['fqa'] for hit in hits], 50, 'hitnum-fqa', 'fraction of query aligned', 'hits in OGs', labels, colors)
+    hist1(hits0['fqa'], 50, 'hitnum-fqa_all', 'fraction of query aligned', 'hits in OGs', labels[0], colors[0])
+    hist1(hits1['fqa'], 50, 'hitnum-fqa_filter1', 'fraction of query aligned', 'hits in OGs', labels[1], colors[1])
+    hist1(hits2['fqa'], 50, 'hitnum-fqa_filter2', 'fraction of query aligned', 'hits in OGs', labels[2], colors[2])
 
     # 8.2 OG histograms
-    hist3([OG['fqa'].mean() for OG in OGs], 50, 'OGnum-fqamean', 'OGs',
-          'mean FQA of hits in OG', labels, colors, wrap=True)
-    hist3([OG['fqa'].var() for OG in OGs], 50, 'OGnum-fqavar', 'OGs',
-          'variance of FQA of hits in OG', labels, colors, wrap=True)
+    hist3([OG['fqa'].mean() for OG in OGs], 50, 'OGidnum-fqamean', 'mean FQA of hits in OG', 'OGs', labels, colors)
+    hist3([OG['fqa'].var() for OG in OGs], 50, 'OGidnum-fqavar', 'variance of FQA of hits in OG', 'OGs', labels, colors)
 
     # 8.3 OG scatters
     scatter1(OGs[0]['fqa'].mean(), OGs[0]['fqa'].var(), 'fqavar-fqamean_all.png', 'FQA', labels[0], colors[0])
@@ -270,20 +242,14 @@ if __name__ == '__main__':
 
     # 9 cFQA PLOTS
     # 9.1 Hit histograms
-    hist3([hit['cfqa'] for hit in hits], 50, 'hitnum-cfqa', 'hits in OGs', 'compatible fraction of query aligned',
-          labels, colors, wrap=True)
-    hist1(hits0['cfqa'], 50, 'hitnum-cfqa_all', 'hits in OGs', 'compatible fraction of query aligned',
-          labels[0], colors[0], wrap=True)
-    hist1(hits1['cfqa'], 50, 'hitnum-cfqa_filter1', 'hits in OGs', 'compatible fraction of query aligned',
-          labels[1], colors[1], wrap=True)
-    hist1(hits2['cfqa'], 50, 'hitnum-cfqa_filter2', 'hits in OGs', 'compatible fraction of query aligned',
-          labels[2], colors[2], wrap=True)
+    hist3([hit['cfqa'] for hit in hits], 50, 'hitnum-cfqa', 'compatible fraction of query aligned', 'hits in OGs', labels, colors)
+    hist1(hits0['cfqa'], 50, 'hitnum-cfqa_all', 'compatible fraction of query aligned', 'hits in OGs', labels[0], colors[0])
+    hist1(hits1['cfqa'], 50, 'hitnum-cfqa_filter1', 'compatible fraction of query aligned', 'hits in OGs', labels[1], colors[1])
+    hist1(hits2['cfqa'], 50, 'hitnum-cfqa_filter2', 'compatible fraction of query aligned', 'hits in OGs', labels[2], colors[2])
 
     # 9.2 OG histograms
-    hist3([OG['cfqa'].mean() for OG in OGs], 50, 'OGnum-cfqamean', 'OGs',
-          'mean cFQA of hits in OG', labels, colors, wrap=True)
-    hist3([OG['cfqa'].var() for OG in OGs], 50, 'OGnum-cfqavar', 'OGs',
-          'variance of cFQA of hits in OG', labels, colors, wrap=True)
+    hist3([OG['cfqa'].mean() for OG in OGs], 50, 'OGidnum-cfqamean', 'mean cFQA of hits in OG', 'OGs', labels, colors)
+    hist3([OG['cfqa'].var() for OG in OGs], 50, 'OGidnum-cfqavar', 'variance of cFQA of hits in OG', 'OGs', labels, colors)
 
     # 9.3 OG scatters
     scatter1(OGs[0]['cfqa'].mean(), OGs[0]['cfqa'].var(), 'cfqavar-cfqamean_all.png', 'cFQA', labels[0], colors[0])
@@ -292,20 +258,14 @@ if __name__ == '__main__':
 
     # 10 xFQA PLOTS
     # 10.1 Hit histograms
-    hist3([hit['xfqa'] for hit in hits], 50, 'hitnum-xfqa', 'hits in OGs', 'excess fraction of query aligned',
-          labels, colors, wrap=True)
-    hist1(hits0['xfqa'], 50, 'hitnum-xfqa_all', 'hits in OGs', 'excess fraction of query aligned',
-          labels[0], colors[0], wrap=True)
-    hist1(hits1['xfqa'], 50, 'hitnum-xfqa_filter1', 'hits in OGs', 'excess fraction of query aligned',
-          labels[1], colors[1], wrap=True)
-    hist1(hits2['xfqa'], 50, 'hitnum-xfqa_filter2', 'hits in OGs', 'excess fraction of query aligned',
-          labels[2], colors[2], wrap=True)
+    hist3([hit['xfqa'] for hit in hits], 50, 'hitnum-xfqa', 'excess fraction of query aligned', 'hits in OGs', labels, colors)
+    hist1(hits0['xfqa'], 50, 'hitnum-xfqa_all', 'excess fraction of query aligned', 'hits in OGs', labels[0], colors[0])
+    hist1(hits1['xfqa'], 50, 'hitnum-xfqa_filter1', 'excess fraction of query aligned', 'hits in OGs', labels[1], colors[1])
+    hist1(hits2['xfqa'], 50, 'hitnum-xfqa_filter2', 'excess fraction of query aligned', 'hits in OGs', labels[2], colors[2])
 
     # 10.2 OG histograms
-    hist3([OG['xfqa'].mean() for OG in OGs], 50, 'OGnum-xfqamean', 'OGs',
-          'mean xFQA of hits in OG', labels, colors, wrap=True)
-    hist3([OG['xfqa'].var() for OG in OGs], 50, 'OGnum-xfqavar', 'OGs',
-          'variance of xFQA of hits in OG', labels, colors, wrap=True)
+    hist3([OG['xfqa'].mean() for OG in OGs], 50, 'OGidnum-xfqamean', 'mean xFQA of hits in OG', 'OGs', labels, colors)
+    hist3([OG['xfqa'].var() for OG in OGs], 50, 'OGidnum-xfqavar', 'variance of xFQA of hits in OG', 'OGs', labels, colors)
 
     # 10.3 OG scatters
     scatter1(OGs[0]['xfqa'].mean(), OGs[0]['xfqa'].var(), 'xfqavar-xfqamean_all.png', 'xFQA', labels[0], colors[0])
@@ -318,7 +278,7 @@ if __name__ == '__main__':
         plt.xlabel('Fraction of query aligned')
         plt.ylabel('Fraction of subject aligned')
         plt.colorbar()
-        plt.savefig(f'out/pgraph2/blast/hist2d_fsa-fqa_{label}.png')
+        plt.savefig(f'out/blast/hist2d_fsa-fqa_{label}.png')
         plt.close()
 
     # 12 EDGES
@@ -327,30 +287,30 @@ if __name__ == '__main__':
     edgefracs = [2 * edgenum / (gnidnum*(gnidnum-1)) for edgenum, gnidnum in zip(edgenums, ppidnums)]
 
     # 12.1 Edge number histograms
-    hist3(edgenums, 100, 'OGnum-edgenum', 'OGs', 'number of edges', labels, colors)
-    hist1(edgenums[0], 100, 'OGnum-edgenum_all', 'OGs', 'number of edges', labels[0], colors[0])
-    hist1(edgenums[1], 50, 'OGnum-edgenum_filter1', 'OGs', 'number of edges', labels[1], colors[1])
-    hist1(edgenums[2], 50, 'OGnum-edgenum_filter2', 'OGs', 'number of edges', labels[2], colors[2])
+    hist3(edgenums, 50, 'OGidnum-edgenum', 'number of edges', 'OGs', labels, colors)
+    hist1(edgenums[0], 50, 'OGidnum-edgenum_all', 'number of edges', 'OGs', labels[0], colors[0])
+    hist1(edgenums[1], 50, 'OGidnum-edgenum_filter1', 'number of edges', 'OGs', labels[1], colors[1])
+    hist1(edgenums[2], 50, 'OGidnum-edgenum_filter2', 'number of edges', 'OGs', labels[2], colors[2])
 
     # 12.2 Edge fraction histograms
-    hist3(edgefracs, 50, 'OGnum-edgefrac', 'OGs', 'fraction of possible edges', labels, colors)
-    hist1(edgefracs[0], 50, 'OGnum-edgefrac_all', 'OGs', 'fraction of possible edges', labels[0], colors[0])
-    hist1(edgefracs[1], 50, 'OGnum-edgefrac_filter1', 'OGs', 'fraction of possible edges', labels[1], colors[1])
-    hist1(edgefracs[2], 50, 'OGnum-edgefrac_filter2', 'OGs', 'fraction of possible edges', labels[2], colors[2])
+    hist3(edgefracs, 50, 'OGidnum-edgefrac', 'fraction of possible edges', 'OGs', labels, colors)
+    hist1(edgefracs[0], 50, 'OGidnum-edgefrac_all', 'fraction of possible edges', 'OGs', labels[0], colors[0])
+    hist1(edgefracs[1], 50, 'OGidnum-edgefrac_filter1', 'fraction of possible edges', 'OGs', labels[1], colors[1])
+    hist1(edgefracs[2], 50, 'OGidnum-edgefrac_filter2', 'fraction of possible edges', 'OGs', labels[2], colors[2])
 
     # 13 CORRELATIONS
-    scatter2(ppidnums[0], OGs[0]['bitscore'].mean(), 'bitscore-OGppnum', 'Mean bitscore of hits in OG')
-    scatter2(ppidnums[0], OGs[0]['fqa'].mean(), 'fqa-OGppnum', 'Mean fraction of query aligned of hits in OG')
-    scatter2(ppidnums[0], edgenums[0], 'edgenum-OGppnum', 'Number of edges in OG')
-    scatter2(ppidnums[0], edgefracs[0], 'edgefrac-OGppnum', 'Fraction of possible edges in OG')
+    scatter2(ppidnums[0], OGs[0]['bitscore'].mean(), 'bitscore-ppidnum', 'Mean bitscore of hits in OG')
+    scatter2(ppidnums[0], OGs[0]['fqa'].mean(), 'fqa-ppidnum', 'Mean fraction of query aligned of hits in OG')
+    scatter2(ppidnums[0], edgenums[0], 'edgenum-ppidnum', 'Number of edges in OG')
+    scatter2(ppidnums[0], edgefracs[0], 'edgefrac-ppidnum', 'Fraction of possible edges in OG')
 
 """
 DEPENDENCIES
-../../ortho_search/hsps2hits/hsps2hits.py
-    ../../ortho_search/hsps2hits/out/*/*.tsv
 ../../ortho_search/hits2reciprocal/hits2reciprocal.py
     ../../ortho_search/hits2reciprocal/out/*/*.tsv
+../../ortho_search/hsps2hits/hsps2hits.py
+    ../../ortho_search/hsps2hits/out/*/*.tsv
 ../config/genomes.tsv
-../cluster3_graph/cluster3_graph.py
+../cluster4+_graph/cluster4+_graph.py
     ../cluster4+_graph/out/4clique/clusters.tsv
 """

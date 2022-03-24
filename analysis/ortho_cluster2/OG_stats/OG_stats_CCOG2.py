@@ -1,7 +1,8 @@
-"""Plot various statistics of OGs relating to counts of CCs and OGs."""
+"""Plot various statistics of OGs relating to counts of connected components and OGs."""
+
+import os
 
 import matplotlib.pyplot as plt
-import os
 import pandas as pd
 
 # Load seq metadata
@@ -12,156 +13,72 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
         ppid, gnid, spid, _ = line.split()
         ppid2meta[ppid] = gnid, spid
 
-# Load CCs
+# Load connected components
 rows = []
-with open('../connect_hit_graph/out/components.sv') as file:
+with open('../connect_hit_graph/out/components.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        CCid, nodes = line.rstrip().split('\t')
+        component_id, nodes = line.rstrip().split('\t')
         for ppid in nodes.split(','):
-            rows.append({'CCid': CCid, 'ppid': ppid})
-CCs = pd.DataFrame(rows)
+            rows.append({'component_id': component_id, 'ppid': ppid})
+components = pd.DataFrame(rows)
 
 # Load OGs
 rows = []
 with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        CCid, OGid, _, edges = line.rstrip().split('\t')
+        component_id, OGid, _, edges = line.rstrip().split('\t')
         ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         for ppid in ppids:
             gnid, spid = ppid2meta[ppid]
-            rows.append({'CCid': CCid, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'spid': spid})
+            rows.append({'component_id': component_id, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'spid': spid})
 OGs = pd.DataFrame(rows)
 
 # Make output directory
-if not os.path.exists('out/pgraph2/CCOG/'):
-    os.makedirs('out/pgraph2/CCOG/')  # Recursive folder creation
+if not os.path.exists('out/CCOG/'):
+    os.makedirs('out/CCOG/')  # Recursive folder creation
 
 # Plots
-# Distribution of polypeptides across number of associated OGs
+# Distribution of proteins across number of associated OGs
 groups = OGs.groupby('ppid')
-dist1 = groups['OGid'].nunique().value_counts()
-plt.bar(dist1.index, dist1.values, width=1)
-plt.xlim((dist1.index.min()-0.75, dist1.index.max()+0.75))
-plt.xlabel('Number of associated OGs')
-plt.ylabel('Number of polypeptides')
-plt.title('Distribution of polypeptides across\nnumber of associated OGs')
-plt.savefig('out/pgraph2/CCOG/hist_ppnum-OGnum_1.png')
-plt.close()
-
-dist2 = dist1.drop(1)
-plt.bar(dist2.index, dist2.values, width=1)
-plt.xlim((dist1.index.min()-0.75, dist1.index.max()+0.75))
-plt.xlabel('Number of associated OGs')
-plt.ylabel('Number of polypeptides')
-plt.title('Distribution of polypeptides across\nnumber of associated OGs')
-plt.savefig('out/pgraph2/CCOG/hist_ppnum-OGnum_2.png')
+counts = groups['OGid'].nunique().value_counts()
+plt.bar(counts.index, counts.values, width=1)
+plt.xlabel('Number of OGs associated with protein')
+plt.ylabel('Number of proteins')
+plt.savefig('out/CCOG/hist_ppidnum-OGidnum.png')
+plt.yscale('log')
+plt.savefig('out/CCOG/hist_ppidnum-OGidnum_log.png')
 plt.close()
 
 # Distribution of genes across number of associated OGs
 groups = OGs.groupby('gnid')
-dist1 = groups['OGid'].nunique().value_counts()
-plt.bar(dist1.index, dist1.values, width=1)
-plt.xlim((dist1.index.min()-0.75, dist1.index.max()+0.75))
-plt.xlabel('Number of associated OGs')
+counts = groups['OGid'].nunique().value_counts()
+plt.bar(counts.index, counts.values, width=1)
+plt.xlabel('Number of OGs associated with gene')
 plt.ylabel('Number of genes')
-plt.title('Distribution of genes across\nnumber of associated OGs')
-plt.savefig('out/pgraph2/CCOG/hist_gnnum-OGnum_1.png')
-plt.close()
-
-dist2 = dist1.drop(1)
-plt.bar(dist2.index, dist2.values, width=1)
-plt.xlim((dist1.index.min()-0.75, dist1.index.max()+0.75))
-plt.xlabel('Number of associated OGs')
-plt.ylabel('Number of genes')
-plt.title('Distribution of genes across\nnumber of associated OGs')
-plt.savefig('out/pgraph2/CCOG/hist_gnnum-OGnum_2.png')
+plt.savefig('out/CCOG/hist_gnidnum-OGidnum.png')
+plt.yscale('log')
+plt.savefig('out/CCOG/hist_gnidnum-OGidnum_log.png')
 plt.close()
 
 # Distribution of connected components across number of associated OGs
-sizes = OGs.groupby('CCid')['OGid'].nunique()
-dist = sizes.reindex(CCs['CCid'].unique(), fill_value=0).value_counts()
-plt.bar(dist.index, dist.values, width=1)
-plt.xlabel('Number of OGs in connected component')
-plt.ylabel('Number of connected components')
-plt.title('Distribution of connected components\nacross number of associated OGs')
-plt.savefig('out/pgraph2/CCOG/hist_connectnum-OGnum.png')
-plt.close()
-
-CCOG_pairs = OGs[['CCid', 'OGid']].drop_duplicates()
-OG_OGppnum = OGs.groupby('OGid').size().rename('OG_OGppnum')
-CC_OGppnum = CCOG_pairs.join(OG_OGppnum, on='OGid').groupby('CCid')['OG_OGppnum']
-CC_OGnum = OGs.groupby('CCid')['OGid'].nunique().rename('CC_OGnum')
-CC_CCppnum = CCs.groupby('CCid').size()[OGs['CCid'].unique()].rename('CC_CCppnum')  # Filter out CCs w/o OGs
-
-# Correlation of number of OGs associated with CC and number of polypeptides in CC
-plt.scatter(CC_OGnum, CC_CCppnum, alpha=0.5, s=10, edgecolors='none')
-plt.xlabel('Number of OGs associated with CC')
-plt.ylabel('Number of polypeptides in CC')
-plt.savefig('out/pgraph2/CCOG/scatter_CCppnum-CCOGnum.png')
-plt.close()
-
-# Correlation of aggregate number of polypeptides in OGs associated with CC with number of OGs associated with CC
-plt.scatter(CC_OGppnum.max(), CC_OGnum, alpha=0.5, s=12, edgecolors='none')
-plt.xlabel('Max number of polypeptides in OGs associated with CC')
-plt.ylabel('Number of OGs associated with CC')
-plt.savefig('out/pgraph2/CCOG/scatter_CCOGnum-CCOGppmax.png')
-plt.close()
-
-plt.scatter(CC_OGppnum.mean(), CC_OGnum, alpha=0.5, s=10, edgecolors='none')
-plt.xlabel('Mean number of polypeptides in OGs associated with CC')
-plt.ylabel('Number of OGs associated with CC')
-plt.savefig('out/pgraph2/CCOG/scatter_CCOGnum-CCOGppmean.png')
-plt.close()
-
-# Correlation of aggregate number of polypeptides in OGs associated with CC with number of polypeptides in CC
-plt.scatter(CC_OGppnum.max(), CC_CCppnum, alpha=0.5, s=10, edgecolors='none')
-plt.xlabel('Max number of polypeptides in OGs associated with CC')
-plt.ylabel('Number of polypeptides in CC')
-plt.savefig('out/pgraph2/CCOG/scatter_CCppnum-CCOGppmax.png')
-plt.close()
-
-plt.scatter(CC_OGppnum.mean(), CC_CCppnum, alpha=0.5, s=10, edgecolors='none')
-plt.xlabel('Mean number of polypeptides in OGs associated with CC')
-plt.ylabel('Number of polypeptides in CC')
-plt.savefig('out/pgraph2/CCOG/scatter_CCppnum-CCOGppmean.png')
-plt.close()
-
-CCpp_pairs = OGs[['CCid', 'ppid']].drop_duplicates()
-pp_OGnum = OGs.groupby('ppid')['OGid'].nunique().rename('pp_OGnum')
-hspnum = pd.read_csv('../hsp_stats/out/hsps_reciprocal/sppids.tsv', sep='\t', header=0, names=['ppid', 'hspnum', 'gnid', 'spid'], index_col=0)
-df = CCpp_pairs.merge(pp_OGnum, on='ppid').merge(CC_CCppnum, on='CCid').merge(CC_OGnum, on='CCid').merge(hspnum, on='ppid')
-
-# Correlation of number of associated OGs with number of polypeptides in CC for polypeptide
-plt.scatter(df['pp_OGnum'], df['CC_CCppnum'], alpha=0.5, s=10, edgecolors='none')
-plt.xlabel('Number of OGs associated with polypeptide')
-plt.ylabel('Number of polypeptides in CC associated with polypeptide')
-plt.savefig('out/pgraph2/CCOG/scatter_CCppnum-ppOGnum.png')
-plt.close()
-
-# Correlation of number of OGs associated with polypeptide with number of OGs in CC associated with polypeptide
-plt.scatter(df['pp_OGnum'], df['CC_OGnum'], alpha=0.5, s=10, edgecolors='none')
-plt.xlabel('Number of OGs associated with polypeptide')
-plt.ylabel('Number of OGs in CC associated with polypeptide')
-plt.savefig('out/pgraph2/CCOG/scatter_CCOGnum-ppOGnum.png')
-plt.close()
-
-# Correlation of number of unique reciprocal hits to polypeptide with number of OGs associated with polypeptide
-plt.scatter(df['pp_OGnum'], df['hspnum'], alpha=0.5, s=10, edgecolors='none')
-plt.xlabel('Number of OGs associated with polypeptide')
-plt.ylabel('Number of reciprocal hits to polypeptide')
-plt.savefig('out/pgraph2/CCOG/scatter_hitnum-ppOGnum.png')
+groups = OGs.groupby('component_id')
+counts = groups['OGid'].nunique().value_counts()
+plt.bar(counts.index, counts.values, width=1)
+plt.xlabel('Number of OGs in component')
+plt.ylabel('Number of components')
+plt.savefig('out/CCOG/hist_componentnum-OGnum.png')
+plt.yscale('log')
+plt.savefig('out/CCOG/hist_componentnum-OGnum_log.png')
 plt.close()
 
 """
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../cluster3_graph/cluster3_graph.py
+../cluster4+_graph/cluster4+_graph.py
     ../cluster4+_graph/out/4clique/clusters.tsv
 ../connect_hit_graph/connect_hit_graph.py
     ../connect_hit_graph/out/components.tsv
-../hsp_stats/hsp_stats.py
-    ../hsp_stats/out/hsps_reciprocal/sppids.tsv
 """
