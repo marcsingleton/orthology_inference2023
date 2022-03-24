@@ -61,14 +61,14 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
         spids = {ppid2meta[ppid][1] for ppid in ppids}
         sqids = {ppid2meta[ppid][2] for ppid in ppids}
         bitscore = 0
-        for edge in edges.split('\t'):
-            node1, node2 = edge.split(',')
+        for edge in edges.split(','):
+            node1, node2 = edge.split(':')
             bitscore += graph[node1][node2] + graph[node2][node1]
 
         if len(gnids) == len(spids) >= 20 and spid_filter(spids):
             gOGid = OGid2gOGid[OGid]
             record = {'CCid': CCid, 'OGid': OGid, 'gOGid': gOGid,
-                      'bitscore': round(bitscore, 1), 'edgenum': len(edges.split('\t')),
+                      'bitscore': round(bitscore, 1), 'edgenum': len(edges.split(',')),
                       'ppidnum': len(ppids), 'sqidnum': len(sqids),
                       'gnidnum': len(gnids), 'spidnum': len(spids)}
             try:
