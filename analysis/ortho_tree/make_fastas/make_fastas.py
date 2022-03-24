@@ -41,7 +41,7 @@ with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
         _, OGid, _, edges = line.rstrip().split('\t')
         sqids = {ppid2meta[node][2] for edge in edges.split(',') for node in edge.split(':')}
         OGs[OGid] = sqids
-OGs_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
+OGs_meta = pd.read_table('../OG_data/out/OG_data.tsv')
 
 # Write sequences
 num = len(genomes)
@@ -73,6 +73,6 @@ DEPENDENCIES
 ../config/genomes.tsv
 ../cluster4+_graph/cluster4+_graph.py
     ../cluster4+_graph/out/4clique/clusters.tsv
-../OG_meta/OG_meta.py
-    ../OG_meta/out/OG_meta.tsv
+../OG_data/OG_data.py
+    ../OG_data/out/OG_data.tsv
 """

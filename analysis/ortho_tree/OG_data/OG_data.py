@@ -60,7 +60,7 @@ print(f'OGs with {spidnum} genes, species, and sequences:', len(OGs[gnid_filter 
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGs.to_csv('out/OG_meta.tsv', sep='\t', index=False)
+OGs.to_csv('out/OG_data.tsv', sep='\t', index=False)
 
 """
 OUTPUT 

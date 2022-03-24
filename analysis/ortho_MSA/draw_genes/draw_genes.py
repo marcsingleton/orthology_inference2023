@@ -30,7 +30,7 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
 OGs = pd.DataFrame(rows)
 
 # Load pOG metadata and test genes
-OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
+OG_meta = pd.read_table('../OG_data/out/OG_data.tsv')
 genes = pd.read_table('genes.tsv')
 
 # Load tree
@@ -67,7 +67,7 @@ DEPENDENCIES
     ../align_fastas1/out/*.mfa
 ../align_fastas2-2/align_fastas2-2.py
     ../align_fastas2-2/out/*.mfa
-../OG_meta/OG_meta.py
-    ../OG_meta/out/OG_meta.tsv
+../OG_data/OG_data.py
+    ../OG_data/out/OG_data.tsv
 ./genes.tsv
 """

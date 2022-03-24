@@ -27,7 +27,7 @@ for spid, source, prot_path in genomes:
 
 # Load clusters and pOG metadata
 rclusters = pd.read_table('../reduce_tree/out/rclusters.tsv').groupby('OGid')
-OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
+OG_meta = pd.read_table('../OG_data/out/OG_data.tsv')
 
 # Write sequences
 if not os.path.exists('out/'):
@@ -47,8 +47,8 @@ DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
 ../config/genomes.tsv
-../OG_meta/OG_meta.py
-    ../OG_meta/out/OG_meta.tsv
+../OG_data/OG_data.py
+    ../OG_data/out/OG_data.tsv
 ../reduce_tree/reduce_tree.py
     ../reduce_tree/out/rclusters.tsv
 """

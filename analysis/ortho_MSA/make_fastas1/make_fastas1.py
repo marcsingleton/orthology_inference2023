@@ -41,7 +41,7 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
         _, OGid, _, edges = line.rstrip().split('\t')
         sqids = {ppid2meta[node][2] for edge in edges.split(',') for node in edge.split(':')}
         OGs[OGid] = sqids  # Ensure only representatives are selected for reduced clusters
-OG_meta = pd.read_table('../OG_meta/out/OG_meta.tsv')
+OG_meta = pd.read_table('../OG_data/out/OG_data.tsv')
 
 # Write sequences
 if not os.path.exists('out/'):
@@ -68,6 +68,6 @@ DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../config/genomes.tsv
-../OG_meta/OG_meta.py
-    ../OG_meta/out/OG_meta.tsv
+../OG_data/OG_data.py
+    ../OG_data/out/OG_data.tsv
 """

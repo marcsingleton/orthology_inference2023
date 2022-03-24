@@ -83,6 +83,6 @@ DEPENDENCIES
     ../align_fastas1/out/*.mfa
 ../align_fastas2-2/align_fastas2-2.py
     ../align_fastas2-2/out/*.mfa
-../OG_meta/OG_meta.py
-    ../OG_meta/out/OG_meta.tsv
+../OG_filter/OG_filter.py
+    ../OG_filter/out/OG_filter.tsv
 """
