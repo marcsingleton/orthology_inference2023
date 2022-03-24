@@ -43,22 +43,22 @@ def hist3(dfs, bins, file_label, x_label, y_label, df_labels, colors):
     plt.close()
 
 
-def bar1(df, file_label, x_label, df_label, color):
+def bar1(df, file_label, x_label, y_label, df_label, color):
     plt.bar(df.index, df.values, label=df_label, color=color, width=1)
     plt.xlabel(x_label[0].upper() + x_label[1:])
-    plt.ylabel('Number of hits')
+    plt.ylabel(f'Number of {y_label}')
     plt.legend()
     plt.savefig(f'out/blast/hist_{file_label}.png')
     plt.close()
 
 
-def bar3(dfs, file_label, x_label, df_labels, colors):
+def bar3(dfs, file_label, x_label, y_label, df_labels, colors):
     fig, axs = plt.subplots(3, 1, figsize=(4.8, 6), sharex=True)
     for ax, df, df_label, color in zip(axs, dfs, df_labels, colors):
         ax.bar(df.index, df.values, label=df_label, color=color, width=1)
         ax.legend()
     axs[2].set_xlabel(x_label[0].upper() + x_label[1:])
-    axs[1].set_ylabel('Number of hits')
+    axs[1].set_ylabel(f'Number of {y_label}')
     fig.subplots_adjust(left=0.175)
     fig.savefig(f'out/blast/hist_{file_label}.png')
     plt.close()
@@ -173,24 +173,24 @@ if __name__ == '__main__':
 
     # 3 HSPNUM HISTOGRAMS
     counts = [hit['hspnum'].value_counts() for hit in hits]
-    bar3(counts, 'hitnum-hspnum', 'number of disjoint HSPs in hit', labels, colors)
-    bar1(counts[0], 'hitnum-hspnum_all', 'number of disjoint HSPs in hit', labels[0], colors[0])
-    bar1(counts[1], 'hitnum-hspnum_filter1', 'number of disjoint HSPs in hit', labels[1], colors[1])
-    bar1(counts[2], 'hitnum-hspnum_filter2', 'number of disjoint HSPs in hit', labels[2], colors[2])
+    bar3(counts, 'hitnum-hspnum', 'number of disjoint HSPs in hit', 'hits', labels, colors)
+    bar1(counts[0], 'hitnum-hspnum_all', 'number of disjoint HSPs in hit', 'hits', labels[0], colors[0])
+    bar1(counts[1], 'hitnum-hspnum_filter1', 'number of disjoint HSPs in hit', 'hits', labels[1], colors[1])
+    bar1(counts[2], 'hitnum-hspnum_filter2', 'number of disjoint HSPs in hit', 'hits', labels[2], colors[2])
 
     # 4 cHSPNUM HISTOGRAMS
     counts = [hit['chspnum'].value_counts() for hit in hits]
-    bar3(counts, 'hitnum-chspnum', 'number of compatible HSPs in hit', labels, colors)
-    bar1(counts[0], 'hitnum-chspnum_all', 'number of compatible HSPs in hit', labels[0], colors[0])
-    bar1(counts[1], 'hitnum-chspnum_filter1', 'number of compatible HSPs in hit', labels[1], colors[1])
-    bar1(counts[2], 'hitnum-chspnum_filter2', 'number of compatible HSPs in hit', labels[2], colors[2])
+    bar3(counts, 'hitnum-chspnum', 'number of compatible HSPs in hit', 'hits', labels, colors)
+    bar1(counts[0], 'hitnum-chspnum_all', 'number of compatible HSPs in hit', 'hits', labels[0], colors[0])
+    bar1(counts[1], 'hitnum-chspnum_filter1', 'number of compatible HSPs in hit', 'hits', labels[1], colors[1])
+    bar1(counts[2], 'hitnum-chspnum_filter2', 'number of compatible HSPs in hit', 'hits', labels[2], colors[2])
 
     # 5 xHSPNUM HISTOGRAMS
     counts = [hit['xhspnum'].value_counts() for hit in hits]
-    bar3(counts, 'hitnum-xhspnum', 'excess number of HSPs in hit', labels, colors)
-    bar1(counts[0], 'hitnum-xhspnum_all', 'excess number of HSPs in hit', labels[0], colors[0])
-    bar1(counts[1], 'hitnum-xhspnum_filter1', 'excess number of HSPs in hit', labels[1], colors[1])
-    bar1(counts[2], 'hitnum-xhspnum_filter2', 'excess number of HSPs in hit', labels[2], colors[2])
+    bar3(counts, 'hitnum-xhspnum', 'excess number of HSPs in hit', 'hits', labels, colors)
+    bar1(counts[0], 'hitnum-xhspnum_all', 'excess number of HSPs in hit', 'hits', labels[0], colors[0])
+    bar1(counts[1], 'hitnum-xhspnum_filter1', 'excess number of HSPs in hit', 'hits', labels[1], colors[1])
+    bar1(counts[2], 'hitnum-xhspnum_filter2', 'excess number of HSPs in hit', 'hits', labels[2], colors[2])
 
     # 6 NQA PLOTS
     # 6.1 Hit histograms
@@ -210,10 +210,10 @@ if __name__ == '__main__':
 
     # 7 cNQA PLOTS
     # 7.1 Hit histograms
-    hist3([hit['cnqa'] for hit in hits], 200, 'hitnum-cnqa', 'compatible number of query aligned', 'hits in OGs', labels, colors)
-    hist1(hits0['cnqa'], 200, 'hitnum-cnqa_all', 'compatible number of query aligned', 'hits in OGs', labels[0], colors[0])
-    hist1(hits1['cnqa'], 200, 'hitnum-cnqa_filter1', 'compatible number of query aligned', 'hits in OGs', labels[1], colors[1])
-    hist1(hits2['cnqa'], 200, 'hitnum-cnqa_filter2', 'compatible number of query aligned', 'hits in OGs', labels[2], colors[2])
+    bar3([hit['cnqa'] for hit in hits], 'hitnum-cnqa', 'compatible number of query aligned', 'hits in OGs', labels, colors)
+    bar1(hits0['cnqa'], 'hitnum-cnqa_all', 'compatible number of query aligned', 'hits in OGs', labels[0], colors[0])
+    bar1(hits1['cnqa'], 'hitnum-cnqa_filter1', 'compatible number of query aligned', 'hits in OGs', labels[1], colors[1])
+    bar1(hits2['cnqa'], 'hitnum-cnqa_filter2', 'compatible number of query aligned', 'hits in OGs', labels[2], colors[2])
 
     # 7.2 OG histograms
     hist3([OG['cnqa'].mean() for OG in OGs], 50, 'OGidnum-cnqamean', 'mean cNQA of hits in OG', 'OGs', labels, colors)
@@ -287,10 +287,10 @@ if __name__ == '__main__':
     edgefracs = [2 * edgenum / (gnidnum*(gnidnum-1)) for edgenum, gnidnum in zip(edgenums, ppidnums)]
 
     # 12.1 Edge number histograms
-    hist3(edgenums, 50, 'OGidnum-edgenum', 'number of edges', 'OGs', labels, colors)
-    hist1(edgenums[0], 50, 'OGidnum-edgenum_all', 'number of edges', 'OGs', labels[0], colors[0])
-    hist1(edgenums[1], 50, 'OGidnum-edgenum_filter1', 'number of edges', 'OGs', labels[1], colors[1])
-    hist1(edgenums[2], 50, 'OGidnum-edgenum_filter2', 'number of edges', 'OGs', labels[2], colors[2])
+    bar3(edgenums, 'OGidnum-edgenum', 'number of edges', 'OGs', labels, colors)
+    bar1(edgenums[0], 'OGidnum-edgenum_all', 'number of edges', 'OGs', labels[0], colors[0])
+    bar1(edgenums[1], 'OGidnum-edgenum_filter1', 'number of edges', 'OGs', labels[1], colors[1])
+    bar1(edgenums[2], 'OGidnum-edgenum_filter2', 'number of edges', 'OGs', labels[2], colors[2])
 
     # 12.2 Edge fraction histograms
     hist3(edgefracs, 50, 'OGidnum-edgefrac', 'fraction of possible edges', 'OGs', labels, colors)
