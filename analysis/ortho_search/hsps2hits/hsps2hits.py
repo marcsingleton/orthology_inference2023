@@ -1,14 +1,15 @@
 """Convert HSPs to hits."""
 
 import multiprocessing as mp
-import numpy as np
 import os
-from itertools import groupby
+from itertools import groupby, permutations
+
+import numpy as np
 
 
 def parse_file(qspid, sspid):
     # Open files and process lines
-    with open(f'../blast2hsps/out/hsps/{qspid}/{sspid}') as file:
+    with open(f'../blast2hsps/out/hsps/{qspid}/{sspid}.tsv') as file:
         file.readline()  # Skip header
 
         hits = []
@@ -26,7 +27,7 @@ def parse_file(qspid, sspid):
         os.makedirs(f'out/{qspid}/')  # Recursive folder creation
 
     # Write lines to output
-    with open(f'out/{qspid}/{sspid}', 'w') as file:
+    with open(f'out/{qspid}/{sspid}.tsv', 'w') as file:
         file.write('\t'.join(hit_columns) + '\n')
         for hit in hits:
             file.write('\t'.join([str(hit[column]) for column in hit_columns]) + '\n')
@@ -76,14 +77,22 @@ hit_columns = ['qppid', 'qgnid', 'qspid',
                'bitscore']
 num_processes = 2
 
+# Parse genomes
+spids = []
+with open('../config/genomes.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        spid, _, _, _ = line.split()
+        spids.append(spid)
+
+# Parse HSPs
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        spids = [(qspid, sspid) for qspid in os.listdir('../blast2hsps/out/hsps/')
-                 for sspid in os.listdir(f'../blast2hsps/out/hsps/{qspid}')]
-        pool.starmap(parse_file, spids)
+        pool.starmap(parse_file, permutations(spids, 2))
 
 """
 DEPENDENCIES
+../config/genomes.tsv
 ../blast2hsps/blast2hsps.py
     ../blast2hsps/out/hsps/*/*.tsv
 """

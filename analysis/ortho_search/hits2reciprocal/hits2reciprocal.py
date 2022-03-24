@@ -1,6 +1,7 @@
 """Compute reciprocity for each hit."""
 
 import os
+from itertools import permutations
 
 
 def is_reciprocal(qppid, sppid, graph):
@@ -21,6 +22,14 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'slen': int, 'nsa': int, 'cnsa': int,
            'bitscore': float}
 
+# Parse genomes
+spids = []
+with open('../config/genomes.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        spid, _, _, _ = line.split()
+        spids.append(spid)
+
 # Load graph
 graph = {}
 with open('../hits2graph/out/hit_graph.tsv') as file:
@@ -29,31 +38,31 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
         graph[node] = {adj.split(':')[0] for adj in adjs.split(',')}
 
 # Check reciprocity
-for qspid in os.listdir('../hsps2hits/out/'):
-    for sspid in os.listdir(f'../hsps2hits/out/{qspid}/'):
-        rows = []
-        with open(f'../hsps2hits/out/{qspid}/{sspid}') as file:
-            file.readline()  # Skip header
-            for line in file:
-                hit = {column: f(field) for (column, f), field in zip(columns.items(), line.split())}
-                qppid, sppid = hit['qppid'], hit['sppid']
-                qlen, cnqa = hit['qlen'], hit['cnqa']
+for qspid, sspid in permutations(spids, 2):
+    rows = []
+    with open(f'../hsps2hits/out/{qspid}/{sspid}.tsv') as file:
+        file.readline()  # Skip header
+        for line in file:
+            hit = {column: f(field) for (column, f), field in zip(columns.items(), line.split())}
+            qppid, sppid = hit['qppid'], hit['sppid']
+            qlen, cnqa = hit['qlen'], hit['cnqa']
 
-                reciprocal = cnqa / qlen >= 0.5 and is_reciprocal(qppid, sppid, graph)
-                rows.append((qppid, sppid, str(reciprocal)))
+            reciprocal = cnqa / qlen >= 0.5 and is_reciprocal(qppid, sppid, graph)
+            rows.append((qppid, sppid, str(reciprocal)))
 
-        # Make output directory
-        if not os.path.exists(f'out/{qspid}/'):
-            os.makedirs(f'out/{qspid}/')  # Recursive folder creation
+    # Make output directory
+    if not os.path.exists(f'out/{qspid}/'):
+        os.makedirs(f'out/{qspid}/')  # Recursive folder creation
 
-        # Write to file
-        with open(f'out/{qspid}/{sspid}', 'w') as file:
-            file.write('qppid\tsppid\treciprocal\n')
-            for row in rows:
-                file.write('\t'.join(row) + '\n')
+    # Write to file
+    with open(f'out/{qspid}/{sspid}.tsv', 'w') as file:
+        file.write('qppid\tsppid\treciprocal\n')
+        for row in rows:
+            file.write('\t'.join(row) + '\n')
 
 """
 DEPENDENCIES
+../config/genomes.tsv
 ../hsps2hits/hsps2hits.py
     ../hsps2hits/out/*/*.tsv
 ../hits2graph/hits2graph.py
