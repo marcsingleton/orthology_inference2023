@@ -294,7 +294,7 @@ if __name__ == '__main__':
         title_label = 'reciprocal ' if data_label == 'reciprocal' else ''
 
         # 2.3.1 Correlation of gene HSPs with number of associated polypeptides
-        gnid_nums = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t', index_col='gnid', dtype={'gnid': 'string'})
+        gnid_nums = pd.read_csv('../genome_stats/out/gnidnums.tsv', sep='\t', index_col='gnid', dtype={'gnid': 'string'})
         corr = sgnid_hspnum.join(gnid_nums)
 
         plt.scatter(corr['ppidnum'], corr['sgnid_hspnum'], alpha=0.5, s=10, edgecolors='none')
@@ -325,5 +325,5 @@ DEPENDENCIES
     ../../ortho_search/hsps2reciprocal/out/*/*.tsv
 ../config/genomes.tsv
 ../genome_stats/genome_stats.py
-    ../genome_stats/out/gnid_nums.tsv
+    ../genome_stats/out/gnidnums.tsv
 """

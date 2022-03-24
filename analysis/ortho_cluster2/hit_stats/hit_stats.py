@@ -256,7 +256,7 @@ if __name__ == '__main__':
 
     # 2.3 PLOTS
     # 2.3.1 Correlation of gene hits with number of associated polypeptides
-    gnid_ppidnum = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t', index_col='gnid', dtype={'gnid': 'string'})
+    gnid_ppidnum = pd.read_csv('../genome_stats/out/gnidnums.tsv', sep='\t', index_col='gnid', dtype={'gnid': 'string'})
     corr = sgnid_hitnum.join(gnid_ppidnum)
 
     plt.scatter(corr['ppidnum'], corr['sgnid_hitnum'], alpha=0.5, s=10, edgecolors='none')
@@ -283,5 +283,5 @@ DEPENDENCIES
     ../../ortho_search/hits2reciprocal/out/*/*.tsv
 ../config/genomes.tsv
 ../genome_stats/genome_stats.py
-    ../genome_stats/out/gnid_nums.tsv
+    ../genome_stats/out/gnidnums.tsv
 """
