@@ -1,11 +1,12 @@
 """Plot various statistics of hits."""
 
-import matplotlib.colors as mpl_colors
-import matplotlib.pyplot as plt
 import multiprocessing as mp
 import os
+from itertools import permutations
+
+import matplotlib.colors as mpl_colors
+import matplotlib.pyplot as plt
 import pandas as pd
-from itertools import permutations, repeat
 from numpy import linspace
 
 
@@ -255,12 +256,10 @@ if __name__ == '__main__':
 
     # 2.3 PLOTS
     # 2.3.1 Correlation of gene hits with number of associated polypeptides
-    gnid_ppidnum = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t',
-                               index_col='gnid', dtype={'gnid': 'string'})
+    gnid_ppidnum = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t', index_col='gnid', dtype={'gnid': 'string'})
     corr = sgnid_hitnum.join(gnid_ppidnum)
 
-    plt.scatter(corr['ppidnum'], corr['sgnid_hitnum'],
-                alpha=0.5, s=10, edgecolors='none')
+    plt.scatter(corr['ppidnum'], corr['sgnid_hitnum'], alpha=0.5, s=10, edgecolors='none')
     plt.xlabel('Number of polypeptides associated with gene')
     plt.ylabel('Number of reciprocal hits to gene')
     plt.title('Correlation of number of reciprocal hits to gene\nwith number of associated polypeptides')

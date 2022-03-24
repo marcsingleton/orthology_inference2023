@@ -1,12 +1,13 @@
 """Plot various statistics of HSPs."""
 
-import matplotlib.colors as mpl_colors
-import matplotlib.pyplot as plt
 import multiprocessing as mp
 import os
-import pandas as pd
 from itertools import permutations
 from math import log10
+
+import matplotlib.colors as mpl_colors
+import matplotlib.pyplot as plt
+import pandas as pd
 from numpy import linspace
 
 
@@ -114,7 +115,7 @@ if __name__ == '__main__':
     for data_label, hsps, colors in plots:
         # Subset HSPs into non-reciprocal and reciprocal sets
         df0 = hsps
-        df1 = hsps.query('reciprocal == True')
+        df1 = hsps[hsps['reciprocal']]
         labels = ['all', 'reciprocal']
 
         # Make BLAST output directory
@@ -127,7 +128,7 @@ if __name__ == '__main__':
         plt.ylabel(f'Number of {data_label} HSPs')
         plt.savefig(f'out/blast_{data_label}/bar_reciprocal_filter.png')
         plt.close()
-        print(f'Fraction of {data_label} HSPs reciprocal:', len(df1) / len(df0))
+        print(f'Fraction of {data_label} HSPs reciprocal:', round(len(df1) / len(df0), 3))
 
         # 1.2 QUALITY METRICS
         # 1.2.1 E-value plots
@@ -136,10 +137,10 @@ if __name__ == '__main__':
 
         # 1.2.1.1 Stacked bars of zero and non-zero E-values in all and reciprocal data sets
         xs = list(range(2))
-        ys_g0 = [len(evalue0) / len(df0), len(evalue1) / len(df1)]  # Fraction of HSPs with evalue > 0
-        ys_e0 = [1 - ys_g0[0], 1 - ys_g0[1]]  # Fraction of HSPs with evalue == 0
-        plt.bar(xs, ys_g0, label='non-zero', width=0.25)
-        plt.bar(xs, ys_e0, label='zero', width=0.25, bottom=ys_g0)
+        ys1 = [len(evalue0) / len(df0), len(evalue1) / len(df1)]  # Fraction of HSPs with evalue > 0
+        ys2 = [1 - ys1[0], 1 - ys1[1]]  # Fraction of HSPs with evalue == 0
+        plt.bar(xs, ys1, label='non-zero', width=0.25)
+        plt.bar(xs, ys2, label='zero', width=0.25, bottom=ys1)
         plt.xticks(xs, labels)
         plt.xlim((-0.75, 1.75))
         plt.ylabel(f'Fraction of total {data_label} HSPs')
@@ -170,8 +171,8 @@ if __name__ == '__main__':
         plt.savefig(f'out/blast_{data_label}/hist2d_fqa-evalue_reciprocal.png')
         plt.close()
 
-        g0 = df0.groupby('logevalue')
-        x = g0['nqa'].min()
+        groups0 = df0.groupby('logevalue')
+        x = groups0['nqa'].min()
         fig, ax = plt.subplots()
         ax.scatter(x.index, x.values, label=labels[0], color=colors[0], alpha=0.2, s=10, edgecolors='none')
         ax.set_xlabel('log10(E-value)')
@@ -182,8 +183,8 @@ if __name__ == '__main__':
         fig.savefig(f'out/blast_{data_label}/scatter_nqamin-evalue_all.png')
         plt.close()
 
-        g1 = df1.groupby('logevalue')
-        x = g1['nqa'].min()
+        groups1 = df1.groupby('logevalue')
+        x = groups1['nqa'].min()
         fig, ax = plt.subplots()
         ax.scatter(x.index, x.values, label=labels[1], color=colors[1], alpha=0.2, s=10, edgecolors='none')
         ax.set_xlabel('log10(E-value)')
@@ -194,7 +195,7 @@ if __name__ == '__main__':
         fig.savefig(f'out/blast_{data_label}/scatter_nqamin-evalue_reciprocal.png')
         plt.close()
 
-        x = g0['bitscore'].min()
+        x = groups0['bitscore'].min()
         fig, ax = plt.subplots()
         ax.scatter(x.index, x.values, label=labels[0], color=colors[0], alpha=0.2, s=10, edgecolors='none')
         ax.set_xlabel('log10(E-value)')
@@ -205,7 +206,7 @@ if __name__ == '__main__':
         fig.savefig(f'out/blast_{data_label}/scatter_bitscoremin-evalue_all.png')
         plt.close()
 
-        x = g1['bitscore'].min()
+        x = groups1['bitscore'].min()
         fig, ax = plt.subplots()
         ax.scatter(x.index, x.values, label=labels[1], color=colors[1], alpha=0.2, s=10, edgecolors='none')
         ax.set_xlabel('log10(E-value)')
@@ -293,12 +294,10 @@ if __name__ == '__main__':
         title_label = 'reciprocal ' if data_label == 'reciprocal' else ''
 
         # 2.3.1 Correlation of gene HSPs with number of associated polypeptides
-        gnid_nums = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t',
-                                index_col='gnid', dtype={'gnid': 'string'})
+        gnid_nums = pd.read_csv('../genome_stats/out/gnid_nums.tsv', sep='\t', index_col='gnid', dtype={'gnid': 'string'})
         corr = sgnid_hspnum.join(gnid_nums)
 
-        plt.scatter(corr['ppidnum'], corr['sgnid_hspnum'],
-                    alpha=0.5, s=10, edgecolors='none')
+        plt.scatter(corr['ppidnum'], corr['sgnid_hspnum'], alpha=0.5, s=10, edgecolors='none')
         plt.xlabel('Number of polypeptides associated with gene')
         plt.ylabel(f'Number of HSPs to gene')
         plt.title(f'Correlation of number of {title_label}index HSPs to gene\nwith number of associated polypeptides')
@@ -314,10 +313,10 @@ if __name__ == '__main__':
 
 """
 OUTPUT
-Fraction of all HSPs reciprocal: 0.9269058698501859
-Fraction of compatible HSPs reciprocal: 0.9467846569586281
-Fraction of disjoint HSPs reciprocal: 0.9338858845321562
-Fraction of index HSPs reciprocal: 0.9317895192755523
+Fraction of all HSPs reciprocal: 0.9355282843106667
+Fraction of compatible HSPs reciprocal: 0.9553193485209691
+Fraction of disjoint HSPs reciprocal: 0.9431534979669558
+Fraction of index HSPs reciprocal: 0.9411210016185043
 
 DEPENDENCIES
 ../../ortho_search/blast2hsps/blast2hsps.py
