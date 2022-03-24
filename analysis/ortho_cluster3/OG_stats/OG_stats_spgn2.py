@@ -1,4 +1,4 @@
-"""Plot various statistics of OGs relating to their counts of proteins and species."""
+"""Plot various statistics of OGs."""
 
 import os
 
@@ -213,6 +213,37 @@ ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
 fig.savefig('out/spgn/hist_OGidnum-gnidnum.png')
+plt.close()
+
+# 4 DISTRIBUTIONS ACROSS OGS
+# 4.1 Distribution of proteins across number of associated OGs
+counts = OGs.groupby('ppid')['OGid'].nunique().value_counts()
+plt.bar(counts.index, counts.values, width=1)
+plt.xlabel('Number of OGs associated with protein')
+plt.ylabel('Number of proteins')
+plt.savefig('out/spgn/hist_ppidnum-OGidnum.png')
+plt.yscale('log')
+plt.savefig('out/spgn/hist_ppidnum-OGidnum_log.png')
+plt.close()
+
+# 4.2 Distribution of genes across number of associated OGs
+counts = OGs.groupby('gnid')['OGid'].nunique().value_counts()
+plt.bar(counts.index, counts.values, width=1)
+plt.xlabel('Number of OGs associated with gene')
+plt.ylabel('Number of genes')
+plt.savefig('out/spgn/hist_gnidnum-OGidnum.png')
+plt.yscale('log')
+plt.savefig('out/spgn/hist_gnidnum-OGidnum_log.png')
+plt.close()
+
+# 4.3 Distribution of connected components across number of associated OGs
+counts = OGs.groupby('component_id')['OGid'].nunique().value_counts()
+plt.bar(counts.index, counts.values, width=1)
+plt.xlabel('Number of OGs in component')
+plt.ylabel('Number of components')
+plt.savefig('out/spgn/hist_componentnum-OGnum.png')
+plt.yscale('log')
+plt.savefig('out/spgn/hist_componentnum-OGnum_log.png')
 plt.close()
 
 """
