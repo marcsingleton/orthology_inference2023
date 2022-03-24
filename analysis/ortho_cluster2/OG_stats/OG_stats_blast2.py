@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
     # Load data
     rows = []
-    with open('../cluster3_graph/out/clusters.tsv') as file:
+    with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
         file.readline()  # Skip header
         for line in file:
             CCid, OGid, _, edges = line.rstrip().split('\t')
@@ -352,5 +352,5 @@ DEPENDENCIES
     ../../ortho_search/hits2reciprocal/out/*/*.tsv
 ../config/genomes.tsv
 ../cluster3_graph/cluster3_graph.py
-    ../cluster3_graph/out/clusters.tsv
+    ../cluster4+_graph/out/4clique/clusters.tsv
 """

@@ -14,7 +14,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../cluster3_graph/out/clusters.tsv') as file:
+with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         CCid, OGid, _, edges = line.rstrip().split('\t')
@@ -274,5 +274,5 @@ DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../cluster3_graph/cluster3_graph.py
-    ../cluster3_graph/out/clusters.tsv
+    ../cluster4+_graph/out/4clique/clusters.tsv
 """

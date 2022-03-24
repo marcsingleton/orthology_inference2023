@@ -9,6 +9,44 @@ import networkx as nx
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from numpy import linspace
 
+
+def load_OGs(path):
+    OGs = {}
+    with open(path) as file:
+        file.readline()  # Skip header
+        for line in file:
+            component_id, _, _, edges = line.rstrip().split('\t')
+            gnids = {node for edge in edges.split(',') for node in edge.split(':')}
+            try:
+                OGs[component_id].append(gnids)
+            except KeyError:
+                OGs[component_id] = [gnids]
+    return OGs
+
+
+def blend_colors(colors):
+    rgbs = [[int(color[i:i+2], 16) for i in range(0, 6, 2)] for color in colors]
+    avg = [int(sum(c) / len(c)) for c in zip(*rgbs)]
+    return '#' + ''.join([hex(c)[2:] for c in avg])
+
+
+def get_node_colors(graph, OGs):
+    cycle = ['4E79A7', 'F28E2B', 'E15759', '76B7B2', '59A14F', 'EDC948', 'B07AA1', 'FF9DA7', '9C755F', 'BAB0AC']
+    node2colors = {node: [] for node in graph.nodes}
+    for i, OG in enumerate(OGs):
+        for node in OG:
+            node2colors[node].append(cycle[i % 10])
+
+    node_colors = []
+    for node in graph.nodes:
+        colors = node2colors[node]
+        if colors:
+            node_colors.append(blend_colors(colors))
+        else:
+            node_colors.append('#1B1B1B')
+    return node_colors
+
+
 # Load graph
 graph = {}
 with open('../hits2graph/out/hit_graph.tsv') as file:
@@ -23,6 +61,11 @@ with open('../connect_hit_graph/out/components.tsv') as file:
     for line in file:
         component_id, nodes = line.rstrip().split('\t')
         components[component_id] = set(nodes.split(','))
+
+# Load OGs
+OG4s = load_OGs('../cluster4+_graph/out/4clique/clusters.tsv')
+OG5s = load_OGs('../cluster4+_graph/out/5clique/clusters.tsv')
+OG6s = load_OGs('../cluster4+_graph/out/6clique/clusters.tsv')
 
 # Make output directory
 if not os.path.exists('out/'):
@@ -89,6 +132,16 @@ for i, (component_id, component) in enumerate(component_records[:50]):  # 50 lar
     fig.savefig(f'out/{i:02}-{component_id}_source.png')
     plt.close()
 
+    # Draw graph labeled by cluster
+    for k, OGks in zip(range(4, 7), [OG4s, OG5s, OG6s]):
+        fig, ax = plt.subplots(figsize=figsize, dpi=300)
+        nx.draw_networkx_edges(nx_graph, positions, alpha=0.25, width=0.5)
+        nx.draw_networkx_nodes(nx_graph.nodes, positions, node_size=node_size, linewidths=0, node_color=get_node_colors(nx_graph, OGks.get(component_id, [])))
+        fig.tight_layout()
+        ax.axis('off')
+        fig.savefig(f'out/{i:02}-{component_id}_OG{k}.png')
+        plt.close()
+
     # Draw graph labeled by edge
     node_size = 20 / (1 + exp(0.01 * (len(subgraph) - 400))) + 10  # Adjust node size
     edges = sorted(nx_graph.edges, key=lambda x: nx_graph.get_edge_data(*x)['weight'])
@@ -114,6 +167,10 @@ for i, (component_id, component) in enumerate(component_records[:50]):  # 50 lar
 
 """
 DEPENDENCIES
+../cluster4+_graph/cluster4+_graph.py
+    ../cluster4+_graph/out/4clique/clusters.tsv
+    ../cluster4+_graph/out/5clique/clusters.tsv
+    ../cluster4+_graph/out/6clique/clusters.tsv
 ../connect_hit_graph/connect_hit_graph.py
     ../connect_hit_graph/out/components.tsv
 ../hits2graph/hits2graph.py
