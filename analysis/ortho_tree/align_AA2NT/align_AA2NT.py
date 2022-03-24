@@ -1,4 +1,4 @@
-"""Convert polypeptide alignments to nucleotide alignments."""
+"""Convert amino acid alignments to nucleotide alignments."""
 
 import os
 import re
@@ -7,7 +7,7 @@ import sys
 from src.utils import read_fasta
 
 
-def get_codons(nt_seq, aa_seq):
+def get_codons(nt_seq, aa_seq, file_id):
     delta = len(nt_seq) // 3 - len(aa_seq)
     if abs(delta) > 1:
         print('File:', file_id)
@@ -21,7 +21,7 @@ def get_codons(nt_seq, aa_seq):
     codons = []  # Translated symbols
     for i in range(0, num_codon):
         codon = nt_seq[3*i:3*i+3]
-        tr = 'X' if 'N' in codon else ttable[codon]
+        tr = 'X' if 'N' in codon else codon2aa[codon]
         aa = aa_seq[i]
         if tr != aa:
             if i == 0 and aa == 'M':  # Correct non-standard start codon
@@ -71,14 +71,14 @@ with open('../config/genomes.tsv') as file:
         spid, _, source, _, cds_path = line.split()
         genomes.append((spid, source, cds_path))
 
-# Load translation table
-ttable = {}
-with open('ttable.txt') as file:
+# Load codon table
+codon2aa = {}
+with open('codons.txt') as file:
     lines = [line.rstrip().split(' = ')[1] for line in file]
     for i in range(len(lines[0])):
         aa = lines[0][i]
         codon = ''.join([lines[j][i] for j in range(2, 5)])
-        ttable[codon] = aa
+        codon2aa[codon] = aa
 
 # Load CDSs
 ppid2cds = {}
@@ -92,17 +92,19 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 sys.stdout = open('out/out.txt', 'w')  # Redirect stdout to file
-for file_id in filter(lambda x: x.endswith('.afa'), os.listdir('../align_fastas/out/')):
+for path in [path for path in os.listdir('../align_fastas/out/') if path.endswith('.afa')]:
+    file_id = path.removesuffix('.afa')
+
     # Translate and write CDS
     nt_aligns = []
-    for header, aa_align in read_fasta('../align_fastas/out/' + file_id):
+    for header, aa_align in read_fasta('../align_fastas/out/' + path):
         ppid = re.search(r'ppid=([NXYPFBp0-9_.]+)\|', header)[1]
         aa_seq = aa_align.replace('-', '')
         nt_seq = ppid2cds[ppid]
 
-        codons = get_codons(nt_seq, aa_seq)
+        codons = get_codons(nt_seq, aa_seq, file_id)
         if not codons:
-            print(f'Conversion of {file_id} failed due to {ppid}.')
+            print(f'Conversion of {path} failed due to {ppid}.')
             print()
             break
 
@@ -114,7 +116,7 @@ for file_id in filter(lambda x: x.endswith('.afa'), os.listdir('../align_fastas/
                 nt_align.append(codons.pop(0))
         nt_aligns.append((header, ''.join(nt_align)))
     else:
-        with open('out/' + file_id, 'w') as file:
+        with open(f'out/{file_id}.afa', 'w') as file:
             for header, nt_align in nt_aligns:
                 alignstring = '\n'.join(nt_align[i:i+80] for i in range(0, len(nt_align), 80)) + '\n'
                 file.write(header + alignstring)
@@ -127,5 +129,5 @@ DEPENDENCIES
 ../config/genomes.tsv
 ../align_fastas/align_fastas.py
     ../align_fastas/out/*.afa
-./ttable.txt
+./codons.txt
 """
