@@ -4,12 +4,13 @@ import os
 import pandas as pd
 
 # Load seq metadata
-ppid2meta = {}
+ppid2meta, spids = {}, []
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, sqid = line.split()
         ppid2meta[ppid] = (gnid, spid, sqid)
+        spids.append(spid)
 
 # Load graph
 graph = {}
@@ -22,49 +23,47 @@ with open('../../ortho_cluster3/hits2graph/out/hit_graph.tsv') as file:
             bitscores[adj_node] = float(adj_bitscore)
         graph[node] = bitscores
 
-# Load gOGs
-OGid2gOGid = {}
+# Load GGs
+OGid2GGid = {}
 with open('../../ortho_cluster3/connect_OG_graph/out/components.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        gOGid, OGids = line.rstrip().split('\t')
+        GGid, OGids = line.rstrip().split('\t')
         for OGid in OGids.split(','):
-            OGid2gOGid[OGid] = gOGid
+            OGid2GGid[OGid] = GGid
 
 # Load OGs
 rows = []
 with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        CCid, OGid, _, edges = line.rstrip().split('\t')
-        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
+        component_id, OGid, _, edges = line.rstrip().split('\t')
+        edges = [edge.split(':') for edge in edges.split(',')]
+        ppids = {node for edge in edges for node in edge}
         gnids = {ppid2meta[ppid][0] for ppid in ppids}
         spids = {ppid2meta[ppid][1] for ppid in ppids}
         sqids = {ppid2meta[ppid][2] for ppid in ppids}
         bitscore = 0
-        for edge in edges.split(','):
-            node1, node2 = edge.split(':')
+        for node1, node2 in edges:
             bitscore += graph[node1][node2] + graph[node2][node1]
 
-        row = {'CCid': CCid, 'OGid': OGid, 'gOGid': OGid2gOGid[OGid],
-               'bitscore': round(bitscore, 1), 'edgenum': len(edges.split(',')),
+        row = {'component_id': component_id, 'OGid': OGid, 'gOGid': OGid2GGid[OGid],
+               'bitscore': round(bitscore, 1), 'edgenum': len(edges),
                'ppidnum': len(ppids), 'sqidnum': len(sqids),
                'gnidnum': len(gnids), 'spidnum': len(spids)}
         rows.append(row)
 OGs = pd.DataFrame(rows)
 
 # Print counts
-num = 31
-ppnum = OGs['ppidnum'] == num
-sqnum = OGs['sqidnum'] == num
-gnnum = OGs['gnidnum'] == num
-spnum = OGs['spidnum'] == num
+spidnum = len(spids)
+ppid_filter = OGs['ppidnum'] == spidnum
+gnid_filter = OGs['gnidnum'] == spidnum
+spid_filter = OGs['spidnum'] == spidnum
 
 print('Total OGs:', len(OGs))
-print(f'OGs with {num} genes:', len(OGs[gnnum]))
-print(f'OGs with {num} genes and species:', len(OGs[gnnum & spnum]))
-print(f'OGs with {num} genes, species, and sequences:', len(OGs[gnnum & spnum & ppnum]))
-print(f'OGs with {num} genes, species, and unique sequences:', len(OGs[gnnum & spnum & sqnum]))
+print(f'OGs with {spidnum} genes:', len(OGs[gnid_filter]))
+print(f'OGs with {spidnum} genes and species:', len(OGs[gnid_filter & spid_filter]))
+print(f'OGs with {spidnum} genes, species, and sequences:', len(OGs[gnid_filter & spid_filter & ppid_filter]))
 
 # Make output directory
 if not os.path.exists('out/'):
