@@ -33,7 +33,7 @@ def grouped_bar(groups, group_width, bar_width, file_label, bar_labels=None, bar
 
 # Count nucleotides
 counts = {}
-for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_aa2nt/out/')):
+for file_id in filter(lambda x: x.endswith('.afa'), os.listdir('../align_aa2nt/out/')):
     msa = skbio.read(f'../align_aa2nt/out/{file_id}', 'fasta')
     for seq in msa:
         spid = seq.metadata['id'][-4:]
@@ -66,5 +66,5 @@ grouped_bar(ATGCs, 1, 0.3, 'ATGC_freqs', ['AT', 'GC'])
 """
 DEPENDENCIES
 ../align_aa2nt/align_aa2nt.py
-    ../align_aa2nt/out/*.mfa
+    ../align_aa2nt/out/*.afa
 """

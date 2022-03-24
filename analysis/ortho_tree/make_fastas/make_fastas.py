@@ -33,7 +33,7 @@ for source, prot_path in genomes:
         ppid = re.search(ppid_regex[header], line).group(1)
         ppid2seq[ppid] = seq
 
-# Load OGs and OG metadata
+# Load OGs and OG data
 OGs = {}
 with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
@@ -41,14 +41,14 @@ with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
         _, OGid, _, edges = line.rstrip().split('\t')
         sqids = {ppid2meta[node][2] for edge in edges.split(',') for node in edge.split(':')}
         OGs[OGid] = sqids
-OGs_meta = pd.read_table('../OG_data/out/OG_data.tsv')
+OG_data = pd.read_table('../OG_data/out/OG_data.tsv')
 
 # Write sequences
-num = len(genomes)
-gnnum = OGs_meta['gnidnum'] == num
-spnum = OGs_meta['spidnum'] == num
-sqnum = OGs_meta['sqidnum'] == num
-OGids = OGs_meta.loc[gnnum & spnum & sqnum, 'OGid']
+spidnum = len(genomes)
+gnid_filter = OG_data['gnidnum'] == spidnum
+spid_filter = OG_data['spidnum'] == spidnum
+sqidnum = OG_data['sqidnum'] == spidnum
+OGids = OG_data.loc[gnid_filter & spid_filter & sqidnum, 'OGid']
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -59,7 +59,7 @@ for OGid in OGids:
         gnid, spid, _ = ppid2meta[sqid]
         seq = ppid2seq[sqid]
         records.append((seq, sqid, gnid, spid))
-    with open(f'out/{OGid}.tfa', 'w') as file:
+    with open(f'out/{OGid}.fa', 'w') as file:
         for seq, sqid, gnid, spid in sorted(records, key=lambda x: x[3]):
             seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
             file.write(f'>ppid={sqid}|gnid={gnid}|spid={spid}\n' + seqstring)

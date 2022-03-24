@@ -92,7 +92,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 sys.stdout = open('out/out.txt', 'w')  # Redirect stdout to file
-for file_id in filter(lambda x: x.endswith('.mfa'), os.listdir('../align_fastas/out/')):
+for file_id in filter(lambda x: x.endswith('.afa'), os.listdir('../align_fastas/out/')):
     # Translate and write CDS
     nt_aligns = []
     for header, aa_align in read_fasta('../align_fastas/out/' + file_id):
@@ -126,6 +126,6 @@ DEPENDENCIES
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-CDS-r6.34.fasta
 ../config/genomes.tsv
 ../align_fastas/align_fastas.py
-    ../align_fastas/out/*.mfa
+    ../align_fastas/out/*.afa
 ./ttable.txt
 """
