@@ -1,4 +1,4 @@
-"""Plot various statistics of OGs relating to their BLAST parameters."""
+"""Plot various statistics of OGs relating to their BLAST output."""
 
 import multiprocessing as mp
 import os

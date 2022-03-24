@@ -5,14 +5,6 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# Parse genomes
-spids = set()
-with open('../config/genomes.tsv') as file:
-    file.readline()  # Skip header
-    for line in file:
-        spid, _, _, _ = line.split()
-        spids.add(spid)
-
 # Load seq metadata
 ppid2meta = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
@@ -20,6 +12,14 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     for line in file:
         ppid, gnid, spid, _ = line.split()
         ppid2meta[ppid] = gnid, spid
+
+# Parse genomes
+spids = set()
+with open('../config/genomes.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        spid, _, _, _ = line.split()
+        spids.add(spid)
 
 # Load OGs
 rows = []
@@ -39,8 +39,8 @@ ppidnum = OGs['ppid'].nunique()
 gnidnum = OGs['gnid'].nunique()
 
 # Make output directory
-if not os.path.exists('out/spgn/'):
-    os.makedirs('out/spgn/')  # Recursive folder creation
+if not os.path.exists('out/cluster/'):
+    os.makedirs('out/cluster/')  # Recursive folder creation
 
 # Plots
 # 1 DISTRIBUTIONS ACROSS SPECIES
@@ -61,7 +61,7 @@ ax2.set_ylim(ymin / OGidnum, ymax / OGidnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/spgn/bar_OGidnum-species.png')
+fig.savefig('out/cluster/bar_OGidnum-species.png')
 plt.close()
 
 # 1.2 Distribution of proteins across species
@@ -81,7 +81,7 @@ ax2.set_ylim(ymin / ppidnum, ymax / ppidnum)
 ax2.set_ylabel('Fraction of total proteins')
 
 fig.tight_layout()
-fig.savefig('out/spgn/bar_ppidnum-species.png')
+fig.savefig('out/cluster/bar_ppidnum-species.png')
 plt.close()
 
 # 1.3 Distribution of genes across species
@@ -101,7 +101,7 @@ ax2.set_ylim(ymin / gnidnum, ymax / gnidnum)
 ax2.set_ylabel('Fraction of total genes')
 
 fig.tight_layout()
-fig.savefig('out/spgn/bar_gnidnum-species.png')
+fig.savefig('out/cluster/bar_gnidnum-species.png')
 plt.close()
 
 # 1.4 Correlation of number of proteins and associated OGs
@@ -111,7 +111,7 @@ ax.set_xlabel('Number of associated OGs')
 ax.set_ylabel('Number of proteins')
 ax.set_title('Correlation of numbers of\nproteins and associated OGs for each species')
 
-fig.savefig('out/spgn/scatter_ppidnum-OGidnum.png')
+fig.savefig('out/cluster/scatter_ppidnum-OGidnum.png')
 plt.close()
 
 # 1.5 Correlation of number of genes and associated OGs
@@ -121,7 +121,7 @@ ax.set_xlabel('Number of associated OGs')
 ax.set_ylabel('Number of genes')
 ax.set_title('Correlation of numbers of\ngenes and associated OGs for each species')
 
-fig.savefig('out/spgn/scatter_gnidnum-OGidnum.png')
+fig.savefig('out/cluster/scatter_gnidnum-OGidnum.png')
 plt.close()
 
 # 2 NUMBER OF EXCLUSIONS
@@ -143,7 +143,7 @@ for i in range(len(spids)-10, len(spids)):
     ax.set_title(f'Number of exclusions in OGs with {i} species')
 
     fig.tight_layout()
-    fig.savefig(f'out/spgn/bar_exclusion-species_{i}.png')
+    fig.savefig(f'out/cluster/bar_exclusion-species_{i}.png')
     plt.close()
 
 # 3 DISTRIBUTIONS OF OGS
@@ -161,7 +161,7 @@ ax2.set_ylim(ymin / OGidnum, ymax / OGidnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/spgn/hist_OGidnum-spidnum.png')
+fig.savefig('out/cluster/hist_OGidnum-spidnum.png')
 plt.close()
 
 # 3.2 Distribution of OGs across number of species duplicates
@@ -178,7 +178,7 @@ ax2.set_ylim(ymin / OGidnum, ymax / OGidnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/spgn/hist_OGidnum-duplicates.png')
+fig.savefig('out/cluster/hist_OGidnum-duplicates.png')
 plt.close()
 
 # 3.3 Distribution of OGs across number of proteins
@@ -195,7 +195,7 @@ ax2.set_ylim(ymin / OGidnum, ymax / OGidnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/spgn/hist_OGidnum-ppidnum.png')
+fig.savefig('out/cluster/hist_OGidnum-ppidnum.png')
 plt.close()
 
 # 3.4 Distribution of OGs across number of genes
@@ -212,7 +212,7 @@ ax2.set_ylim(ymin / OGidnum, ymax / OGidnum)
 ax2.set_ylabel('Fraction of total OGs')
 
 fig.tight_layout()
-fig.savefig('out/spgn/hist_OGidnum-gnidnum.png')
+fig.savefig('out/cluster/hist_OGidnum-gnidnum.png')
 plt.close()
 
 # 4 DISTRIBUTIONS ACROSS OGS
@@ -221,9 +221,9 @@ counts = OGs.groupby('ppid')['OGid'].nunique().value_counts()
 plt.bar(counts.index, counts.values, width=1)
 plt.xlabel('Number of OGs associated with protein')
 plt.ylabel('Number of proteins')
-plt.savefig('out/spgn/hist_ppidnum-OGidnum.png')
+plt.savefig('out/cluster/hist_ppidnum-OGidnum.png')
 plt.yscale('log')
-plt.savefig('out/spgn/hist_ppidnum-OGidnum_log.png')
+plt.savefig('out/cluster/hist_ppidnum-OGidnum_log.png')
 plt.close()
 
 # 4.2 Distribution of genes across number of associated OGs
@@ -231,9 +231,9 @@ counts = OGs.groupby('gnid')['OGid'].nunique().value_counts()
 plt.bar(counts.index, counts.values, width=1)
 plt.xlabel('Number of OGs associated with gene')
 plt.ylabel('Number of genes')
-plt.savefig('out/spgn/hist_gnidnum-OGidnum.png')
+plt.savefig('out/cluster/hist_gnidnum-OGidnum.png')
 plt.yscale('log')
-plt.savefig('out/spgn/hist_gnidnum-OGidnum_log.png')
+plt.savefig('out/cluster/hist_gnidnum-OGidnum_log.png')
 plt.close()
 
 # 4.3 Distribution of connected components across number of associated OGs
@@ -241,9 +241,9 @@ counts = OGs.groupby('component_id')['OGid'].nunique().value_counts()
 plt.bar(counts.index, counts.values, width=1)
 plt.xlabel('Number of OGs in component')
 plt.ylabel('Number of components')
-plt.savefig('out/spgn/hist_componentnum-OGnum.png')
+plt.savefig('out/cluster/hist_componentnum-OGnum.png')
 plt.yscale('log')
-plt.savefig('out/spgn/hist_componentnum-OGnum_log.png')
+plt.savefig('out/cluster/hist_componentnum-OGnum_log.png')
 plt.close()
 
 """
