@@ -208,10 +208,10 @@ if __name__ == '__main__':
         os.mkdir('out/')
 
     # Write reduced clusters to file
-    with open('out/clusters.tsv', 'w') as outfile:
-        outfile.write('OGid\tppids\n')
+    with open('out/clusters.tsv', 'w') as file:
+        file.write('OGid\tppids\n')
         for OGid, reduced_OG in reduced_OGs:
-            outfile.write(OGid + '\t' + ','.join([record[2] for record in reduced_OG]) + '\n')
+            file.write(OGid + '\t' + ','.join([record[2] for record in reduced_OG]) + '\n')
 
 """
 DEPENDENCIES

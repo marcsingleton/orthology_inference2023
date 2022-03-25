@@ -24,11 +24,11 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 # Write components to file
-with open('out/components.tsv', 'w') as outfile:
+with open('out/components.tsv', 'w') as file:
     file.write('GGid\tOGids\n')
     for i, component in enumerate(components):
         GGid = hex(i)[2:].zfill(4).upper()
-        outfile.write(GGid + '\t' + ','.join(component) + '\n')
+        file.write(GGid + '\t' + ','.join(component) + '\n')
 
 """
 DEPENDENCIES

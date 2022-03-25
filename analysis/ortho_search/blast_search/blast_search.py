@@ -36,8 +36,8 @@ for subject_spid in spids:
         t1 = asctime()
 
         # Manually write output to file since direction while in background does not immediately write to file
-        with open('out/blast_search.out', 'a') as outfile:
-            outfile.write('\t'.join([query_spid, subject_spid, t0, t1 + '\n']))
+        with open('out/blast_search.out', 'a') as file:
+            file.write('\t'.join([query_spid, subject_spid, t0, t1 + '\n']))
 
 """
 DEPENDENCIES
