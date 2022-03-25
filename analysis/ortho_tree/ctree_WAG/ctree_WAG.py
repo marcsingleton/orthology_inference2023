@@ -11,10 +11,10 @@ from src.ortho_tree.tree import majority_consensus
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-for label in os.listdir('../iqtree_WAG/out/'):
+for label in os.listdir('../iqtree_LG/out/'):
     trees = []
-    for file in filter(lambda x: x.endswith('.treefile'), os.listdir(f'../iqtree_WAG/out/{label}/')):
-        tree = skbio.read(f'../iqtree_WAG/out/{label}/{file}', 'newick', skbio.TreeNode)
+    for file in filter(lambda x: x.endswith('.treefile'), os.listdir(f'../iqtree_LG/out/{label}/')):
+        tree = skbio.read(f'../iqtree_LG/out/{label}/{file}', 'newick', skbio.TreeNode)
         outgroup = tree.find('sleb').ancestors()[0]
         tree = tree.root_at(outgroup)
         trees.append(tree)
@@ -46,6 +46,6 @@ for label in os.listdir('../iqtree_WAG/out/'):
 
 """
 DEPENDENCIES
-../iqtree_WAG/iqtree_WAG.sh
+../iqtree_LG/iqtree_LG.sh
     ../iqtree_WAG/out/*/meta_*.treefile
 """

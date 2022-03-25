@@ -10,8 +10,8 @@
 #SBATCH --cpus-per-task=1
 #
 # Reporting parameters
-#SBATCH --job-name=iqtree_WAG
-#SBATCH --output=iqtree_WAG.out
+#SBATCH --job-name=iqtree_LG
+#SBATCH --output=iqtree_LG.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
@@ -29,4 +29,4 @@ for folder in $(ls ../make_metaAA/out/); do
       echo $folder $(basename $file .afa) $invariant
     fi
   done
-done | parallel --jobs $SLURM_CPUS_ON_NODE --colsep ' ' bash iqtree_WAG.sh {1} {2} {3}
+done | parallel --jobs $SLURM_CPUS_ON_NODE --colsep ' ' bash iqtree_LG.sh {1} {2} {3}
