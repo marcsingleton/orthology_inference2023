@@ -5,14 +5,6 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# Load sequence data
-ppid2data = {}
-with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
-    for line in file:
-        ppid, gnid, spid, _ = line.split()
-        ppid2data[ppid] = gnid, spid
-
 # Parse genomes
 spids = set()
 with open('../config/genomes.tsv') as file:
@@ -20,6 +12,14 @@ with open('../config/genomes.tsv') as file:
     for line in file:
         spid, _, _, _ = line.split()
         spids.add(spid)
+
+# Load sequence data
+ppid2data = {}
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        ppid, gnid, spid, _ = line.split()
+        ppid2data[ppid] = gnid, spid
 
 # Load OGs
 rows = []

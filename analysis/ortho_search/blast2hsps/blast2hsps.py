@@ -168,14 +168,6 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
 compatible_cutoff = 50  # Bitscore cutoff for accepting HSPs as compatible
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
-# Load sequence data
-ppid2gnid = {}
-with open('../sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
-    for line in file:
-        ppid, gnid, _, _ = line.split()
-        ppid2gnid[ppid] = gnid
-
 # Parse genomes
 genomes = {}
 with open('../config/genomes.tsv') as file:
@@ -183,6 +175,14 @@ with open('../config/genomes.tsv') as file:
     for line in file:
         spid, _, source, _, _ = line.split()
         genomes[spid] = source
+
+# Load sequence data
+ppid2gnid = {}
+with open('../sequence_data/out/sequence_data.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        ppid, gnid, _, _ = line.split()
+        ppid2gnid[ppid] = gnid
 
 # Parse BLAST results
 if __name__ == '__main__':

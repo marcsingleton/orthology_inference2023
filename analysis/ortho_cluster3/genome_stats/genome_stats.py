@@ -22,14 +22,6 @@ ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
               'NCBI': r'([NXY]P_[0-9]+)'}
 alphabet = {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'X'}
 
-# Load sequence data
-ppid2data = {}
-with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
-    for line in file:
-        ppid, gnid, _, sqid = line.split()
-        ppid2data[ppid] = (gnid, sqid)
-
 # Parse genomes
 genomes = []
 with open('../config/genomes.tsv') as file:
@@ -37,6 +29,14 @@ with open('../config/genomes.tsv') as file:
     for line in file:
         spid, _, source, prot_path = line.split()
         genomes.append((spid, source, prot_path))
+
+# Load sequence data
+ppid2data = {}
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        ppid, gnid, _, sqid = line.split()
+        ppid2data[ppid] = (gnid, sqid)
 
 # Parse proteins
 rows, syms = [], set()
