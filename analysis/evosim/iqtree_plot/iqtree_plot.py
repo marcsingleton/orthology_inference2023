@@ -18,7 +18,7 @@ Record = namedtuple('Record', ['label', 'matrix', 'freqs'])
 
 # Read LG model
 with open('../config/LG.paml') as file:
-    # Parse exchangeability matrix
+    # Load exchangeability matrix
     LG_matrix = np.zeros((len(alphabet), len(alphabet)))
     for i in range(len(alphabet)-1):
         line = file.readline()
@@ -26,7 +26,7 @@ with open('../config/LG.paml') as file:
             LG_matrix[i + 1, j] = float(value)
             LG_matrix[j, i + 1] = float(value)
 
-    # Parse equilibrium frequencies
+    # Load equilibrium frequencies
     for _ in range(2):
         line = file.readline()
     LG_freqs = np.array([float(value) for value in line.split()])
@@ -38,7 +38,7 @@ LG_matrix = LG_matrix / rate  # Normalize average rate to 1
 records = []
 for label in labels:
     with open(f'../iqtree_fit/out/{label}.iqtree') as file:
-        # Move to exchangeability matrix and parse
+        # Move to exchangeability matrix and load
         line = file.readline()
         while not line.startswith('Substitution parameters'):
             line = file.readline()
@@ -50,7 +50,7 @@ for label in labels:
             rows.append([float(value) for value in line.split()])
             line = file.readline()
 
-        # Move to equilibrium frequencies and parse
+        # Move to equilibrium frequencies and load
         for _ in range(3):
             line = file.readline()
 

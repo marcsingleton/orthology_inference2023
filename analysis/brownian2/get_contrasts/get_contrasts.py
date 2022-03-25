@@ -67,7 +67,7 @@ if __name__ == '__main__':
     features.loc[features['omega'] == -1, 'omega'] = 1
     feature_labels = list(features.columns.drop(['OGid', 'start', 'stop', 'ppid']))
 
-    # Parse segments
+    # Load segments
     rows = []
     with open('../aucpred_filter/out/regions_30.tsv') as file:
         file.readline()  # Skip header

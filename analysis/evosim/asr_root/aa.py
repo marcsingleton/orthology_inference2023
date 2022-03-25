@@ -14,7 +14,7 @@ from src.utils import read_fasta
 
 def load_model(path):
     with open(path) as file:
-        # Parse exchangeability matrix
+        # Load exchangeability matrix
         matrix = np.zeros((len(alphabet), len(alphabet)))
         for i in range(len(alphabet)-1):
             line = file.readline()
@@ -22,7 +22,7 @@ def load_model(path):
                 matrix[i + 1, j] = float(value)
                 matrix[j, i + 1] = float(value)
 
-        # Parse equilibrium frequencies
+        # Load equilibrium frequencies
         for _ in range(2):
             line = file.readline()
         freqs = np.array([float(value) for value in line.split()])

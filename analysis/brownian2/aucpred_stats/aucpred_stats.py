@@ -24,7 +24,7 @@ features = pd.read_table('../get_features/out/features.tsv')
 features.loc[features['kappa'] == -1, 'kappa'] = 1
 features.loc[features['omega'] == -1, 'omega'] = 1
 
-# Parse regions
+# Load regions
 rows = []
 for min_length in sorted(min_lengths):
     with open(f'../aucpred_filter/out/regions_{min_length}.tsv') as file:

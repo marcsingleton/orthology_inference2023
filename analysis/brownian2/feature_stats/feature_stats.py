@@ -15,7 +15,7 @@ features = pd.read_table('../get_features/out/features.tsv')
 features.loc[features['kappa'] == -1, 'kappa'] = 1
 features.loc[features['omega'] == -1, 'omega'] = 1
 
-# Parse segments
+# Load segments
 rows = []
 with open('../aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header

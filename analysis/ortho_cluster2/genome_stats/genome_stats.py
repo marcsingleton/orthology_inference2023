@@ -38,7 +38,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
         ppid, gnid, _, sqid = line.split()
         ppid2data[ppid] = (gnid, sqid)
 
-# Parse proteins
+# Load proteins
 rows, syms = [], set()
 for spid, source, prot_path in genomes:
     fasta = read_fasta(prot_path)

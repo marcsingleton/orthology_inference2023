@@ -21,7 +21,7 @@ for OGid in OGids:
         while line != 'State frequencies: (estimated with maximum likelihood)\n':
             line = file.readline()
 
-        # Parse equilibrium frequencies
+        # Load equilibrium frequencies
         freqs = np.zeros(2)
         for _ in range(2):
             line = file.readline()
@@ -30,7 +30,7 @@ for OGid in OGids:
             freqs[i] = freq
             line = file.readline()
 
-        # Parse rate matrix
+        # Load rate matrix
         matrix = np.zeros((2, 2))
         for _ in range(3):
             line = file.readline()
