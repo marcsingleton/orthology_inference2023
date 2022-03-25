@@ -43,7 +43,7 @@ threshold = 0.5
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 
 records = []
-for OGid in os.listdir('out/raw/'):
+for OGid in [path for path in os.listdir('out/raw/') if os.path.isdir(f'out/raw/{path}')]:
     # Load MSA
     msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
     msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
@@ -82,7 +82,7 @@ for OGid in os.listdir('out/raw/'):
 with open('out/regions.tsv', 'w') as file:
     fields = ['OGid', 'start', 'stop', 'disorder']
     file.write('\t'.join(fields) + '\n')
-    for record in records:
+    for record in sorted(records):
         file.write('\t'.join(record) + '\n')
 
 """
