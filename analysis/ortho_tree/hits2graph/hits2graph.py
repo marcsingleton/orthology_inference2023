@@ -20,7 +20,7 @@ dtypes = {'qppid': 'string', 'sppid': 'string',
 num_processes = 2
 
 if __name__ == '__main__':
-    # Parse genomes
+    # Load genomes
     spids = []
     with open('../config/genomes.tsv') as file:
         file.readline()  # Skip header

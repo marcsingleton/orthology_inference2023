@@ -10,7 +10,7 @@ query_spid = argv[1]
 prot_path = argv[2]
 blast_path = argv[3]
 
-# Parse genomes
+# Load genomes
 spids = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header

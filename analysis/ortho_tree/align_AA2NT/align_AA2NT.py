@@ -63,7 +63,7 @@ def get_codons(nt_seq, aa_seq, file_id):
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
               'NCBI': r'([NXY]P_[0-9]+)'}
 
-# Parse genomes
+# Load genomes
 genomes = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header

@@ -22,7 +22,7 @@ ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
               'NCBI': r'([NXY]P_[0-9]+)'}
 alphabet = {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'X'}
 
-# Parse genomes
+# Load genomes
 genomes = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header

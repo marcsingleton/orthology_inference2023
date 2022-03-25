@@ -168,7 +168,7 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
 compatible_cutoff = 50  # Bitscore cutoff for accepting HSPs as compatible
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
-# Parse genomes
+# Load genomes
 genomes = {}
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header

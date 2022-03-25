@@ -77,7 +77,7 @@ hit_columns = ['qppid', 'qgnid', 'qspid',
                'bitscore']
 num_processes = 2
 
-# Parse genomes
+# Load genomes
 spids = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header

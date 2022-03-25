@@ -18,7 +18,7 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'slen': int, 'nsa': int, 'cnsa': int,
            'bitscore': float}
 
-# Parse genomes
+# Load genomes
 spids = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header

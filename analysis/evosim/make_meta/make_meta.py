@@ -16,7 +16,7 @@ def is_redundant(column, cutoff):
 
 rng = numpy.random.default_rng(seed=930715)
 
-# Parse genomes
+# Load genomes
 spids = []
 with open('../../ortho_MSA/config/genomes.tsv') as file:
     file.readline()  # Skip header

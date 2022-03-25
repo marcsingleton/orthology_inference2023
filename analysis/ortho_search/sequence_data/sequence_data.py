@@ -10,7 +10,7 @@ ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
 gnid_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
               'NCBI': r'db_xref=GeneID:([0-9]+)'}
 
-# Parse genomes
+# Load genomes
 genomes = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header

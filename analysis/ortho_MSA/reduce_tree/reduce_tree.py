@@ -166,7 +166,7 @@ table = {ord('I'): '!', ord('L'): '!', ord('M'): '!', ord('V'): '!',
          ord('G'): '~'}
 num_processes = 2
 
-# Parse genomes
+# Load genomes
 genomes = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header

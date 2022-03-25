@@ -9,7 +9,7 @@ def line2key(line):
     return fields[0], fields[3]
 
 
-# Parse genomes
+# Load genomes
 spids = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header

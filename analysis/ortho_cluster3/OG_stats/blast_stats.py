@@ -93,7 +93,7 @@ hit_dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
 num_processes = 4
 
 if __name__ == '__main__':
-    # Parse genomes
+    # Load genomes
     spids = []
     with open('../config/genomes.tsv') as file:
         file.readline()  # Skip header

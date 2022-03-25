@@ -5,7 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# Parse genomes
+# Load genomes
 spids = set()
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header

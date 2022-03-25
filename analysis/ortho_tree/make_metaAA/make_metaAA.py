@@ -26,7 +26,7 @@ def is_invariant(column):
 
 rng = numpy.random.default_rng(seed=930715)
 
-# Parse genomes
+# Load genomes
 spids = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header
