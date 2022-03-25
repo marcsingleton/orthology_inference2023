@@ -10,7 +10,7 @@ from sklearn.linear_model import LogisticRegression
 
 pdidx = pd.IndexSlice
 
-# Load seq metadata
+# Load sequence data
 ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header

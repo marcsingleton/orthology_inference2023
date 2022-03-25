@@ -5,13 +5,13 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# Load seq metadata
-ppid2meta = {}
+# Load sequence data
+ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, _ = line.split()
-        ppid2meta[ppid] = gnid, spid
+        ppid2data[ppid] = gnid, spid
 
 # Parse genomes
 spids = set()
@@ -29,7 +29,7 @@ with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
         component_id, OGid, _, edges = line.rstrip().split('\t')
         ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         for ppid in ppids:
-            gnid, spid = ppid2meta[ppid]
+            gnid, spid = ppid2data[ppid]
             rows.append({'component_id': component_id, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'spid': spid})
 OGs = pd.DataFrame(rows)
 

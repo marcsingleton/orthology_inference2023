@@ -44,7 +44,7 @@ clique_timeout = 90
 percolate_timeout = 90
 k_core_components = []  # Histones and other complex OGs which directly use k_core
 
-# Load seq metadata
+# Load sequence data
 sqid2ppids = {}
 constituents = set()  # Constituent ppids
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:

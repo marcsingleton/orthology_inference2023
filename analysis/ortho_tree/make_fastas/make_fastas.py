@@ -17,13 +17,13 @@ with open('../config/genomes.tsv') as file:
         _, _, source, prot_path, _ = line.split()
         genomes.append((source, prot_path))
 
-# Load seq metadata
-ppid2meta = {}
+# Load sequence data
+ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, sqid = line.split()
-        ppid2meta[ppid] = (gnid, spid, sqid)
+        ppid2data[ppid] = (gnid, spid, sqid)
 
 # Load seqs
 ppid2seq = {}
@@ -39,7 +39,7 @@ with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         _, OGid, _, edges = line.rstrip().split('\t')
-        sqids = {ppid2meta[node][2] for edge in edges.split(',') for node in edge.split(':')}
+        sqids = {ppid2data[node][2] for edge in edges.split(',') for node in edge.split(':')}
         OGs[OGid] = sqids
 OG_data = pd.read_table('../OG_data/out/OG_data.tsv')
 
@@ -56,7 +56,7 @@ if not os.path.exists('out/'):
 for OGid in OGids:
     records = []
     for sqid in OGs[OGid]:
-        gnid, spid, _ = ppid2meta[sqid]
+        gnid, spid, _ = ppid2data[sqid]
         seq = ppid2seq[sqid]
         seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
         records.append((sqid, gnid, spid, seqstring))

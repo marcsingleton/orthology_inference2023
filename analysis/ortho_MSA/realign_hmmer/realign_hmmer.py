@@ -8,7 +8,7 @@ from src.utils import read_fasta
 
 
 def hmm_align(OGid):
-    sqidnum, gnidnum = OGid2meta[OGid]
+    sqidnum, gnidnum = OGid2data[OGid]
     if sqidnum == gnidnum:
         path = f'../make_fastas1/out/{OGid}.fa'
     else:
@@ -44,20 +44,20 @@ def hmm_align(OGid):
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
-OGid2meta = {}
+OGid2data = {}
 with open('../OG_filter/out/OG_filter.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         fields = line.rstrip('\n').split('\t')
         OGid, sqidnum, gnidnum = fields[1], int(fields[6]), int(fields[7])
-        OGid2meta[OGid] = (sqidnum, gnidnum)
+        OGid2data[OGid] = (sqidnum, gnidnum)
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        pool.map(hmm_align, OGid2meta)
+        pool.map(hmm_align, OGid2data)
 
 """
 NOTES

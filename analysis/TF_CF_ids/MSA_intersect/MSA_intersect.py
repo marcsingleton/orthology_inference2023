@@ -3,7 +3,7 @@
 import os
 import pandas as pd
 
-# Load seq metadata
+# Load sequence data
 ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
@@ -16,14 +16,14 @@ rows = []
 with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        CCid, OGid, _, edges = line.rstrip().split('\t')
+        component_id, OGid, _, edges = line.rstrip().split('\t')
         ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         for ppid in ppids:
             gnid = ppid2gnid[ppid]
-            rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid})
+            rows.append({'component_id': component_id, 'OGid': OGid, 'gnid': gnid})
 OG_gnids = pd.DataFrame(rows).drop_duplicates()  # All OGs with genes
-OG_filter = pd.read_table('../../ortho_MSA/OG_filter/out/OG_filter.tsv', usecols=['CCid', 'OGid', 'GGid'])  # OGs after filtering
-OGs = OG_filter.merge(OG_gnids, how='left', on=['OGid', 'CCid'])  # Filtered OGs with genes
+OG_filter = pd.read_table('../../ortho_MSA/OG_filter/out/OG_filter.tsv', usecols=['component_id', 'OGid', 'GGid'])  # OGs after filtering
+OGs = OG_filter.merge(OG_gnids, how='left', on=['OGid', 'component_id'])  # Filtered OGs with genes
 
 # Load TFs and CFs and merge with OGs
 TFs = pd.read_table('../update_ids/out/TFs.txt', names=['gnid'])

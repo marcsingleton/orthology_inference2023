@@ -1,4 +1,4 @@
-"""Extract and count polypeptide IDs, storing associated metadata as tsv."""
+"""Extract and count polypeptide IDs, storing associated data as tsv."""
 
 import os
 import re
@@ -20,7 +20,7 @@ with open('../config/genomes.tsv') as file:
 
 # Extract and count polypeptide IDs
 counts = {}  # Counts for each PPID to find duplicates
-ppid2meta = {}  # PPID to gene and species
+ppid2data = {}  # PPID to gene and species
 gnid2seqs = {}  # GNID to PPIDs with unique sequences
 for spid, source, prot_path, tcds_path in genomes:
     # Find parent genes in tcds headers
@@ -32,7 +32,7 @@ for spid, source, prot_path, tcds_path in genomes:
             # First group is entire line, second is first match
             gnid = gn_match.group(1)
             ppid = pp_match.group(1)
-            ppid2meta[ppid] = (gnid, spid)
+            ppid2data[ppid] = (gnid, spid)
         except AttributeError:
             print(header)
 
@@ -40,18 +40,18 @@ for spid, source, prot_path, tcds_path in genomes:
     prot_fasta = read_fasta(prot_path)
     for header, seq in prot_fasta:
         ppid = re.search(ppid_regex[source], header).group(1)
-        gnid, spid = ppid2meta[ppid]
+        gnid, spid = ppid2data[ppid]
         counts[ppid] = counts.get(ppid, 0) + 1
         if gnid in gnid2seqs:
             seqs = gnid2seqs[gnid]  # Mapping from sequence to PPID
             if seq in seqs:
-                ppid2meta[ppid] = (gnid, spid, seqs[seq])
+                ppid2data[ppid] = (gnid, spid, seqs[seq])
             else:
                 seqs[seq] = ppid
-                ppid2meta[ppid] = (gnid, spid, ppid)
+                ppid2data[ppid] = (gnid, spid, ppid)
         else:
             gnid2seqs[gnid] = {seq: ppid}
-            ppid2meta[ppid] = (gnid, spid, ppid)
+            ppid2data[ppid] = (gnid, spid, ppid)
 
 # Make output directory
 if not os.path.exists('out/'):
@@ -60,8 +60,8 @@ if not os.path.exists('out/'):
 # Write to file
 with open('out/sequence_data.tsv', 'w') as file:
     file.write('ppid\tgnid\tspid\tsqid\n')
-    for ppid, meta in ppid2meta.items():
-        file.write(ppid + '\t' + '\t'.join(meta) + '\n')
+    for ppid, data in ppid2data.items():
+        file.write(ppid + '\t' + '\t'.join(data) + '\n')
 
 print('Total headers:', sum(counts.values()))
 print('Unique IDs:', len(counts))

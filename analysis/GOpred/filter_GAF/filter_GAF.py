@@ -16,7 +16,7 @@ def get_ancestors(GO, GOid):
     return ancestors
 
 
-# Load seq metadata
+# Load sequence data
 ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header

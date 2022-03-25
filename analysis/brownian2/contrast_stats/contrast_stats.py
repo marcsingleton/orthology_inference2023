@@ -26,7 +26,7 @@ tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 features.loc[features['kappa'] == -1, 'kappa'] = 1
 features.loc[features['omega'] == -1, 'omega'] = 1
 
-# Load seq metadata
+# Load sequence data
 ppid2spid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header

@@ -9,24 +9,24 @@ import skbio
 from src.draw import draw_msa
 from src.utils import read_fasta
 
-# Load seq metadata
-ppid2meta = {}
+# Load sequence data
+ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, sqid = line.split()
-        ppid2meta[ppid] = (gnid, sqid)
+        ppid2data[ppid] = (gnid, sqid)
 
 # Load OGs
 rows = []
 with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        CCid, OGid, _, edges = line.rstrip().split('\t')
+        component_id, OGid, _, edges = line.rstrip().split('\t')
         ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         for ppid in ppids:
-            gnid, sqid = ppid2meta[ppid]
-            rows.append({'CCid': CCid, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'sqid': sqid})
+            gnid, sqid = ppid2data[ppid]
+            rows.append({'component_id': component_id, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'sqid': sqid})
 OGs = pd.DataFrame(rows)
 
 # Load OG data and test genes

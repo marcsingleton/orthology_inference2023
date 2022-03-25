@@ -22,13 +22,13 @@ ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
               'NCBI': r'([NXY]P_[0-9]+)'}
 alphabet = {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'X'}
 
-# Load seq metadata
-ppid2meta = {}
+# Load sequence data
+ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, sqid = line.split()
-        ppid2meta[ppid] = (gnid, sqid)
+        ppid2data[ppid] = (gnid, sqid)
 
 # Parse genomes
 genomes = []
@@ -46,7 +46,7 @@ for spid, source, prot_path in genomes:
         # Extract data
         seq = seq.upper()
         ppid = re.search(ppid_regex[source], header).group(1)
-        gnid, sqid = ppid2meta[ppid]
+        gnid, sqid = ppid2data[ppid]
         rows.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'sqid': sqid, 'source': source,
                      'seqlen': len(seq), 'Xnum': seq.count('X'), 'Xmax': get_Xmax(seq)})
 

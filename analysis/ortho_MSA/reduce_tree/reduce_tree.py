@@ -86,7 +86,7 @@ def reduce(OGid, OG):
     ids = []
     for ppid in OG:
         seqs.append(ppid2seq[ppid])
-        gnid, spid, _ = ppid2meta[ppid]
+        gnid, spid, _ = ppid2data[ppid]
         ids.append(f"'{spid}:{gnid}:{ppid}'")  # Wrap in quotes to ensure correct parsing
 
     # Make distance matrix
@@ -113,7 +113,7 @@ def reduce(OGid, OG):
     msd = get_max_gnid_distances(dm)
 
     # Prune tree
-    gnids = {ppid2meta[ppid][0] for ppid in OG}
+    gnids = {ppid2data[ppid][0] for ppid in OG}
     while len(tree.tip_names) > len(gnids):
         # Remove non-minimal tips in single-species clades
         for node in tree.postorder():
@@ -174,13 +174,13 @@ with open('../config/genomes.tsv') as file:
         spid, _, source, prot_path = line.split()
         genomes.append((spid, source, prot_path))
 
-# Load seq metadata
-ppid2meta = {}
+# Load sequence data
+ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, sqid = line.split()
-        ppid2meta[ppid] = (gnid, spid, sqid)
+        ppid2data[ppid] = (gnid, spid, sqid)
 
 # Load seqs
 ppid2seq = {}
@@ -196,7 +196,7 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
     file.readline()  # Skip header
     for line in file:
         _, OGid, _, edges = line.rstrip().split('\t')
-        sqids = {ppid2meta[node][2] for edge in edges.split(',') for node in edge.split(':')}
+        sqids = {ppid2data[node][2] for edge in edges.split(',') for node in edge.split(':')}
         OGs[OGid] = sqids  # Ensure only representatives are selected for reduced clusters
 
 if __name__ == '__main__':

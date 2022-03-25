@@ -3,7 +3,7 @@
 import os
 from itertools import combinations
 
-# Load seq metadata
+# Load sequence data
 ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header

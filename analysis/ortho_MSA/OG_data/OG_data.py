@@ -3,13 +3,13 @@
 import os
 import pandas as pd
 
-# Load seq metadata
-ppid2meta, spids = {}, []
+# Load sequence data
+ppid2data, spids = {}, []
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, sqid = line.split()
-        ppid2meta[ppid] = (gnid, spid, sqid)
+        ppid2data[ppid] = (gnid, spid, sqid)
         spids.append(spid)
 
 # Load graph
@@ -40,9 +40,9 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
         component_id, OGid, _, edges = line.rstrip().split('\t')
         edges = [edge.split(':') for edge in edges.split(',')]
         ppids = {node for edge in edges for node in edge}
-        gnids = {ppid2meta[ppid][0] for ppid in ppids}
-        spids = {ppid2meta[ppid][1] for ppid in ppids}
-        sqids = {ppid2meta[ppid][2] for ppid in ppids}
+        gnids = {ppid2data[ppid][0] for ppid in ppids}
+        spids = {ppid2data[ppid][1] for ppid in ppids}
+        sqids = {ppid2data[ppid][2] for ppid in ppids}
         bitscore = 0
         for node1, node2 in edges:
             bitscore += graph[node1][node2] + graph[node2][node1]

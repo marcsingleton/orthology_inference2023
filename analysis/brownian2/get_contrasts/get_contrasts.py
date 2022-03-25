@@ -53,7 +53,7 @@ num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 
 if __name__ == '__main__':
-    # Load seq metadata
+    # Load sequence data
     ppid2spid = {}
     with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
         file.readline()  # Skip header

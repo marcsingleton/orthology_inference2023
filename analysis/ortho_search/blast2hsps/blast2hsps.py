@@ -168,7 +168,7 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
 compatible_cutoff = 50  # Bitscore cutoff for accepting HSPs as compatible
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
-# Load seq metadata
+# Load sequence data
 ppid2gnid = {}
 with open('../sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
