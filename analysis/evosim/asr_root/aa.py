@@ -119,7 +119,7 @@ for OGid in OGids:
         partition['rates'] = rates
 
     # Calculate likelihoods
-    msa = read_fasta(f'../asr_aa/out/{OGid}.mfa')
+    msa = read_fasta(f'../asr_aa/out/{OGid}.afa')
     for partition in partitions.values():
         # Unpack partition parameters and partition MSA
         matrix, freqs = models[partition['model']]
@@ -200,7 +200,7 @@ DEPENDENCIES
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../asr_aa/asr_aa.py
     ../asr_aa/out/*.iqtree
-    ../asr_aa/out/*.mfa
+    ../asr_aa/out/*.afa
     ../asr_aa/out/*.nex
 ../config/50red_D.txt
 ../config/WAG.txt

@@ -71,7 +71,7 @@ for OGid in OGids:
         rates.append((rate, 1/num_categories))
 
     # Load sequence and convert to vectors at tips of tree
-    mca = read_fasta(f'../asr_indel/out/{OGid}.mfa')
+    mca = read_fasta(f'../asr_indel/out/{OGid}.afa')
     tips = {tip.name: tip for tip in tree.tips()}
     for header, seq in mca:
         tip = tips[header[1:5]]
@@ -100,5 +100,5 @@ DEPENDENCIES
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../asr_indel/asr_indel.py
     ../asr_indel/out/*.iqtree
-    ../asr_indel/out/*.mfa
+    ../asr_indel/out/*.afa
 """

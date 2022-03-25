@@ -62,7 +62,7 @@ for OGid in OGids:
         continue
 
     # Write region as MSA
-    with open(f'out/{OGid}.mfa', 'w') as file:
+    with open(f'out/{OGid}.afa', 'w') as file:
         for ppid, spid, seq in msa:
             seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
             file.write(f'>{spid} {ppid}\n' + seqstring)
@@ -87,7 +87,7 @@ for OGid in OGids:
     tree = tree_template.shear(spids)
     skbio.io.write(tree, format='newick', into=f'out/{OGid}.nwk')
 
-    run(f'../../../bin/iqtree -s out/{OGid}.mfa -spp out/{OGid}.nex -te out/{OGid}.nwk -keep-ident -pre out/{OGid}', shell=True, check=True)
+    run(f'../../../bin/iqtree -s out/{OGid}.afa -spp out/{OGid}.nex -te out/{OGid}.nwk -keep-ident -pre out/{OGid}', shell=True, check=True)
 
 """
 NOTES

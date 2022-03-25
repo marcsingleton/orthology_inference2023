@@ -225,10 +225,10 @@ deletion_dists = {1: stats.geom(0.6), 2: stats.geom(0.55)}
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-for path in [path for path in os.listdir('../asr_generate/out/') if path.endswith('_sample.mfa')]:
+for path in [path for path in os.listdir('../asr_generate/out/') if path.endswith('_sample.afa')]:
     # Load data and calculate "global" variables
-    OGid = path.removesuffix('_sample.mfa')
-    fasta = read_fasta(f'../asr_generate/out/{OGid}_sample.mfa')
+    OGid = path.removesuffix('_sample.afa')
+    fasta = read_fasta(f'../asr_generate/out/{OGid}_sample.afa')
     aa_dist = np.load(f'../asr_root/out/{OGid}_aa.npy')
     length = len(fasta[0][1])
     residue_ids = np.arange(-1, length)
@@ -364,7 +364,7 @@ for path in [path for path in os.listdir('../asr_generate/out/') if path.endswit
         # Write alignments
         with open(f'out/{OGid}_{header[1:]}.txt', 'w') as file:
             file.write(','.join(aligned_ids) + '\n')
-        with open(f'out/{OGid}_{header[1:]}.mfa', 'w') as file:
+        with open(f'out/{OGid}_{header[1:]}.afa', 'w') as file:
             for spid, seq in sorted(aligned_records):
                 seqstring = '\n'.join([''.join(seq)[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
                 file.write(f'>{spid}\n' + seqstring)
@@ -374,7 +374,7 @@ DEPENDENCIES
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../asr_generate/asr_generate.py
-    ../asr_generate/out/*_sample.mfa
+    ../asr_generate/out/*_sample.afa
 ../asr_aa/asr_aa.py
     ../asr_aa/out/*.iqtree
     ../asr_aa/out/*.nex

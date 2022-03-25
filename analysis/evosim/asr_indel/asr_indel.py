@@ -104,7 +104,7 @@ for OGid in OGids:
         continue
 
     # Write alignment to file
-    with open(f'out/{OGid}.mfa', 'w') as file:
+    with open(f'out/{OGid}.afa', 'w') as file:
         for ppid, spid, charseq in mca:
             charseq = [sym for is_invariant, sym in zip(is_invariants, charseq) if not is_invariant]  # Filter invariant characters
             seqstring = '\n'.join([''.join(charseq[i:i+80]) for i in range(0, len(charseq), 80)]) + '\n'
@@ -115,7 +115,7 @@ for OGid in OGids:
     tree = tree_template.shear(spids)
     skbio.io.write(tree, format='newick', into=f'out/{OGid}.nwk')
 
-    run(f'../../../bin/iqtree -s out/{OGid}.mfa -m GTR2+FO+G+ASC -te out/{OGid}.nwk -keep-ident -pre out/{OGid}', shell=True, check=True)
+    run(f'../../../bin/iqtree -s out/{OGid}.afa -m GTR2+FO+G+ASC -te out/{OGid}.nwk -keep-ident -pre out/{OGid}', shell=True, check=True)
 
 """
 NOTES
