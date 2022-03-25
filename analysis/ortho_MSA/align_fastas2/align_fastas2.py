@@ -9,7 +9,7 @@ from time import time_ns
 def run_cmd(file_id):
     cmd = (f'../../../bin/mafft --globalpair --maxiterate 1000 '
            f'--thread 1 --anysymbol --allowshift --unalignlevel 0.4 --leavegappyregion '
-           f'../make_fastas2-2/out/{file_id}.tfa '
+           f'../make_fastas2/out/{file_id}.tfa '
            f'1> out/{file_id}.mfa 2> out/{file_id}.err')
     try:
         t0 = time_ns()
@@ -27,7 +27,7 @@ if __name__ == '__main__':
         os.mkdir('out/')
 
     with mp.Pool(processes=num_processes) as pool:
-        file_ids = [file[:-4] for file in os.listdir('../make_fastas2-2/out/')]
+        file_ids = [file[:-4] for file in os.listdir('../make_fastas2/out/')]
         rows = pool.map(run_cmd, file_ids)
 
     with open('out/times.tsv', 'w') as file:
@@ -37,6 +37,6 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../make_fastas2-2/make_fastas2-2.py
-    ../make_fastas2-2/out/*.tfa
+../make_fastas2/make_fastas2.py
+    ../make_fastas2/out/*.tfa
 """

@@ -46,7 +46,7 @@ for record in OG_filter.itertuples():
     if record.sqidnum == record.gnidnum:
         msa = read_fasta(f'../align_fastas1/out/{record.OGid}.mfa')
     else:
-        msa = read_fasta(f'../align_fastas2-2/out/{record.OGid}.mfa')
+        msa = read_fasta(f'../align_fastas2/out/{record.OGid}.mfa')
     msa = {re.search(r'spid=([a-z]+)', header).group(1): seq for header, seq in msa}
 
     tree = tree_template.deepcopy().shear(msa.keys())
@@ -81,8 +81,8 @@ DEPENDENCIES
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
-../align_fastas2-2/align_fastas2-2.py
-    ../align_fastas2-2/out/*.mfa
+../align_fastas2/align_fastas2.py
+    ../align_fastas2/out/*.mfa
 ../OG_filter/OG_filter.py
     ../OG_filter/out/OG_filter.tsv
 """

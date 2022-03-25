@@ -12,7 +12,7 @@ def hmm_align(OGid):
     if sqidnum == gnidnum:
         path = f'../make_fastas1/out/{OGid}.tfa'
     else:
-        path = f'../make_fastas2-2/out/{OGid}.tfa'
+        path = f'../make_fastas2/out/{OGid}.tfa'
     run(f'../../../bin/hmmbuild --hand --eset {1.5*gnidnum} --wnone out/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/{OGid}.txt', shell=True, check=True)
     run(f'../../../bin/hmmalign --outformat afa out/{OGid}.hmm {path} > out/{OGid}_temp.mfa', shell=True, check=True)
 
@@ -68,8 +68,8 @@ HMMer uses when building its profiles. Placing more weight on the observed seque
 DEPENDENCIES
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
-../align_fastas2-2/align_fastas2-2.py
-    ../align_fastas2-2/out/*.mfa
+../align_fastas2/align_fastas2.py
+    ../align_fastas2/out/*.mfa
 ../realign_trim/realign_trim.py
     ../realign_trim/out/*.mfa
 """

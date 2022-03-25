@@ -11,11 +11,11 @@
 #SBATCH --cpus-per-task=1
 #
 # Reporting parameters
-#SBATCH --job-name=align_fastas2-2
-#SBATCH --output=align_fastas2-2.out
+#SBATCH --job-name=align_fastas2
+#SBATCH --output=align_fastas2.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
 module load python
-python align_fastas2-2.py
+python align_fastas2.py
