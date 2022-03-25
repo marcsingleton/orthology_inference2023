@@ -33,8 +33,8 @@ def grouped_bar(groups, group_width, bar_width, file_label, bar_labels=None, bar
 
 # Count nucleotides
 counts = {}
-for file_id in filter(lambda x: x.endswith('.afa'), os.listdir('../align_AA2NT/out/')):
-    msa = skbio.read(f'../align_AA2NT/out/{file_id}', 'fasta')
+for path in [path for path in os.listdir('../align_AA2NT/out/') if path.endswith('.afa')]:
+    msa = skbio.read(f'../align_AA2NT/out/{path}', 'fasta')
     for seq in msa:
         spid = seq.metadata['id'][-4:]
         for sym in str(seq):

@@ -13,7 +13,7 @@ from src.utils import read_fasta
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = [path[:-7] for path in os.listdir('../asr_indel/out/') if path.endswith('.iqtree')]
+OGids = [path.removesuffix('.iqtree') for path in os.listdir('../asr_indel/out/') if path.endswith('.iqtree')]
 for OGid in OGids:
     # Load substitution model
     with open(f'../asr_indel/out/{OGid}.iqtree') as file:

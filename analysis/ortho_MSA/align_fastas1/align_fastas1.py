@@ -27,7 +27,7 @@ if __name__ == '__main__':
         os.mkdir('out/')
 
     with mp.Pool(processes=num_processes) as pool:
-        file_ids = [file[:-4] for file in os.listdir('../make_fastas1/out/')]
+        file_ids = [path.removesuffix('.fa') for path in os.listdir('../make_fastas1/out/') if path.endswith('.fa')]
         rows = pool.map(run_cmd, file_ids)
 
     with open('out/times.tsv', 'w') as file:

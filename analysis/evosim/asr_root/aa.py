@@ -41,7 +41,7 @@ models = {'WAG': load_model('../config/WAG.txt'), '../config/50red_D.txt': load_
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = [path[:-7] for path in os.listdir('../asr_aa/out/') if path.endswith('.iqtree')]
+OGids = [path.removesuffix('.iqtree') for path in os.listdir('../asr_aa/out/') if path.endswith('.iqtree')]
 for OGid in OGids:
     # Load trees
     tree1 = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)

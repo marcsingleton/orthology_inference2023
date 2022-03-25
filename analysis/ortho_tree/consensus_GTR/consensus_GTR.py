@@ -11,9 +11,9 @@ from src.ortho_tree.tree import majority_consensus
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-for label in os.listdir('../iqtree_GTR/out/'):
+for label in [path for path in os.listdir('../iqtree_GTR/out/') if os.path.isdir(f'../iqtree_GTR/out/{path}')]:
     trees = []
-    for file in filter(lambda x: x.endswith('.treefile'), os.listdir(f'../iqtree_GTR/out/{label}/')):
+    for file in [path for path in os.listdir(f'../iqtree_GTR/out/{label}/') if path.endswith('.treefile')]:
         tree = skbio.read(f'../iqtree_GTR/out/{label}/{file}', 'newick', skbio.TreeNode)
         outgroup = tree.find('sleb').ancestors()[0]
         tree = tree.root_at(outgroup)

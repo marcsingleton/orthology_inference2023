@@ -12,7 +12,7 @@ idx2sym = {i: sym for i, sym in enumerate(alphabet)}
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = [path[:4] for path in os.listdir('../asr_root/out/') if path.endswith('_aa.npy')]
+OGids = [path.removesuffix('_aa.npy') for path in os.listdir('../asr_root/out/') if path.endswith('_aa.npy')]
 for OGid in sorted(OGids):  # Ensure consistent order and thus consistent samples
     # Generate amino acid sequence
     aa_dist = np.load(f'../asr_root/out/{OGid}_aa.npy')

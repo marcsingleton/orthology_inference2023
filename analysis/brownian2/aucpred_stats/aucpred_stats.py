@@ -10,8 +10,14 @@ from sklearn.decomposition import PCA
 from src.utils import read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
-min_lengths = sorted([int(path.split('_')[1][:-4]) for path in os.listdir('../aucpred_filter/out/') if path.endswith('.tsv')])
+length_regex = r'regions_([0-9]+).tsv'
 pdidx = pd.IndexSlice
+
+min_lengths = []
+for path in os.listdir('../aucpred_filter/out/'):
+    match = re.search(length_regex, path)
+    if match:
+        min_lengths.append(int(match.group(1)))
 
 # Load features
 features = pd.read_table('../get_features/out/features.tsv')
@@ -20,7 +26,7 @@ features.loc[features['omega'] == -1, 'omega'] = 1
 
 # Parse regions
 rows = []
-for min_length in min_lengths:
+for min_length in sorted(min_lengths):
     with open(f'../aucpred_filter/out/regions_{min_length}.tsv') as file:
         file.readline()  # Skip header
         for line in file:

@@ -225,9 +225,9 @@ deletion_dists = {1: stats.geom(0.6), 2: stats.geom(0.55)}
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-for path in os.listdir('../asr_generate/out/'):
+for path in [path for path in os.listdir('../asr_generate/out/') if path.endswith('_sample.mfa')]:
     # Load data and calculate "global" variables
-    OGid = path[:4]
+    OGid = path.removesuffix('_sample.mfa')
     fasta = read_fasta(f'../asr_generate/out/{OGid}_sample.mfa')
     aa_dist = np.load(f'../asr_root/out/{OGid}_aa.npy')
     length = len(fasta[0][1])
