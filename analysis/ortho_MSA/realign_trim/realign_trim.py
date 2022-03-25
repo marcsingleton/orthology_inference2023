@@ -15,9 +15,9 @@ from src.utils import read_fasta
 def trim(OGid):
     # 0 Load MSA
     try:
-        msa1 = read_fasta(f'../align_fastas1/out/{OGid}.mfa')
+        msa1 = read_fasta(f'../align_fastas1/out/{OGid}.afa')
     except FileNotFoundError:
-        msa1 = read_fasta(f'../align_fastas2/out/{OGid}.mfa')
+        msa1 = read_fasta(f'../align_fastas2/out/{OGid}.afa')
 
     # 1 Calculate shared variables
     gaps_array = np.full((len(msa1), len(msa1[0][1])), False)
@@ -94,9 +94,9 @@ DEPENDENCIES
 ../config/BLOSUM62.txt
 ../config/trim_params.json
 ../align_fastas1/align_fastas1.py
-    ../align_fastas1/out/*.mfa
+    ../align_fastas1/out/*.afa
 ../align_fastas2/align_fastas2.py
-    ../align_fastas2/out/*.mfa
+    ../align_fastas2/out/*.afa
 ../OG_filter/OG_filter.py
     ../OG_filter/out/OG_filter.tsv
 ./trim_params.json

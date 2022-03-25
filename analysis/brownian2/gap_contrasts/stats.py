@@ -97,7 +97,7 @@ for label in ['norm1', 'norm2']:
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
         msa = []
-        for header, seq in read_fasta(f'../insertion_trim/out/{row.OGid}.mfa'):
+        for header, seq in read_fasta(f'../insertion_trim/out/{row.OGid}.afa'):
             ppid = re.search(ppid_regex, header).group(1)
             spid = re.search(spid_regex, header).group(1)
             if ppid in row.ppids:

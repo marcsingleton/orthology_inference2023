@@ -83,7 +83,7 @@ for OGid, ppid in ids:
 """
 DEPENDENCIES
 ../insertion_trim/extract.py
-    ../trim_extract/out/*.mfa
+    ../trim_extract/out/*.afa
 ./fit.py
     ./out/model.json
 """

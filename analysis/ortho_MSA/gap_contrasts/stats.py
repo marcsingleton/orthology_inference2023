@@ -85,9 +85,9 @@ for label in ['norm1', 'norm2']:
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
         if row.sqidnum == row.gnidnum:
-            msa = read_fasta(f'../align_fastas1/out/{row.OGid}.mfa')
+            msa = read_fasta(f'../align_fastas1/out/{row.OGid}.afa')
         else:
-            msa = read_fasta(f'../align_fastas2/out/{row.OGid}.mfa')
+            msa = read_fasta(f'../align_fastas2/out/{row.OGid}.afa')
         msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
         msa = [seq for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
@@ -98,9 +98,9 @@ for label in ['norm1', 'norm2']:
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../align_fastas1/align_fastas1.py
-    ../align_fastas1/out/*.mfa
+    ../align_fastas1/out/*.afa
 ../align_fastas2/align_fastas2.py
-    ../align_fastas2/out/*.mfa
+    ../align_fastas2/out/*.afa
 ../OG_filter/OG_filter.py
     ../OG_filter/out/OG_filter.tsv
 ./contrasts.py

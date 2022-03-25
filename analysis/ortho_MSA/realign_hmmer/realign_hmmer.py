@@ -67,13 +67,13 @@ HMMer uses when building its profiles. Placing more weight on the observed seque
 
 DEPENDENCIES
 ../align_fastas1/align_fastas1.py
-    ../align_fastas1/out/*.mfa
+    ../align_fastas1/out/*.afa
 ../align_fastas2/align_fastas2.py
-    ../align_fastas2/out/*.mfa
+    ../align_fastas2/out/*.afa
 ../make_fastas1/make_fastas1.py
     ../align_fastas1/out/*.fa
 ../make_fastas2/make_fastas2.py
     ../align_fastas2/out/*.fa
 ../realign_trim/realign_trim.py
-    ../realign_trim/out/*.mfa
+    ../realign_trim/out/*.afa
 """
