@@ -89,7 +89,7 @@ tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
 # Load msa and trim terminal insertions
 for OGid in OGids:
-    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa'))
+    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa'))
     msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
     # Create emission sequence
@@ -117,8 +117,8 @@ for OGid in OGids:
 
 """
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer1/realign_hmmer1.py
-    ../../ortho_MSA/realign_hmmer1/out/*.mfa
+../../ortho_MSA/realign_hmmer/realign_hmmer.py
+    ../../ortho_MSA/realign_hmmer/out/*.mfa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../config/segments.tsv

@@ -55,7 +55,7 @@ start_t_count = {state: 1 for state in states}
 # Get observed counts
 for OGid, regions in OGid2regions.items():
     # Load MSA and trim terminal insertions
-    msa = read_fasta(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa')
+    msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
     if regions[-1][2] == '0':
         start, _, _ = regions[-1]
         regions = regions[:-1]
@@ -140,7 +140,7 @@ NOTES
 This ARHMM uses an AR(1) beta-binomial emission distribution on the gap counts.
 
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer1/realign_hmmer1.py
-    ../../ortho_MSA/realign_hmmer1/out/*.mfa
+../../ortho_MSA/realign_hmmer/realign_hmmer.py
+    ../../ortho_MSA/realign_hmmer/out/*.mfa
 ../config/segments.tsv
 """

@@ -24,7 +24,7 @@ for label in ['norm1', 'norm2']:
 
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
-        msa = read_fasta(f'../realign_hmmer2/out/{row.OGid}.mfa')
+        msa = read_fasta(f'../realign_hmmer/out/{row.OGid}.mfa')
         msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
         msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
@@ -39,6 +39,6 @@ DEPENDENCIES
     ../gap_contrasts/out/total_sums.tsv
 ../OG_filter/OG_filter.py
     ../OG_filter/out/OG_filter.tsv
-../realign_hmmer2/realign_hmmer2.py
-    ../realign_hmmer2/out/*.mfa
+../realign_hmmer/realign_hmmer.py
+    ../realign_hmmer/out/*.mfa
 """

@@ -194,7 +194,7 @@ if __name__ == '__main__':
     records = []
     for OGid, regions in OGid2regions.items():
         # Load MSA and trim terminal insertions
-        msa = read_fasta(f'../../ortho_MSA/realign_hmmer1/out/{OGid}.mfa')
+        msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
         msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
         if regions[-1][2] == '0':
             start, _, _ = regions[-1]
@@ -338,8 +338,8 @@ The gradients are calculated using the formulas in:
 Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer1/realign_hmmer1.py
-    ../../ortho_MSA/realign_hmmer1/out/*.mfa
+../../ortho_MSA/realign_hmmer/realign_hmmer.py
+    ../../ortho_MSA/realign_hmmer/out/*.mfa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../config/segments.tsv

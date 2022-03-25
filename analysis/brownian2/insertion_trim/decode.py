@@ -43,7 +43,7 @@ class bernoulli_betabinom_frozen:
 
 def decode(OGid, params):
     # Load msa and trim terminal insertions
-    msa = read_fasta(f'../../ortho_MSA/realign_hmmer2/out/{OGid}.mfa')
+    msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa')
 
     idx = 0
     for j in range(len(msa[0][1])):
@@ -100,13 +100,13 @@ if __name__ == '__main__':
         os.mkdir('out/')
 
     with mp.Pool(processes=num_processes) as pool:
-        args = [(path.split('.')[0], params) for path in os.listdir('../../ortho_MSA/realign_hmmer2/out/') if path.endswith('.mfa')]
+        args = [(path.split('.')[0], params) for path in os.listdir('../../ortho_MSA/realign_hmmer/out/') if path.endswith('.mfa')]
         pool.starmap(decode, args)
 
 """
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer2/realign_hmmer2.py
-    ../../ortho_MSA/realign_hmmer2/out/*.mfa
+../../ortho_MSA/realign_hmmer/realign_hmmer.py
+    ../../ortho_MSA/realign_hmmer/out/*.mfa
 ../insertion_hmm3/fit.py
     ../insertion_hmm3/out/model.json
 """

@@ -7,10 +7,10 @@ from src.brownian2.trim import trim_terminals, get_slices
 from src.utils import read_fasta
 
 
-OGids = [path.split('.')[0] for path in os.listdir('../../ortho_MSA/realign_hmmer2/out/') if path.endswith('.mfa')]
+OGids = [path.split('.')[0] for path in os.listdir('../../ortho_MSA/realign_hmmer/out/') if path.endswith('.mfa')]
 for OGid in OGids:
     # Load msa and trim terminal insertions
-    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer2/out/{OGid}.mfa'))
+    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa'))
 
     # Load decoded states and calculate derivative
     posterior = []
@@ -43,8 +43,8 @@ for OGid in OGids:
 
 """
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer2/realign_hmmer2.py
-    ../../ortho_MSA/realign_hmmer2/out/*
+../../ortho_MSA/realign_hmmer/realign_hmmer.py
+    ../../ortho_MSA/realign_hmmer/out/*
 ./decode.py
     ./out/*.tsv
 """
