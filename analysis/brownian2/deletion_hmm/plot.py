@@ -44,7 +44,7 @@ with open('segments.tsv') as file:
 # Plot alignments
 for OGid, ppid in ids:
     # Load msa and trim terminal insertions
-    msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
+    msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
     seq = [seq for header, seq in msa if re.search(ppid_regex, header).group(1) == ppid][0]
 
     # Create Bernoulli sequence

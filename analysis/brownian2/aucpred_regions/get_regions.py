@@ -45,7 +45,7 @@ ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 records = []
 for OGid in os.listdir('out/raw/'):
     # Load MSA
-    msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
+    msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
     msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
     # Map outputs to MSA columns
@@ -91,7 +91,7 @@ OUTPUT
 
 DEPENDENCIES
 ../insertion_trim/extract.py
-    ../insertion_trim/out/*.mfa
+    ../insertion_trim/out/*.afa
 ./run_aucpred.py
     ./out/raw/*/*.diso_noprof
 """

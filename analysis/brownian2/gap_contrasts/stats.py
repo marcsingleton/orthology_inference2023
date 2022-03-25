@@ -112,7 +112,7 @@ DEPENDENCIES
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../insertion_trim/extract.py
-    ../insertion_trim/out/*.mfa
+    ../insertion_trim/out/*.afa
 ../aucpred_filter/aucpred_filter.py
     ../aucpred_filter/out/regions_30.tsv
 ./contrasts.py

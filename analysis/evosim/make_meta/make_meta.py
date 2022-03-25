@@ -37,7 +37,7 @@ colpools = [('100red_D', lambda col: is_redundant(col, 1), []),
             ('0red_D', lambda col: is_redundant(col, 0), []),
             ('0red_O', lambda col: is_redundant(col, 0), [])]
 for OGid, regions in OGid2regions.items():  # Because inputs are not sorted, results are not guaranteed to be consistent
-    msa = read_fasta(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
+    msa = read_fasta(f'../../brownian2/insertion_trim/out/{OGid}.afa')
     if len(msa) < 31:  # Only use alignments with all species
         continue
 
@@ -82,5 +82,5 @@ DEPENDENCIES
 ../../brownian2/aucpred_regions/get_regions.py
     ../..brownian2/aucpred_regions/out/regions.tsv
 ../../brownian2/insertion_trim/extract.py
-    ../../brownian2/insertion_trim/out/*.mfa
+    ../../brownian2/insertion_trim/out/*.afa
 """

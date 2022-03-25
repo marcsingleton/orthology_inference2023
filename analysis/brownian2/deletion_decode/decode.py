@@ -28,7 +28,7 @@ class msaBernoulli:
 
 def decode(OGid, params):
     # Load msa
-    msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
+    msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
 
     # Create Bernoulli sequence
     ps = []
@@ -76,13 +76,13 @@ if __name__ == '__main__':
         os.mkdir('out/')
 
     with mp.Pool(processes=num_processes) as pool:
-        args = [(path.removesuffix('.mfa'), params) for path in os.listdir('../insertion_trim/out/') if path.endswith('.mfa')]
+        args = [(path.removesuffix('.afa'), params) for path in os.listdir('../insertion_trim/out/') if path.endswith('.afa')]
         pool.starmap(decode, args)
 
 """
 DEPENDENCIES
 ../insertion_trim/extract.py
-    ../insertion_trim/out/*.mfa
+    ../insertion_trim/out/*.afa
 ../deletion_hmm/fit.py
     ../deletion_hmm/out/model.json
 """

@@ -153,7 +153,7 @@ if __name__ == '__main__':
     records = []
     for (OGid, ppid), regions in OGid2regions.items():
         # Load MSA and extract seq
-        msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
+        msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
         seq = [seq for header, seq in msa if re.search(ppid_regex, header).group(1) == ppid][0]
 
         # Create Bernoulli sequence
@@ -274,6 +274,6 @@ Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 
 DEPENDENCIES
 ../insertion_trim/extract.py
-    ../insertion_trim/out/*.mfa
+    ../insertion_trim/out/*.afa
 ./segments.tsv
 """

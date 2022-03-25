@@ -37,7 +37,7 @@ if __name__ == '__main__':
     # Extract segments
     args = []
     for OGid, regions in OGid2regions.items():
-        msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
+        msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
         msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
         for start, stop, disorder in regions:
@@ -65,5 +65,5 @@ DEPENDENCIES
 ../aucpred_regions/get_regions.py
     ../aucpred_regions/out/regions.tsv
 ../insertion_trim/extract.py
-    ../insertion_trim/out/*.mfa
+    ../insertion_trim/out/*.afa
 """

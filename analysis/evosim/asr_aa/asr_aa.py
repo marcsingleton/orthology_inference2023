@@ -32,7 +32,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 for OGid in OGids:
-    msa = read_fasta(f'../../brownian2/insertion_trim/out/{OGid}.mfa')
+    msa = read_fasta(f'../../brownian2/insertion_trim/out/{OGid}.afa')
     msa = [(re.search(ppid_regex, header).group(1), re.search(spid_regex, header).group(1), seq) for header, seq in msa]
 
     # Check regions and merge if necessary
@@ -118,7 +118,7 @@ DEPENDENCIES
 ../../brownian2/aucpred_regions/get_regions.py
     ../../brownian2/aucpred_regions/out/regions.tsv
 ../../brownian2/insertion_trim/extract.py
-    ../../brownian2/insertion_trim/out/*.mfa
+    ../../brownian2/insertion_trim/out/*.afa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../config/50red_D.txt

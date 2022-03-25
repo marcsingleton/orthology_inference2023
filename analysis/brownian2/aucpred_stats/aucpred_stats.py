@@ -26,7 +26,7 @@ for min_length in min_lengths:
         for line in file:
             OGid, start, stop, disorder, ppids = line.split()
 
-            msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
+            msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
             msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
             for ppid in ppids.split(','):
@@ -175,5 +175,5 @@ DEPENDENCIES
 ../aucpred_filter/aucpred_filter.py
     ../aucpred_filter/out/segments_*.tsv
 ../insertion_trim/extract.py
-    ../insertion_trim/out/*.mfa
+    ../insertion_trim/out/*.afa
 """

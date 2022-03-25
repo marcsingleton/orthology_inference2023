@@ -54,7 +54,7 @@ with open('../aucpred_regions/out/regions.tsv') as file:
 # Filter regions
 record_sets = {i: [] for i in range(10, 35, 5)}
 for OGid, regions in OGid2regions.items():
-    msa = read_fasta(f'../insertion_trim/out/{OGid}.mfa')
+    msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
     posteriors = load_posteriors(f'../deletion_decode/out/{OGid}.tsv')
 
     for region in regions:
@@ -109,5 +109,5 @@ DEPENDENCIES
 ../deletion_decode/decode.py
     ../deletion_decode/out/*.tsv
 ../insertion_trim/extract.py
-    ../insertion_trim/out/*.mfa
+    ../insertion_trim/out/*.afa
 """
