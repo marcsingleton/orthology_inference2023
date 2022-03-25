@@ -26,6 +26,7 @@ def load_model(path):
         for _ in range(2):
             line = file.readline()
         freqs = np.array([float(value) for value in line.split()])
+        freqs = freqs / freqs.sum()  # Re-normalize to ensure sums to 1
     matrix = freqs * matrix
     rate = (freqs * matrix.sum(axis=1)).sum()
     matrix = matrix / rate  # Normalize average rate to 1

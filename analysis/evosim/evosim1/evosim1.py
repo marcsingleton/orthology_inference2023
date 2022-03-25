@@ -196,6 +196,7 @@ def load_model(path):
         for _ in range(2):
             line = file.readline()
         freqs = np.array([float(value) for value in line.split()])
+        freqs = freqs / freqs.sum()  # Re-normalize to ensure sums to 1
     matrix = freqs * matrix
     rate = (freqs * matrix.sum(axis=1)).sum()
     matrix = matrix / rate  # Normalize average rate to 1
@@ -215,8 +216,8 @@ LG_matrix, LG_freqs = load_model('../config/LG.paml')
 disorder_matrix, disorder_freqs = load_model('../config/50R_disorder.paml')
 rate_matrices = {1: LG_matrix,
                  2: disorder_matrix}
-sym_dists = {1: LG_freqs / LG_freqs.sum(),  # Re-normalize to ensure sums to 1
-             2: disorder_freqs / disorder_freqs.sum()}
+sym_dists = {1: LG_freqs,
+             2: disorder_freqs}
 
 # Make indel dists
 insertion_dists = {1: stats.geom(0.8), 2: stats.geom(0.75)}

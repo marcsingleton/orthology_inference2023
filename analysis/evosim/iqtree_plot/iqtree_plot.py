@@ -30,6 +30,7 @@ with open('../config/LG.paml') as file:
     for _ in range(2):
         line = file.readline()
     LG_freqs = np.array([float(value) for value in line.split()])
+    LG_freqs = LG_freqs / LG_freqs.sum()  # Re-normalize to ensure sums to 1
 rate = (LG_freqs * (LG_freqs * LG_matrix).sum(axis=1)).sum()
 LG_matrix = LG_matrix / rate  # Normalize average rate to 1
 
