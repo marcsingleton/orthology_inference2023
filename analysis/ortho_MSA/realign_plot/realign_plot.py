@@ -29,7 +29,7 @@ for label in ['norm1', 'norm2']:
 
         msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
         im = draw_msa(msa)
-        plt.imsave(f'out/{label}/{i}_{row.OGid}.png', im)
+        plt.imsave(f'out/{label}/{i:03}_{row.OGid}.png', im)
 
 """
 DEPENDENCIES

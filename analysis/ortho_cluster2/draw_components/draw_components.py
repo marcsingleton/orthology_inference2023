@@ -162,7 +162,7 @@ for i, (component_id, component) in enumerate(component_records[:50]):  # 50 lar
 
     fig.tight_layout()
     ax.axis('off')
-    fig.savefig(f'out/{i:02}-{component_id}_edge.png')
+    fig.savefig(f'out/{i:02}_{component_id}_edge.png')
     plt.close()
 
 """

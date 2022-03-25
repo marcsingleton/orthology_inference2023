@@ -48,7 +48,7 @@ for label in ['norm1', 'norm2']:
 
         msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
         plot_msa_lines(msa, [posterior, trims], figsize=(15, 6))
-        plt.savefig(f'out/{label}/{i}_{row.OGid}.png', bbox_inches='tight')
+        plt.savefig(f'out/{label}/{i:03}_{row.OGid}.png', bbox_inches='tight')
         plt.close()
 
 """
