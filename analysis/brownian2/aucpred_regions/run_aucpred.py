@@ -34,7 +34,7 @@ if __name__ == '__main__':
         os.makedirs('out/raw/')
 
     with mp.Pool(processes=num_processes) as pool:
-        OGids = [path.split('.')[0] for path in os.listdir('../insertion_trim/out/') if path.endswith('.mfa')]
+        OGids = [path.removesuffix('.mfa') for path in os.listdir('../insertion_trim/out/') if path.endswith('.mfa')]
         pool.map(run_aucpred, OGids)
 
 """

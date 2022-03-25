@@ -7,7 +7,7 @@ from src.brownian2.trim import trim_terminals, get_slices
 from src.utils import read_fasta
 
 
-OGids = [path.split('.')[0] for path in os.listdir('../../ortho_MSA/realign_hmmer/out/') if path.endswith('.mfa')]
+OGids = [path.removesuffix('.mfa') for path in os.listdir('../../ortho_MSA/realign_hmmer/out/') if path.endswith('.mfa')]
 for OGid in OGids:
     # Load msa and trim terminal insertions
     msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.afa'))

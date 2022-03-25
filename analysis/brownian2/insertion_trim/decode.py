@@ -100,7 +100,7 @@ if __name__ == '__main__':
         os.mkdir('out/')
 
     with mp.Pool(processes=num_processes) as pool:
-        args = [(path.split('.')[0], params) for path in os.listdir('../../ortho_MSA/realign_hmmer/out/') if path.endswith('.mfa')]
+        args = [(path.removesuffix('.mfa'), params) for path in os.listdir('../../ortho_MSA/realign_hmmer/out/') if path.endswith('.mfa')]
         pool.starmap(decode, args)
 
 """
