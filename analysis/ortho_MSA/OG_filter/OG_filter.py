@@ -22,6 +22,8 @@ def spid_filter(spids):
     return all([len(spids & group) >= num for group, num in conditions])
 
 
+spid_min = 20
+
 # Load seq metadata
 ppid2meta = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
@@ -41,43 +43,43 @@ with open('../../ortho_cluster3/hits2graph/out/hit_graph.tsv') as file:
             bitscores[adj_node] = float(adj_bitscore)
         graph[node] = bitscores
 
-# Load gOGs
-OGid2gOGid = {}
+# Load GGs
+OGid2GGid = {}
 with open('../../ortho_cluster3/connect_OG_graph/out/components.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        gOGid, OGids = line.rstrip().split('\t')
+        GGid, OGids = line.rstrip().split('\t')
         for OGid in OGids.split(','):
-            OGid2gOGid[OGid] = gOGid
+            OGid2GGid[OGid] = GGid
 
 # Load OGs
-gOGid2OGs = {}
+GGid2OGs = {}
 with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        CCid, OGid, _, edges = line.rstrip().split('\t')
-        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
+        component_id, OGid, _, edges = line.rstrip().split('\t')
+        edges = [edge.split(':') for edge in edges.split(',')]
+        ppids = {node for edge in edges for node in edge}
         gnids = {ppid2meta[ppid][0] for ppid in ppids}
         spids = {ppid2meta[ppid][1] for ppid in ppids}
         sqids = {ppid2meta[ppid][2] for ppid in ppids}
         bitscore = 0
-        for edge in edges.split(','):
-            node1, node2 = edge.split(':')
+        for node1, node2 in edges:
             bitscore += graph[node1][node2] + graph[node2][node1]
 
-        if len(gnids) == len(spids) >= 20 and spid_filter(spids):
-            gOGid = OGid2gOGid[OGid]
-            record = {'CCid': CCid, 'OGid': OGid, 'gOGid': gOGid,
-                      'bitscore': round(bitscore, 1), 'edgenum': len(edges.split(',')),
+        if len(gnids) == len(spids) >= spid_min and spid_filter(spids):
+            GGid = OGid2GGid[OGid]
+            record = {'component_id': component_id, 'OGid': OGid, 'GGid': GGid,
+                      'bitscore': round(bitscore, 1), 'edgenum': len(edges),
                       'ppidnum': len(ppids), 'sqidnum': len(sqids),
                       'gnidnum': len(gnids), 'spidnum': len(spids)}
             try:
-                gOGid2OGs[gOGid].append(record)
+                GGid2OGs[GGid].append(record)
             except KeyError:
-                gOGid2OGs[gOGid] = [record]
+                GGid2OGs[GGid] = [record]
 
 rows = []
-for OGs in gOGid2OGs.values():
+for OGs in GGid2OGs.values():
     OG = max(OGs, key=lambda x: (x['spidnum'], x['bitscore']))  # Most species, highest bitscore
     rows.append(OG)
 OGs = pd.DataFrame(rows)
@@ -90,7 +92,7 @@ counts = OGs['gnidnum'].value_counts()
 plt.bar(counts.index, counts.values)
 plt.xlabel('Number of genes in OG')
 plt.ylabel('Number of OGs')
-plt.savefig('out/bar_OGnum-gnnum.png')
+plt.savefig('out/bar_OGidnum-gnidnum.png')
 
 OGs.to_csv('out/OG_filter.tsv', sep='\t', index=False)
 

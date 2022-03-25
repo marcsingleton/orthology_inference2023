@@ -47,7 +47,7 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
         for node1, node2 in edges:
             bitscore += graph[node1][node2] + graph[node2][node1]
 
-        row = {'component_id': component_id, 'OGid': OGid, 'gOGid': OGid2GGid[OGid],
+        row = {'component_id': component_id, 'OGid': OGid, 'GGid': OGid2GGid[OGid],
                'bitscore': round(bitscore, 1), 'edgenum': len(edges),
                'ppidnum': len(ppids), 'sqidnum': len(sqids),
                'gnidnum': len(gnids), 'spidnum': len(spids)}

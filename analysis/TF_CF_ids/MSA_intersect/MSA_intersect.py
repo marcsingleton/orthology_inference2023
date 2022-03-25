@@ -22,7 +22,7 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
             gnid = ppid2gnid[ppid]
             rows.append({'CCid': CCid, 'OGid': OGid, 'gnid': gnid})
 OG_gnids = pd.DataFrame(rows).drop_duplicates()  # All OGs with genes
-OG_filter = pd.read_table('../../ortho_MSA/OG_filter/out/OG_filter.tsv', usecols=['CCid', 'OGid', 'gOGid'])  # OGs after filtering
+OG_filter = pd.read_table('../../ortho_MSA/OG_filter/out/OG_filter.tsv', usecols=['CCid', 'OGid', 'GGid'])  # OGs after filtering
 OGs = OG_filter.merge(OG_gnids, how='left', on=['OGid', 'CCid'])  # Filtered OGs with genes
 
 # Load TFs and CFs and merge with OGs
