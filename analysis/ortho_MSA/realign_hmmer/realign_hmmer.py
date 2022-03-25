@@ -10,9 +10,9 @@ from src.utils import read_fasta
 def hmm_align(OGid):
     sqidnum, gnidnum = OGid2meta[OGid]
     if sqidnum == gnidnum:
-        path = f'../make_fastas1/out/{OGid}.tfa'
+        path = f'../make_fastas1/out/{OGid}.fa'
     else:
-        path = f'../make_fastas2/out/{OGid}.tfa'
+        path = f'../make_fastas2/out/{OGid}.fa'
     run(f'../../../bin/hmmbuild --hand --eset {1.5*gnidnum} --wnone out/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/{OGid}.txt', shell=True, check=True)
     run(f'../../../bin/hmmalign --outformat afa out/{OGid}.hmm {path} > out/{OGid}_temp.mfa', shell=True, check=True)
 
@@ -70,6 +70,10 @@ DEPENDENCIES
     ../align_fastas1/out/*.mfa
 ../align_fastas2/align_fastas2.py
     ../align_fastas2/out/*.mfa
+../make_fastas1/make_fastas1.py
+    ../align_fastas1/out/*.fa
+../make_fastas2/make_fastas2.py
+    ../align_fastas2/out/*.fa
 ../realign_trim/realign_trim.py
     ../realign_trim/out/*.mfa
 """

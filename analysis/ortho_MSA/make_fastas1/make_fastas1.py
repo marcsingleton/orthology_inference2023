@@ -55,7 +55,7 @@ for OGid in OGids:
         seq = ppid2seq[sqid]
         seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
         records.append((sqid, gnid, spid, seqstring))
-    with open(f'out/{OGid}.tfa', 'w') as file:
+    with open(f'out/{OGid}.fa', 'w') as file:
         for sqid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):
             file.write(f'>ppid={sqid}|gnid={gnid}|spid={spid}\n' + seqstring)
 

@@ -150,8 +150,8 @@ def reduce(OGid, OG):
             update_tip_names(tree)
 
     # Extract sequences from tree
-    rOG = [tip_name.split(':') for tip_name in tree.tip_names]
-    return OGid, rOG
+    reduced_OG = [tip_name.split(':') for tip_name in tree.tip_names]
+    return OGid, reduced_OG
 
 
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
@@ -201,18 +201,17 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
 
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        rOGs = pool.starmap(reduce, OGs.items())
+        reduced_OGs = pool.starmap(reduce, OGs.items())
 
     # Make output directory
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
     # Write reduced clusters to file
-    with open('out/rclusters.tsv', 'w') as outfile:
-        outfile.write('OGid\tspid\tgnid\tppid\n')
-        for OGid, rOG in rOGs:
-            for entry in rOG:
-                outfile.write(OGid + '\t' + '\t'.join(entry) + '\n')
+    with open('out/clusters.tsv', 'w') as outfile:
+        outfile.write('OGid\tppids\n')
+        for OGid, reduced_OG in reduced_OGs:
+            outfile.write(OGid + '\t' + ','.join([record[2] for record in reduced_OG]) + '\n')
 
 """
 DEPENDENCIES

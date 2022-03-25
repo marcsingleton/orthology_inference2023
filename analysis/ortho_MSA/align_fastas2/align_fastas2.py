@@ -9,7 +9,7 @@ from time import time_ns
 def run_cmd(file_id):
     cmd = (f'../../../bin/mafft --globalpair --maxiterate 1000 '
            f'--thread 1 --anysymbol --allowshift --unalignlevel 0.4 --leavegappyregion '
-           f'../make_fastas2/out/{file_id}.tfa '
+           f'../make_fastas2/out/{file_id}.fa '
            f'1> out/{file_id}.mfa 2> out/{file_id}.err')
     try:
         t0 = time_ns()
@@ -38,5 +38,5 @@ if __name__ == '__main__':
 """
 DEPENDENCIES
 ../make_fastas2/make_fastas2.py
-    ../make_fastas2/out/*.tfa
+    ../make_fastas2/out/*.fa
 """

@@ -17,6 +17,14 @@ with open('../config/genomes.tsv') as file:
         spid, _, source, prot_path = line.split()
         genomes.append((spid, source, prot_path))
 
+# Load seq metadata
+ppid2meta = {}
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        ppid, gnid, spid, sqid = line.split()
+        ppid2meta[ppid] = (gnid, spid, sqid)
+
 # Load seqs
 ppid2seq = {}
 for spid, source, prot_path in genomes:
@@ -25,8 +33,13 @@ for spid, source, prot_path in genomes:
         ppid = re.search(ppid_regex[header], line).group(1)
         ppid2seq[ppid] = seq
 
-# Load clusters and pOG metadata
-rclusters = pd.read_table('../reduce_tree/out/rclusters.tsv').groupby('OGid')
+# Load OGs and OG metadata
+OGs = {}
+with open('../reduce_tree/out/clusters.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        OGid, ppids = line.split()
+        OGs[OGid] = ppids.split(',')
 OG_meta = pd.read_table('../OG_data/out/OG_data.tsv')
 
 # Write sequences
@@ -35,20 +48,25 @@ if not os.path.exists('out/'):
 
 OGids = OG_meta.loc[~(OG_meta['sqidnum'] == OG_meta['gnidnum']), 'OGid']
 for OGid in OGids:
-    with open(f'out/{OGid}.tfa', 'w') as file:
-        rows = sorted(rclusters.get_group(OGid).itertuples(), key=lambda x: x.spid)
-        for row in rows:
-            seq = ppid2seq[row.ppid]
-            seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-            file.write(f'>ppid={row.ppid}|gnid={row.gnid}|spid={row.spid}\n' + seqstring)
+    records = []
+    for sqid in OGs[OGid]:
+        gnid, spid, _ = ppid2meta[sqid]
+        seq = ppid2seq[sqid]
+        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
+        records.append((sqid, gnid, spid, seqstring))
+    with open(f'out/{OGid}.fa', 'w') as file:
+        for sqid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):
+            file.write(f'>ppid={sqid}|gnid={gnid}|spid={spid}\n' + seqstring)
 
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
+../../ortho_search/sequence_data/sequence_data.py
+    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../config/genomes.tsv
 ../OG_data/OG_data.py
     ../OG_data/out/OG_data.tsv
 ../reduce_tree/reduce_tree.py
-    ../reduce_tree/out/rclusters.tsv
+    ../reduce_tree/out/clusters.tsv
 """

@@ -58,10 +58,10 @@ for OGid in OGids:
     for sqid in OGs[OGid]:
         gnid, spid, _ = ppid2meta[sqid]
         seq = ppid2seq[sqid]
-        records.append((seq, sqid, gnid, spid))
+        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
+        records.append((sqid, gnid, spid, seqstring))
     with open(f'out/{OGid}.fa', 'w') as file:
-        for seq, sqid, gnid, spid in sorted(records, key=lambda x: x[3]):
-            seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
+        for sqid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):
             file.write(f'>ppid={sqid}|gnid={gnid}|spid={spid}\n' + seqstring)
 
 """
