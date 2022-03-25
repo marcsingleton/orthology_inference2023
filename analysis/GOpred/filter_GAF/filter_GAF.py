@@ -35,7 +35,7 @@ with open('../../brownian2/aucpred_filter/out/regions_30.tsv') as file:
             rows.append({'OGid': OGid, 'start': start, 'stop': stop, 'disorder': disorder, 'gnid': gnid})
 regions = pd.DataFrame(rows)
 
-# Read ontology
+# Load ontology
 GO = {}
 with open('../../../data/GO/go-basic.obo') as file:
     line = file.readline()
@@ -71,7 +71,7 @@ for GOid in GO:
         rows.append({'GOid': GOid, 'ancestor_id': ancestor_id, 'ancestor_name': GO[ancestor_id]['name']})
 ancestors = pd.DataFrame(rows)
 
-# Read raw table and add term names
+# Load raw table and add term names
 df1 = pd.read_table('../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/precomputed_files/gene_association_v2.1.fb',
                     skiprows=5,
                     usecols=list(range(15)),  # File contains two spare tabs at end

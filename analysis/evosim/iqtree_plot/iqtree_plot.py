@@ -16,7 +16,7 @@ labels = ['0R_disorder', '50R_disorder', '100R_disorder',
           '0R_order', '50R_order', '100R_order']
 Record = namedtuple('Record', ['label', 'matrix', 'freqs'])
 
-# Read LG model
+# Load LG model
 with open('../config/LG.paml') as file:
     # Load exchangeability matrix
     LG_matrix = np.zeros((len(alphabet), len(alphabet)))
@@ -34,7 +34,7 @@ with open('../config/LG.paml') as file:
 rate = (LG_freqs * (LG_freqs * LG_matrix).sum(axis=1)).sum()
 LG_matrix = LG_matrix / rate  # Normalize average rate to 1
 
-# Read IQ-TREE matrices
+# Load IQ-TREE matrices
 records = []
 for label in labels:
     with open(f'../iqtree_fit/out/{label}.iqtree') as file:

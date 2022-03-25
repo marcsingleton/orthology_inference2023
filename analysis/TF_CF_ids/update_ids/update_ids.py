@@ -18,7 +18,7 @@ print('Number of ids:', len(df2))
 print('Number of duplicates:', len(df2) - df2['FBgn'].nunique())
 print()
 
-# Read Stampfel et al. types
+# Load Stampfel et al. types
 # (Not using pandas to_dict since it creates a nested dictionary)
 FBgn2type = {}
 with open('../../../data/TF_CF_ids/nature15545-s1.csv') as file:
@@ -29,7 +29,7 @@ with open('../../../data/TF_CF_ids/nature15545-s1.csv') as file:
             raise RuntimeError('Duplicate FBgns detected.')
         FBgn2type[fields[2]] = fields[0]
 
-# Read Stampfel et al. map
+# Load Stampfel et al. map
 TFs1, CFs, FBids = set(), set(), set()
 with open('../../../data/TF_CF_ids/nature15545-s1_map.tsv') as file:
     file.readline()  # Skip header
@@ -45,7 +45,7 @@ with open('../../../data/TF_CF_ids/nature15545-s1_map.tsv') as file:
                 CFs.add(FBgn2)
             FBids.add(FBgn1)
 
-# Read Hens et al. map
+# Load Hens et al. map
 TFs2, FBids = set(), set()
 with open('../../../data/TF_CF_ids/nmeth.1763-S2_map.tsv') as file:
     file.readline()  # Skip header
