@@ -19,14 +19,14 @@
 module load gnu-parallel
 
 for folder in $(ls ../make_metaAA/out/); do
-  if [[ $folder == *_ni ]]; then
+  if [[ $folder == *_NI ]]; then
     invariant=""
   else
     invariant="+I"
   fi
   for file in $(ls ../make_metaAA/out/${folder}/); do
-    if [[ $file == *.fasta ]]; then
-      echo $folder $(basename $file .fasta) $invariant
+    if [[ $file == *.afa ]]; then
+      echo $folder $(basename $file .afa) $invariant
     fi
   done
 done | parallel --jobs $SLURM_CPUS_ON_NODE --colsep ' ' bash iqtree_WAG.sh {1} {2} {3}

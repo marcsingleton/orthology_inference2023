@@ -1,68 +1,72 @@
 """Make meta alignments from nucleotide alignments of genes."""
 
 import os
-from collections import namedtuple
-from random import randrange, seed
 
+import numpy.random
 from src.utils import read_fasta
 
 
-def is_redundant(col, cutoff):
-    gapnum = 0
-    for _, sym in col:
-        if sym in ['-', 'N']:
-            gapnum += 1
-    return gapnum <= (1 - cutoff) * len(col)
+def is_redundant(column, cutoff):
+    count = 0
+    for sym in column:
+        if sym in ['-', 'X']:
+            count += 1
+    return count <= (1 - cutoff) * len(column)
 
 
-def is_invariant(col):
-    for i, (_, sym) in enumerate(col):
-        if sym not in ['-', 'N']:
-            break
-    for _, sym in col[i+1:]:
-        if sym not in ['-', 'N', col[i].sym]:
+def is_invariant(column):
+    sym0 = None
+    for sym in column:
+        if (sym0 is not None) and (sym not in ['-', 'X', sym0]):
             return False
+        elif sym not in ['-', 'X']:
+            sym0 = sym
     return True
 
 
-Column = namedtuple('Column', ['spid', 'sym'])
-seed(930715)  # Set seed to make results consistent
+rng = numpy.random.default_rng(seed=930715)
+
+# Parse genomes
+spids = []
+with open('../config/genomes.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        spids.append(line.split()[0])
+spid2idx = {spid: i for i, spid in enumerate(spids)}
 
 # Extract column pools
-colpools = [('100red', lambda col: is_redundant(col, 1), []),
-            ('100red_ni', lambda col: is_redundant(col, 1) and not is_invariant(col), []),
-            ('50red', lambda col: is_redundant(col, 0.5), []),
-            ('50red_ni', lambda col: is_redundant(col, 0.5) and not is_invariant(col), []),
-            ('0red', lambda col: is_redundant(col, 0), []),
-            ('0red_ni', lambda col: is_redundant(col, 0) and not is_invariant(col), [])]
-for file_id in filter(lambda x: x.endswith('.afa'), os.listdir('../align_AA2NT/out/')):  # Because inputs are not sorted, results are not guaranteed to be consistent
-    msa = read_fasta(f'../align_AA2NT/out/{file_id}')
+column_pools = [('100R', lambda x: is_redundant(x, 1), []),
+                ('100R_NI', lambda x: is_redundant(x, 1) and not is_invariant(x), []),
+                ('50R', lambda x: is_redundant(x, 0.5), []),
+                ('50R_NI', lambda x: is_redundant(x, 0.5) and not is_invariant(x), []),
+                ('0R', lambda x: is_redundant(x, 0), []),
+                ('0R_NI', lambda x: is_redundant(x, 0) and not is_invariant(x), [])]
+paths = sorted([path for path in os.listdir('../align_AA2NT/out/') if path.endswith('.afa')])  # Sort to ensure consistent order
+for path in paths:
+    msa = sorted([(header[-4:], seq) for header, seq in read_fasta(f'../align_AA2NT/out/{path}')], key=lambda x: spid2idx[x[0]])
     for i in range(len(msa[0][1])):
-        col = [Column(header[-4:], seq[i]) for header, seq in msa]
-        for _, condition, colpool in colpools:
-            if condition(col):
-                colpool.append(col)
+        column = [seq[i] for _, seq in msa]
+        for _, condition, column_pool in column_pools:
+            if condition(column):
+                column_pool.append(column)
 
 # Make meta alignments
-for label, _, colpool in colpools:
+for label, _, column_pool in column_pools:
     if not os.path.exists(f'out/{label}/'):
         os.makedirs(f'out/{label}/')
 
-    print(f'{label}:', len(colpool))
-    for samplenum in range(100):
-        sample = [colpool[randrange(len(colpool))] for _ in range(10000)]
-        seqs = {}
-        for col in sample:
-            for spid, sym in col:
-                try:
-                    seqs[spid].append(sym)
-                except KeyError:
-                    seqs[spid] = [sym]
+    print(f'{label}:', len(column_pool))
+    for sample_id in range(100):
+        sample = rng.choice(column_pool, size=10000)
+        seqs = {spid: [] for spid in spids}
+        for column in sample:
+            for i, sym in enumerate(column):
+                seqs[spids[i]].append(sym)
 
-        with open(f'out/{label}/meta_{samplenum}.fasta', 'w') as file:
+        with open(f'out/{label}/{label}_{sample_id:03}.afa', 'w') as file:
             for spid, seq in sorted(seqs.items()):
                 seqstring = '\n'.join([''.join(seq[i:i+80]) for i in range(0, len(seq), 80)]) + '\n'
-                file.write(f'>{spid} {label}_{samplenum}\n' + seqstring)
+                file.write(f'>{spid} {label}_{sample_id:03}\n' + seqstring)
 
 """
 OUTPUT
@@ -74,6 +78,7 @@ OUTPUT
 0red_ni: 2933188
 
 DEPENDENCIES
+../config/genomes.tsv
 ../align_AA2NT/align_AA2NT.py
     ../align_AA2NT/out/*.afa
 """
