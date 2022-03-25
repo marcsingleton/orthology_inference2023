@@ -50,7 +50,7 @@ def apply_contrasts(args):
 
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
-tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 
 if __name__ == '__main__':
     # Load seq metadata
@@ -110,8 +110,8 @@ if __name__ == '__main__':
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../aucpred_filter/aucpred_filter.py
     ../aucpred_filter/out/regions_30.tsv
 ../get_features/get_features.py

@@ -30,7 +30,7 @@ def get_contrasts(node):
 
 
 # Load tree
-tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 spids = {tip.name for tip in tree_template.tips() if tip.name != 'sleb'}
 
 # Load representative OGs
@@ -77,8 +77,8 @@ with open('out/row_sums.tsv', 'w') as file:
 
 """
 DEPENDENCIES
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../align_fastas1/align_fastas1.py
     ../align_fastas1/out/*.mfa
 ../align_fastas2-2/align_fastas2-2.py

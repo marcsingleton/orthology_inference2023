@@ -32,7 +32,7 @@ ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 spid_regex = r'spid=([a-z]+)'
 
 # Load tree
-tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 spids = {tip.name for tip in tree_template.tips() if tip.name != 'sleb'}
 
 # Load regions
@@ -85,8 +85,8 @@ with open('out/row_sums.tsv', 'w') as file:
 
 """
 DEPENDENCIES
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../insertion_trim/extract.py
     ../insertion_trim/out/*.mfa
 ../aucpred_filter/aucpred_filter.py

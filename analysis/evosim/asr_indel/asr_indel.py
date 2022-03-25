@@ -20,7 +20,7 @@ def is_nested(character, characters):
 
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 spid_regex = r'spid=([a-z]+)'
-tree_template = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 
 OGids = set()
 with open('../../brownian2/aucpred_filter/out/regions_30.tsv') as file:
@@ -132,6 +132,6 @@ DEPENDENCIES
     ../../brownian2/aucpred_regions/out/regions.tsv
 ../../brownian2/insertion_trim/extract.py
     ../../brownian2/insertion_trim/out/*.mfa
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 """

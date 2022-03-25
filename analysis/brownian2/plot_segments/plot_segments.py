@@ -23,7 +23,7 @@ with open('../config/segments.tsv') as file:
             labels[state].append((int(start), int(stop)))
             OGid2labels[OGid] = labels
 
-tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
 if not os.path.exists('out/'):
@@ -54,7 +54,7 @@ for OGid, labels in OGid2labels.items():
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer1/realign_hmmer1.py
     ../../ortho_MSA/realign_hmmer1/out/*.mfa
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../config/segments.tsv
 """

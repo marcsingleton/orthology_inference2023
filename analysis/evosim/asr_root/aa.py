@@ -44,7 +44,7 @@ if not os.path.exists('out/'):
 OGids = [path[:-7] for path in os.listdir('../asr_aa/out/') if path.endswith('.iqtree')]
 for OGid in OGids:
     # Load trees
-    tree1 = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+    tree1 = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
     with open(f'../asr_aa/out/{OGid}.iqtree') as file:
         line = file.readline()
         while line != 'Tree in newick format:\n':
@@ -196,8 +196,8 @@ important to preserve the original model structure when calculating the ASRs, so
 submodels with the invariant submodel.
 
 DEPENDENCIES
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../asr_aa/asr_aa.py
     ../asr_aa/out/*.iqtree
     ../asr_aa/out/*.mfa

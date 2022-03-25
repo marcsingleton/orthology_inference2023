@@ -40,7 +40,7 @@ for OGid in OGids:
             line = file.readline()
 
     # Load trees
-    tree1 = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+    tree1 = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
     with open(f'../asr_indel/out/{OGid}.iqtree') as file:
         line = file.readline()
         while line != 'Tree in newick format:\n':
@@ -96,8 +96,8 @@ NOTES
 See notes in aa.py for reasoning for re-calculating rates from alpha.
 
 DEPENDENCIES
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../asr_indel/asr_indel.py
     ../asr_indel/out/*.iqtree
     ../asr_indel/out/*.mfa

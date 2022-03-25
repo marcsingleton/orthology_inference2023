@@ -20,7 +20,7 @@ spid_regex = r'spid=([a-z]+)'
 features = pd.read_table('../get_features/out/features.tsv')
 contrasts = pd.read_table('../get_contrasts/out/contrasts.tsv')
 roots = pd.read_table('../get_contrasts/out/roots.tsv')
-tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
 features.loc[features['kappa'] == -1, 'kappa'] = 1
@@ -464,8 +464,8 @@ for feature_label in roots.columns.intersection(rates.columns):
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../aucpred_filter/aucpred_filter.py
     ../aucpred_filter/out/regions_30.tsv
 ../get_contrasts/get_contrasts.py

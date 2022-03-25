@@ -17,7 +17,7 @@ prior = {'A': 0.0866279, 'R': 0.0439720, 'N': 0.0390894, 'D': 0.0570451, 'C': 0.
          'S': 0.0695179, 'T': 0.0610127, 'W': 0.0143859, 'Y': 0.0352742, 'V': 0.0708956}
 a = 1E-3  # Coefficient of outlier curve
 spid_regex = r'spid=([a-z]+)'
-tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
 records = []
@@ -127,8 +127,8 @@ for record in outliers:
 
 """
 DEPENDENCIES
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../realign_hmmer1/realign_hmmer1.py
     ../realign_hmmer1/out/*.mfa
 """

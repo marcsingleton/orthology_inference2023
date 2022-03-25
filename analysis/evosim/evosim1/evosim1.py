@@ -234,7 +234,7 @@ for path in os.listdir('../asr_generate/out/'):
     residue_ids = np.arange(-1, length)
 
     # Load trees
-    tree1 = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+    tree1 = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
     with open(f'../asr_indel/out/{OGid}.iqtree') as file:
         line = file.readline()
         while line != 'Tree in newick format:\n':
@@ -371,8 +371,8 @@ for path in os.listdir('../asr_generate/out/'):
 
 """
 DEPENDENCIES
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../asr_generate/asr_generate.py
     ../asr_generate/out/*_sample.mfa
 ../asr_aa/asr_aa.py

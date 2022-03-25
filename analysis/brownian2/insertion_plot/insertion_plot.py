@@ -11,7 +11,7 @@ from src.draw import plot_msa_lines
 from src.brownian2.trim import trim_terminals, get_slices
 from src.utils import read_fasta
 
-tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 spids = {tip.name for tip in tree.tips() if tip.name != 'sleb'}
 
@@ -55,8 +55,8 @@ for label in ['norm1', 'norm2']:
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer2/realign_hmmer2.py
     ../../ortho_MSA/realign_hmmer2/out/*
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../insertion_trim/decode.py
     ./insertion_trim/out/*.tsv
 """

@@ -231,7 +231,7 @@ if __name__ == '__main__':
             state_seq.extend((stop - start) * [state])
 
         # Load tree and convert to vectors at tips
-        tree = skbio.read('../../ortho_tree/ctree_WAG/out/100red_ni.txt', 'newick', skbio.TreeNode)
+        tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
         tree = tree.shear([spid for spid, _ in msa])
         tips = {tip.name: tip for tip in tree.tips()}
         for spid, seq in msa:
@@ -340,8 +340,8 @@ Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer1/realign_hmmer1.py
     ../../ortho_MSA/realign_hmmer1/out/*.mfa
-../../ortho_tree/ctree_WAG/ctree_WAG.py
-    ../../ortho_tree/ctree_WAG/out/100red_ni.txt
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../config/segments.tsv
 ../insertion_hmm2/fit.py
     ../insertion_hmm2/out/model.json
