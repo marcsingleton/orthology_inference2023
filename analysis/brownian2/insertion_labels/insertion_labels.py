@@ -11,7 +11,7 @@ from src.draw import plot_msa_lines
 from src.utils import read_fasta
 
 OGid2labels = {}
-with open('../config/segments.tsv') as file:
+with open('../config/labels.tsv') as file:
     file.readline()
     for line in file:
         fields = line.rstrip('\n').split('\t')
@@ -56,5 +56,5 @@ DEPENDENCIES
     ../../ortho_MSA/realign_hmmer/out/*.afa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../config/segments.tsv
+../config/labels.tsv
 """

@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # Load regions
     OGid2regions = {}
     state_set = set()
-    with open('../config/segments.tsv') as file:
+    with open('../config/labels.tsv') as file:
         file.readline()  # Skip header
         for line in file:
             OGid, start, stop, state = line.split()
@@ -228,7 +228,7 @@ Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer/realign_hmmer.py
     ../../ortho_MSA/realign_hmmer/out/*.afa
-../config/segments.tsv
+../config/labels.tsv
 ../insertion_hmm2/fit.py
     ../insertion_hmm2/out/model.json
 """

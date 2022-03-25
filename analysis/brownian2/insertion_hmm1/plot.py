@@ -17,7 +17,7 @@ with open('out/model.json') as file:
 
 # Load OGids
 OGids = set()
-with open('../config/segments.tsv') as file:
+with open('../config/labels.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid = line.split()[0]
@@ -61,7 +61,7 @@ DEPENDENCIES
     ../../ortho_MSA/realign_hmmer/out/*.afa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../config/segments.tsv
+../config/labels.tsv
 ./fit.py
     ./out/model.json
 """

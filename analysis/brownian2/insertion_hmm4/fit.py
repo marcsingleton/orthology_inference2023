@@ -179,7 +179,7 @@ if __name__ == '__main__':
     # Load regions
     OGid2regions = {}
     state_set = set()
-    with open('../config/segments.tsv') as file:
+    with open('../config/labels.tsv') as file:
         file.readline()  # Skip header
         for line in file:
             OGid, start, stop, state = line.split()
@@ -342,7 +342,7 @@ DEPENDENCIES
     ../../ortho_MSA/realign_hmmer/out/*.afa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../config/segments.tsv
+../config/labels.tsv
 ../insertion_hmm2/fit.py
     ../insertion_hmm2/out/model.json
 """

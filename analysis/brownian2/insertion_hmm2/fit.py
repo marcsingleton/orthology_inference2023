@@ -41,7 +41,7 @@ def mm_betabinom(data, n):
 # Load regions
 OGid2regions = {}
 states = set()
-with open('../config/segments.tsv') as file:
+with open('../config/labels.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid, start, stop, state = line.split()
@@ -166,5 +166,5 @@ pattern of gaps is the same as in the previous column.
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer/realign_hmmer.py
     ../../ortho_MSA/realign_hmmer/out/*.afa
-../config/segments.tsv
+../config/labels.tsv
 """
