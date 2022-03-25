@@ -36,7 +36,7 @@ def load_model(path):
 alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
 sym2idx = {sym: idx for idx, sym in enumerate(alphabet)}
 
-models = {'WAG': load_model('../config/WAG.txt'), '../config/50red_D.txt': load_model('../config/50red_D.txt')}
+models = {'LG': load_model('../config/LG.paml'), '../config/50R_disorder.paml': load_model('../config/50R_disorder.paml')}
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -202,6 +202,6 @@ DEPENDENCIES
     ../asr_aa/out/*.iqtree
     ../asr_aa/out/*.afa
     ../asr_aa/out/*.nex
-../config/50red_D.txt
-../config/WAG.txt
+../config/50R_disorder.paml
+../config/LG.paml
 """

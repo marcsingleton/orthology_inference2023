@@ -211,11 +211,11 @@ insertion_rate = 0.008  # Indel rates are relative to the substitution rate scal
 deletion_rate = 0.01
 
 # Load models
-WAG_matrix, WAG_freqs = load_model('../config/WAG.txt')
-disorder_matrix, disorder_freqs = load_model('../config/50red_D.txt')
-rate_matrices = {1: WAG_matrix,
+LG_matrix, LG_freqs = load_model('../config/LG.paml')
+disorder_matrix, disorder_freqs = load_model('../config/50R_disorder.paml')
+rate_matrices = {1: LG_matrix,
                  2: disorder_matrix}
-sym_dists = {1: WAG_freqs / WAG_freqs.sum(),  # Re-normalize to ensure sums to 1
+sym_dists = {1: LG_freqs / LG_freqs.sum(),  # Re-normalize to ensure sums to 1
              2: disorder_freqs / disorder_freqs.sum()}
 
 # Make indel dists
@@ -380,6 +380,6 @@ DEPENDENCIES
     ../asr_aa/out/*.nex
 ../asr_root/aa.py
     ../asr_root/out/*_aa.npy
-../config/50red_D.txt
-../config/WAG.txt
+../config/50R_disorder.paml
+../config/LG.paml
 """

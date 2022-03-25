@@ -73,11 +73,11 @@ for OGid in OGids:
         file.write('#nexus\nbegin sets;\n')
         if disorder_regions:
             disorder_string = ' '.join(disorder_regions)
-            partitions.append('../config/50red_D.txt+I+G:disorder')
+            partitions.append('../config/50R_disorder.paml+I+G:disorder')
             file.write(f'    charset disorder = {disorder_string};\n')
         if order_regions:
             order_string = ' '.join(order_regions)
-            partitions.append('WAG+I+G:order')
+            partitions.append('LG+I+G:order')
             file.write(f'    charset order = {order_string};\n')
         partition_string = ', '.join(partitions)
         file.write(f'    charpartition mine = {partition_string};\nend;\n')
@@ -121,5 +121,5 @@ DEPENDENCIES
     ../../brownian2/insertion_trim/out/*.afa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../config/50red_D.txt
+../config/50R_disorder.paml
 """

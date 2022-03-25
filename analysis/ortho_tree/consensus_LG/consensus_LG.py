@@ -47,5 +47,5 @@ for label in [path for path in os.listdir('../iqtree_LG/out/') if os.path.isdir(
 """
 DEPENDENCIES
 ../iqtree_LG/iqtree_LG.sh
-    ../iqtree_WAG/out/*/meta_*.treefile
+    ../iqtree_LG/out/*/meta_*.treefile
 """

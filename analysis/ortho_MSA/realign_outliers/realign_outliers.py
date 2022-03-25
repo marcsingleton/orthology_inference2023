@@ -10,11 +10,11 @@ import skbio
 from src.draw import plot_msa_lines
 from src.utils import read_fasta
 
-# WAG background frequencies
-prior = {'A': 0.0866279, 'R': 0.0439720, 'N': 0.0390894, 'D': 0.0570451, 'C': 0.0193078,
-         'Q': 0.0367281, 'E': 0.0580589, 'G': 0.0832518, 'H': 0.0244313, 'I': 0.0484660,
-         'L': 0.0862090, 'K': 0.0620286, 'M': 0.0195027, 'F': 0.0384319, 'P': 0.0457631,
-         'S': 0.0695179, 'T': 0.0610127, 'W': 0.0143859, 'Y': 0.0352742, 'V': 0.0708956}
+# LG background frequencies
+prior = {'A': 0.079066, 'R': 0.055941, 'N': 0.041977, 'D': 0.053052, 'C': 0.012937,
+         'Q': 0.040767, 'E': 0.071586, 'G': 0.057337, 'H': 0.022355, 'I': 0.062157,
+         'L': 0.099081, 'K': 0.064600, 'M': 0.022951, 'F': 0.042302, 'P': 0.044040,
+         'S': 0.061197, 'T': 0.053287, 'W': 0.012066, 'Y': 0.034155, 'V': 0.069147}
 a = 1E-3  # Coefficient of outlier curve
 spid_regex = r'spid=([a-z]+)'
 tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)

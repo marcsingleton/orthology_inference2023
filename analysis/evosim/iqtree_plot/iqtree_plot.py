@@ -16,22 +16,22 @@ labels = ['0R_disorder', '50R_disorder', '100R_disorder',
           '0R_order', '50R_order', '100R_order']
 Record = namedtuple('Record', ['label', 'matrix', 'freqs'])
 
-# Read WAG model
-with open('../config/WAG.txt') as file:
+# Read LG model
+with open('../config/LG.paml') as file:
     # Parse exchangeability matrix
-    WAG_matrix = np.zeros((len(alphabet), len(alphabet)))
+    LG_matrix = np.zeros((len(alphabet), len(alphabet)))
     for i in range(len(alphabet)-1):
         line = file.readline()
         for j, value in enumerate(line.split()):
-            WAG_matrix[i + 1, j] = float(value)
-            WAG_matrix[j, i + 1] = float(value)
+            LG_matrix[i + 1, j] = float(value)
+            LG_matrix[j, i + 1] = float(value)
 
     # Parse equilibrium frequencies
     for _ in range(2):
         line = file.readline()
-    WAG_freqs = np.array([float(value) for value in line.split()])
-rate = (WAG_freqs * (WAG_freqs * WAG_matrix).sum(axis=1)).sum()
-WAG_matrix = WAG_matrix / rate  # Normalize average rate to 1
+    LG_freqs = np.array([float(value) for value in line.split()])
+rate = (LG_freqs * (LG_freqs * LG_matrix).sum(axis=1)).sum()
+LG_matrix = LG_matrix / rate  # Normalize average rate to 1
 
 # Read IQ-TREE matrices
 records = []
@@ -119,8 +119,8 @@ plt.close()
 
 # 3 DOT COMPARISONS
 scale = 0.03
-pairs = [(records[1].label, records[1].matrix, 'black', 'WAG', WAG_matrix, 'white'),
-         (records[4].label, records[4].matrix, 'grey', 'WAG', WAG_matrix, 'white'),
+pairs = [(records[1].label, records[1].matrix, 'black', 'LG', LG_matrix, 'white'),
+         (records[4].label, records[4].matrix, 'grey', 'LG', LG_matrix, 'white'),
          (records[1].label, records[1].matrix, 'black', records[4].label, records[4].matrix, 'grey')]
 for l1, m1, c1, l2, m2, c2 in pairs:
     fig, ax = plt.subplots(figsize=(9, 4))
@@ -155,8 +155,8 @@ for l1, m1, c1, l2, m2, c2 in pairs:
 
 # 4 RATIO DOT COMPARISONS
 scale = 0.15
-pairs = [(records[1].label, records[1].matrix, 'WAG', WAG_matrix),
-         (records[4].label, records[4].matrix, 'WAG', WAG_matrix),
+pairs = [(records[1].label, records[1].matrix, 'LG', LG_matrix),
+         (records[4].label, records[4].matrix, 'LG', LG_matrix),
          (records[1].label, records[1].matrix, records[4].label, records[4].matrix)]
 for l1, m1, l2, m2 in pairs:
     fig, ax = plt.subplots()
@@ -200,8 +200,8 @@ for l1, m1, l2, m2 in pairs:
 
 # 5 DIFFERENCE DOT COMPARISONS
 scale = 0.06
-pairs = [(records[1].label, records[1].matrix, 'WAG', WAG_matrix),
-         (records[4].label, records[4].matrix, 'WAG', WAG_matrix),
+pairs = [(records[1].label, records[1].matrix, 'LG', LG_matrix),
+         (records[4].label, records[4].matrix, 'LG', LG_matrix),
          (records[1].label, records[1].matrix, records[4].label, records[4].matrix)]
 for l1, m1, l2, m2 in pairs:
     fig, ax = plt.subplots()
@@ -247,7 +247,7 @@ for l1, m1, l2, m2 in pairs:
 width = 0.2
 bars = [(records[1].label, records[1].freqs, 'black'),
         (records[4].label, records[4].freqs, 'grey'),
-        ('WAG', WAG_freqs, 'white')]
+        ('LG', LG_freqs, 'white')]
 plt.figure(figsize=(8, 4))
 for i, (label, freqs, color) in enumerate(bars):
     dx = -len(bars)//2 + i + (1.5 if len(bars)%2 == 0 else 1)
@@ -263,5 +263,5 @@ plt.close()
 DEPENDENCIES
 ../iqtree_fit/iqtree_fit.sh
     ../iqtree_fit/out/*.iqtree
-../config/WAG.txt
+../config/LG.paml
 """
