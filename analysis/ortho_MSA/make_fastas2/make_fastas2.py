@@ -33,20 +33,20 @@ for spid, source, prot_path in genomes:
         ppid = re.search(ppid_regex[header], line).group(1)
         ppid2seq[ppid] = seq
 
-# Load OGs and OG metadata
+# Load OGs and OG data
 OGs = {}
 with open('../reduce_tree/out/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid, ppids = line.split()
         OGs[OGid] = ppids.split(',')
-OG_meta = pd.read_table('../OG_data/out/OG_data.tsv')
+OG_data = pd.read_table('../OG_data/out/OG_data.tsv')
 
 # Write sequences
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = OG_meta.loc[~(OG_meta['sqidnum'] == OG_meta['gnidnum']), 'OGid']
+OGids = OG_data.loc[~(OG_data['sqidnum'] == OG_data['gnidnum']), 'OGid']
 for OGid in OGids:
     records = []
     for sqid in OGs[OGid]:

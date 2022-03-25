@@ -29,8 +29,8 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
             rows.append({'CCid': CCid, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'sqid': sqid})
 OGs = pd.DataFrame(rows)
 
-# Load pOG metadata and test genes
-OG_meta = pd.read_table('../OG_data/out/OG_data.tsv')
+# Load OG data and test genes
+OG_data = pd.read_table('../OG_data/out/OG_data.tsv')
 genes = pd.read_table('genes.tsv')
 
 # Load tree
@@ -41,7 +41,7 @@ tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-df = OGs[['gnid', 'OGid']].drop_duplicates().merge(OG_meta, on='OGid', how='right').merge(genes, on='gnid', how='right')
+df = OGs[['gnid', 'OGid']].drop_duplicates().merge(OG_data, on='OGid', how='right').merge(genes, on='gnid', how='right')
 df.to_csv('out/OGs.tsv', sep='\t', index=False)
 
 for row in df.dropna().itertuples():

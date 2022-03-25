@@ -33,7 +33,7 @@ for spid, source, prot_path in genomes:
         ppid = re.search(ppid_regex[header], line).group(1)
         ppid2seq[ppid] = seq
 
-# Load OGs and OG metadata
+# Load OGs and OG data
 OGs = {}
 with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
@@ -41,13 +41,13 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
         _, OGid, _, edges = line.rstrip().split('\t')
         sqids = {ppid2meta[node][2] for edge in edges.split(',') for node in edge.split(':')}
         OGs[OGid] = sqids  # Ensure only representatives are selected for reduced clusters
-OG_meta = pd.read_table('../OG_data/out/OG_data.tsv')
+OG_data = pd.read_table('../OG_data/out/OG_data.tsv')
 
 # Write sequences
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = OG_meta.loc[OG_meta['sqidnum'] == OG_meta['gnidnum'], 'OGid']
+OGids = OG_data.loc[OG_data['sqidnum'] == OG_data['gnidnum'], 'OGid']
 for OGid in OGids:
     records = []
     for sqid in OGs[OGid]:
