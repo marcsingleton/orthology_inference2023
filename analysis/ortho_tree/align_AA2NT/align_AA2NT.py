@@ -125,7 +125,7 @@ sys.stdout.close()
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_cds_from_genomic.fna
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-CDS-r6.34.fasta
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/fasta/dmel-all-CDS-r6.38.fasta
 ../config/genomes.tsv
 ../align_fastas/align_fastas.py
     ../align_fastas/out/*.afa

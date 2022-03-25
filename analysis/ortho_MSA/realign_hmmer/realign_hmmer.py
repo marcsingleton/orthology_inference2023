@@ -66,14 +66,10 @@ unusual patterns of indels and chance similarities between segments that are ove
 HMMer uses when building its profiles. Placing more weight on the observed sequences typically corrects these issues. 
 
 DEPENDENCIES
-../align_fastas1/align_fastas1.py
-    ../align_fastas1/out/*.afa
-../align_fastas2/align_fastas2.py
-    ../align_fastas2/out/*.afa
 ../make_fastas1/make_fastas1.py
-    ../align_fastas1/out/*.fa
+    ../make_fastas1/out/*.fa
 ../make_fastas2/make_fastas2.py
-    ../align_fastas2/out/*.fa
+    ../make_fastas2/out/*.fa
 ../realign_trim/realign_trim.py
     ../realign_trim/out/*.afa
 """
