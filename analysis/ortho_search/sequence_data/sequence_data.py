@@ -78,6 +78,6 @@ full database file, so they were simply manually corrected in the source FASTAs.
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/fasta/dmel-all-translation-r6.38.fasta
 ../config/genomes.tsv
 """

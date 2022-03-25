@@ -216,7 +216,7 @@ if __name__ == '__main__':
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.34_FB2020_03/fasta/dmel-all-translation-r6.34.fasta
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/fasta/dmel-all-translation-r6.38.fasta
 ../../ortho_cluster3/cluster4+_graph/cluster4+_graph.py
     ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
 ../../ortho_search/sequence_data/sequence_data.py
