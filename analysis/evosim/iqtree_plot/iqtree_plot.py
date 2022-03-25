@@ -12,15 +12,15 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Circle, Ellipse
 
 alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
-labels = [('disorder_0%', '0red_D'), ('disorder_50%', '50red_D'), ('disorder_100%', '100red_D'),
-          ('order_0%', '0red_O'), ('order_50%', '50red_O'), ('order_100%', '100red_O')]
-Record = namedtuple('Record', ['plot_label', 'file_label', 'matrix', 'freqs'])
+labels = ['0R_disorder', '50R_disorder', '100R_disorder',
+          '0R_order', '50R_order', '100R_order']
+Record = namedtuple('Record', ['label', 'matrix', 'freqs'])
 
 # Read WAG model
 with open('../config/WAG.txt') as file:
     # Parse exchangeability matrix
     WAG_matrix = np.zeros((len(alphabet), len(alphabet)))
-    for i in range(19):
+    for i in range(len(alphabet)-1):
         line = file.readline()
         for j, value in enumerate(line.split()):
             WAG_matrix[i + 1, j] = float(value)
@@ -35,8 +35,8 @@ WAG_matrix = WAG_matrix / rate  # Normalize average rate to 1
 
 # Read IQ-TREE matrices
 records = []
-for plot_label, file_label in labels:
-    with open(f'../iqtree_fit/out/{file_label}.iqtree') as file:
+for label in labels:
+    with open(f'../iqtree_fit/out/{label}.iqtree') as file:
         # Move to exchangeability matrix and parse
         line = file.readline()
         while not line.startswith('Substitution parameters'):
@@ -73,7 +73,7 @@ for plot_label, file_label in labels:
 
     rate = (freqs * (freqs * matrix).sum(axis=1)).sum()
     matrix = matrix / rate
-    records.append(Record(plot_label, file_label, matrix, freqs))
+    records.append(Record(label, matrix, freqs))
 
 # Make plots
 if not os.path.exists('out/'):
@@ -84,10 +84,10 @@ fig, axs = plt.subplots(2, 3, figsize=(8, 6))
 vmax = max([record.matrix.max() for record in records])
 for ax, record in zip(axs.ravel(), records):
     ax.imshow(record.matrix, vmax=vmax)
-    ax.set_title(record.plot_label)
-    ax.set_xticks(range(20))
+    ax.set_title(record.label)
+    ax.set_xticks(range(len(alphabet)))
     ax.set_xticklabels(alphabet, fontdict={'fontsize': 7})
-    ax.set_yticks(range(20))
+    ax.set_yticks(range(len(alphabet)))
     ax.set_yticklabels(alphabet, fontdict={'fontsize': 7})
 fig.colorbar(ScalarMappable(Normalize(0, vmax)), ax=axs, fraction=0.025)
 plt.savefig('out/heatmap_all.png', bbox_inches='tight')
@@ -97,12 +97,12 @@ plt.close()
 scale = 0.0325
 fig, axs = plt.subplots(2, 3, figsize=(8, 6))
 for ax, record in zip(axs.ravel(), records):
-    ax.set_title(record.plot_label)
-    ax.set_xlim(0, 20)
-    ax.set_xticks(range(1, 21))
+    ax.set_title(record.label)
+    ax.set_xlim(0, len(alphabet))
+    ax.set_xticks(range(1, len(alphabet)+1))
     ax.set_xticklabels(alphabet, fontdict={'fontsize': 7})
-    ax.set_ylim(0, 20)
-    ax.set_yticks(range(1, 21))
+    ax.set_ylim(0, len(alphabet))
+    ax.set_yticks(range(1, len(alphabet)+1))
     ax.set_yticklabels(alphabet[::-1], fontdict={'fontsize': 7})
     ax.grid(True)
     ax.set_axisbelow(True)
@@ -112,24 +112,24 @@ for ax, record in zip(axs.ravel(), records):
         for j, value in enumerate(row):
             if j >= i:
                 continue
-            c = Circle((j+1, 20-i), scale*value, color='black')
+            c = Circle((j+1, len(alphabet)-i), scale*value, color='black')
             ax.add_patch(c)
-plt.savefig('out/dotplot_all.png', bbox_inches='tight')
+plt.savefig('out/bubble_all.png', bbox_inches='tight')
 plt.close()
 
 # 3 DOT COMPARISONS
 scale = 0.03
-pairs = [(records[1].plot_label, records[1].file_label, records[1].matrix, 'black', 'WAG', 'WAG', WAG_matrix, 'white'),
-         (records[4].plot_label, records[4].file_label, records[4].matrix, 'grey', 'WAG', 'WAG', WAG_matrix, 'white'),
-         (records[1].plot_label, records[1].file_label, records[1].matrix, 'black', records[4].plot_label, records[4].file_label, records[4].matrix, 'grey')]
-for pl1, fl1, m1, c1, pl2, fl2, m2, c2 in pairs:
+pairs = [(records[1].label, records[1].matrix, 'black', 'WAG', WAG_matrix, 'white'),
+         (records[4].label, records[4].matrix, 'grey', 'WAG', WAG_matrix, 'white'),
+         (records[1].label, records[1].matrix, 'black', records[4].label, records[4].matrix, 'grey')]
+for l1, m1, c1, l2, m2, c2 in pairs:
     fig, ax = plt.subplots(figsize=(9, 4))
-    ax.set_xlim(0, 20)
-    ax.set_xticks(range(1, 21))
-    ax.set_xticklabels(alphabet, fontdict={'fontsize': 8})
-    ax.set_ylim(0, 20)
-    ax.set_yticks(range(1, 21))
-    ax.set_yticklabels(alphabet[::-1], fontdict={'fontsize': 8})
+    ax.set_xlim(0, len(alphabet))
+    ax.set_xticks(range(1, len(alphabet)+1))
+    ax.set_xticklabels(alphabet, fontdict={'fontsize': 7})
+    ax.set_ylim(0, len(alphabet))
+    ax.set_yticks(range(1, len(alphabet)+1))
+    ax.set_yticklabels(alphabet[::-1], fontdict={'fontsize': 7})
     ax.grid(True)
     ax.set_axisbelow(True)
     ax.set_aspect(0.5)  # Scale vertical axis half of horizontal axis
@@ -138,35 +138,35 @@ for pl1, fl1, m1, c1, pl2, fl2, m2, c2 in pairs:
         for j, value in enumerate(row):
             if j >= i:
                 continue
-            c = Ellipse((j + 1, 20 - i), height=2*scale*value, width=scale*value, facecolor=c1, edgecolor='black')
+            c = Ellipse((j+1, len(alphabet)-i), height=2*scale*value, width=scale*value, facecolor=c1, edgecolor='black')
             ax.add_patch(c)
     for i, row in enumerate(m2):
         for j, value in enumerate(row):
             if j >= i:
                 continue
-            c = Ellipse((j + 1.5, 20 - i), height=2*scale*value, width=scale*value, facecolor=c2, edgecolor='black')
+            c = Ellipse((j+1.5, len(alphabet)-i), height=2*scale*value, width=scale*value, facecolor=c2, edgecolor='black')
             ax.add_patch(c)
-    handles = [Line2D([], [], label=pl1, marker='o', markerfacecolor=c1, markeredgecolor='black', markersize=8, linestyle='None'),
-               Line2D([], [], label=pl2, marker='o', markerfacecolor=c2, markeredgecolor='black', markersize=8, linestyle='None')]
+    handles = [Line2D([], [], label=l1, marker='o', markerfacecolor=c1, markeredgecolor='black', markersize=8, linestyle='None'),
+               Line2D([], [], label=l2, marker='o', markerfacecolor=c2, markeredgecolor='black', markersize=8, linestyle='None')]
     ax.legend(handles=handles, bbox_to_anchor=(1, 0.5), loc='center left')
 
-    plt.savefig(f'out/dotplot_adj_{fl1}-{fl2}.png', bbox_inches='tight')
+    plt.savefig(f'out/bubble_adj_{l1}-{l2}.png', bbox_inches='tight')
     plt.close()
 
 # 4 RATIO DOT COMPARISONS
 scale = 0.15
-pairs = [(records[1].plot_label, records[1].file_label, records[1].matrix, 'WAG', 'WAG', WAG_matrix),
-         (records[4].plot_label, records[4].file_label, records[4].matrix, 'WAG', 'WAG', WAG_matrix),
-         (records[1].plot_label, records[1].file_label, records[1].matrix, records[4].plot_label, records[4].file_label, records[4].matrix)]
-for pl1, fl1, m1, pl2, fl2, m2 in pairs:
+pairs = [(records[1].label, records[1].matrix, 'WAG', WAG_matrix),
+         (records[4].label, records[4].matrix, 'WAG', WAG_matrix),
+         (records[1].label, records[1].matrix, records[4].label, records[4].matrix)]
+for l1, m1, l2, m2 in pairs:
     fig, ax = plt.subplots()
-    ax.set_title(f'log10 ratio of {pl1} to {pl2}')
-    ax.set_xlim(0, 20)
-    ax.set_xticks(range(1, 21))
-    ax.set_xticklabels(alphabet, fontdict={'fontsize': 8})
-    ax.set_ylim(0, 20)
-    ax.set_yticks(range(1, 21))
-    ax.set_yticklabels(alphabet[::-1], fontdict={'fontsize': 8})
+    ax.set_title(f'log10 ratio of {l1} to {l2}')
+    ax.set_xlim(0, len(alphabet))
+    ax.set_xticks(range(1, len(alphabet)+1))
+    ax.set_xticklabels(alphabet, fontdict={'fontsize': 7})
+    ax.set_ylim(0, len(alphabet))
+    ax.set_yticks(range(1, len(alphabet)+1))
+    ax.set_yticklabels(alphabet[::-1], fontdict={'fontsize': 7})
     ax.grid(True)
     ax.set_axisbelow(True)
     ax.set_aspect(1)
@@ -175,7 +175,7 @@ for pl1, fl1, m1, pl2, fl2, m2 in pairs:
         for j, value in enumerate(row):
             if j >= i:
                 continue
-            c = Circle((j+1, 20-i), scale*abs(value), facecolor='black' if value > 1 else 'white', edgecolor='black')
+            c = Circle((j+1, len(alphabet)-i), scale*abs(value), facecolor='black' if value > 1 else 'white', edgecolor='black')
             ax.add_patch(c)
 
     # Make legend
@@ -195,23 +195,23 @@ for pl1, fl1, m1, pl2, fl2, m2 in pairs:
     ax.add_patch(Circle((22, 6.5), 2.5*scale, facecolor='white', edgecolor='black', clip_on=False))
     ax.text(23, 6.5, 'R < 1', size=8, va='center', clip_on=False)
 
-    plt.savefig(f'out/dotplot_ratio_{fl1}-{fl2}.png')
+    plt.savefig(f'out/bubble_ratio_{l1}-{l2}.png')
     plt.close()
 
 # 5 DIFFERENCE DOT COMPARISONS
 scale = 0.06
-pairs = [(records[1].plot_label, records[1].file_label, records[1].matrix, 'WAG', 'WAG', WAG_matrix),
-         (records[4].plot_label, records[4].file_label, records[4].matrix, 'WAG', 'WAG', WAG_matrix),
-         (records[1].plot_label, records[1].file_label, records[1].matrix, records[4].plot_label, records[4].file_label, records[4].matrix)]
-for pl1, fl1, m1, pl2, fl2, m2 in pairs:
+pairs = [(records[1].label, records[1].matrix, 'WAG', WAG_matrix),
+         (records[4].label, records[4].matrix, 'WAG', WAG_matrix),
+         (records[1].label, records[1].matrix, records[4].label, records[4].matrix)]
+for l1, m1, l2, m2 in pairs:
     fig, ax = plt.subplots()
-    ax.set_title(f'Difference of {pl1} and {pl2}')
-    ax.set_xlim(0, 20)
-    ax.set_xticks(range(1, 21))
-    ax.set_xticklabels(alphabet, fontdict={'fontsize': 8})
-    ax.set_ylim(0, 20)
-    ax.set_yticks(range(1, 21))
-    ax.set_yticklabels(alphabet[::-1], fontdict={'fontsize': 8})
+    ax.set_title(f'Difference of {l1} and {l2}')
+    ax.set_xlim(0, len(alphabet))
+    ax.set_xticks(range(1, len(alphabet)+1))
+    ax.set_xticklabels(alphabet, fontdict={'fontsize': 7})
+    ax.set_ylim(0, len(alphabet))
+    ax.set_yticks(range(1, len(alphabet)+1))
+    ax.set_yticklabels(alphabet[::-1], fontdict={'fontsize': 7})
     ax.grid(True)
     ax.set_axisbelow(True)
     ax.set_aspect(1)
@@ -220,7 +220,7 @@ for pl1, fl1, m1, pl2, fl2, m2 in pairs:
         for j, value in enumerate(row):
             if j >= i:
                 continue
-            c = Circle((j+1, 20-i), scale*abs(value), facecolor='black' if value > 0 else 'white', edgecolor='black')
+            c = Circle((j+1, len(alphabet)-i), scale*abs(value), facecolor='black' if value > 0 else 'white', edgecolor='black')
             ax.add_patch(c)
 
     # Make legend
@@ -240,18 +240,18 @@ for pl1, fl1, m1, pl2, fl2, m2 in pairs:
     ax.add_patch(Circle((22, 6.5), 4*scale, facecolor='white', edgecolor='black', clip_on=False))
     ax.text(23, 6.5, 'D < 0', size=8, va='center', clip_on=False)
 
-    plt.savefig(f'out/dotplot_diff_{fl1}-{fl2}.png')
+    plt.savefig(f'out/bubble_diff_{l1}-{l2}.png')
     plt.close()
 
 # 6 FREQUENCIES
 width = 0.2
-bars = [(records[1].plot_label, records[1].freqs, 'black'),
-        (records[4].plot_label, records[4].freqs, 'grey'),
+bars = [(records[1].label, records[1].freqs, 'black'),
+        (records[4].label, records[4].freqs, 'grey'),
         ('WAG', WAG_freqs, 'white')]
 plt.figure(figsize=(8, 4))
-for i, (plot_label, freqs, color) in enumerate(bars):
+for i, (label, freqs, color) in enumerate(bars):
     dx = -len(bars)//2 + i + (1.5 if len(bars)%2 == 0 else 1)
-    plt.bar([x+width*dx for x in range(len(alphabet))], freqs, label=plot_label, facecolor=color, edgecolor='black', width=width)
+    plt.bar([x+width*dx for x in range(len(alphabet))], freqs, label=label, facecolor=color, edgecolor='black', width=width)
 plt.xticks(range(len(alphabet)), alphabet)
 plt.xlabel('Amino acid')
 plt.ylabel('Frequency')

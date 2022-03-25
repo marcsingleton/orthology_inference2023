@@ -21,7 +21,7 @@ conda activate IDREvoDevo
 module load gnu-parallel
 
 for file in $(ls ../make_meta/out/); do
-  if [[ $file == *.fasta ]]; then
-    bash iqtree_fit.sh $(basename $file .fasta)
+  if [[ $file == *.afa ]]; then
+    bash iqtree_fit.sh $(basename $file .afa)
   fi
 done

@@ -1,22 +1,28 @@
 """Make meta alignments of ordered and disordered regions."""
 
 import os
-from collections import namedtuple
-from random import randrange, seed
 
+import numpy.random
 from src.utils import read_fasta
 
 
-def is_redundant(col, cutoff):
-    gapnum = 0
-    for _, sym in col:
+def is_redundant(column, cutoff):
+    count = 0
+    for sym in column:
         if sym in ['-', '.', 'X']:
-            gapnum += 1
-    return gapnum <= (1 - cutoff) * len(col)
+            count += 1
+    return count <= (1 - cutoff) * len(column)
 
 
-Column = namedtuple('Column', ['spid', 'sym'])
-seed(930715)  # Set seed to make results consistent
+rng = numpy.random.default_rng(seed=930715)
+
+# Parse genomes
+spids = []
+with open('../../ortho_MSA/config/genomes.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        spids.append(line.split()[0])
+spid2idx = {spid: i for i, spid in enumerate(spids)}
 
 # Load regions
 OGid2regions = {}
@@ -30,41 +36,36 @@ with open('../../brownian2/aucpred_regions/out/regions.tsv') as file:
             OGid2regions[OGid] = [(int(start), int(stop), disorder)]
 
 # Extract column pools
-colpools = [('100red_D', lambda col: is_redundant(col, 1), []),
-            ('100red_O', lambda col: is_redundant(col, 1), []),
-            ('50red_D', lambda col: is_redundant(col, 0.5), []),
-            ('50red_O', lambda col: is_redundant(col, 0.5), []),
-            ('0red_D', lambda col: is_redundant(col, 0), []),
-            ('0red_O', lambda col: is_redundant(col, 0), [])]
-for OGid, regions in OGid2regions.items():  # Because inputs are not sorted, results are not guaranteed to be consistent
-    msa = read_fasta(f'../../brownian2/insertion_trim/out/{OGid}.afa')
-    if len(msa) < 31:  # Only use alignments with all species
+column_pools = [('100R_disorder', True, lambda column: is_redundant(column, 1), []),
+                ('100R_order', False, lambda column: is_redundant(column, 1), []),
+                ('50R_disorder', True, lambda column: is_redundant(column, 0.5), []),
+                ('50R_order', False, lambda column: is_redundant(column, 0.5), []),
+                ('0R_disorder', True, lambda column: is_redundant(column, 0), []),
+                ('0R_order', False, lambda column: is_redundant(column, 0), [])]
+for OGid, regions in sorted(OGid2regions.items()):
+    msa = sorted([(header[-4:], seq) for header, seq in read_fasta(f'../../brownian2/insertion_trim/out/{OGid}.afa')], key=lambda x: spid2idx[x[0]])
+    if len(msa) < len(spids):  # Only use alignments with all species
         continue
-
-    for start, stop, disorder in regions:
+    for start, stop, region_disorder in regions:
         for i in range(start, stop):
-            col = [Column(header[-4:], seq[i]) for header, seq in msa]
-            tag = 'D' if disorder == 'True' else 'O'
-            for label, condition, colpool in colpools:
-                if label[-1] == tag and condition(col):
-                    colpool.append(col)
+            column = [seq[i] for _, seq in msa]
+            for _, pool_disorder, condition, column_pool in column_pools:
+                if (region_disorder is pool_disorder) and condition(column):
+                    column_pool.append(column)
 
 # Make meta alignments
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-for label, _, colpool in colpools:
-    print(f'{label}:', len(colpool))
-    sample = [colpool[randrange(len(colpool))] for _ in range(int(1E5))]
-    seqs = {}
-    for col in sample:
-        for spid, sym in col:
-            try:
-                seqs[spid].append(sym)
-            except KeyError:
-                seqs[spid] = [sym]
+for label, _, _, column_pool in column_pools:
+    print(f'{label}:', len(column_pool))
+    sample = rng.choice(column_pool, size=int(1E5))
+    seqs = {spid: [] for spid in spids}
+    for column in sample:
+        for i, sym in enumerate(column):
+            seqs[spids[i]].append(sym)
 
-    with open(f'out/{label}.fasta', 'w') as file:
+    with open(f'out/{label}.afa', 'w') as file:
         for spid, seq in sorted(seqs.items()):
             seqstring = '\n'.join([''.join(seq[i:i+80]) for i in range(0, len(seq), 80)]) + '\n'
             file.write(f'>{spid} {label}\n' + seqstring)
@@ -83,4 +84,5 @@ DEPENDENCIES
     ../..brownian2/aucpred_regions/out/regions.tsv
 ../../brownian2/insertion_trim/extract.py
     ../../brownian2/insertion_trim/out/*.afa
+../../ortho_MSA/config/genomes.tsv
 """
