@@ -21,8 +21,8 @@ tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skb
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
 records = []
-for OGid in [path.split('.mfa')[0] for path in os.listdir('../realign_hmmer/out/') if path.endswith('.mfa')]:
-    msa = [(re.search(spid_regex, header).group(1), seq.upper()) for header, seq in read_fasta(f'../realign_hmmer/out/{OGid}.mfa')]
+for OGid in [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/out/') if path.endswith('.afa')]:
+    msa = [(re.search(spid_regex, header).group(1), seq.upper()) for header, seq in read_fasta(f'../realign_hmmer/out/{OGid}.afa')]
 
     idx = 0
     for j in range(len(msa[0][1])):
@@ -130,5 +130,5 @@ DEPENDENCIES
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/*.mfa
+    ../realign_hmmer/out/*.afa
 """

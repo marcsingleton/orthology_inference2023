@@ -30,7 +30,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 for OGid, labels in OGid2labels.items():
-    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.mfa'))
+    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.afa'))
     msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
     if labels['0'] and labels['0'][0][0] == 0:
@@ -53,7 +53,7 @@ for OGid, labels in OGid2labels.items():
 """
 DEPENDENCIES
 ../../ortho_MSA/realign_hmmer/realign_hmmer.py
-    ../../ortho_MSA/realign_hmmer/out/*.mfa
+    ../../ortho_MSA/realign_hmmer/out/*.afa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../config/segments.tsv

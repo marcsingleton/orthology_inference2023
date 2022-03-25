@@ -14,10 +14,10 @@ def hmm_align(OGid):
     else:
         path = f'../make_fastas2/out/{OGid}.fa'
     run(f'../../../bin/hmmbuild --hand --eset {1.5*gnidnum} --wnone out/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/{OGid}.txt', shell=True, check=True)
-    run(f'../../../bin/hmmalign --outformat afa out/{OGid}.hmm {path} > out/{OGid}_temp.mfa', shell=True, check=True)
+    run(f'../../../bin/hmmalign --outformat afa out/{OGid}.hmm {path} > out/{OGid}_temp.afa', shell=True, check=True)
 
     # Remove excess gaps
-    msa = read_fasta(f'out/{OGid}_temp.mfa')
+    msa = read_fasta(f'out/{OGid}_temp.afa')
     slices, idx = [], None
     for j in range(len(msa[0][1])):
         for i in range(len(msa)):
@@ -34,12 +34,12 @@ def hmm_align(OGid):
         slices.append(slice(idx, len(msa[0][1])))
 
     # Write to file and remove temp alignment
-    with open(f'out/{OGid}.mfa', 'w') as file:
+    with open(f'out/{OGid}.afa', 'w') as file:
         for header, seq1 in msa:
             seq2 = ''.join([seq1[s] for s in slices])
             seqstring = '\n'.join([seq2[i:i+80] for i in range(0, len(seq2), 80)]) + '\n'
             file.write(header + '\n' + seqstring)
-    os.remove(f'out/{OGid}_temp.mfa')
+    os.remove(f'out/{OGid}_temp.afa')
 
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])

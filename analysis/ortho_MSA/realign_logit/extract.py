@@ -28,9 +28,9 @@ OGids = ['4bb0', '13ff', '15e6', '39c2', '3f97', '1417', '1832', '06ef',
 rows = []
 for OGid in OGids:
     try:
-        msa = read_fasta(f'../align_fastas1/out/{OGid}.mfa')
+        msa = read_fasta(f'../align_fastas1/out/{OGid}.afa')
     except FileNotFoundError:
-        msa = read_fasta(f'../align_fastas2/out/{OGid}.mfa')
+        msa = read_fasta(f'../align_fastas2/out/{OGid}.afa')
 
     gaps_array = np.full((len(msa), len(msa[0][1])), False)
     for i, (_, seq) in enumerate(msa):
@@ -59,7 +59,7 @@ DEPENDENCIES
 ../config/BLOSUM62.txt
 ../config/trim_params.json
 ../align_fastas1/align_fastas1.py
-    ../align_fastas1/out/*.mfa
+    ../align_fastas1/out/*.afa
 ../align_fastas2/align_fastas2.py
-    ../align_fastas2/out/*.mfa
+    ../align_fastas2/out/*.afa
 """
