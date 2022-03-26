@@ -189,7 +189,7 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
 
         block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
         x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
-        msa_ax.imshow(block, extent=[x_left, x_right, 0, block_rows], origin='lower')
+        msa_ax.imshow(block, extent=[x_left, x_right, block_rows, 0])
         msa_ax.set_yticks([x+0.5 for x in range(ROWS)])
         msa_ax.set_yticklabels(msa_labels)
         msa_ax.tick_params(axis='y', length=0, labelsize=msa_labelsize)
@@ -293,7 +293,7 @@ def plot_msa(msa, figsize=(12, 6),
 
         block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
         x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
-        msa_ax.imshow(block, extent=[x_left, x_right, 0, block_rows], origin='lower')
+        msa_ax.imshow(block, extent=[x_left, x_right, block_rows, 0])
         msa_ax.set_yticks([x+0.5 for x in range(ROWS)])
         msa_ax.set_yticklabels(msa_labels)
         msa_ax.tick_params(axis='y', length=0, labelsize=msa_labelsize)
@@ -315,8 +315,6 @@ def plot_msa(msa, figsize=(12, 6),
         for color, aas in color2aas.items():
             handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', markersize=legend_markersize, label=', '.join(aas)))
         fig.legend(handles=handles, **legend_kwargs)
-    return fig
-
     return fig
 
 
@@ -428,12 +426,12 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
     return fig, ax
 
 
-default_aa2color = {'A': '6dd7a1', 'I': '55c08c', 'L': '55c08c', 'V': '55c08c', 'M': '55c08c',
-                    'F': 'b897ec', 'Y': 'b897ec', 'W': 'a180d2',
-                    'S': 'ffbe74', 'T': 'ffbe74',
-                    'N': '77eaf4', 'Q': '77eaf4',
-                    'D': 'ee8485', 'E': 'ee8485',
-                    'H': '96c4ff', 'K': '7fadea', 'R': '7fadea',
-                    'C': 'faed70', 'G': 'e2dedd', 'P': 'ffb1f1',
-                    'X': '93908f', '-': 'ffffff', '.': '3f3f3f'}
-default_gap2color = {'-': '3f3f3f', '.': 'ffffff'}
+default_aa2color = {'A': '6DD7A1', 'I': '55C08C', 'L': '55C08C', 'V': '55C08C', 'M': '55C08C',
+                    'F': 'B897EC', 'Y': 'B897EC', 'W': 'A180D2',
+                    'S': 'FFBE74', 'T': 'FFBE74',
+                    'N': '77EAF4', 'Q': '77EAF4',
+                    'D': 'EE8485', 'E': 'EE8485',
+                    'H': '96C4FF', 'K': '7FADEA', 'R': '7FADEA',
+                    'C': 'FAED70', 'G': 'E2DEDD', 'P': 'FFB1F1',
+                    'X': '93908F', '-': 'FFFFFF', '.': '3F3F3F'}
+default_gap2color = {'-': '3F3F3F', '.': 'FFFFFF'}
