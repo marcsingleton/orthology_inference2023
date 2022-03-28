@@ -41,9 +41,9 @@ for subject_spid in spids:
 
 """
 DEPENDENCIES
-../../../data/ncbi_annotations/*/*/*/*_protein.faa
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/fasta/dmel-all-translation-r6.38.fasta
 ../config/genomes.tsv
 ../blast_makedbs/blast_makedbs.sh
     ../blast_makedbs/out/*
+../remove_duplicates/remove_duplicates.py
+    ../remove_duplicates.out/*.fa
 """
