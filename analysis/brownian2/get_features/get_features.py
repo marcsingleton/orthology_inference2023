@@ -49,7 +49,7 @@ if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
         records = pool.map(get_features, args, chunksize=50)
 
-    # Write output
+    # Write features to file
     if not os.path.exists('out/'):
         os.mkdir('out/')
 

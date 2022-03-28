@@ -68,7 +68,6 @@ OG4s = load_OGs('../cluster4+_graph/out/4clique/clusters.tsv')
 OG5s = load_OGs('../cluster4+_graph/out/5clique/clusters.tsv')
 OG6s = load_OGs('../cluster4+_graph/out/6clique/clusters.tsv')
 
-# Make output directory
 if not os.path.exists('out/'):
     os.mkdir('out/')
 

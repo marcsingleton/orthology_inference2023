@@ -143,7 +143,6 @@ if __name__ == '__main__':
     labels = ['all', 'filter1', 'filter2']
     colors = ['C0', 'C1', 'C2']
 
-    # Make output directory
     if not os.path.exists('out/blast/'):
         os.makedirs('out/blast/')
 

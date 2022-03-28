@@ -7,7 +7,6 @@ import skbio
 from src.draw import plot_tree
 from src.ortho_tree.tree import majority_consensus
 
-
 if not os.path.exists('out/'):
     os.mkdir('out/')
 

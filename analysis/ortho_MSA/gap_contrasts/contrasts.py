@@ -37,11 +37,7 @@ spids = {tip.name for tip in tree_template.tips() if tip.name != 'sleb'}
 OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
 
 # Calculate contrasts
-if not os.path.exists('out/'):
-    os.mkdir('out/')
-
-totals = []
-rows = []
+totals, rows = [], []
 for record in OG_filter.itertuples():
     if record.ppdidnum == record.gnidnum:
         msa = read_fasta(f'../align_fastas1/out/{record.OGid}.afa')
@@ -63,6 +59,10 @@ for record in OG_filter.itertuples():
     if len(msa) == len(spids):
         row_sums = list(np.abs(contrasts).sum(axis=1))
         rows.append([record.OGid, str(len1), str(len2)] + [str(row_sum) for row_sum in row_sums])
+
+# Write contrasts to file
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 with open('out/total_sums.tsv', 'w') as file:
     header = '\t'.join(['OGid', 'gnidnum', 'len1', 'len2', 'total']) + '\n'

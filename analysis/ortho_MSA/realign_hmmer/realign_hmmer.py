@@ -53,10 +53,10 @@ with open('../OG_filter/out/OG_filter.tsv') as file:
         OGid, ppidnum, gnidnum = fields[1], int(fields[5]), int(fields[7])
         OGid2data[OGid] = (ppidnum, gnidnum)
 
-if not os.path.exists('out/'):
-    os.mkdir('out/')
-
 if __name__ == '__main__':
+    if not os.path.exists('out/'):
+        os.mkdir('out/')
+
     with mp.Pool(processes=num_processes) as pool:
         pool.map(hmm_align, OGid2data)
 

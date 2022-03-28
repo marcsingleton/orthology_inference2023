@@ -17,9 +17,8 @@ with open('../config/genomes.tsv') as file:
     for line in file:
         spids.append(line.split()[0])
 
-# Make output directory
 if not os.path.exists(f'out/{query_spid}/'):
-    os.makedirs(f'out/{query_spid}/')  # Recursive folder creation
+    os.makedirs(f'out/{query_spid}/')
 
 # Execute BLASTs
 for subject_spid in spids:

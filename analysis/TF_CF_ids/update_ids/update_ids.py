@@ -75,7 +75,7 @@ print('Total TFs:', len(TFs))
 print('Unique Stampfel et al.:', len(TFs1 - TFs2))
 print('Unique Hens et al.:', len(TFs2 - TFs1))
 
-# Write to file
+# Write updated IDs to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
 

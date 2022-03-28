@@ -44,11 +44,7 @@ with open('../aucpred_filter/out/regions_30.tsv') as file:
         regions.append((OGid, int(start), int(stop), set(ppids.split(','))))
 
 # Calculate contrasts
-if not os.path.exists('out/'):
-    os.mkdir('out/')
-
-totals = []
-rows = []
+totals, rows = [], []
 for OGid, start, stop, ppids in regions:
     msa = {}
     for header, seq in read_fasta(f'../insertion_trim/out/{OGid}.afa'):
@@ -71,6 +67,10 @@ for OGid, start, stop, ppids in regions:
     if len(msa) == len(spids):
         row_sums = list(np.abs(contrasts).sum(axis=1))
         rows.append([OGid, str(start), str(stop), str(len1), str(len2)] + [str(row_sum) for row_sum in row_sums])
+
+# Write contrasts to file
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 with open('out/total_sums.tsv', 'w') as file:
     header = '\t'.join(['OGid', 'start', 'stop', 'gnidnum', 'len1', 'len2', 'total']) + '\n'

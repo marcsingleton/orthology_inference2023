@@ -100,9 +100,8 @@ for component_id, component in components:
         rows_k.append({'component_id': component_id, 'component_type': component_type, 'OGnum': len(OGs)})
 
 for k, OG_records_k, rows_k in zip(ks, OG_records_ks, rows_ks):
-    # Make plots output directory
     if not os.path.exists(f'out/{k}clique/'):
-        os.makedirs(f'out/{k}clique/')  # Recursive folder creation
+        os.makedirs(f'out/{k}clique/')
 
     # Write OGs to file
     j = 0

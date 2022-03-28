@@ -74,12 +74,12 @@ plt.close()
 
 # Plots of individual segment sets
 for min_length in min_lengths:
+    if not os.path.exists(f'out/regions_{min_length}/'):
+        os.mkdir(f'out/regions_{min_length}/')
+
     segments = df[df['min_length'] == min_length].merge(features, how='left', on=['OGid', 'start', 'stop', 'ppid'])
     regions = segments.groupby(['OGid', 'start', 'stop', 'disorder'])
     mean = regions.mean()
-
-    if not os.path.exists(f'out/regions_{min_length}/'):
-        os.mkdir(f'out/regions_{min_length}/')
 
     # Mean region length histogram
     fig, axs = plt.subplots(2, 1, sharex=True)

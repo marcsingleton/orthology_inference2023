@@ -127,9 +127,8 @@ if __name__ == '__main__':
         colors = ['C1', 'C2', 'C3', 'C4']
 
     # 1 BLAST METRICS
-    # Make BLAST output directory
     if not os.path.exists('out/blast/'):
-        os.makedirs('out/blast/')  # Recursive folder creation
+        os.makedirs('out/blast/')
 
     # 1 FILTER PLOTS
     ys1 = [len(hsps0), len(hsps1),
@@ -230,7 +229,6 @@ if __name__ == '__main__':
         plt.close()
 
     # 2 HIT METRICS
-    # Make hits output directory
     if not os.path.exists('out/hits/'):
         os.mkdir('out/hits/')
 

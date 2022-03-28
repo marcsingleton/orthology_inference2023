@@ -191,6 +191,7 @@ start_t_dist = {state: count/total for state, count in start_t_count.items()}
 # Save parameters
 if not os.path.exists('out/'):
     os.mkdir('out/')
+
 with open('out/model.json', 'w') as file:
     json.dump({'t_dists': t_dists, 'e_dists': e_dists, 'start_t_dist': start_t_dist}, file)
 

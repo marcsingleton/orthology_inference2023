@@ -55,10 +55,6 @@ for spid, source, prot_path in genomes:
 print('Out-of-alphabet symbols detected:', syms)
 print()
 
-# Make plots output directory
-if not os.path.exists('out/'):
-    os.mkdir('out/')
-
 # Define dataframe and groups
 df = pd.DataFrame(rows)
 
@@ -67,6 +63,9 @@ ncbi_spids = [spid for spid, source, _ in genomes if source == 'NCBI']
 ncbi_positions = [i for i, (_, source, _) in enumerate(sorted(genomes)) if source == 'NCBI']
 flybase_spids = [spid for spid, source, _ in genomes if source == 'FlyBase']
 flybase_positions = [i for i, (_, source, _) in enumerate(sorted(genomes)) if source == 'FlyBase']
+
+if not os.path.exists('out/'):
+    os.mkdir('out/')
 
 # 1.1 Distribution of proteins across species
 spid2ppidnum = df['spid'].value_counts()

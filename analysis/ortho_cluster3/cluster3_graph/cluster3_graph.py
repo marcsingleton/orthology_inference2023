@@ -53,7 +53,6 @@ for component_id, component in components:
 
     rows.append({'component_id': component_id, 'component_type': component_type, 'OGnum': len(OGs)})
 
-# Make plots output directory
 if not os.path.exists('out/'):
     os.mkdir('out/')
 

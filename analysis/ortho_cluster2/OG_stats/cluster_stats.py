@@ -38,9 +38,8 @@ OGidnum = OGs['OGid'].nunique()
 ppidnum = OGs['ppid'].nunique()
 gnidnum = OGs['gnid'].nunique()
 
-# Make output directory
 if not os.path.exists('out/cluster/'):
-    os.makedirs('out/cluster/')  # Recursive folder creation
+    os.makedirs('out/cluster/')
 
 # Plots
 # 1 DISTRIBUTIONS ACROSS SPECIES

@@ -29,11 +29,10 @@ for qspid, sspid in permutations(spids, 2):
             except KeyError:
                 graph[qppid] = {sppid}
 
-# Make output directory
+# Write to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-# Write to file
 with open('out/hsp_graph.tsv', 'w') as file:
     for qppid, sppids in graph.items():
         file.write(qppid + '\t' + ','.join(sppids) + '\n')

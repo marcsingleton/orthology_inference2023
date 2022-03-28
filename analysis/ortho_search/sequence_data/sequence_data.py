@@ -59,11 +59,10 @@ for spid, source, prot_path, tcds_path in genomes:
             gnid2seqs[gnid] = {seq: ppid}
             ppid2data[ppid] = (gnid, spid, ppid)
 
-# Make output directory
+# Write to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-# Write to file
 with open('out/sequence_data.tsv', 'w') as file:
     file.write('ppid\tgnid\tspid\tsqid\n')
     for ppid, data in ppid2data.items():

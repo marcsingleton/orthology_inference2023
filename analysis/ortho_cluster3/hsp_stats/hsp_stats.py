@@ -97,11 +97,10 @@ if __name__ == '__main__':
         hsps2 = hsps0[hsps0['disjoint']]
         hsps3 = hsps0[hsps0['index_hsp']]
 
-    # 0 COMPATIBLE, DISJOINT, AND INDEX SIZES
-    # Make output directory
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
+    # 0 COMPATIBLE, DISJOINT, AND INDEX SIZES
     plt.bar(['all', 'compatible', 'disjoint', 'index'], [len(hsps0), len(hsps1), len(hsps2), len(hsps3)], color=('C7', 'C6', 'C3', 'C0'), width=0.5)
     plt.ylabel('Number of HSPs')
     plt.savefig('out/bar_subsets.png')
@@ -113,14 +112,13 @@ if __name__ == '__main__':
              ('disjoint', hsps2, ('C3', 'C2')),
              ('index', hsps3, ('C0', 'C1'))]
     for data_label, hsps, colors in plots:
+        if not os.path.exists(f'out/blast_{data_label}/'):
+            os.mkdir(f'out/blast_{data_label}/')
+
         # Subset HSPs into non-reciprocal and reciprocal sets
         df0 = hsps
         df1 = hsps[hsps['reciprocal']]
         labels = ['all', 'reciprocal']
-
-        # Make BLAST output directory
-        if not os.path.exists(f'out/blast_{data_label}/'):
-            os.mkdir(f'out/blast_{data_label}/')
 
         # 1.1 FILTER PLOT
         plt.bar(labels, [len(df0), len(df1)], color=colors, width=0.25)
@@ -266,7 +264,6 @@ if __name__ == '__main__':
 
     # 2 HSP METRICS
     for data_label, hsps in [('all', hsps3), ('reciprocal', hsps3[hsps3['reciprocal']])]:
-        # Make hits output directory
         if not os.path.exists(f'out/hsps_{data_label}/'):
             os.mkdir(f'out/hsps_{data_label}/')
 

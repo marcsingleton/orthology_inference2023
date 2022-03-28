@@ -203,11 +203,10 @@ if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
         reduced_OGs = pool.starmap(reduce, OGs.items())
 
-    # Make output directory
+    # Write reduced clusters to file
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
-    # Write reduced clusters to file
     with open('out/clusters.tsv', 'w') as file:
         file.write('OGid\tppids\n')
         for OGid, reduced_OG in reduced_OGs:

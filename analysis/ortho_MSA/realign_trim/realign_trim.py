@@ -82,10 +82,10 @@ with open('../config/BLOSUM62.txt') as file:
 
 OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
 
-if not os.path.exists('out/'):
-    os.mkdir('out/')
-
 if __name__ == '__main__':
+    if not os.path.exists('out/'):
+        os.mkdir('out/')
+
     with mp.Pool(processes=num_processes) as pool:
         pool.map(trim, OG_filter['OGid'])
 

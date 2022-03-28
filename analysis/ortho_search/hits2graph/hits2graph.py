@@ -44,11 +44,10 @@ for qspid, sspid in permutations(spids, 2):
                     if cnqa / qlen >= 0.5:
                         add_edge(qppid, sppid, bitscore, graph)
 
-# Make output directory
+# Write to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-# Write to file
 with open('out/hit_graph.tsv', 'w') as file:
     for qppid, edges in graph.items():
         file.write(qppid + '\t' + ','.join([sppid + ':' + str(bitscore) for sppid, bitscore in edges]) + '\n')

@@ -19,11 +19,10 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
 components = get_connected_components(graph)
 components = sorted(filter(lambda x: len(x) > 1, components), key=get_sort_tuple)
 
-# Make output directory
+# Write clusters to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-# Write clusters to file
 with open('out/components.tsv', 'w') as file:
     file.write('component_id\tppids\n')
     for i, component in components:

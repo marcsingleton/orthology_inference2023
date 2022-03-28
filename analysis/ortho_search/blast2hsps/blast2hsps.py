@@ -44,13 +44,12 @@ def parse_file(query_spid, subject_spid):
                 break
             query_ppid, input_hsps = None, []  # Signals current search was successfully recorded
 
-    # Make output directories
-    if not os.path.exists(f'out/hsps/{query_spid}/'):
-        os.makedirs(f'out/hsps/{query_spid}/')  # Recursive folder creation
-    if not os.path.exists(f'out/nulls/{query_spid}/'):
-        os.makedirs(f'out/nulls/{query_spid}/')  # Recursive folder creation
-
     # Write HSPs and nulls to file
+    if not os.path.exists(f'out/hsps/{query_spid}/'):
+        os.makedirs(f'out/hsps/{query_spid}/')
+    if not os.path.exists(f'out/nulls/{query_spid}/'):
+        os.makedirs(f'out/nulls/{query_spid}/')
+
     with open(f'out/hsps/{query_spid}/{subject_spid}.tsv', 'w') as file:
         file.write('\t'.join(columns) + '\n')
         for hsp in output_hsps:

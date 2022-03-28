@@ -263,6 +263,7 @@ if __name__ == '__main__':
     # Save parameters
     if not os.path.exists('out/'):
         os.mkdir('out/')
+
     with open('out/model.json', 'w') as file:
         _, t_dists, e_param = max(models)
         json.dump({'t_dists': t_dists, 'e_param': e_param, 'start_dist': start_dist}, file)

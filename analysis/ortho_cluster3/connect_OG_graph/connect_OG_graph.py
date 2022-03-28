@@ -19,11 +19,10 @@ with open('../OGs2graph/out/OG_graph.tsv') as file:
 components = get_connected_components(graph)
 components = sorted(components, key=get_sort_tuple)
 
-# Make output directory
+# Write components to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-# Write components to file
 with open('out/components.tsv', 'w') as file:
     file.write('GGid\tOGids\n')
     for i, component in enumerate(components):

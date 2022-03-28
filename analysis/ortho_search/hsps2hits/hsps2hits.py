@@ -22,11 +22,10 @@ def parse_file(qspid, sspid):
             if hsps:
                 hits.append(hsps2hit(hsps))
 
-    # Make output directories
+    # Write to file
     if not os.path.exists(f'out/{qspid}/'):
-        os.makedirs(f'out/{qspid}/')  # Recursive folder creation
+        os.makedirs(f'out/{qspid}/')
 
-    # Write lines to output
     with open(f'out/{qspid}/{sspid}.tsv', 'w') as file:
         file.write('\t'.join(hit_columns) + '\n')
         for hit in hits:

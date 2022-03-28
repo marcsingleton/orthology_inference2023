@@ -40,11 +40,10 @@ if __name__ == '__main__':
         except KeyError:
             graph[qppid] = [(sppid, float(bitscore))]
 
-    # Make output directory
+    # Write to file
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
-    # Write to file
     with open('out/hit_graph.tsv', 'w') as file:
         for qppid, edges in graph.items():
             file.write(qppid + '\t' + ','.join([sppid + ':' + str(bitscore) for sppid, bitscore in edges]) + '\n')

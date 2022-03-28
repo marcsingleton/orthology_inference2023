@@ -56,7 +56,7 @@ print(f'OGs with {spidnum} species:', len(OGs[spid_filter]))
 print(f'OGs with {spidnum} species and genes:', len(OGs[spid_filter & gnid_filter]))
 print(f'OGs with {spidnum} species, genes, and sequences:', len(OGs[spid_filter & gnid_filter & ppid_filter]))
 
-# Make output directory
+# Write data to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
 

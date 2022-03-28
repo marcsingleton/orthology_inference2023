@@ -50,11 +50,10 @@ for qspid, sspid in permutations(spids, 2):
             reciprocal = cnqa / qlen >= 0.5 and is_reciprocal(qppid, sppid, graph)
             rows.append((qppid, sppid, str(reciprocal)))
 
-    # Make output directory
-    if not os.path.exists(f'out/{qspid}/'):
-        os.makedirs(f'out/{qspid}/')  # Recursive folder creation
-
     # Write to file
+    if not os.path.exists(f'out/{qspid}/'):
+        os.makedirs(f'out/{qspid}/')
+
     with open(f'out/{qspid}/{sspid}.tsv', 'w') as file:
         file.write('qppid\tsppid\treciprocal\n')
         for row in rows:
