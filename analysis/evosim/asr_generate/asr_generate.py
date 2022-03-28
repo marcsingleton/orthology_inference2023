@@ -46,8 +46,8 @@ for OGid in sorted(OGids):  # Ensure consistent order and thus consistent sample
     with open(f'out/{OGid}_sample.afa', 'w') as file:
         for i, seq in enumerate(seqs):
             seq = ''.join([idx2sym[idx] for idx in seq])
-            seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-            file.write(f'>seq{i}\n' + seqstring)
+            seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
+            file.write(f'>seq{i:04}\n{seqstring}\n')
 
 """
 NOTES

@@ -52,11 +52,11 @@ for OGid in OGids:
     for ppid in OGs[OGid]:
         gnid, spid = ppid2data[ppid]
         seq = ppid2seq[ppid]
-        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
+        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
         records.append((ppid, gnid, spid, seqstring))
     with open(f'out/{OGid}.fa', 'w') as file:
         for ppid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):
-            file.write(f'>ppid={ppid}|gnid={gnid}|spid={spid}\n' + seqstring)
+            file.write(f'>ppid={ppid}|gnid={gnid}|spid={spid}\n{seqstring}\n')
 
 """
 DEPENDENCIES

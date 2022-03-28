@@ -367,8 +367,8 @@ for path in [path for path in os.listdir('../asr_generate/out/') if path.endswit
             file.write(','.join(aligned_ids) + '\n')
         with open(f'out/{OGid}_{header[1:]}.afa', 'w') as file:
             for spid, seq in sorted(aligned_records):
-                seqstring = '\n'.join([''.join(seq)[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-                file.write(f'>{spid}\n' + seqstring)
+                seqstring = '\n'.join([''.join(seq)[i:i+80] for i in range(0, len(seq), 80)])
+                file.write(f'>{spid}\n{seqstring}\n')
 
 """
 DEPENDENCIES

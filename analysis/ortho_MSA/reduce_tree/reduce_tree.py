@@ -210,7 +210,8 @@ if __name__ == '__main__':
     with open('out/clusters.tsv', 'w') as file:
         file.write('OGid\tppids\n')
         for OGid, reduced_OG in reduced_OGs:
-            file.write(OGid + '\t' + ','.join([record[2] for record in reduced_OG]) + '\n')
+            nodestring = ','.join([record[2] for record in reduced_OG])
+            file.write(f'{OGid}\t{nodestring}\n')
 
 """
 DEPENDENCIES

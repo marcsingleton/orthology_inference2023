@@ -80,8 +80,7 @@ for OGid in [path for path in os.listdir('out/raw/') if os.path.isdir(f'out/raw/
 
 # Write segments to file
 with open('out/regions.tsv', 'w') as file:
-    fields = ['OGid', 'start', 'stop', 'disorder']
-    file.write('\t'.join(fields) + '\n')
+    file.write('OGid\tstart\tstop\tdisorder\n')
     for record in sorted(records):
         file.write('\t'.join(record) + '\n')
 

@@ -67,8 +67,8 @@ for label, _, _, column_pool in column_pools:
 
     with open(f'out/{label}.afa', 'w') as file:
         for spid, seq in sorted(seqs.items()):
-            seqstring = '\n'.join([''.join(seq[i:i+80]) for i in range(0, len(seq), 80)]) + '\n'
-            file.write(f'>{spid} {label}\n' + seqstring)
+            seqstring = '\n'.join([''.join(seq[i:i+80]) for i in range(0, len(seq), 80)])
+            file.write(f'>{spid} {label}\n{seqstring}\n')
 
 """
 OUTPUT

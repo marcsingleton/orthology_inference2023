@@ -107,8 +107,8 @@ for OGid in OGids:
     with open(f'out/{OGid}.afa', 'w') as file:
         for ppid, spid, charseq in mca:
             charseq = [sym for is_invariant, sym in zip(is_invariants, charseq) if not is_invariant]  # Filter invariant characters
-            seqstring = '\n'.join([''.join(charseq[i:i+80]) for i in range(0, len(charseq), 80)]) + '\n'
-            file.write(f'>{spid} {OGid}_{start}-{stop}|{ppid}\n' + seqstring)
+            seqstring = '\n'.join([''.join(charseq[i:i+80]) for i in range(0, len(charseq), 80)])
+            file.write(f'>{spid} {OGid}_{start}-{stop}|{ppid}\n{seqstring}\n')
 
     # Prune missing species from tree
     spids = {spid for _, spid, _ in msa}

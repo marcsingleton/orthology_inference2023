@@ -27,7 +27,8 @@ with open('out/components.tsv', 'w') as file:
     file.write('component_id\tppids\n')
     for i, component in components:
         component_id = hex(i)[2:].zfill(4).upper()
-        file.write(component_id + '\t' + ','.join(component) + '\n')
+        nodestring = ','.join(component)
+        file.write(f'{component_id}\t{nodestring}\n')
 
 """
 DEPENDENCIES

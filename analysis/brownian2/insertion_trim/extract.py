@@ -38,8 +38,8 @@ for OGid in OGids:
     with open(f'out/{OGid}.afa', 'w') as file:
         for header, seq1 in msa:
             seq2 = ''.join([seq1[s] for s in inverts])
-            seqstring = '\n'.join([seq2[i:i+80] for i in range(0, len(seq2), 80)]) + '\n'
-            file.write(header + '\n' + seqstring)
+            seqstring = '\n'.join([seq2[i:i+80] for i in range(0, len(seq2), 80)])
+            file.write(f'{header}\n{seqstring}\n')
 
 """
 DEPENDENCIES

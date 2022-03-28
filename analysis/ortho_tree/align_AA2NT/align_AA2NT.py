@@ -118,8 +118,8 @@ for path in [path for path in os.listdir('../align_fastas/out/') if path.endswit
     else:
         with open(f'out/{file_id}.afa', 'w') as file:
             for header, nt_align in nt_aligns:
-                alignstring = '\n'.join(nt_align[i:i+80] for i in range(0, len(nt_align), 80)) + '\n'
-                file.write(header + alignstring)
+                seqstring = '\n'.join(nt_align[i:i+80] for i in range(0, len(nt_align), 80))
+                file.write(f'{header}\n{seqstring}\n')
 sys.stdout.close()
 
 """

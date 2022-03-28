@@ -73,13 +73,11 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 with open('out/total_sums.tsv', 'w') as file:
-    header = '\t'.join(['OGid', 'start', 'stop', 'gnidnum', 'len1', 'len2', 'total']) + '\n'
-    file.write(header)
+    file.write('OGid\tstart\tstop\tgnidnum\tlen1\tlen2\ttotal\n')
     for total in totals:
         file.write('\t'.join(total) + '\n')
 with open('out/row_sums.tsv', 'w') as file:
-    header = '\t'.join(['OGid', 'start', 'stop', 'len1', 'len2'] + [f'row{i}' for i in range(len(spids)-1)]) + '\n'
-    file.write(header)
+    file.write('\t'.join(['OGid', 'start', 'stop', 'len1', 'len2'] + [f'row{i}' for i in range(len(spids)-1)]) + '\n')
     for row in rows:
         file.write('\t'.join(row) + '\n')
 

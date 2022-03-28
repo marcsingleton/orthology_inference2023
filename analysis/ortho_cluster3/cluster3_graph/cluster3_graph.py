@@ -63,7 +63,7 @@ with open('out/clusters.tsv', 'w') as file:
     for component_id, OG, algorithm in sorted(OG_records, key=get_sort_tuple, reverse=True):
         OGid = hex(j)[2:].zfill(4).upper()
         edgestring = ','.join([f'{node1}:{node2}' for node1, node2 in OG])
-        file.write(f'{component_id}\t{OGid}\t{algorithm}\t' + edgestring + '\n')
+        file.write(f'{component_id}\t{OGid}\t{algorithm}\t{edgestring}\n')
         j += 1
 
 # Plots

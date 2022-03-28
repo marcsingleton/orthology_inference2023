@@ -97,8 +97,7 @@ if not os.path.exists('out/'):
 
 for min_length, records in record_sets.items():
     with open(f'out/regions_{min_length}.tsv', 'w') as file:
-        fields = ['OGid', 'start', 'stop', 'disorder', 'ppids']
-        file.write('\t'.join(fields) + '\n')
+        file.write('OGid\tstart\tstop\tdisorder\tppids\n')
         for record in records:
             file.write('\t'.join(record) + '\n')
 

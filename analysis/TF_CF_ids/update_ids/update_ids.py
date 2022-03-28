@@ -81,10 +81,10 @@ if not os.path.exists('out/'):
 
 with open('out/TFs.txt', 'w') as file:
     for TF in TFs:
-        file.write(TF + '\n')
+        file.write(f'{TF}\n')
 with open('out/CFs.txt', 'w') as file:
     for CF in CFs:
-        file.write(CF + '\n')
+        file.write(f'{CF}\n')
 
 """
 OUTPUT

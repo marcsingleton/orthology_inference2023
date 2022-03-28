@@ -27,7 +27,8 @@ with open('out/components.tsv', 'w') as file:
     file.write('GGid\tOGids\n')
     for i, component in enumerate(components):
         GGid = hex(i)[2:].zfill(4).upper()
-        file.write(GGid + '\t' + ','.join(component) + '\n')
+        nodestring = ','.join(component)
+        file.write(f'{GGid}\t{nodestring}\n')
 
 """
 DEPENDENCIES

@@ -64,8 +64,8 @@ for OGid in OGids:
     # Write region as MSA
     with open(f'out/{OGid}.afa', 'w') as file:
         for ppid, spid, seq in msa:
-            seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-            file.write(f'>{spid} {ppid}\n' + seqstring)
+            seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
+            file.write(f'>{spid} {ppid}\n{seqstring}\n')
 
     # Make NEXUS partition file
     with open(f'out/{OGid}.nex', 'w') as file:
