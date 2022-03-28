@@ -61,9 +61,9 @@ gnid_filter = OGs['gnidnum'] == spidnum
 spid_filter = OGs['spidnum'] == spidnum
 
 print('Total OGs:', len(OGs))
-print(f'OGs with {spidnum} genes:', len(OGs[gnid_filter]))
-print(f'OGs with {spidnum} genes and species:', len(OGs[gnid_filter & spid_filter]))
-print(f'OGs with {spidnum} genes, species, and sequences:', len(OGs[gnid_filter & spid_filter & ppid_filter]))
+print(f'OGs with {spidnum} species:', len(OGs[spid_filter]))
+print(f'OGs with {spidnum} species and genes:', len(OGs[spid_filter & gnid_filter]))
+print(f'OGs with {spidnum} species, genes, and sequences:', len(OGs[spid_filter & gnid_filter & ppid_filter]))
 
 # Make output directory
 if not os.path.exists('out/'):

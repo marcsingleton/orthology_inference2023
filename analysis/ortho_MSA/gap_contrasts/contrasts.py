@@ -43,7 +43,7 @@ if not os.path.exists('out/'):
 totals = []
 rows = []
 for record in OG_filter.itertuples():
-    if record.sqidnum == record.gnidnum:
+    if record.ppdidnum == record.gnidnum:
         msa = read_fasta(f'../align_fastas1/out/{record.OGid}.afa')
     else:
         msa = read_fasta(f'../align_fastas2/out/{record.OGid}.afa')
@@ -66,14 +66,14 @@ for record in OG_filter.itertuples():
 
 with open('out/total_sums.tsv', 'w') as file:
     header = '\t'.join(['OGid', 'gnidnum', 'len1', 'len2', 'total']) + '\n'
-    file.writelines(header)
+    file.write(header)
     for total in totals:
-        file.writelines('\t'.join(total) + '\n')
+        file.write('\t'.join(total) + '\n')
 with open('out/row_sums.tsv', 'w') as file:
     header = '\t'.join(['OGid', 'len1', 'len2'] + [f'row{i}' for i in range(len(spids)-1)]) + '\n'
-    file.writelines(header)
+    file.write(header)
     for row in rows:
-        file.writelines('\t'.join(row) + '\n')
+        file.write('\t'.join(row) + '\n')
 
 """
 DEPENDENCIES

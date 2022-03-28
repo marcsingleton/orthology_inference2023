@@ -13,8 +13,7 @@ tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skb
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 spids = {tip.name for tip in tree.tips() if tip.name != 'sleb'}
 
-OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
-df = pd.read_table('../gap_contrasts/out/total_sums.tsv').merge(OG_filter[['OGid', 'sqidnum']], on='OGid', how='left')  # total_sums.tsv has gnidnum already
+df = pd.read_table('../gap_contrasts/out/total_sums.tsv')
 df['norm1'] = df['total'] / df['gnidnum']
 df['norm2'] = df['total'] / (df['gnidnum'] * df['len2'])
 
@@ -37,8 +36,6 @@ DEPENDENCIES
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../gap_contrasts/contrasts.py
     ../gap_contrasts/out/total_sums.tsv
-../OG_filter/OG_filter.py
-    ../OG_filter/out/OG_filter.tsv
 ../realign_hmmer/realign_hmmer.py
     ../realign_hmmer/out/*.afa
 """

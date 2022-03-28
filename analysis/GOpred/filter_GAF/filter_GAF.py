@@ -21,7 +21,7 @@ ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        ppid, gnid, _, sqid = line.split()
+        ppid, gnid, _, _ = line.split()
         ppid2gnid[ppid] = gnid
 
 # Load regions

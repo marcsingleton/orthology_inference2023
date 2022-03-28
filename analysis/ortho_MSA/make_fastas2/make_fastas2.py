@@ -22,8 +22,8 @@ ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        ppid, gnid, spid, sqid = line.split()
-        ppid2data[ppid] = (gnid, spid, sqid)
+        ppid, gnid, spid, _ = line.split()
+        ppid2data[ppid] = (gnid, spid)
 
 # Load seqs
 ppid2seq = {}
@@ -46,17 +46,17 @@ OG_data = pd.read_table('../OG_data/out/OG_data.tsv')
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = OG_data.loc[~(OG_data['sqidnum'] == OG_data['gnidnum']), 'OGid']
+OGids = OG_data.loc[~(OG_data['ppidnum'] == OG_data['gnidnum']), 'OGid']
 for OGid in OGids:
     records = []
-    for sqid in OGs[OGid]:
-        gnid, spid, _ = ppid2data[sqid]
-        seq = ppid2seq[sqid]
+    for ppid in OGs[OGid]:
+        gnid, spid = ppid2data[ppid]
+        seq = ppid2seq[ppid]
         seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-        records.append((sqid, gnid, spid, seqstring))
+        records.append((ppid, gnid, spid, seqstring))
     with open(f'out/{OGid}.fa', 'w') as file:
-        for sqid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):
-            file.write(f'>ppid={sqid}|gnid={gnid}|spid={spid}\n' + seqstring)
+        for ppid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):
+            file.write(f'>ppid={ppid}|gnid={gnid}|spid={spid}\n' + seqstring)
 
 """
 DEPENDENCIES

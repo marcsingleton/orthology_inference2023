@@ -10,12 +10,12 @@ from src.draw import draw_msa
 from src.utils import read_fasta
 
 # Load sequence data
-ppid2data = {}
+ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        ppid, gnid, _, sqid = line.split()
-        ppid2data[ppid] = (gnid, sqid)
+        ppid, gnid, _, _ = line.split()
+        ppid2gnid[ppid] = gnid
 
 # Load OGs
 rows = []
@@ -25,8 +25,8 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
         component_id, OGid, _, edges = line.rstrip().split('\t')
         ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         for ppid in ppids:
-            gnid, sqid = ppid2data[ppid]
-            rows.append({'component_id': component_id, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'sqid': sqid})
+            gnid = ppid2gnid[ppid]
+            rows.append({'component_id': component_id, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid})
 OGs = pd.DataFrame(rows)
 
 # Load OG data and test genes
@@ -45,7 +45,7 @@ df = OGs[['gnid', 'OGid']].drop_duplicates().merge(OG_data, on='OGid', how='righ
 df.to_csv('out/OGs.tsv', sep='\t', index=False)
 
 for row in df.dropna().itertuples():
-    if row.sqidnum == row.gnidnum:
+    if row.ppidnum == row.gnidnum:
         msa = read_fasta(f'../align_fastas1/out/{row.OGid}.afa')
     else:
         msa = read_fasta(f'../align_fastas2/out/{row.OGid}.afa')

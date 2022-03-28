@@ -8,12 +8,12 @@ from src.utils import read_fasta
 
 
 def hmm_align(OGid):
-    sqidnum, gnidnum = OGid2data[OGid]
-    if sqidnum == gnidnum:
+    ppidnum, gnidnum = OGid2data[OGid]
+    if ppidnum == gnidnum:
         path = f'../make_fastas1/out/{OGid}.fa'
     else:
         path = f'../make_fastas2/out/{OGid}.fa'
-    run(f'../../../bin/hmmbuild --hand --eset {1.5*gnidnum} --wnone out/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/{OGid}.txt', shell=True, check=True)
+    run(f'../../../bin/hmmbuild --hand --eset {eset_scalar*gnidnum} --wnone out/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/{OGid}.txt', shell=True, check=True)
     run(f'../../../bin/hmmalign --outformat afa out/{OGid}.hmm {path} > out/{OGid}_temp.afa', shell=True, check=True)
 
     # Remove excess gaps
@@ -43,14 +43,15 @@ def hmm_align(OGid):
 
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
+eset_scalar = 1.5  # Effective sequence number scalar; multiplies the gnidnum by this value to add weight to observed sequences
 
 OGid2data = {}
 with open('../OG_filter/out/OG_filter.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         fields = line.rstrip('\n').split('\t')
-        OGid, sqidnum, gnidnum = fields[1], int(fields[6]), int(fields[7])
-        OGid2data[OGid] = (sqidnum, gnidnum)
+        OGid, ppidnum, gnidnum = fields[1], int(fields[5]), int(fields[7])
+        OGid2data[OGid] = (ppidnum, gnidnum)
 
 if not os.path.exists('out/'):
     os.mkdir('out/')

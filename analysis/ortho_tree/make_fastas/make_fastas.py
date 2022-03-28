@@ -22,8 +22,8 @@ ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        ppid, gnid, spid, sqid = line.split()
-        ppid2data[ppid] = (gnid, spid, sqid)
+        ppid, gnid, spid, _ = line.split()
+        ppid2data[ppid] = (gnid, spid)
 
 # Load seqs
 ppid2seq = {}
@@ -39,30 +39,30 @@ with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         _, OGid, _, edges = line.rstrip().split('\t')
-        sqids = {ppid2data[node][2] for edge in edges.split(',') for node in edge.split(':')}
-        OGs[OGid] = sqids
+        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
+        OGs[OGid] = ppids
 OG_data = pd.read_table('../OG_data/out/OG_data.tsv')
 
 # Write sequences
-spidnum = len(genomes)
-gnid_filter = OG_data['gnidnum'] == spidnum
-spid_filter = OG_data['spidnum'] == spidnum
-sqidnum = OG_data['sqidnum'] == spidnum
-OGids = OG_data.loc[gnid_filter & spid_filter & sqidnum, 'OGid']
-
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
+spidnum = len(genomes)
+ppid_filter = OG_data['ppidnum'] == spidnum
+gnid_filter = OG_data['gnidnum'] == spidnum
+spid_filter = OG_data['spidnum'] == spidnum
+OGids = OG_data.loc[ppid_filter & gnid_filter & spid_filter, 'OGid']
+
 for OGid in OGids:
     records = []
-    for sqid in OGs[OGid]:
-        gnid, spid, _ = ppid2data[sqid]
-        seq = ppid2seq[sqid]
+    for ppid in OGs[OGid]:
+        gnid, spid = ppid2data[ppid]
+        seq = ppid2seq[ppid]
         seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)]) + '\n'
-        records.append((sqid, gnid, spid, seqstring))
+        records.append((ppid, gnid, spid, seqstring))
     with open(f'out/{OGid}.fa', 'w') as file:
-        for sqid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):
-            file.write(f'>ppid={sqid}|gnid={gnid}|spid={spid}\n' + seqstring)
+        for ppid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):
+            file.write(f'>ppid={ppid}|gnid={gnid}|spid={spid}\n' + seqstring)
 
 """
 DEPENDENCIES

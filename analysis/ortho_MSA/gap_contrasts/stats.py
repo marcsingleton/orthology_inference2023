@@ -11,15 +11,13 @@ import skbio
 from src.draw import draw_msa
 from src.utils import read_fasta
 
-OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
-
 tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 spids = {tip.name for tip in tree.tips() if tip.name != 'sleb'}
 num_contrasts = len(spids) - 1
 
 # 1 PLOT STATISTICS (OGS WITH ALL SPECIES)
-df = pd.read_table('out/row_sums.tsv').merge(OG_filter, on='OGid', how='left')
+df = pd.read_table('out/row_sums.tsv')
 df['total'] = df[[f'row{i}' for i in range(num_contrasts)]].sum(axis=1)
 df['avg'] = df['total'] / df['len2']
 
@@ -74,7 +72,8 @@ plt.savefig('out/bar_contrast_mean.png')
 plt.close()
 
 # 2 DRAW ALIGNMENTS (ALL OGS)
-df = pd.read_table('out/total_sums.tsv').merge(OG_filter[['OGid', 'sqidnum']], on='OGid', how='left')  # total_sums.tsv has gnidnum already
+OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
+df = pd.read_table('out/total_sums.tsv').merge(OG_filter[['OGid', 'ppidnum']], on='OGid', how='left')  # total_sums.tsv has gnidnum already
 df['norm1'] = df['total'] / df['gnidnum']
 df['norm2'] = df['total'] / (df['gnidnum'] * df['len2'])
 
@@ -84,7 +83,7 @@ for label in ['norm1', 'norm2']:
 
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
-        if row.sqidnum == row.gnidnum:
+        if row.ppidnum == row.gnidnum:
             msa = read_fasta(f'../align_fastas1/out/{row.OGid}.afa')
         else:
             msa = read_fasta(f'../align_fastas2/out/{row.OGid}.afa')

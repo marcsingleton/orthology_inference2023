@@ -86,7 +86,7 @@ def reduce(OGid, OG):
     ids = []
     for ppid in OG:
         seqs.append(ppid2seq[ppid])
-        gnid, spid, _ = ppid2data[ppid]
+        gnid, spid = ppid2data[ppid]
         ids.append(f"'{spid}:{gnid}:{ppid}'")  # Wrap in quotes to ensure correct parsing
 
     # Make distance matrix
@@ -179,8 +179,8 @@ ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        ppid, gnid, spid, sqid = line.split()
-        ppid2data[ppid] = (gnid, spid, sqid)
+        ppid, gnid, spid, _ = line.split()
+        ppid2data[ppid] = (gnid, spid)
 
 # Load seqs
 ppid2seq = {}
@@ -196,8 +196,8 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
     file.readline()  # Skip header
     for line in file:
         _, OGid, _, edges = line.rstrip().split('\t')
-        sqids = {ppid2data[node][2] for edge in edges.split(',') for node in edge.split(':')}
-        OGs[OGid] = sqids  # Ensure only representatives are selected for reduced clusters
+        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
+        OGs[OGid] = ppids
 
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:

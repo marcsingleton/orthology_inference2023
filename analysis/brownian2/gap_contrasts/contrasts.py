@@ -74,14 +74,14 @@ for OGid, start, stop, ppids in regions:
 
 with open('out/total_sums.tsv', 'w') as file:
     header = '\t'.join(['OGid', 'start', 'stop', 'gnidnum', 'len1', 'len2', 'total']) + '\n'
-    file.writelines(header)
+    file.write(header)
     for total in totals:
-        file.writelines('\t'.join(total) + '\n')
+        file.write('\t'.join(total) + '\n')
 with open('out/row_sums.tsv', 'w') as file:
     header = '\t'.join(['OGid', 'start', 'stop', 'len1', 'len2'] + [f'row{i}' for i in range(len(spids)-1)]) + '\n'
-    file.writelines(header)
+    file.write(header)
     for row in rows:
-        file.writelines('\t'.join(row) + '\n')
+        file.write('\t'.join(row) + '\n')
 
 """
 DEPENDENCIES

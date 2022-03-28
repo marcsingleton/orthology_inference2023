@@ -2,7 +2,7 @@
 
 import os
 import signal
-from itertools import combinations, product
+from itertools import combinations
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -14,13 +14,7 @@ from networkx.algorithms.core import k_core
 
 
 def get_component_type(OGs, component):
-    node_sets = []
-    for OG in OGs:
-        node_set = set()
-        for node1, node2 in OG:
-            node_set.update(sqid2ppids[node1])
-            node_set.update(sqid2ppids[node2])
-        node_sets.append(node_set)
+    node_sets = [{node for edge in OG for node in edge} for OG in OGs]
     if len(node_sets) == 0:
         return 0  # Component has no OGs
     elif len(node_sets) == 1:
@@ -44,20 +38,6 @@ clique_timeout = 90
 percolate_timeout = 90
 k_core_components = ['03b2', '03b4', '03b6', '03b9', '03bb', '089f']  # Histones and other complex OGs which directly use k_core
 
-# Load sequence data
-sqid2ppids = {}
-constituents = set()  # Constituent ppids
-with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
-    for line in file:
-        ppid, _, _, sqid = line.split()
-        try:
-            sqid2ppids[sqid].append(ppid)
-        except KeyError:
-            sqid2ppids[sqid] = [ppid]
-        if ppid != sqid:
-            constituents.add(ppid)
-
 # Load graph
 graph = {}
 with open('../hits2graph/out/hit_graph.tsv') as file:
@@ -77,13 +57,11 @@ ks = list(range(4, 7))
 OG_records_ks = [[] for _ in ks]
 rows_ks = [[] for _ in ks]
 for component_id, component in components:
-    # Create graph
+    # Create subgraph
     subgraph = nx.Graph()
     for node in component:
-        if node in constituents:
-            continue
         subgraph.add_node(node)
-        for adj in filter(lambda x: x not in constituents, graph[node]):
+        for adj in graph[node]:
             subgraph.add_edge(node, adj)
 
     # Handle cliques
@@ -132,7 +110,7 @@ for k, OG_records_k, rows_k in zip(ks, OG_records_ks, rows_ks):
         file.write('component_id\tOGid\talgorithm\tedges\n')
         for component_id, OG, algorithm in sorted(OG_records_k, key=get_sort_tuple, reverse=True):
             OGid = hex(j)[2:].zfill(4).upper()
-            edgestring = ','.join([f'{n1}:{n2}' for node1, node2 in OG for n1, n2 in product(sqid2ppids[node1], sqid2ppids[node2])])
+            edgestring = ','.join([f'{node1}:{node2}' for node1, node2 in OG])
             file.write(f'{component_id}\t{OGid}\t{algorithm}\t' + edgestring + '\n')
             j += 1
 
@@ -210,8 +188,6 @@ Type 3: 711
 Type 4: 1581
 
 DEPENDENCIES
-../../ortho_search/sequence_data/sequence_data.py
-    ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../connect_hit_graph/connect_hit_graph.py
     ../connect_hit_graph/out/components.tsv
 ../hits2graph/hits2graph.py
