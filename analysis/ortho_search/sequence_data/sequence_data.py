@@ -1,4 +1,4 @@
-"""Extract and count polypeptide IDs, storing associated data as tsv."""
+"""Extract protein and gene IDs from FASTAs, storing data as tsv."""
 
 import os
 import re
@@ -18,32 +18,38 @@ with open('../config/genomes.tsv') as file:
         spid, _, source, prot_path, tcds_path = line.split()
         genomes.append((spid, source, prot_path, tcds_path))
 
-# Extract and count polypeptide IDs
-counts = {}  # Counts for each PPID to find duplicates
-ppid2data = {}  # PPID to gene and species
-gnid2seqs = {}  # GNID to PPIDs with unique sequences
+# Extract and count IDs
+ppid_counts = {}
+ppid2data = {}
+gnid2seqs = {}
 for spid, source, prot_path, tcds_path in genomes:
     # Find parent genes in tcds headers
     tcds_fasta = read_fasta(tcds_path)
     for header, _ in tcds_fasta:
-        gn_match = re.search(gnid_regex[source], header)
-        pp_match = re.search(ppid_regex[source], header)
-        try:
-            # First group is entire line, second is first match
-            gnid = gn_match.group(1)
-            ppid = pp_match.group(1)
+        gnid_match = re.search(gnid_regex[source], header)
+        ppid_match = re.search(ppid_regex[source], header)
+        if gnid_match and ppid_match:
+            gnid = gnid_match.group(1)
+            ppid = ppid_match.group(1)
+
             ppid2data[ppid] = (gnid, spid)
-        except AttributeError:
+            ppid_counts[ppid] = ppid_counts.get(ppid, 0) + 1
+        else:
             print(header)
 
     # Find representative sequences in prot files
     prot_fasta = read_fasta(prot_path)
     for header, seq in prot_fasta:
-        ppid = re.search(ppid_regex[source], header).group(1)
+        ppid_match = re.search(ppid_regex[source], header)
+        if ppid_match:
+            ppid = ppid_match.group(1)
+        else:
+            print(header)
+            continue
+
         gnid, spid = ppid2data[ppid]
-        counts[ppid] = counts.get(ppid, 0) + 1
         if gnid in gnid2seqs:
-            seqs = gnid2seqs[gnid]  # Mapping from sequence to PPID
+            seqs = gnid2seqs[gnid]
             if seq in seqs:
                 ppid2data[ppid] = (gnid, spid, seqs[seq])
             else:
@@ -63,8 +69,8 @@ with open('out/sequence_data.tsv', 'w') as file:
     for ppid, data in ppid2data.items():
         file.write(ppid + '\t' + '\t'.join(data) + '\n')
 
-print('Total headers:', sum(counts.values()))
-print('Unique IDs:', len(counts))
+print('Total headers:', sum(ppid_counts.values()))
+print('Unique PPIDs:', len(ppid_counts))
 
 """
 OUTPUT
