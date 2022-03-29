@@ -10,8 +10,7 @@ spids = set()
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        spid, _, _, _ = line.split()
-        spids.add(spid)
+        spids.add(line.rstrip().split('\t')[0])
 
 # Load sequence data
 ppid2data = {}

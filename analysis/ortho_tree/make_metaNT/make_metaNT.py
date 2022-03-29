@@ -31,7 +31,7 @@ spids = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        spids.append(line.split()[0])
+        spids.append(line.rstrip().split('\t')[0])
 spid2idx = {spid: i for i, spid in enumerate(spids)}
 
 # Extract column pools

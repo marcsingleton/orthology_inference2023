@@ -104,7 +104,7 @@ if __name__ == '__main__':
     with open('../config/genomes.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            spids.append(line.split()[0])
+            spids.append(line.rstrip().split('\t')[0])
 
     # Load data
     with mp.Pool(processes=num_processes) as pool:

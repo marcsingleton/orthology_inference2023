@@ -98,8 +98,7 @@ if __name__ == '__main__':
     with open('../config/genomes.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            spid, _, _, _ = line.split()
-            spids.append(spid)
+            spids.append(line.rstrip().split('\t')[0])
 
     # Load data
     rows = []

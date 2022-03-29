@@ -80,7 +80,7 @@ OGids = set()
 with open('../config/labels.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid = line.split()[0]
+        OGid, _, _, _ = line.split()
         OGids.add(OGid)
 
 # Load tree
