@@ -14,8 +14,7 @@ OGid2labels = {}
 with open('../config/labels.tsv') as file:
     file.readline()
     for line in file:
-        fields = line.rstrip('\n').split('\t')
-        OGid, start, stop, state = fields
+        OGid, start, stop, state = line.rstrip('\n').split('\t')
         if OGid in OGid2labels:
             OGid2labels[OGid][state].append((int(start), int(stop)))
         else:
