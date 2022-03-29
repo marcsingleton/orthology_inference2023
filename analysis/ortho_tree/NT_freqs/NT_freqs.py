@@ -1,9 +1,10 @@
 """Calculate nucleotide frequencies in alignments."""
 
 import os
+import re
 
 import matplotlib.pyplot as plt
-import skbio
+from src.utils import read_fasta
 
 
 def grouped_bar(groups, group_width, bar_width, file_label, bar_labels=None, bar_colors=None):
@@ -31,14 +32,15 @@ def grouped_bar(groups, group_width, bar_width, file_label, bar_labels=None, bar
     plt.close()
 
 
+spid_regex = r'spid=([a-z]+)'
+
 # Count nucleotides
 counts = {}
 for path in [path for path in os.listdir('../align_AA2NT/out/') if path.endswith('.afa')]:
-    msa = skbio.read(f'../align_AA2NT/out/{path}', 'fasta')
-    for seq in msa:
-        spid = seq.metadata['id'][-4:]
-        for sym in str(seq):
-
+    msa = read_fasta(f'../align_AA2NT/out/{path}')
+    for header, seq in msa:
+        spid = re.search(spid_regex, header).group(1)
+        for sym in seq:
             if sym != '-':
                 try:
                     counts[spid][sym] = counts[spid].get(sym, 0) + 1
