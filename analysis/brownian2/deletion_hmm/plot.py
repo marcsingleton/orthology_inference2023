@@ -38,7 +38,7 @@ ids = set()
 with open('segments.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid, ppid = line.split()[:2]
+        OGid, ppid, _, _, _ = line.split()
         ids.add((OGid, ppid))
 
 # Plot alignments
