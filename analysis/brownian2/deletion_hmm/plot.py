@@ -35,7 +35,7 @@ with open('out/model.json') as file:
 
 # Load OGids
 ids = set()
-with open('segments.tsv') as file:
+with open('labels.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid, ppid, _, _, _ = line.split()
@@ -86,4 +86,5 @@ DEPENDENCIES
     ../trim_extract/out/*.afa
 ./fit.py
     ./out/model.json
+./labels.tsv
 """

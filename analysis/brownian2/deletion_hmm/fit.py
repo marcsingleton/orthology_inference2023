@@ -139,7 +139,7 @@ if __name__ == '__main__':
     # Load regions
     OGid2regions = {}
     state_set = set()
-    with open('segments.tsv') as file:
+    with open('labels.tsv') as file:
         file.readline()  # Skip header
         for line in file:
             OGid, ppid, start, stop, state = line.split()
@@ -276,5 +276,5 @@ Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 DEPENDENCIES
 ../insertion_trim/extract.py
     ../insertion_trim/out/*.afa
-./segments.tsv
+./labels.tsv
 """
