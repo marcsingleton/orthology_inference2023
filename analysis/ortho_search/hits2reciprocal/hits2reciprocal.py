@@ -44,9 +44,7 @@ for qspid, sspid in permutations(spids, 2):
         for line in file:
             hit = {column: f(field) for (column, f), field in zip(columns.items(), line.rstrip('\n').split('\t'))}
             qppid, sppid = hit['qppid'], hit['sppid']
-            qlen, cnqa = hit['qlen'], hit['cnqa']
-
-            reciprocal = cnqa / qlen >= 0.5 and is_reciprocal(qppid, sppid, graph)
+            reciprocal = is_reciprocal(qppid, sppid, graph)
             rows.append((qppid, sppid, str(reciprocal)))
 
     # Write to file
