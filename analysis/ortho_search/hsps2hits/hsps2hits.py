@@ -17,7 +17,7 @@ def parse_file(qspid, sspid):
             hsps = []
             for line in group:
                 hsp = {column: f(field) for (column, f), field in zip(hsp_columns.items(), line.rstrip('\n').split('\t'))}
-                if hsp['compatible']:  # Use compatible HSPs only (which pass the bitscore cutoff)
+                if hsp['compatible']:  # Use compatible HSPs only (which pass the E-value cutoff)
                     hsps.append(hsp)
             if hsps:
                 hits.append(hsps2hit(hsps))

@@ -7,15 +7,14 @@ from itertools import groupby, permutations
 
 
 def parse_file(query_spid, subject_spid):
-    output_hsps = []
-    nulls = []
+    output_hsps, nulls = [], []
     with open(f'../blast_search/out/{query_spid}/{subject_spid}.blast') as file:
         query_ppid, input_hsps = None, []
         line = file.readline()
         while line:
             # Record query
             while line.startswith('#'):
-                if line == '# BLASTP 2.10.1+\n' and query_ppid is not None:  # Only add if previous search returned no hits
+                if line == f'# BLASTP {blast_version}\n' and query_ppid is not None:  # Only add if previous search returned no hits
                     nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_spid, 'sspid': subject_spid})
                 elif line.startswith('# Query:'):
                     query_ppid = re.search(ppid_regex[genomes[query_spid]], line).group(1)
@@ -40,7 +39,7 @@ def parse_file(query_spid, subject_spid):
             else:
                 nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_spid, 'sspid': subject_spid})
 
-            if line.startswith('# BLAST processed'):
+            if line.startswith('# BLAST processed'):  # Check for final line
                 break
             query_ppid, input_hsps = None, []  # Signals current search was successfully recorded
 
@@ -62,39 +61,46 @@ def parse_file(query_spid, subject_spid):
 
 def filter_hsps(input_hsps):
     # Sort and group HSPs by sppid and sgnid then extract max bitscore within groups
-    input_hsps = sorted(input_hsps, key=lambda x: (x['sppid'], x['sgnid']))
-    groups = {key: list(group) for key, group in groupby(input_hsps, lambda x: (x['sppid'], x['sgnid']))}
-    bitscores = sorted([(ppid, gnid, max([hsp['bitscore'] for hsp in hsps])) for (ppid, gnid), hsps in groups.items()],
-                       key=lambda x: x[2], reverse=True)
+    hsp2key = lambda x: (x['sppid'], x['sgnid'])
+    input_hsps = sorted(input_hsps, key=hsp2key)
+    grouped_hsps = {key: list(group) for key, group in groupby(input_hsps, hsp2key)}
 
-    # Get target bitscore cutoff
-    target_cutoff = 0
-    gnids = set()
-    for ppid, gnid, bitscore in bitscores:
-        if bitscore == bitscores[0][2]:  # Check if equal to max, i.e. the first in the sorted list
+    # Create records for identifying bitscore cutoff
+    records = []
+    for (ppid, gnid), hsps in grouped_hsps.items():
+        bitscore = max([hsp['bitscore'] for hsp in hsps])
+        records.append((ppid, gnid, bitscore))
+    records = sorted(records, key=lambda x: x[2], reverse=True)
+    max_bitscore = records[0][2]
+
+    # Get subject bitscore cutoff
+    # (This is a separate step to account for cases where a PPID associated with an allowable GNID has a bitscore equal to the cutoff)
+    subject_cutoff, gnids = 0, set()
+    for ppid, gnid, bitscore in records:
+        if bitscore == max_bitscore:
             gnids.add(gnid)  # Add gnid to allowable list if bitscore is equal to max
         if gnid not in gnids:
-            target_cutoff = bitscore  # Choose target cutoff as the maximum bitscore associated with the next best gene
+            subject_cutoff = bitscore  # Choose subject cutoff as the maximum bitscore associated with the next best gene
             break
 
-    # Identify groups that pass target bitscore filter
+    # Identify groups that pass subject bitscore filter
     keys = []
-    for ppid, gnid, bitscore in bitscores:
-        if bitscore <= target_cutoff:  # Stop recording groups once bitscore is lower than target cutoff
+    for ppid, gnid, bitscore in records:
+        if bitscore <= subject_cutoff:  # Stop recording groups once bitscore is lower than subject cutoff
             break
         keys.append((ppid, gnid))
 
     # Identify index, disjoint, and compatible HSPs
     output_hsps = []
     for key in keys:
-        group = sorted(groups[key], key=lambda x: x['bitscore'], reverse=True)
+        group = sorted(grouped_hsps[key], key=lambda x: x['bitscore'], reverse=True)
         group[0]['index_hsp'] = True  # Mark "best" HSP as index for subsequent filtering
 
         disjoint_hsps = []
         for hsp in group:
             if is_disjoint(hsp, disjoint_hsps, 'query') and is_disjoint(hsp, disjoint_hsps, 'subject'):
                 hsp['disjoint'] = True  # Mark HSPs as disjoint greedily, beginning with highest score
-                if hsp['bitscore'] >= compatible_cutoff:
+                if hsp['evalue'] <= compatible_cutoff:
                     hsp['compatible'] = True  # Disjoint HSPs are compatible if they pass the cutoff
                 disjoint_hsps.append(hsp)
 
@@ -164,7 +170,8 @@ columns = {'qppid': str, 'qgnid': str, 'qspid': str,
            'slen': int, 'sstart': int, 'send': int,
            'evalue': float, 'bitscore': float,
            'index_hsp': bool, 'disjoint': bool, 'compatible': bool}
-compatible_cutoff = 50  # Bitscore cutoff for accepting HSPs as compatible
+blast_version = '2.10.1+'  # Used to identify headers of queries
+compatible_cutoff = 1E-10  # E-value cutoff for accepting HSPs as compatible
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
 # Load genomes
@@ -190,25 +197,17 @@ if __name__ == '__main__':
 
 """
 NOTES
-This script makes a few decisions about what exactly a best hit to both a polypeptide and a gene are. Regarding
-polypeptides, since it is possible for there to be multiple hits to different segments of the sequence, the "best" is
-taken as the HSP with the largest bitscore. However, all other HSPs from this hit are recorded. Proceeding from highest
-to lowest bitscore, these HSPs are marked as disjoint if they do not overlap with any HSPs previously marked as
-disjoint. Additionally other polypeptide hits are recorded if the strongest HSP in that hit exceeds the bitscore of
-the strongest HSP to a polypeptide that is not associated with the same gene as the best polypeptide hit. In other
-words, this approach takes a broad "gene-centric" approach to initially filtering the raw BLAST output where all hits
-associated with the best gene are recorded as long as the bitscore of their strongest HSP exceeds that of the next best
-gene. If there are multiple HSPs with the same best bitscore, then they are both treated as the best hit. This means a
-single polypeptide can have hits to multiple genes which in turn contain multiple polypeptides which in turn contain
-multiple HSPs.
+The main idea for identifying orthologs is to use clusters of reciprocal best hits from pairwise database searches of
+the genomes. Because BLAST returns local alignments (i.e. alignments between portions of the query and subject sequences
+rather than alignments from end-to-end), the best hit for a query sequence is not immediately obvious since it is
+potentially split across multiple local alignments, called HSPs or high-scoring segment pairs. Additionally, since hits
+must overlap by 50% to be included, not accounting for multiple HSPs could miss some highly significant hits.
 
-Regarding genes, a strict adherence to the top hit criterion would allow only polypeptide per gene. This can create
-mutually exclusive sets of polypeptide hits within a single orthologous group, a more flexible strategy is allowing
-multiple best hits within a gene. The most natural extension of the polypeptide criterion is choosing top hits ranked by
-evalue until the parent gene of the polypeptide changes. Subsequent hits to the top gene are considered ambiguous and
-ignored (similar to how subsequent hits to a polypeptide are ignored in the polypeptide case). This criterion will
-exclude some polypeptides that are associated with the best gene, but since these are ranked lower than hits to
-polypeptides in other genes, they should not be included since other stronger hits are discarded.
+To reduce the workload of merging HSPs into hits later on, the raw BLAST results are first filtered into a reduced list
+of HSPs which are likely to contain the best hit. The strategy is gene- and HSP-centric, where the maximum bitscore of
+the HSP associated with the next best gene sets the cutoff. As long as a group of HSPs has one which exceeds that
+cutoff, they are all included for the next step of processing. This means that no single isoform associated with the
+best gene can set the cutoff, but some isoforms may not be included if their best HSP is weaker
 
 DEPENDENCIES
 ../config/genomes.tsv
