@@ -26,7 +26,7 @@ for OGid in OGids:
         for _ in range(2):
             line = file.readline()
         for i in range(2):
-            freq = float(line.rstrip().split(' = ')[1])
+            freq = float(line.rstrip('\n').split(' = ')[1])
             freqs[i] = freq
             line = file.readline()
 
@@ -59,8 +59,8 @@ for OGid in OGids:
         line = file.readline()
         while not line.startswith('Model of rate heterogeneity:'):
             line = file.readline()
-        num_categories = int(line.rstrip().split(' Gamma with ')[1][0])
-        alpha = float(file.readline().rstrip().split(': ')[1])
+        num_categories = int(line.rstrip('\n').split(' Gamma with ')[1][0])
+        alpha = float(file.readline().rstrip('\n').split(': ')[1])
     igfs = []  # Incomplete gamma function evaluations
     for i in range(num_categories+1):
         x = gamma.ppf(i/num_categories, a=alpha, scale=1/alpha)

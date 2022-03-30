@@ -68,13 +68,13 @@ genomes = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        spid, _, source, _, cds_path = line.split()
+        spid, _, source, _, cds_path = line.rstrip('\n').split('\t')
         genomes.append((spid, source, cds_path))
 
 # Load codon table
 codon2aa = {}
 with open('codons.txt') as file:
-    lines = [line.rstrip().split(' = ')[1] for line in file]
+    lines = [line.rstrip('\n').split(' = ')[1] for line in file]
     for i in range(len(lines[0])):
         aa = lines[0][i]
         codon = ''.join([lines[j][i] for j in range(2, 5)])

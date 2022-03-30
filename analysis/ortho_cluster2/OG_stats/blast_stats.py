@@ -98,14 +98,14 @@ if __name__ == '__main__':
     with open('../config/genomes.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            spids.append(line.rstrip().split('\t')[0])
+            spids.append(line.rstrip('\n').split('\t')[0])
 
     # Load data
     rows = []
     with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            component_id, OGid, _, edges = line.rstrip().split('\t')
+            component_id, OGid, _, edges = line.rstrip('\n').split('\t')
             for edge in edges.split(','):
                 node1, node2 = edge.split(':')
                 rows.append({'component_id': component_id, 'OGid': OGid, 'qppid': node1, 'sppid': node2})

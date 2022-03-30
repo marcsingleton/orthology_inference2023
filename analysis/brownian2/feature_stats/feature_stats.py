@@ -20,7 +20,7 @@ rows = []
 with open('../aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid, start, stop, disorder, ppids = line.split()
+        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
         for ppid in ppids.split(','):
             rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True', 'ppid': ppid})
 segments = pd.DataFrame(rows).merge(features, how='left', on=['OGid', 'start', 'stop', 'ppid'])

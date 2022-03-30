@@ -27,7 +27,7 @@ spids = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        spids.append(line.rstrip().split('\t')[0])
+        spids.append(line.rstrip('\n').split('\t')[0])
 
 # Load graph
 graph = {}
@@ -42,7 +42,7 @@ for qspid, sspid in permutations(spids, 2):
     with open(f'../hsps2hits/out/{qspid}/{sspid}.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            hit = {column: f(field) for (column, f), field in zip(columns.items(), line.split())}
+            hit = {column: f(field) for (column, f), field in zip(columns.items(), line.rstrip('\n').split('\t'))}
             qppid, sppid = hit['qppid'], hit['sppid']
             qlen, cnqa = hit['qlen'], hit['cnqa']
 

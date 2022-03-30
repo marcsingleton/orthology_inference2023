@@ -13,7 +13,7 @@ genomes = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        spid, _, source, prot_path, _ = line.split()
+        spid, _, source, prot_path, _ = line.rstrip('\n').split('\t')
         genomes.append((spid, source, prot_path))
 
 # Load sequence data
@@ -21,7 +21,7 @@ ppid2sqid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        ppid, _, _, sqid = line.split()
+        ppid, _, _, sqid = line.rstrip('\n').split('\t')
         ppid2sqid[ppid] = sqid
 
 if not os.path.exists('out/'):

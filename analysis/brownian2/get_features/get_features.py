@@ -28,7 +28,7 @@ if __name__ == '__main__':
     with open('../aucpred_regions/out/regions.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            OGid, start, stop, disorder = line.split()
+            OGid, start, stop, disorder = line.rstrip('\n').split('\t')
             try:
                 OGid2regions[OGid].append((int(start), int(stop), disorder))
             except KeyError:

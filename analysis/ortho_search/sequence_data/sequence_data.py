@@ -15,7 +15,7 @@ genomes = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        spid, _, source, prot_path, tcds_path = line.split()
+        spid, _, source, prot_path, tcds_path = line.rstrip('\n').split('\t')
         genomes.append((spid, source, prot_path, tcds_path))
 
 # Extract and count IDs

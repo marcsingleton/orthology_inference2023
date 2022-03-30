@@ -21,7 +21,7 @@ spids = []
 with open('../../ortho_MSA/config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        spids.append(line.rstrip().split('\t')[0])
+        spids.append(line.rstrip('\n').split('\t')[0])
 spid2idx = {spid: i for i, spid in enumerate(spids)}
 
 # Load regions
@@ -29,7 +29,7 @@ OGid2regions = {}
 with open('../../brownian2/aucpred_regions/out/regions.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid, start, stop, disorder = line.split()
+        OGid, start, stop, disorder = line.rstrip('\n').split('\t')
         try:
             OGid2regions[OGid].append((int(start), int(stop), disorder))
         except KeyError:

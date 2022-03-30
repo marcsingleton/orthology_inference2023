@@ -182,7 +182,7 @@ if __name__ == '__main__':
     with open('../config/labels.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            OGid, start, stop, state = line.split()
+            OGid, start, stop, state = line.rstrip('\n').split('\t')
             if state != '0':  # Skip terminal insertions as actual state
                 state_set.add(state)
             try:

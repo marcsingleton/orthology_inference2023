@@ -30,7 +30,7 @@ for min_length in sorted(min_lengths):
     with open(f'../aucpred_filter/out/regions_{min_length}.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            OGid, start, stop, disorder, ppids = line.split()
+            OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
 
             msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
             msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}

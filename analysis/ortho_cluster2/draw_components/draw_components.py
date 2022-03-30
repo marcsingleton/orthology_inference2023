@@ -15,7 +15,7 @@ def load_OGs(path):
     with open(path) as file:
         file.readline()  # Skip header
         for line in file:
-            component_id, _, _, edges = line.rstrip().split('\t')
+            component_id, _, _, edges = line.rstrip('\n').split('\t')
             gnids = {node for edge in edges.split(',') for node in edge.split(':')}
             try:
                 OGs[component_id].append(gnids)
@@ -59,7 +59,7 @@ components = {}
 with open('../connect_hit_graph/out/components.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        component_id, nodes = line.rstrip().split('\t')
+        component_id, nodes = line.rstrip('\n').split('\t')
         components[component_id] = set(nodes.split(','))
 
 # Load OGs

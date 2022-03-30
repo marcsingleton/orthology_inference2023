@@ -172,7 +172,7 @@ genomes = {}
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        spid, _, source, _, _ = line.split()
+        spid, _, source, _, _ = line.rstrip('\n').split('\t')
         genomes[spid] = source
 
 # Load sequence data
@@ -180,7 +180,7 @@ ppid2gnid = {}
 with open('../sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        ppid, gnid, _, _ = line.split()
+        ppid, gnid, _, _ = line.rstrip('\n').split('\t')
         ppid2gnid[ppid] = gnid
 
 # Parse BLAST results

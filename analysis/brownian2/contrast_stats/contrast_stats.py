@@ -31,7 +31,7 @@ ppid2spid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        ppid, _, spid, _ = line.split()
+        ppid, _, spid, _ = line.rstrip('\n').split('\t')
         ppid2spid[ppid] = spid
 
 # Load regions
@@ -39,7 +39,7 @@ rows, region2spids = [], {}
 with open('../aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid, start, stop, disorder, ppids = line.split()
+        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
         rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True'})
         region2spids[(OGid, int(start), int(stop))] = [ppid2spid[ppid] for ppid in ppids.split(',')]
 regions = pd.DataFrame(rows)

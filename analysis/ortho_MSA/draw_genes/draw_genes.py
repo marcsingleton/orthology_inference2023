@@ -14,7 +14,7 @@ ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        ppid, gnid, _, _ = line.split()
+        ppid, gnid, _, _ = line.rstrip('\n').split('\t')
         ppid2gnid[ppid] = gnid
 
 # Load OGs
@@ -22,7 +22,7 @@ rows = []
 with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        component_id, OGid, _, edges = line.rstrip().split('\t')
+        component_id, OGid, _, edges = line.rstrip('\n').split('\t')
         ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         for ppid in ppids:
             gnid = ppid2gnid[ppid]

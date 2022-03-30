@@ -15,7 +15,7 @@ ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        ppid, gnid, _, _ = line.split()
+        ppid, gnid, _, _ = line.rstrip('\n').split('\t')
         ppid2gnid[ppid] = gnid
 
 # Load regions
@@ -23,7 +23,7 @@ rows = []
 with open('../../brownian2/aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid, start, stop, disorder, ppids = line.split()
+        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
         ppid = re.search(r'(FBpp[0-9]+)', ppids).group(1)
         rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True', 'gnid': ppid2gnid[ppid]})
 regions = pd.DataFrame(rows)

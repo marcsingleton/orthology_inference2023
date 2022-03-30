@@ -58,7 +58,7 @@ if __name__ == '__main__':
     with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            ppid, _, spid, _ = line.split()
+            ppid, _, spid, _ = line.rstrip('\n').split('\t')
             ppid2spid[ppid] = spid
 
     # Load features
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     with open('../aucpred_filter/out/regions_30.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            OGid, start, stop, disorder, ppids = line.split()
+            OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
             for ppid in ppids.split(','):
                 rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'ppid': ppid, 'spid': ppid2spid[ppid]})
     segments = pd.DataFrame(rows).merge(features, how='left', on=['OGid', 'start', 'stop', 'ppid'])

@@ -142,7 +142,7 @@ if __name__ == '__main__':
     with open('labels.tsv') as file:
         file.readline()  # Skip header
         for line in file:
-            OGid, ppid, start, stop, state = line.split()
+            OGid, ppid, start, stop, state = line.rstrip('\n').split('\t')
             state_set.add(state)
             try:
                 OGid2regions[(OGid, ppid)].append((int(start), int(stop), state))

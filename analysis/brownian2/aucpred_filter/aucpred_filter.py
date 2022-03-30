@@ -11,7 +11,7 @@ def load_posteriors(path):
     with open(path) as file:
         file.readline()  # Skip header
         for line in file:
-            ppid, p0, p1 = line.split()
+            ppid, p0, p1 = line.rstrip('\n').split('\t')
             try:
                 posteriors[ppid].append((float(p0), float(p1)))
             except KeyError:
@@ -45,7 +45,7 @@ OGid2regions = {}
 with open('../aucpred_regions/out/regions.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid, start, stop, disorder = line.split()
+        OGid, start, stop, disorder = line.rstrip('\n').split('\t')
         try:
             OGid2regions[OGid].append((start, stop, disorder))
         except KeyError:

@@ -23,15 +23,15 @@ spids = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        spids.append(line.rstrip().split('\t')[0])
+        spids.append(line.rstrip('\n').split('\t')[0])
 
 # Make graph
 graph = {}
 for qspid, sspid in permutations(spids, 2):
     with open(f'../hsps2hits/out/{qspid}/{sspid}.tsv') as file:
         file.readline()  # Skip header
-        for _, group in groupby(file, lambda x: x.split()[0]):
-            group = list([line.split() for line in group])
+        for _, group in groupby(file, lambda x: x.rstrip('\n').split('\t')[0]):
+            group = [line.rstrip('\n').split('\t') for line in group]
             bitscore = max([float(fields[14]) for fields in group])
             for fields in group:
                 if bitscore == float(fields[14]):  # Only record hits with maximum bitscore

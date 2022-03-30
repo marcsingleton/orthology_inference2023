@@ -14,7 +14,7 @@ genomes = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        _, _, source, prot_path, _ = line.split()
+        _, _, source, prot_path, _ = line.rstrip('\n').split('\t')
         genomes.append((source, prot_path))
 
 # Load sequence data
@@ -22,7 +22,7 @@ ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        ppid, gnid, spid, _ = line.split()
+        ppid, gnid, spid, _ = line.rstrip('\n').split('\t')
         ppid2data[ppid] = (gnid, spid)
 
 # Load seqs
@@ -38,7 +38,7 @@ OGs = {}
 with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        _, OGid, _, edges = line.rstrip().split('\t')
+        _, OGid, _, edges = line.rstrip('\n').split('\t')
         ppids = {node for edge in edges.split(',') for node in edge.split(':')}
         OGs[OGid] = ppids
 OG_data = pd.read_table('../OG_data/out/OG_data.tsv')

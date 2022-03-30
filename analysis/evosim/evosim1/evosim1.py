@@ -255,7 +255,7 @@ for path in [path for path in os.listdir('../asr_generate/out/') if path.endswit
             line = file.readline()
         line = file.readline()
         while line != '\n':
-            fields = line.split()  # File is not explicitly delimited, so just split on whitespace
+            fields = line.split()
             partition_id, name = int(fields[0]), fields[1]
             partitions[partition_id] = {'name': name}
             line = file.readline()
@@ -265,7 +265,7 @@ for path in [path for path in os.listdir('../asr_generate/out/') if path.endswit
             line = file.readline()
         line = file.readline()
         while line != '\n':
-            fields = line.split()  # File is not explicitly delimited, so just split on whitespace
+            fields = line.split()
             partition_id, speed, parameters = int(fields[0]), float(fields[2]), fields[3]
             match = re.search(r'(?P<model>[^+]+)\+I{(?P<pinv>[0-9.e-]+)}\+G(?P<num_categories>[0-9]+){(?P<alpha>[0-9.e-]+)}', parameters)
             partition = partitions[partition_id]

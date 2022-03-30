@@ -19,7 +19,7 @@ rows = []
 with open('../aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid, start, stop, disorder, ppids = line.split()
+        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
         rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop),
                      'gnidnum': len(ppids.split(',')), 'ppids': ppids.split(',')})
 regions = pd.DataFrame(rows)

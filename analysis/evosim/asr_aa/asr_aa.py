@@ -15,14 +15,14 @@ OGids = set()
 with open('../../brownian2/aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid, start, stop, disorder, ppids = line.split()
+        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
         OGids.add(OGid)
 
 OGid2regions = {}
 with open('../../brownian2/aucpred_regions/out/regions.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid, start, stop, disorder = line.split()
+        OGid, start, stop, disorder = line.rstrip('\n').split('\t')
         try:
             OGid2regions[OGid].append((int(start), int(stop), True if disorder == 'True' else False))
         except KeyError:

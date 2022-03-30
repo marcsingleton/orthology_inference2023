@@ -26,7 +26,7 @@ components = []
 with open('../connect_hit_graph/out/components.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        component_id, nodes = line.rstrip().split('\t')
+        component_id, nodes = line.rstrip('\n').split('\t')
         components.append((component_id, set(nodes.split(','))))
 
 OG_records, rows = [], []

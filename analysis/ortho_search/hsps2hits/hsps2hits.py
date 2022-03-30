@@ -16,7 +16,7 @@ def parse_file(qspid, sspid):
         for _, group in groupby(file, line2key):
             hsps = []
             for line in group:
-                hsp = {column: f(field) for (column, f), field in zip(hsp_columns.items(), line.split())}
+                hsp = {column: f(field) for (column, f), field in zip(hsp_columns.items(), line.rstrip('\n').split('\t'))}
                 if hsp['compatible']:  # Use compatible HSPs only (which pass the bitscore cutoff)
                     hsps.append(hsp)
             if hsps:
@@ -81,7 +81,7 @@ spids = []
 with open('../config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        spids.append(line.rstrip().split('\t')[0])
+        spids.append(line.rstrip('\n').split('\t')[0])
 
 # Parse HSPs
 if __name__ == '__main__':

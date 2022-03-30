@@ -40,7 +40,7 @@ regions = []
 with open('../aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header
     for line in file:
-        OGid, start, stop, disorder, ppids = line.split()
+        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
         regions.append((OGid, int(start), int(stop), set(ppids.split(','))))
 
 # Calculate contrasts
