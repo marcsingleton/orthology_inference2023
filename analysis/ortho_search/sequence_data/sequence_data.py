@@ -5,10 +5,34 @@ import re
 
 from src.utils import read_fasta
 
-ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
-              'NCBI': r'([NXY]P_[0-9]+)'}
-gnid_regex = {'FlyBase': r'parent=(FBgn[0-9]+)',
-              'NCBI': r'db_xref=GeneID:([0-9]+)'}
+
+def get_gnid(header, source):
+    gnid = None
+    if source == 'FlyBase':
+        match = re.search(r'parent=(FBgn[0-9]+)', header)
+        if match:
+            gnid = match.group(1)
+    elif source == 'NCBI':
+        match = re.search(r'\[db_xref=([^]]+)]', header)
+        if match:
+            db_xrefs = match.group(1).split(',')
+            gnids = [db_xref.split(':')[1] for db_xref in db_xrefs]
+            gnid = gnids[0]  # Use first listed GNID if multiple exist
+    return gnid
+
+
+def get_ppid(header, source):
+    ppid = None
+    match = re.search(tcds_regex[source], header)
+    if match:
+        ppid = match.group(1)
+    return ppid
+
+
+prot_regex = {'FlyBase': r'>(FBpp[0-9]+)',
+              'NCBI': r'>([NXY]P_[0-9]+(\.[0-9]+)?)'}
+tcds_regex = {'FlyBase': r'ID=(FBpp[0-9]+)',
+              'NCBI': r'protein_id=([NXY]P_[0-9]+(\.[0-9]+)?)'}
 
 # Load genomes
 genomes = []
@@ -26,25 +50,22 @@ for spid, source, prot_path, tcds_path in genomes:
     # Find parent genes in tcds headers
     tcds_fasta = read_fasta(tcds_path)
     for header, _ in tcds_fasta:
-        gnid_match = re.search(gnid_regex[source], header)
-        ppid_match = re.search(ppid_regex[source], header)
-        if gnid_match and ppid_match:
-            gnid = gnid_match.group(1)
-            ppid = ppid_match.group(1)
-
+        gnid = get_gnid(header, source)
+        ppid = get_ppid(header, source)
+        if gnid and ppid:
             ppid2data[ppid] = (gnid, spid)
             ppid_counts[ppid] = ppid_counts.get(ppid, 0) + 1
         else:
-            print(header)
+            print(f'regex failure in {spid} tcds_path: {header}')
 
     # Find representative sequences in prot files
     prot_fasta = read_fasta(prot_path)
     for header, seq in prot_fasta:
-        ppid_match = re.search(ppid_regex[source], header)
+        ppid_match = re.search(prot_regex[source], header)
         if ppid_match:
             ppid = ppid_match.group(1)
         else:
-            print(header)
+            print(f'regex failure in {spid} tcds_path: {header}')
             continue
 
         gnid, spid = ppid2data[ppid]
@@ -73,16 +94,21 @@ print('Unique PPIDs:', len(ppid_counts))
 
 """
 OUTPUT
-Total headers: 839414
-Unique IDs: 839414
+Total headers: 855913
+Unique PPIDs: 855913
 
 NOTES
-dyak has a few unusual entries in its translated_cds file which have no proper NCBI gene ID. These are supplied in the
-full database file, so they were simply manually corrected in the source FASTAs.
+Extracting the IDs from the headers is somewhat complex since a few sequences in the dyak annotation have multiple GNIDs
+associated with them. The format of the db_xrefs makes a regex approach insufficiently flexible, so instead a more
+manual parsing approach is used where the individual db_xrefs are split on their delimiters.
+
+The PPIDs in the protein files are given as the field immediately following the >, so these are extracted directly with
+a regex just to prevent any shenanigans. Even though for dmel the prot and tcds files are actually the same, the PPIDs
+are extracted differently in the two cases for consistency with the approach for the NCBI files.
 
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/fasta/dmel-all-translation-r6.38.fasta
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2022_02/fasta/dmel-all-translation-r6.45.fasta
 ../config/genomes.tsv
 """
