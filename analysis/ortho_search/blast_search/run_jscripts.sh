@@ -37,7 +37,7 @@ do
 #
 # Command(s) to run:
 module load python
-python blast_search.py ${spid} ../remove_duplicates/out/${spid}.fa ../../../bin/ncbi-blast-2.10.1+/bin/blastp
+python blast_search.py ${spid} ../remove_duplicates/out/${spid}.fa ../../../bin/ncbi-blast-2.13.0+/bin/blastp
 _EOF_
   fi
 done

@@ -6,7 +6,7 @@ import re
 from src.utils import read_fasta
 
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
-              'NCBI': r'([NXY]P_[0-9]+)'}
+              'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
 
 # Load genomes
 genomes = []
@@ -45,7 +45,6 @@ for spid, source, prot_path in genomes:
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
-../../../data/ncbi_annotations/*/*/*/*_translated_cds.faa
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/fasta/dmel-all-translation-r6.38.fasta
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2021_02/fasta/dmel-all-translation-r6.45.fasta
 ../config/genomes.tsv
 """
