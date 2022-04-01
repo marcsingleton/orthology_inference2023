@@ -22,21 +22,23 @@ if not os.path.exists(f'out/{query_spid}/'):
 
 # Execute BLASTs
 for subject_spid in spids:
-    if not os.path.exists(f'out/{query_spid}/{subject_spid}.blast'):
-        # Generate args
-        input_args = [blast_path, '-query', prot_path]
-        output_args = ['-out', f'out/{query_spid}/{subject_spid}.blast']
-        search_args = ['-db', f'../blast_makedbs/out/{subject_spid}_blastdb', '-evalue', '1', '-num_threads', num_threads]
-        format_args = ['-outfmt', '7 qacc sacc length nident gaps qlen qstart qend slen sstart send evalue bitscore']
+    if os.path.exists(f'out/{query_spid}/{subject_spid}.blast'):
+        continue
 
-        # Execute command
-        t0 = asctime()
-        run(input_args + output_args + search_args + format_args, check=True)
-        t1 = asctime()
+    # Generate args
+    input_args = [blast_path, '-query', prot_path]
+    output_args = ['-out', f'out/{query_spid}/{subject_spid}.blast']
+    search_args = ['-db', f'../blast_makedbs/out/{subject_spid}_blastdb', '-evalue', '1', '-num_threads', num_threads]
+    format_args = ['-outfmt', '7 qacc sacc length nident gaps qlen qstart qend slen sstart send evalue bitscore']
 
-        # Manually write output to file since direction while in background does not immediately write to file
-        with open('out/blast_search.out', 'a') as file:
-            file.write('\t'.join([query_spid, subject_spid, t0, t1 + '\n']))
+    # Execute command
+    t0 = asctime()
+    run(input_args + output_args + search_args + format_args, check=True)
+    t1 = asctime()
+
+    # Manually write output to file since direction while in background does not immediately write to file
+    with open('out/blast_search.out', 'a') as file:
+        file.write('\t'.join([query_spid, subject_spid, t0, t1 + '\n']))
 
 """
 DEPENDENCIES
