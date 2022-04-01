@@ -1,8 +1,8 @@
 """BLAST all-against-all using annotated Drosophila protein sequences and databases."""
 
 import os
-from sys import argv
 from subprocess import run
+from sys import argv
 from time import asctime
 
 num_threads = os.environ['SLURM_CPUS_ON_NODE']
@@ -38,7 +38,7 @@ for subject_spid in spids:
 
     # Manually write output to file since direction while in background does not immediately write to file
     with open('out/blast_search.out', 'a') as file:
-        file.write('\t'.join([query_spid, subject_spid, t0, t1 + '\n']))
+        file.write(f'{query_spid}\t{subject_spid}\t{t0}\t{t1}\n')
 
 """
 DEPENDENCIES
