@@ -15,7 +15,7 @@ def parse_file(query_spid, subject_spid):
             # Record query
             while line.startswith('#'):
                 if line == f'# BLASTP {blast_version}\n' and query_ppid is not None:  # Only add if previous search returned no hits
-                    nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_spid, 'sspid': subject_spid})
+                    nulls.append({'qppid': query_ppid, 'qgnid': query_gnid})
                 elif line.startswith('# Query:'):
                     query_ppid = re.search(ppid_regex[genomes[query_spid]], line).group(1)
                     query_gnid = ppid2gnid[query_ppid]
@@ -24,10 +24,10 @@ def parse_file(query_spid, subject_spid):
             # Record HSPs
             while line and not line.startswith('#'):
                 fields = line.rstrip('\n').split('\t')
-                subject_ppid = re.search(ppid_regex[genomes[subject_spid]], fields[1]).group(1)
+                subject_ppid = ppid2ppid[fields[1]]
                 subject_gnid = ppid2gnid[subject_ppid]
-                values = [query_ppid, query_gnid, query_spid,
-                          subject_ppid, subject_gnid, subject_spid,
+                values = [query_ppid, query_gnid,
+                          subject_ppid, subject_gnid,
                           *fields[2:],
                           False, False, False]
                 input_hsps.append({column: f(value) for (column, f), value in zip(columns.items(), values)})
@@ -37,7 +37,7 @@ def parse_file(query_spid, subject_spid):
             if input_hsps:
                 output_hsps.extend(filter_hsps(input_hsps))
             else:
-                nulls.append({'qppid': query_ppid, 'qgnid': query_gnid, 'qspid': query_spid, 'sspid': subject_spid})
+                nulls.append({'qppid': query_ppid, 'qgnid': query_gnid})
 
             if line.startswith('# BLAST processed'):  # Check for final line
                 break
@@ -54,9 +54,9 @@ def parse_file(query_spid, subject_spid):
         for hsp in output_hsps:
             file.write('\t'.join([str(hsp[column]) for column in columns]) + '\n')
     with open(f'out/nulls/{query_spid}/{subject_spid}.tsv', 'w') as file:
-        file.write('\t'.join(['qppid', 'qgnid', 'qspid', 'sspid']) + '\n')
+        file.write('\t'.join(['qppid', 'qgnid']) + '\n')
         for null in nulls:
-            file.write('\t'.join([null[column] for column in ['qppid', 'qgnid', 'qspid', 'sspid']]) + '\n')
+            file.write('\t'.join([null[column] for column in ['qppid', 'qgnid']]) + '\n')
 
 
 def filter_hsps(input_hsps):
@@ -162,15 +162,15 @@ def is_compatible(hsp, hsp_list, key_type):
 
 
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
-              'NCBI': r'([NXY]P_[0-9]+)'}
-columns = {'qppid': str, 'qgnid': str, 'qspid': str,
-           'sppid': str, 'sgnid': str, 'sspid': str,
+              'NCBI': r'>([NXY]P_[0-9]+(\.[0-9]+)?)'}
+columns = {'qppid': str, 'qgnid': str,
+           'sppid': str, 'sgnid': str,
            'length': int, 'nident': int, 'gaps': int,
            'qlen': int, 'qstart': int, 'qend': int,
            'slen': int, 'sstart': int, 'send': int,
            'evalue': float, 'bitscore': float,
            'index_hsp': bool, 'disjoint': bool, 'compatible': bool}
-blast_version = '2.10.1+'  # Used to identify headers of queries
+blast_version = '2.13.0+'  # Used to identify headers of queries
 compatible_cutoff = 1E-10  # E-value cutoff for accepting HSPs as compatible
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 
@@ -183,12 +183,13 @@ with open('../config/genomes.tsv') as file:
         genomes[spid] = source
 
 # Load sequence data
-ppid2gnid = {}
+ppid2gnid, ppid2ppid = {}, {}
 with open('../sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, _ = line.rstrip('\n').split('\t')
         ppid2gnid[ppid] = gnid
+        ppid2ppid[ppid.split('.')[0]] = ppid  # Mapping from PPID w/o version to PPID w/ version since truncated in BLAST output
 
 # Parse BLAST results
 if __name__ == '__main__':
