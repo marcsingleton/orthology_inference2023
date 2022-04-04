@@ -14,7 +14,8 @@ def parse_file(query_spid, subject_spid):
         while line:
             # Record query
             while line.startswith('#'):
-                if line == f'# BLASTP {blast_version}\n' and query_ppid is not None:  # Only add if previous search returned no hits
+                is_null = (line == f'# BLASTP {blast_version}\n' or line.startswith('# BLAST processed')) and query_ppid is not None
+                if is_null:  # Only True for two consecutive headers or header followed by file end (# BLAST processed)
                     nulls.append({'qppid': query_ppid, 'qgnid': query_gnid})
                 elif line.startswith('# Query:'):
                     query_ppid = re.search(ppid_regex[genomes[query_spid]], line).group(1)
@@ -32,15 +33,8 @@ def parse_file(query_spid, subject_spid):
                           False, False, False]
                 input_hsps.append({column: f(value) for (column, f), value in zip(columns.items(), values)})
                 line = file.readline()
+            output_hsps.extend(filter_hsps(input_hsps))
 
-            # Add best from HSP list (and catch cases where the last search returned no HSPs)
-            if input_hsps:
-                output_hsps.extend(filter_hsps(input_hsps))
-            else:
-                nulls.append({'qppid': query_ppid, 'qgnid': query_gnid})
-
-            if line.startswith('# BLAST processed'):  # Check for final line
-                break
             query_ppid, input_hsps = None, []  # Signals current search was successfully recorded
 
     # Write HSPs and nulls to file
