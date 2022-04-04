@@ -25,5 +25,6 @@ if [ ! -d out ]; then
   ln -s ${out_dir} out
 fi
 
-module load python
+source /global/home/users/singleton/.bashrc
+conda activate IDREvoDevo
 python blast2hsps.py

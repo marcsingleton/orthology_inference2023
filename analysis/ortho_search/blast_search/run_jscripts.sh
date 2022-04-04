@@ -36,7 +36,8 @@ do
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
-module load python
+source /global/home/users/singleton/.bashrc
+conda activate IDREvoDevo
 python blast_search.py ${spid} ../remove_duplicates/out/${spid}.fa ../../../bin/ncbi-blast-2.13.0+/bin/blastp
 _EOF_
   fi
