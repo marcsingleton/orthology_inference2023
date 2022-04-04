@@ -33,7 +33,8 @@ def parse_file(query_spid, subject_spid):
                           False, False, False]
                 input_hsps.append({column: f(value) for (column, f), value in zip(columns.items(), values)})
                 line = file.readline()
-            output_hsps.extend(filter_hsps(input_hsps))
+            if input_hsps:  # Guard against empty input which can occur on final pass through block at file end
+                output_hsps.extend(filter_hsps(input_hsps))
 
             query_ppid, input_hsps = None, []  # Signals current search was successfully recorded
 
@@ -156,7 +157,7 @@ def is_compatible(hsp, hsp_list, key_type):
 
 
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
-              'NCBI': r'>([NXY]P_[0-9]+(\.[0-9]+)?)'}
+              'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
 columns = {'qppid': str, 'qgnid': str,
            'sppid': str, 'sgnid': str,
            'length': int, 'nident': int, 'gaps': int,
