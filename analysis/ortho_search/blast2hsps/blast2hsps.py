@@ -101,7 +101,7 @@ def filter_hsps(input_hsps):
 
         compatible_hsps = [hsp for hsp in group if hsp['compatible']]
         for hsp in group:
-            if is_compatible(hsp, compatible_hsps, 'query') and is_compatible(hsp, compatible_hsps, 'subject') and hsp['bitscore'] > compatible_cutoff:
+            if is_compatible(hsp, compatible_hsps, 'query') and is_compatible(hsp, compatible_hsps, 'subject') and hsp['evalue'] <= compatible_cutoff:
                 hsp['compatible'] = True
                 compatible_hsps.append(hsp)
 
