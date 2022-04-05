@@ -17,15 +17,14 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
 
 # Find connected components
 components = get_connected_components(graph)
-components = sorted(filter(lambda x: len(x) > 1, components), key=get_sort_tuple)
-
+components = sorted(filter(lambda x: len(x) > 1, components), key=get_sort_tuple, reverse=True)
 # Write clusters to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
 with open('out/components.tsv', 'w') as file:
     file.write('component_id\tppids\n')
-    for i, component in components:
+    for i, component in enumerate(components):
         component_id = hex(i)[2:].zfill(4).upper()
         nodestring = ','.join(component)
         file.write(f'{component_id}\t{nodestring}\n')
