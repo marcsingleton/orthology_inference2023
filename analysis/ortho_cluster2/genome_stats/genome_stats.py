@@ -19,7 +19,7 @@ def get_Xmax(seq):
 
 
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
-              'NCBI': r'([NXY]P_[0-9]+)'}
+              'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
 alphabet = {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'X'}
 
 # Load genomes
@@ -323,26 +323,27 @@ print('Fraction (all genes):', round(s3 / len(gnid2Xval), 3))
 print('Fraction (genes with unknown amino acids):', round(s3 / s2, 3))
 
 """
-Out-of-alphabet symbols detected: {'J', 'B', 'Z', 'U'}
+OUTPUT
+Out-of-alphabet symbols detected: {'B', 'Z', 'U', 'J'}
 
-Fraction of sequences with unknown amino acids: 0.015
+Fraction of sequences with unknown amino acids: 0.014
 
 Genes with at least one sequence without unknown amino acids
-Number: 493457
-Fraction: 0.978
+Number: 501301
+Fraction: 0.979
 
 Genes with at least one sequence with unknown amino acids
-Number: 11667
-Fraction: 0.023
+Number: 11257
+Fraction: 0.022
 
 Genes with at least one sequence without unknown amino acids and at least one sequence with unknown amino acids
-Number: 514
+Number: 498
 Fraction (all genes): 0.001
 Fraction (genes with unknown amino acids): 0.044
 
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/fasta/dmel-all-translation-r6.38.fasta
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2021_02/fasta/dmel-all-translation-r6.45.fasta
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../config/genomes.tsv
