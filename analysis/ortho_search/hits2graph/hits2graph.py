@@ -9,8 +9,8 @@ def line2key(line):
     return fields[0]
 
 
-columns = {'qppid': str, 'qgnid': str, 'qspid': str,
-           'sppid': str, 'sgnid': str, 'sspid': str,
+columns = {'qppid': str, 'qgnid': str,
+           'sppid': str, 'sgnid': str,
            'hspnum': int, 'chspnum': int,
            'qlen': int, 'nqa': int, 'cnqa': int,
            'slen': int, 'nsa': int, 'cnsa': int,
@@ -30,9 +30,9 @@ for qspid, sspid in permutations(spids, 2):
         file.readline()  # Skip header
         for _, group in groupby(file, line2key):
             group = [line.rstrip('\n').split('\t') for line in group]
-            max_bitscore = max([float(fields[14]) for fields in group])
+            max_bitscore = max([float(fields[12]) for fields in group])
             for fields in group:
-                if max_bitscore == float(fields[14]):  # Only record hits with maximum bitscore
+                if max_bitscore == float(fields[12]):  # Only record hits with maximum bitscore
                     hit = {column: f(field) for (column, f), field in zip(columns.items(), fields)}
                     qppid, sppid = hit['qppid'], hit['sppid']
                     qlen, cnqa = hit['qlen'], hit['cnqa']

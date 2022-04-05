@@ -6,7 +6,7 @@ from itertools import groupby, permutations
 
 def line2key(line):
     fields = line.rstrip('\n').split('\t')
-    return fields[0], fields[3]
+    return fields[0], fields[2]
 
 
 # Load genomes
@@ -26,7 +26,7 @@ with open('../hsps2graph/out/hsp_graph.tsv') as file:
 # Check reciprocity
 for qspid, sspid in permutations(spids, 2):
     rows = []
-    with open(f'../blast2hsps/out/hsps/{qspid}/{sspid}') as file:
+    with open(f'../blast2hsps/out/hsps/{qspid}/{sspid}.tsv') as file:
         file.readline()  # Skip header
         for key, group in groupby(file, key=line2key):
             qppid, sppid = key

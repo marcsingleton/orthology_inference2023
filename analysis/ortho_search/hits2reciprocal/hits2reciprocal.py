@@ -15,8 +15,8 @@ def is_reciprocal(qppid, sppid, graph):
     return reciprocal
 
 
-columns = {'qppid': str, 'qgnid': str, 'qspid': str,
-           'sppid': str, 'sgnid': str, 'sspid': str,
+columns = {'qppid': str, 'qgnid': str,
+           'sppid': str, 'sgnid': str,
            'hspnum': int, 'chspnum': int,
            'qlen': int, 'nqa': int, 'cnqa': int,
            'slen': int, 'nsa': int, 'cnsa': int,

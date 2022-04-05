@@ -34,7 +34,7 @@ def parse_file(qspid, sspid):
 
 def hsps2hit(hsps):
     # Calculate values from all HSPs
-    hit = {key: hsps[0][key] for key in ['qppid', 'qgnid', 'qspid', 'sppid', 'sgnid', 'sspid', 'qlen', 'slen']}
+    hit = {key: hsps[0][key] for key in ['qppid', 'qgnid', 'sppid', 'sgnid', 'qlen', 'slen']}
     hit['chspnum'] = len(hsps)
     qcov = np.zeros((1, hsps[0]['qlen']), dtype=bool)
     scov = np.zeros((1, hsps[0]['slen']), dtype=bool)
@@ -56,11 +56,11 @@ def hsps2hit(hsps):
 
 def line2key(line):
     fields = line.rstrip('\n').split('\t')
-    return fields[0], fields[3]
+    return fields[0], fields[2]
 
 
-hsp_columns = {'qppid': str, 'qgnid': str, 'qspid': str,
-               'sppid': str, 'sgnid': str, 'sspid': str,
+hsp_columns = {'qppid': str, 'qgnid': str,
+               'sppid': str, 'sgnid': str,
                'length': int, 'nident': int, 'gaps': int,
                'qlen': int, 'qstart': int, 'qend': int,
                'slen': int, 'sstart': int, 'send': int,
@@ -68,8 +68,8 @@ hsp_columns = {'qppid': str, 'qgnid': str, 'qspid': str,
                'index_hsp': lambda x: x == 'True',
                'disjoint': lambda x: x == 'True',
                'compatible': lambda x: x == 'True'}
-hit_columns = ['qppid', 'qgnid', 'qspid',
-               'sppid', 'sgnid', 'sspid',
+hit_columns = ['qppid', 'qgnid',
+               'sppid', 'sgnid',
                'hspnum', 'chspnum',
                'qlen', 'nqa', 'cnqa',
                'slen', 'nsa', 'cnsa',

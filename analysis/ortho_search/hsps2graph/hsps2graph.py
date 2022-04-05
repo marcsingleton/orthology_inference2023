@@ -6,7 +6,7 @@ from itertools import groupby, permutations
 
 def line2key(line):
     fields = line.rstrip('\n').split('\t')
-    return fields[0], fields[3]
+    return fields[0], fields[2]
 
 
 # Load genomes
