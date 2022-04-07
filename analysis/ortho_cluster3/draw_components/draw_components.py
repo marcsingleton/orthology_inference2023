@@ -107,39 +107,40 @@ for i, (component_id, component) in enumerate(component_records[:50]):  # 50 lar
     for x, y in positions.values():
         xnorm = (x-xmin)/(xmax-xmin)
         ynorm = (y-ymin)/(ymax-ymin)
-        if xnorm > 0.85 and ynorm > 0.95:
+        if xnorm > 0.85 and ynorm > 0.95 and 'upper right' in locs:
             locs.remove('upper right')
-        elif xnorm < 0.15 and ynorm > 0.95:
+        elif xnorm < 0.15 and ynorm > 0.95 and 'upper left' in locs:
             locs.remove('upper left')
-        elif xnorm > 0.85 and ynorm < 0.05:
+        elif xnorm > 0.85 and ynorm < 0.05 and 'lower right' in locs:
             locs.remove('lower right')
-        elif xnorm < 0.15 and ynorm < 0.05:
+        elif xnorm < 0.15 and ynorm < 0.05 and 'lower left' in locs:
             locs.remove('lower left')
 
     # Draw graph labeled by source
     node_size = 25 / (1 + exp(0.01 * (len(subgraph) - 400))) + 10  # Adjust node size
-    FB = [node for node in nx_graph.nodes if node.startswith('FBpp')]
+    FB = {node for node in nx_graph.nodes if node.startswith('FBpp')}
     NCBI = nx_graph.nodes - FB
 
-    fig, ax = plt.subplots(figsize=figsize, dpi=300)
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_axes((0.01, 0.01, 0.98, 0.98))
     nx.draw_networkx_edges(nx_graph, positions, alpha=0.25, width=0.5)
     nx.draw_networkx_nodes(NCBI, positions, node_size=node_size, linewidths=0, node_color='C0', label='NCBI')
     nx.draw_networkx_nodes(FB, positions, node_size=node_size, linewidths=0, node_color='C1', label='FlyBase')
 
     fig.legend(markerscale=(1 if node_size > 22.5 else 22.5/node_size), loc=locs[-1])
-    fig.tight_layout()
     ax.axis('off')
-    fig.savefig(f'out/{i:02}-{component_id}_source.png')
+    fig.savefig(f'out/{i:02}_{component_id}_source.png', dpi=400)
     plt.close()
 
     # Draw graph labeled by cluster
     for k, OGks in zip(range(3, 7), [OG3s, OG4s, OG5s, OG6s]):
-        fig, ax = plt.subplots(figsize=figsize, dpi=300)
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_axes((0.01, 0.01, 0.98, 0.98))
         nx.draw_networkx_edges(nx_graph, positions, alpha=0.25, width=0.5)
         nx.draw_networkx_nodes(nx_graph.nodes, positions, node_size=node_size, linewidths=0, node_color=get_node_colors(nx_graph, OGks.get(component_id, [])))
-        fig.tight_layout()
+
         ax.axis('off')
-        fig.savefig(f'out/{i:02}-{component_id}_OG{k}.png')
+        fig.savefig(f'out/{i:02}_{component_id}_OG{k}.png', dpi=400)
         plt.close()
 
     # Draw graph labeled by edge
@@ -151,7 +152,8 @@ for i, (component_id, component) in enumerate(component_records[:50]):  # 50 lar
     cmap1 = mpl.colors.ListedColormap(cmap0(linspace(0.25, 1, 256)))
     norm = mpl.colors.Normalize(min(ws), max(ws))
 
-    fig, ax = plt.subplots(figsize=figsize, dpi=300)
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_axes((0.01, 0.01, 0.98, 0.98))
     nx.draw_networkx_edges(nx_graph, positions, edgelist=edges, alpha=0.375, width=0.75, edge_color=ws, edge_cmap=cmap1)
     nx.draw_networkx_nodes(nx_graph, positions, node_size=node_size, linewidths=0, node_color='#333333')
 
@@ -160,9 +162,8 @@ for i, (component_id, component) in enumerate(component_records[:50]):  # 50 lar
     ticks = [10*round((min(ws)+dws/4) / 10), 10*round((max(ws)-dws/4) / 10)]
     fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap1), cax=cax, ticks=ticks, orientation='horizontal')
 
-    fig.tight_layout()
     ax.axis('off')
-    fig.savefig(f'out/{i:02}_{component_id}_edge.png')
+    fig.savefig(f'out/{i:02}_{component_id}_edge.png', dpi=400)
     plt.close()
 
 """
