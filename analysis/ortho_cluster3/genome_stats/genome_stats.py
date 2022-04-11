@@ -19,7 +19,7 @@ def get_Xmax(seq):
 
 
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
-              'NCBI': r'([NXY]P_[0-9]+)'}
+              'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
 alphabet = {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'X'}
 
 # Load genomes
@@ -325,20 +325,20 @@ print('Fraction (genes with unknown amino acids):', round(s3 / s2, 3))
 """
 Out-of-alphabet symbols detected: {'U'}
 
-Fraction of sequences with unknown amino acids: 0.014
+Fraction of sequences with unknown amino acids: 0.013
 
 Genes with at least one sequence without unknown amino acids
-Number: 434011
-Fraction: 0.979
+Number: 457378
+Fraction: 0.98
 
 Genes with at least one sequence with unknown amino acids
-Number: 9833
-Fraction: 0.022
+Number: 9919
+Fraction: 0.021
 
 Genes with at least one sequence without unknown amino acids and at least one sequence with unknown amino acids
-Number: 429
+Number: 415
 Fraction (all genes): 0.001
-Fraction (genes with unknown amino acids): 0.044
+Fraction (genes with unknown amino acids): 0.042
 
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
