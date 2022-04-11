@@ -303,6 +303,10 @@ if __name__ == '__main__':
 
 """
 OUTPUT
+Fraction of unfiltered HSPs reciprocal: 0.942
+Fraction of compatible HSPs reciprocal: 0.958
+Fraction of disjoint HSPs reciprocal: 0.944
+Fraction of index HSPs reciprocal: 0.942
 
 DEPENDENCIES
 ../../ortho_search/blast2hsps/blast2hsps.py
