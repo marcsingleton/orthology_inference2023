@@ -284,7 +284,7 @@ if __name__ == '__main__':
 
         # 2.3 PLOTS
         # 2.3.1 Correlation of gene HSPs with number of associated proteins
-        gnid_nums = pd.read_csv('../genome_stats/out/gnidnums.tsv', sep='\t', index_col='gnid', dtype={'gnid': 'string'})
+        gnid_nums = pd.read_table('../genome_stats/out/gnidnums.tsv', index_col='gnid', dtype={'gnid': 'string'})
         corr = sgnid_hspnum.join(gnid_nums)
 
         plt.scatter(corr['ppidnum'], corr['sgnid_hspnum'], alpha=0.5, s=10, edgecolors='none')

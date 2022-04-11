@@ -7,10 +7,10 @@ from itertools import permutations
 
 
 def load_hit(qspid, sspid):
-    df = pd.read_csv(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
-                     usecols=dtypes.keys(), dtype=dtypes, memory_map=True)
-    r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
-                    usecols=['reciprocal'], memory_map=True)
+    df = pd.read_table(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv',
+                       usecols=dtypes.keys(), dtype=dtypes, memory_map=True)
+    r = pd.read_table(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv',
+                      usecols=['reciprocal'], memory_map=True)
 
     return df[r['reciprocal']]
 
