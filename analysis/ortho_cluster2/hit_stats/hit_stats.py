@@ -12,76 +12,76 @@ from numpy import linspace
 
 # Load functions
 def load_hsp(qspid, sspid):
-    df = pd.read_csv(f'../../ortho_search/blast2hsps/out/hsps/{qspid}/{sspid}.tsv', sep='\t',
-                     usecols=hsp_dtypes.keys(), dtype=hsp_dtypes, memory_map=True)
+    df = pd.read_table(f'../../ortho_search/blast2hsps/out/hsps/{qspid}/{sspid}.tsv',
+                       usecols=hsp_dtypes.keys(), dtype=hsp_dtypes, memory_map=True)
 
     return df[df['disjoint']]
 
 
 def load_hit(qspid, sspid):
-    df = pd.read_csv(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv', sep='\t',
-                     usecols=hit_dtypes.keys(), dtype=hit_dtypes, memory_map=True)
-    r = pd.read_csv(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv', sep='\t',
-                    usecols=['reciprocal'], memory_map=True)
+    df = pd.read_table(f'../../ortho_search/hsps2hits/out/{qspid}/{sspid}.tsv',
+                       usecols=hit_dtypes.keys(), dtype=hit_dtypes, memory_map=True)
+    r = pd.read_table(f'../../ortho_search/hits2reciprocal/out/{qspid}/{sspid}.tsv',
+                      usecols=['reciprocal'], memory_map=True)
     max_bitscore = df.groupby('qppid')['bitscore'].max().rename('max_bitscore')
-    dfr = df.join(r).join(max_bitscore, on='qppid')
+    df = df.join(r).join(max_bitscore, on='qppid')
 
-    return dfr
+    df['qspid'] = qspid
+    df['qspid'] = df['qspid'].astype('category')
+    df['sspid'] = sspid
+    df['sspid'] = df['sspid'].astype('category')
+
+    return df
 
 
 # Plot functions
-def hist1(df, bins, file_label, x_label, df_label, color, wrap=False):
+def hist1(df, bins, file_label, x_label, df_label, color):
     plt.hist(df, bins=bins, label=df_label, color=color)
-    plt.xlabel(x_label[0].upper() + x_label[1:])
+    plt.xlabel(x_label)
     plt.ylabel('Number of hits')
-    plt.title('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     plt.legend()
     plt.savefig(f'out/blast/hist_{file_label}.png')
     plt.close()
 
 
-def hist3(dfs, bins, file_label, x_label, df_labels, colors, wrap=False):
+def hist3(dfs, bins, file_label, x_label, df_labels, colors):
     fig, axs = plt.subplots(3, 1, figsize=(4.8, 6), sharex=True)
     b = linspace(min([df.min() for df in dfs]), max([df.max() for df in dfs]), bins, endpoint=True)
     for ax, df, df_label, color in zip(axs, dfs, df_labels, colors):
         ax.hist(df, bins=b, label=df_label, color=color)
         ax.legend()
-    axs[2].set_xlabel(x_label[0].upper() + x_label[1:])
+    axs[2].set_xlabel(x_label)
     axs[1].set_ylabel('Number of hits')
-    fig.suptitle('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     fig.subplots_adjust(left=0.175)
     fig.savefig(f'out/blast/hist_{file_label}_3.png')
     plt.close()
 
 
-def bar1(df, file_label, x_label, df_label, color, wrap=False):
+def bar1(df, file_label, x_label, df_label, color):
     plt.bar(df.index, df.values, label=df_label, color=color, width=1)
-    plt.xlabel(x_label[0].upper() + x_label[1:])
+    plt.xlabel(x_label)
     plt.ylabel('Number of hits')
-    plt.title('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     plt.legend()
     plt.savefig(f'out/blast/hist_{file_label}.png')
     plt.close()
 
 
-def bar3(dfs, file_label, x_label, df_labels, colors, wrap=False):
+def bar3(dfs, file_label, x_label, df_labels, colors):
     fig, axs = plt.subplots(3, 1, figsize=(4.8, 6), sharex=True)
     for ax, df, df_label, color in zip(axs, dfs, df_labels, colors):
         ax.bar(df.index, df.values, label=df_label, color=color, width=1)
         ax.legend()
-    axs[2].set_xlabel(x_label[0].upper() + x_label[1:])
+    axs[2].set_xlabel(x_label)
     axs[1].set_ylabel('Number of hits')
-    fig.suptitle('Distribution of hits across' + ('\n' if wrap else ' ') + x_label)
     fig.subplots_adjust(left=0.175)
-    fig.savefig(f'out/blast/hist3_{file_label}.png')
+    fig.savefig(f'out/blast/hist_{file_label}_3.png')
     plt.close()
 
 
-def bar_hits(counts, file_label):
+def bar(counts, file_label):
     plt.bar(counts.keys(), counts.values(), width=1)
-    plt.title('Distribution of polypeptides across number of reciprocal hits')
-    plt.xlabel('Number of reciprocal hits to polypeptides')
-    plt.ylabel('Number of polypeptides')
+    plt.xlabel('Number of reciprocal hits to protein')
+    plt.ylabel('Number of proteins')
     plt.savefig(f'out/hits/hist_ppidnum-hitnum_{file_label}.png')
     plt.close()
 
@@ -90,8 +90,8 @@ hsp_dtypes = {'qppid': 'string', 'qgnid': 'string',
               'sppid': 'string', 'sgnid': 'string',
               'bitscore': float,
               'disjoint': bool}
-hit_dtypes = {'qppid': 'string', 'qgnid': 'string', 'qspid': 'string',
-              'sppid': 'string', 'sgnid': 'string', 'sspid': 'string',
+hit_dtypes = {'qppid': 'string', 'qgnid': 'string',
+              'sppid': 'string', 'sgnid': 'string',
               'hspnum': int, 'chspnum': int,
               'qlen': int, 'nqa': int, 'cnqa': int,
               'slen': int, 'nsa': int, 'cnsa': int,
@@ -123,8 +123,9 @@ if __name__ == '__main__':
         hits3 = hits2[hits2['reciprocal']]
         hits = [hits0, hits1, hits2, hits3]
 
-        labels = ['bitscore ≥ 50', 'best', 'cFQA ≥ 0.5', 'reciprocal']
-        colors = ['C1', 'C2', 'C3', 'C4']
+    file_labels = ['bitscore50', 'best', 'cfqa50', 'reciprocal']
+    labels = ['bitscore ≥ 50', 'best', 'cFQA ≥ 0.5', 'reciprocal']
+    colors = ['C1', 'C2', 'C3', 'C4']
 
     # 1 BLAST METRICS
     if not os.path.exists('out/blast/'):
@@ -140,92 +141,75 @@ if __name__ == '__main__':
 
     # 1.1 Number of HSPs in each filter condition
     plt.bar(xs, ys1, color=cs, width=0.25)
-    plt.xlim((-0.75, 4.75))
+    plt.xlabel('HSP subset')
     plt.ylabel('Number of disjoint HSPs')
     plt.savefig('out/blast/bar_hspnum-filter.png')
     plt.close()
 
     # 1.2 Number of hits in each filter condition
     plt.bar(xs, ys2, color=cs, width=0.25)
-    plt.xlim((-0.75, 4.75))
+    plt.xlabel('Hit subset')
     plt.ylabel('Number of hits')
     plt.savefig('out/blast/bar_hitnum-filter.png')
     plt.close()
 
     # 1.3 QUALITY METRICS
     # 1.3.1 Bitscore histograms
-    hist3([hit['bitscore'] for hit in hits[1:]], 200, 'bitscore', 'bitscore', labels[1:], colors[1:])
-    hist1(hits0['bitscore'], 200, 'bitscore_bs50', 'bitscore', labels[0], colors[0])
-    hist1(hits1['bitscore'], 200, 'bitscore_best', 'bitscore', labels[1], colors[1])
-    hist1(hits2['bitscore'], 200, 'bitscore_cfqa50', 'bitscore', labels[2], colors[2])
-    hist1(hits3['bitscore'], 200, 'bitscore_reciprocal', 'bitscore', labels[3], colors[3])
+    hist3([hit['bitscore'] for hit in hits[1:]], 200, 'bitscore', 'Bitscore', labels[1:], colors[1:])
+    for hit, file_label, label, color in zip(hits, file_labels, labels, colors):
+        hist1(hit['bitscore'], 200, f'bitscore_{file_label}', 'Bitscore', label, color)
 
     # 1.3.2 HSPnum histograms
     counts = [hit['hspnum'].value_counts() for hit in hits]
-    bar3(counts, 'hspnum', 'number of disjoint HSPs in hit', labels[1:], colors[1:], wrap=True)
-    bar1(counts[0], 'hspnum_bs50', 'number of disjoint HSPs in hit', labels[0], colors[0], wrap=True)
-    bar1(counts[1], 'hspnum_best', 'number of disjoint HSPs in hit', labels[1], colors[1], wrap=True)
-    bar1(counts[2], 'hspnum_cfqa50', 'number of disjoint HSPs in hit', labels[2], colors[2], wrap=True)
-    bar1(counts[3], 'hspnum_reciprocal', 'number of disjoint HSPs in hit', labels[3], colors[3], wrap=True)
+    bar3(counts, 'hspnum', 'Number of disjoint HSPs in hit', labels[1:], colors[1:])
+    for count, file_label, label, color in zip(counts, file_labels, labels, colors):
+        bar1(count, f'hspnum_{file_label}', 'Number of disjoint HSPs in hit', label, color)
 
     # 1.3.3 cHSPnum histograms
     counts = [hit['chspnum'].value_counts() for hit in hits]
-    bar3(counts, 'chspnum', 'number of compatible HSPs in hit', labels[1:], colors[1:], wrap=True)
-    bar1(counts[0], 'chspnum_bs50', 'number of compatible HSPs in hit', labels[0], colors[0], wrap=True)
-    bar1(counts[1], 'chspnum_best', 'number of compatible HSPs in hit', labels[1], colors[1], wrap=True)
-    bar1(counts[2], 'chspnum_cfqa50', 'number of compatible HSPs in hit', labels[2], colors[2], wrap=True)
-    bar1(counts[3], 'chspnum_reciprocal', 'number of compatible HSPs in hit', labels[3], colors[3], wrap=True)
+    bar3(counts, 'chspnum', 'Number of compatible HSPs in hit', labels[1:], colors[1:])
+    for count, file_label, label, color in zip(counts, file_labels, labels, colors):
+        bar1(count, f'chspnum_{file_label}', 'Number of compatible HSPs in hit', label, color)
 
     # 1.3.4 xHSPnum histograms
     counts = [hit['xhspnum'].value_counts() for hit in hits]
-    bar3(counts, 'xhspnum', 'excess number of HSPs in hit', labels[1:], colors[1:], wrap=True)
-    bar1(counts[0], 'xhspnum_bs50', 'excess number of HSPs in hit', labels[0], colors[0], wrap=True)
-    bar1(counts[1], 'xhspnum_best', 'excess number of HSPs in hit', labels[1], colors[1], wrap=True)
-    bar1(counts[2], 'xhspnum_cfqa50', 'excess number of HSPs in hit', labels[2], colors[2], wrap=True)
-    bar1(counts[3], 'xhspnum_reciprocal', 'excess number of HSPs in hit', labels[3], colors[3], wrap=True)
+    bar3(counts, 'xhspnum', 'Excess number of HSPs in hit', labels[1:], colors[1:])
+    for count, file_label, label, color in zip(counts, file_labels, labels, colors):
+        bar1(count, f'xhspnum_{file_label}', 'Excess number of HSPs in hit', label, color)
 
     # 1.3.5 NQA histograms
-    hist3([hit['nqa'] for hit in hits[1:]], 200, 'nqa', 'number of query aligned', labels[1:], colors[1:], wrap=True)
-    hist1(hits0['nqa'], 200, 'nqa_bs50', 'number of query aligned', labels[0], colors[0], wrap=True)
-    hist1(hits1['nqa'], 200, 'nqa_best', 'number of query aligned', labels[1], colors[1], wrap=True)
-    hist1(hits2['nqa'], 200, 'nqa_cfqa50', 'number of query aligned', labels[2], colors[2], wrap=True)
-    hist1(hits3['nqa'], 200, 'nqa_reciprocal', 'number of query aligned', labels[3], colors[3], wrap=True)
+    hist3([hit['nqa'] for hit in hits[1:]], 200, 'nqa', 'Number of query aligned', labels[1:], colors[1:])
+    for hit, file_label, label, color in zip(hits, file_labels, labels, colors):
+        hist1(hit['nqa'], 200, f'nqa_{file_label}', 'Number of query aligned', label, color)
 
     # 1.3.6 cNQA histograms
-    hist3([hit['cnqa'] for hit in hits[1:]], 200, 'cnqa', 'compatible number of query aligned', labels[1:], colors[1:], wrap=True)
-    hist1(hits0['cnqa'], 200, 'cnqa_bs50', 'compatible number of query aligned', labels[0], colors[0], wrap=True)
-    hist1(hits1['cnqa'], 200, 'cnqa_best', 'compatible number of query aligned', labels[1], colors[1], wrap=True)
-    hist1(hits2['cnqa'], 200, 'cnqa_cfqa50', 'compatible number of query aligned', labels[2], colors[2], wrap=True)
-    hist1(hits3['cnqa'], 200, 'cnqa_reciprocal', 'compatible number of query aligned', labels[3], colors[3], wrap=True)
+    hist3([hit['cnqa'] for hit in hits[1:]], 200, 'cnqa', 'Compatible number of query aligned', labels[1:], colors[1:])
+    for hit, file_label, label, color in zip(hits, file_labels, labels, colors):
+        hist1(hit['cnqa'], 200, f'cnqa_{file_label}', 'Compatible number of query aligned', label, color)
 
     # 1.3.7 FQA histograms
-    hist3([hit['fqa'] for hit in hits[1:]], 50, 'fqa', 'fraction of query aligned', labels[1:], colors[1:], wrap=True)
-    hist1(hits0['fqa'], 50, 'fqa_bs50', 'fraction of query aligned', labels[0], colors[0], wrap=True)
-    hist1(hits1['fqa'], 50, 'fqa_best', 'fraction of query aligned', labels[1], colors[1], wrap=True)
-    hist1(hits2['fqa'], 50, 'fqa_cfqa50', 'fraction of query aligned', labels[2], colors[2], wrap=True)
-    hist1(hits3['fqa'], 50, 'fqa_reciprocal', 'fraction of query aligned', labels[3], colors[3], wrap=True)
+    hist3([hit['fqa'] for hit in hits[1:]], 50, 'fqa', 'Fraction of query aligned', labels[1:], colors[1:])
+    for hit, file_label, label, color in zip(hits, file_labels, labels, colors):
+        hist1(hit['fqa'], 50, f'fqa_{file_label}', 'Fraction of query aligned', label, color)
 
     # 1.3.8 cFQA histograms
-    hist3([hit['cfqa'] for hit in hits[1:]], 50, 'cfqa', 'compatible fraction of query aligned', labels[1:], colors[1:], wrap=True)
-    hist1(hits0['cfqa'], 50, 'cfqa_bs50', 'compatible fraction of query aligned', labels[0], colors[0], wrap=True)
-    hist1(hits1['cfqa'], 50, 'cfqa_best', 'compatible fraction of query aligned', labels[1], colors[1], wrap=True)
-    hist1(hits2['cfqa'], 50, 'cfqa_cfqa50', 'compatible fraction of query aligned', labels[2], colors[2], wrap=True)
-    hist1(hits3['cfqa'], 50, 'cfqa_reciprocal', 'compatible fraction of query aligned', labels[3], colors[3], wrap=True)
+    hist3([hit['cfqa'] for hit in hits[1:]], 50, 'cfqa', 'Compatible fraction of query aligned', labels[1:], colors[1:])
+    for hit, file_label, label, color in zip(hits, file_labels, labels, colors):
+        hist1(hit['cfqa'], 50, f'cfqa_{file_label}', 'Compatible fraction of query aligned', label, color)
 
     # 1.3.9 xFQA histograms
-    hist3([hit['xfqa'] for hit in hits[1:]], 50, 'xfqa', 'excess fraction of query aligned', labels[1:], colors[1:], wrap=True)
-    hist1(hits0['xfqa'], 50, 'xfqa_bs50', 'excess fraction of query aligned', labels[0], colors[0], wrap=True)
-    hist1(hits1['xfqa'], 50, 'xfqa_best', 'excess fraction of query aligned', labels[1], colors[1], wrap=True)
-    hist1(hits2['xfqa'], 50, 'xfqa_cfqa50', 'excess fraction of query aligned', labels[2], colors[2], wrap=True)
-    hist1(hits3['xfqa'], 50, 'xfqa_reciprocal', 'excess fraction of query aligned', labels[3], colors[3], wrap=True)
+    hist3([hit['xfqa'] for hit in hits[1:]], 50, 'xfqa', 'Excess fraction of query aligned', labels[1:], colors[1:])
+    for hit, file_label, label, color in zip(hits, file_labels, labels, colors):
+        hist1(hit['xfqa'], 50, f'xfqa_{file_label}', 'Excess fraction of query aligned', label, color)
 
     # 1.3.10 FQA-FSA scatters
-    for label, hit in zip(['best', 'bs50', 'cfqa50', 'reciprocal'], hits):
-        plt.hist2d(hit['fqa'], hit['fsa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
+    for hit, file_label, label in zip(hits, file_labels, labels):
+        plt.hist2d(hit['fqa'], hit['fsa'], bins=50, norm=mpl_colors.LogNorm())
         plt.xlabel('Fraction of query aligned')
         plt.ylabel('Fraction of subject aligned')
+        plt.title(label)
         plt.colorbar()
-        plt.savefig(f'out/blast/hist2d_fsa-fqa_{label}.png')
+        plt.savefig(f'out/blast/hist2d_fsa-fqa_{file_label}.png')
         plt.close()
 
     # 2 HIT METRICS
@@ -253,23 +237,22 @@ if __name__ == '__main__':
     sppid_hitnum_dmel.to_csv('out/hits/sppids_dmel.tsv', sep='\t', index_label='sppid')
 
     # 2.3 PLOTS
-    # 2.3.1 Correlation of gene hits with number of associated polypeptides
+    # 2.3.1 Correlation of gene hits with number of associated proteins
     gnid_ppidnum = pd.read_csv('../genome_stats/out/gnidnums.tsv', sep='\t', index_col='gnid', dtype={'gnid': 'string'})
     corr = sgnid_hitnum.join(gnid_ppidnum)
 
     plt.scatter(corr['ppidnum'], corr['sgnid_hitnum'], alpha=0.5, s=10, edgecolors='none')
-    plt.xlabel('Number of polypeptides associated with gene')
+    plt.xlabel('Number of proteins associated with gene')
     plt.ylabel('Number of reciprocal hits to gene')
-    plt.title('Correlation of number of reciprocal hits to gene\nwith number of associated polypeptides')
     plt.savefig('out/hits/scatter_hitnum-ppidnum.png')
     plt.close()
 
-    # 2.3.2 Histograms of polypeptides by number of hits
+    # 2.3.2 Histograms of proteins by number of hits
     counts = sppid_hitnum['sppid_hitnum'].value_counts().to_dict()
 
-    bar_hits(counts, 'all')
-    bar_hits({key: value for key, value in counts.items() if key > len(spids)}, f'{len(spids)}+')
-    bar_hits({key: value for key, value in counts.items() if key <= len(spids)}, f'{len(spids)}-')
+    bar(counts, 'all')
+    bar({key: value for key, value in counts.items() if key > len(spids)}, f'{len(spids)}+')
+    bar({key: value for key, value in counts.items() if key <= len(spids)}, f'{len(spids)}-')
 
 """
 DEPENDENCIES

@@ -131,7 +131,7 @@ for i in range(len(spids)-10, len(spids)):
     x = list(range(len(labels)))
     fig, ax = plt.subplots()
     ax.bar(x, height)
-    ax1.set_xticks(xs, labels, rotation=60, fontsize=8)
+    ax.set_xticks(xs, labels, rotation=60, fontsize=8)
     ax.set_xlabel('Species')
     ax.set_ylabel('Number of exclusions')
     ax.set_title(f'Number of exclusions in OGs with {i} species')
