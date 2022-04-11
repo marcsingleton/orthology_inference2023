@@ -342,7 +342,7 @@ Fraction (genes with unknown amino acids): 0.044
 
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/fasta/dmel-all-translation-r6.38.fasta
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2021_02/fasta/dmel-all-translation-r6.45.fasta
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../config/genomes.tsv
