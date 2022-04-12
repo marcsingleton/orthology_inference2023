@@ -19,7 +19,7 @@ def get_codons(nt_seq, aa_seq, file_id):
     num_codon = (len(nt_seq) - 3 * max(0, delta)) // 3  # Exclude last codon only if delta == 1
 
     codons = []  # Translated symbols
-    for i in range(0, num_codon):
+    for i in range(num_codon):
         codon = nt_seq[3*i:3*i+3]
         tr = 'X' if 'N' in codon else codon2aa[codon]
         aa = aa_seq[i]
@@ -52,7 +52,7 @@ def get_codons(nt_seq, aa_seq, file_id):
         else:
             codons.append(codon)
     if delta == -1:
-        codons.append(nt_seq[3*(i+1):] + (3-len(nt_seq) % 3) * '-')
+        codons.append(nt_seq[3*num_codon:] + (3-len(nt_seq) % 3) * '-')
         print('File:', file_id)
         print('PPID:', ppid)
         print(f'Warning: Missing final residue {aa_seq[-1]} appended to translated sequence.')
@@ -98,7 +98,7 @@ for path in [path for path in os.listdir('../align_fastas/out/') if path.endswit
     # Translate and write CDS
     nt_aligns = []
     for header, aa_align in read_fasta('../align_fastas/out/' + path):
-        ppid = re.search(r'ppid=([NXYPFBp0-9_.]+)\|', header)[1]
+        ppid = re.search(r'ppid=([A-Za-z0-9_]+)', header).group(1)
         aa_seq = aa_align.replace('-', '')
         nt_seq = ppid2cds[ppid]
 
