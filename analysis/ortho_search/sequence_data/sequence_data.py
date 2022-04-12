@@ -89,14 +89,14 @@ with open('out/sequence_data.tsv', 'w') as file:
     for ppid, data in ppid2data.items():
         file.write(ppid + '\t' + '\t'.join(data) + '\n')
 
-print('Total headers:', sum(ppid_counts.values()))
-print('Unique PPIDs:', len(ppid_counts))
+output = f"""\
+Total headers: {sum(ppid_counts.values())}
+Unique PPIDs: {len(ppid_counts)}
+"""
+with open('out/output.txt', 'w') as file:
+    file.write(output)
 
 """
-OUTPUT
-Total headers: 855913
-Unique PPIDs: 855913
-
 NOTES
 Extracting the IDs from the headers is somewhat complex since a few sequences in the dyak annotation have multiple GNIDs
 associated with them. The format of the db_xrefs makes a regex approach insufficiently flexible, so instead a more

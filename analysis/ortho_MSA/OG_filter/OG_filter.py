@@ -87,7 +87,6 @@ OGs = pd.DataFrame(rows)
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-print('Total filtered OGs:', len(OGs))
 counts = OGs['gnidnum'].value_counts()
 plt.bar(counts.index, counts.values)
 plt.xlabel('Number of genes in OG')
@@ -97,9 +96,6 @@ plt.savefig('out/bar_OGidnum-gnidnum.png')
 OGs.to_csv('out/OG_filter.tsv', sep='\t', index=False)
 
 """
-OUTPUT
-Total filtered OGs: 8551
-
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv

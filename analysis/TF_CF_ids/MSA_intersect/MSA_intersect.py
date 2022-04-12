@@ -32,25 +32,23 @@ CFs = pd.read_table('../update_ids/out/CFs.txt', names=['gnid'])
 OGs_TF = TFs.merge(OGs[['OGid', 'gnid']], how='inner', on=['gnid'])
 OGs_CF = CFs.merge(OGs[['OGid', 'gnid']], how='inner', on=['gnid'])
 
-# Print stats and write to file
-print('Number of TF OGs:', len(OGs_TF))
-print('Number of unique TF genes:', OGs_TF['gnid'].nunique())
-print('Number of CF OGs:', len(OGs_CF))
-print('Number of unique CF genes:', OGs_CF['gnid'].nunique())
-
+# Write stats and IDs to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
+
+output = f"""\
+Number of TF OGs: {len(OGs_TF)}
+Number of unique TF genes: {OGs_TF['gnid'].nunique()}
+Number of CF OGs: {len(OGs_CF)}
+Number of unique CF genes: {OGs_CF['gnid'].nunique()}
+"""
+with open('out/output.txt', 'w') as file:
+    file.write(output)
 
 OGs_TF.to_csv('out/TFs.tsv', sep='\t', index=False)
 OGs_CF.to_csv('out/CFs.tsv', sep='\t', index=False)
 
 """
-OUTPUT
-Number of TF OGs: 563
-Number of unique TF genes: 563
-Number of CF OGs: 251
-Number of unique CF genes: 251
-
 NOTES
 The number of unique genes for each set of OGs is the same as the total. This means the genes are uniquely mapped to
 OGs (as opposed to one gene potentially being in multiple OGs which is quite possible). The filtered list of OGs already

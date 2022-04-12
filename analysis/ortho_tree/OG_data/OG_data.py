@@ -45,17 +45,6 @@ with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
         rows.append(row)
 OGs = pd.DataFrame(rows)
 
-# Print counts
-spidnum = len(spids)
-ppid_filter = OGs['ppidnum'] == spidnum
-gnid_filter = OGs['gnidnum'] == spidnum
-spid_filter = OGs['spidnum'] == spidnum
-
-print('Total OGs:', len(OGs))
-print(f'OGs with {spidnum} species:', len(OGs[spid_filter]))
-print(f'OGs with {spidnum} species and genes:', len(OGs[spid_filter & gnid_filter]))
-print(f'OGs with {spidnum} species, genes, and sequences:', len(OGs[spid_filter & gnid_filter & ppid_filter]))
-
 # Write data to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -63,13 +52,6 @@ if not os.path.exists('out/'):
 OGs.to_csv('out/OG_data.tsv', sep='\t', index=False)
 
 """
-OUTPUT 
-Total OGs: 23242
-OGs with 32 genes: 7495
-OGs with 32 genes and species: 7267
-OGs with 32 genes, species, and sequences: 1919
-OGs with 32 genes, species, and unique sequences: 4864
-
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv

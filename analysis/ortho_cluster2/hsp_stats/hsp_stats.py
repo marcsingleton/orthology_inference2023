@@ -147,7 +147,6 @@ if __name__ == '__main__':
         plt.title(data_label)
         plt.savefig(f'out/blast_{data_label}/bar_reciprocal_filter.png')
         plt.close()
-        print(f'Fraction of {data_label} HSPs reciprocal:', round(len(df1) / len(df0), 3))
 
         # 1.2 QUALITY METRICS
         evalue0 = df0.loc[df0['evalue'] != 0, 'logevalue']
@@ -302,12 +301,6 @@ if __name__ == '__main__':
         bar({key: value for key, value in counts.items() if key <= len(spids)}, data_label, f'{len(spids)}-')
 
 """
-OUTPUT
-Fraction of unfiltered HSPs reciprocal: 0.936
-Fraction of compatible HSPs reciprocal: 0.952
-Fraction of disjoint HSPs reciprocal: 0.937
-Fraction of index HSPs reciprocal: 0.934
-
 DEPENDENCIES
 ../../ortho_search/blast2hsps/blast2hsps.py
     ../../ortho_search/blast2hsps/out/hsps/*/*.tsv

@@ -126,7 +126,6 @@ for k, OG_records_k, rows_k in zip(ks, OG_records_ks, rows_ks):
             bottom=[component_types[3].get(index, 0) for index in component_types[4].index], label='Type 4')
     plt.xlabel('Number of OGs in connected component')
     plt.ylabel('Number of connected components')
-    plt.title('Distribution of connected components across number of OGs')
     plt.legend()
     plt.savefig(f'out/{k}clique/bar_connectnum-OGnum_type_dist1-1.png')
     plt.xlim((-1, 17))  # Adjust axis to truncate outliers
@@ -138,23 +137,18 @@ for k, OG_records_k, rows_k in zip(ks, OG_records_ks, rows_ks):
             bottom=[component_types[3].get(index, 0) for index in component_types[4].index], label='Type 4', color='C4')
     plt.xlabel('Number of OGs in connected component')
     plt.ylabel('Number of connected components')
-    plt.title('Distribution of connected components across number of OGs')
     plt.legend()
     plt.savefig(f'out/{k}clique/bar_connectnum-OGnum_type_dist2-1.png')
     plt.xlim((-1, 17))  # Adjust axis to truncate outliers
     plt.savefig(f'out/{k}clique/bar_connectnum-OGnum_type_dist2-2.png')
     plt.close()
 
-    plt.pie([sum(component_type.values) for component_type in component_types],
-            labels=[f'Type {i}' for i in range(len(component_types))])
+    counts = [component_type.sum() for component_type in component_types]
+    labels = [f'Type {i}\n{count}' for i, count in zip(range(len(component_types)), counts)]
+    plt.pie(counts, labels=labels, labeldistance=1.3, textprops={'ha': 'center'})
     plt.title('Connected components by type')
-    plt.savefig(f'out/{k}clique/pie_component_types.png')
+    plt.savefig('out/pie_component_type.png')
     plt.close()
-
-    print()
-    print(f'{k}-CLIQUE')
-    for i, component_type in enumerate(component_types):
-        print(f'Type {i}:', sum(component_type.values))
 
 """
 OUTPUT
@@ -170,27 +164,6 @@ PercolateError: (4, 032E)
 PercolateError: (5, 032E)
 PercolateError: (6, 032E)
 CliqueError: 04E6
-
-4-CLIQUE
-Type 0: 8243
-Type 1: 10890
-Type 2: 3673
-Type 3: 646
-Type 4: 2042
-
-5-CLIQUE
-Type 0: 9246
-Type 1: 9594
-Type 2: 4016
-Type 3: 684
-Type 4: 1954
-
-6-CLIQUE
-Type 0: 9897
-Type 1: 8812
-Type 2: 4275
-Type 3: 720
-Type 4: 1790
 
 DEPENDENCIES
 ../connect_hit_graph/connect_hit_graph.py

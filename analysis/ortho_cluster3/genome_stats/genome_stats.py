@@ -52,8 +52,6 @@ for spid, source, prot_path in genomes:
 
         # Check for ambiguous symbols
         syms |= set(seq) - alphabet
-print('Out-of-alphabet symbols detected:', syms)
-print()
 
 # Define dataframe and groups
 df = pd.DataFrame(rows)
@@ -307,39 +305,28 @@ s1 = sum(gnid2Xval['min'] == 0)
 s2 = sum(gnid2Xval['max'] > 0)
 s3 = sum((gnid2Xval['min'] == 0) & (gnid2Xval['max'] > 0))
 
-print('Fraction of sequences with unknown amino acids:', round(len(dfX) / len(df), 3))
-print()
-print('Genes with at least one sequence without unknown amino acids')
-print('Number:', s1)
-print('Fraction:', round(s1 / len(gnid2Xval), 3))
-print()
-print('Genes with at least one sequence with unknown amino acids')
-print('Number:', s2)
-print('Fraction:', round(s2 / len(gnid2Xval), 3))
-print()
-print('Genes with at least one sequence without unknown amino acids and at least one sequence with unknown amino acids')
-print('Number:', s3)
-print('Fraction (all genes):', round(s3 / len(gnid2Xval), 3))
-print('Fraction (genes with unknown amino acids):', round(s3 / s2, 3))
+output = f"""\
+Out-of-alphabet symbols detected: {syms}
 
-"""
-Out-of-alphabet symbols detected: {'U'}
-
-Fraction of sequences with unknown amino acids: 0.013
+Fraction of sequences with unknown amino acids: {round(len(dfX) / len(df), 3)}
 
 Genes with at least one sequence without unknown amino acids
-Number: 457378
-Fraction: 0.98
+Number: {s1}
+Fraction: {round(s1 / len(gnid2Xval), 3)}
 
 Genes with at least one sequence with unknown amino acids
-Number: 9919
-Fraction: 0.021
+Number: {s2}
+Fraction: {round(s2 / len(gnid2Xval), 3)}
 
 Genes with at least one sequence without unknown amino acids and at least one sequence with unknown amino acids
-Number: 415
-Fraction (all genes): 0.001
-Fraction (genes with unknown amino acids): 0.042
+Number: {s3}
+Fraction (all genes): {round(s3 / len(gnid2Xval), 3)}
+Fraction (genes with unknown amino acids): {round(s3 / s2, 3)}
+"""
+with open('out/output.txt', 'w') as file:
+    file.write(output)
 
+"""
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2021_02/fasta/dmel-all-translation-r6.45.fasta
