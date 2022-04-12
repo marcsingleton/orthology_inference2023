@@ -16,6 +16,28 @@ def get_ancestors(GO, GOid):
     return ancestors
 
 
+def write_table(counts, title):
+    if counts.empty:  # Immediately return on empty table
+        return
+    if os.path.exists('out/output.txt'):
+        mode = 'a'
+        padding = '\n'
+    else:
+        padding = ''
+
+    table_string = counts.head(10).to_string()
+    length = len(table_string.split('\n')[1])
+    total_string = str(counts.sum()).rjust(length - 6, ' ')
+    output = f"""\
+    {title}
+    {table_string}
+
+    TOTAL {total_string}
+    """
+    with open('out/output.txt', mode) as file:
+        file.write(padding + output)
+
+
 # Load sequence data
 ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
@@ -72,7 +94,7 @@ for GOid in GO:
 ancestors = pd.DataFrame(rows)
 
 # Load raw table and add term names
-df1 = pd.read_table('../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/precomputed_files/gene_association_v2.1.fb',
+df1 = pd.read_table('../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2022_02/precomputed_files/gene_association.fb',
                     skiprows=5,
                     usecols=list(range(15)),  # File contains two spare tabs at end
                     names=['DB', 'DB_Object_ID', 'DB_Object_Symbol', 'Qualifier', 'GO ID',  # Official column labels
@@ -85,7 +107,8 @@ mapper = {'DB_Object_ID': 'gnid', 'DB_Object_Symbol': 'symbol', 'Qualifier': 'qu
           'Evidence': 'evidence', 'Aspect': 'aspect', 'Date': 'date', 'Assigned_by': 'origin'}
 df2 = df1[['DB_Object_ID', 'DB_Object_Symbol', 'Qualifier', 'GO ID', 'Evidence', 'Aspect', 'taxon', 'Date', 'Assigned_by', 'name']].rename(columns=mapper)
 
-bool1 = df2['qualifier'].isna()  # Remove qualifiers from terms
+bool1 = df2['qualifier'].isin(['enables', 'contributes_to', 'involved_in',  # Select appropriate qualifiers (FB defines additional qualifiers)
+                               'located_in', 'part_of', 'is_active_in'])
 bool2 = df2['evidence'].isin(['EXP', 'IDA', 'IPI', 'IMP', 'IGI', 'IEP',  # Remove lower quality annotations
                               'HTP', 'HDA', 'HMP', 'HGI', 'HEP',
                               'TAS', 'IC'])
@@ -93,39 +116,22 @@ bool3 = df2['taxon'] == 'taxon:7227'  # Keep only dmel annotations
 bool4 = ~df2['GOid'].apply(lambda x: GO[x]['is_obsolete'])  # Remove obsolete annotations
 df3 = df2[bool1 & bool2 & bool3 & bool4].drop(['qualifier', 'taxon'], axis=1)
 
+if not os.path.exists('out/'):
+    os.mkdir('out/')
+
+# Identify IDs of obsolete and renamed annotations
 counts = df2.loc[~bool4, ['GOid', 'name']].value_counts()
-string = counts.head(10).to_string()
-length = len(string.split('\n')[1])
-total = str(counts.sum())
-print('TOP 10 OBSOLETE ANNOTATIONS (ORIGINAL)')
-print(counts.head(10).to_string())
-print()
-print('TOTAL', (length-6-len(total))*' ' + total)
-print()
+write_table(counts, 'TOP 10 OBSOLETE ANNOTATIONS (ORIGINAL)')
 
 counts = df2.loc[bool1 & bool2 & bool3 & ~bool4, ['GOid', 'name']].value_counts()
-string = counts.head(10).to_string()
-length = len(string.split('\n')[1])
-total = str(counts.sum())
-print('TOP 10 OBSOLETE ANNOTATIONS (FILTERED)')
-print(counts.head(10).to_string())
-print()
-print('TOTAL', (length-6-len(total))*' ' + total)
-print()
+write_table(counts, 'TOP 10 OBSOLETE ANNOTATIONS (FILTERED)')
 
-# Update ids
+# Update IDs
 df4 = df3.copy()
 df4['GOid'] = df4['GOid'].apply(lambda x: GO[x]['primary_id'])
 
 counts = df3.loc[df3['GOid'] != df4['GOid'], ['GOid', 'name']].value_counts()
-string = counts.head(10).to_string()
-length = len(string.split('\n')[1])
-total = str(counts.sum())
-print('TOP 10 RENAMED ANNOTATIONS')
-print(counts.head(10).to_string())
-print()
-print('TOTAL', (length-6-len(total))*' ' + total)
-print()
+write_table(counts, 'TOP 10 RENAMED ANNOTATIONS')
 
 # Join with regions
 df5 = regions.merge(df4, on='gnid')
@@ -138,11 +144,9 @@ df7 = df6.groupby(['GOid', 'disorder']).filter(lambda x: x['gnid'].nunique() >= 
 dfs = [df2, df3, df4, df5, df6, df7]
 labels = ['original', 'filter', 'update', 'join', 'propagate', 'drop']
 
-if not os.path.exists('out/'):
-    os.mkdir('out/')
-
 # Number of annotations
 plt.bar(range(len(dfs)), [len(df) for df in dfs], width=0.5, tick_label=labels)
+plt.xlabel('Cleaning step')
 plt.ylabel('Number of annotations')
 plt.savefig('out/bar_numannot-df.png')
 plt.close()
@@ -154,24 +158,36 @@ for aspect, label in [('P', 'Process'), ('F', 'Function'), ('C', 'Component')]:
     plt.bar(range(len(counts)), [count[aspect] for count in counts], bottom=bottoms, label=label, width=0.5, tick_label=labels)
     bottoms = [b + count[aspect] for b, count in zip(bottoms, counts)]
 plt.legend()
+plt.xlabel('Cleaning step')
 plt.ylabel('Number of annotations')
 plt.savefig('out/bar_numannot-df_aspect.png')
 plt.close()
 
 # Number of annotations by evidence code
 counts = [df['evidence'].value_counts() for df in dfs]
-codes = reduce(lambda x, y: x.combine(y, add, fill_value=0), counts).sort_values(ascending=False).index[:10]
-bottoms = [0 for count in counts]
-for code in codes:
-    plt.bar(range(len(counts)), [count.get(code, 0) for count in counts], bottom=bottoms, label=code, width=0.5, tick_label=labels)
-    bottoms = [b + count.get(code, 0) for b, count in zip(bottoms, counts)]
+codes = reduce(lambda x, y: x.combine(y, add, fill_value=0), counts).sort_values(ascending=False)
+top_codes = list(codes.index[:9])
+other_codes = list(codes.index[9:])
+merged_counts = []
+for count in counts:
+    merged_count = {code: count.get(code, 0) for code in top_codes}
+    merged_count['other'] = sum([count.get(code, 0) for code in other_codes])
+    merged_counts.append(merged_count)
+
+counts = merged_counts
+bottoms = [0 for _ in counts]
+for code in (top_codes + ['other']):
+    plt.bar(range(len(counts)), [count[code] for count in counts], bottom=bottoms, label=code, width=0.5, tick_label=labels)
+    bottoms = [b + count[code] for b, count in zip(bottoms, counts)]
 plt.legend()
+plt.xlabel('Cleaning step')
 plt.ylabel('Number of annotations')
 plt.savefig('out/bar_numannot-df_evidence.png')
 plt.close()
 
 # Number of terms
 plt.bar(range(len(dfs)), [df['GOid'].nunique() for df in dfs], width=0.5, tick_label=labels)
+plt.xlabel('Cleaning step')
 plt.ylabel('Number of unique terms')
 plt.savefig('out/bar_numterms-df.png')
 plt.close()
@@ -183,6 +199,7 @@ for aspect, label in [('P', 'Process'), ('F', 'Function'), ('C', 'Component')]:
     plt.bar(range(len(counts)), [count[aspect] for count in counts], bottom=bottoms, label=label, width=0.5, tick_label=labels)
     bottoms = [b + count[aspect] for b, count in zip(bottoms, counts)]
 plt.legend()
+plt.xlabel('Cleaning step')
 plt.ylabel('Number of unique terms')
 plt.savefig('out/bar_numterms-df_aspect.png')
 plt.close()
@@ -192,54 +209,8 @@ for df, label in zip(dfs[2:], labels[2:]):
     df.to_csv(f'out/GAF_{label}.tsv', sep='\t', index=False)
 
 """
-OUTPUT
-TOP 10 OBSOLETE ANNOTATIONS (ORIGINAL)
-GOid        name                                                                  
-GO:0055114   obsolete oxidation-reduction process                                     416
-GO:0016458   obsolete gene silencing                                                   39
-GO:0005671   obsolete Ada2/Gcn5/Ada3 transcription activator complex                   31
-GO:0070868   obsolete heterochromatin organization involved in chromatin silencing     28
-GO:0031936   obsolete negative regulation of chromatin silencing                       15
-GO:0031937   obsolete positive regulation of chromatin silencing                       13
-GO:0031935   obsolete regulation of chromatin silencing                                12
-GO:0060968   obsolete regulation of gene silencing                                      9
-GO:0000187   obsolete activation of MAPK activity                                       8
-GO:0072321   obsolete chaperone-mediated protein transport                              6
-
-TOTAL                                                                                 629
-
-TOP 10 OBSOLETE ANNOTATIONS (FILTERED)
-GOid        name                                                                  
-GO:0016458   obsolete gene silencing                                                  35
-GO:0070868   obsolete heterochromatin organization involved in chromatin silencing    28
-GO:0005671   obsolete Ada2/Gcn5/Ada3 transcription activator complex                  27
-GO:0031937   obsolete positive regulation of chromatin silencing                      13
-GO:0031935   obsolete regulation of chromatin silencing                               12
-GO:0031936   obsolete negative regulation of chromatin silencing                      11
-GO:0060968   obsolete regulation of gene silencing                                     9
-GO:0000185   obsolete activation of MAPKKK activity                                    4
-GO:0120081   obsolete positive regulation of microfilament motor activity              3
-GO:0000186   obsolete activation of MAPKK activity                                     3
-
-TOTAL                                                                                173
-
-TOP 10 RENAMED ANNOTATIONS
-GOid        name                                                                        
-GO:0006342   heterochromatin assembly                                                       55
-GO:0070491   DNA-binding transcription factor binding                                       21
-GO:0048096   epigenetic maintenance of chromatin in transcription-competent conformation    21
-GO:0048747   muscle cell development                                                        11
-GO:0033613   DNA-binding transcription factor binding                                       10
-GO:0030898   microfilament motor activity                                                    8
-GO:0001085   RNA polymerase II-specific DNA-binding transcription factor binding             8
-GO:0043044   chromatin remodeling                                                            7
-GO:0070615   ATP-dependent chromatin remodeler activity                                      6
-GO:0008274   gamma-tubulin large complex                                                     5
-
-TOTAL                                                                                      193
-
 DEPENDENCIES
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/precomputed_files/gene_association_v2.1.fb
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2022_02/precomputed_files/gene_association.fb
 ../../../data/GO/go-basic.obo
 ../../brownian2/aucpred_filter/aucpred_filter.py
     ../../brownian2/aucpred_filter/out/regions_30.tsv
