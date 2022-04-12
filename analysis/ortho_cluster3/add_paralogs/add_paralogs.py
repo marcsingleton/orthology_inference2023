@@ -23,21 +23,17 @@ def parse_file(query_spid, subject_spid):
             # Record HSPs
             while line and not line.startswith('#'):
                 fields = line.rstrip('\n').split('\t')
-                subject_ppid = re.search(ppid_regex[genomes[subject_spid]], fields[1]).group(1)
+                subject_ppid = ppid2ppid[fields[1]]
                 subject_gnid = ppid2gnid[subject_ppid]
-                values = [query_ppid, query_gnid, query_spid,
-                          subject_ppid, subject_gnid, subject_spid,
+                values = [query_ppid, query_gnid,
+                          subject_ppid, subject_gnid,
                           *fields[2:],
                           False, False, False]
                 input_hsps.append({column: f(value) for (column, f), value in zip(columns.items(), values)})
                 line = file.readline()
-
-            # Add best from HSP list (and catch cases where the last search returned no HSPs)
-            if input_hsps:
+            if input_hsps:  # Guard against empty input which can occur on final pass through block at file end
                 hits.extend(filter_hsps(input_hsps))
 
-            if line.startswith('# BLAST processed'):  # Check for final line
-                break
             query_ppid, input_hsps = None, []  # Signals current search was successfully recorded
 
     return hits
@@ -65,7 +61,7 @@ def filter_hsps(input_hsps):
 
         compatible_hsps = [hsp for hsp in group if hsp['compatible']]
         for hsp in group:
-            if is_compatible(hsp, compatible_hsps, 'query') and is_compatible(hsp, compatible_hsps, 'subject') and hsp['bitscore'] > compatible_cutoff:
+            if is_compatible(hsp, compatible_hsps, 'query') and is_compatible(hsp, compatible_hsps, 'subject') and hsp['evalue'] <= compatible_cutoff:
                 hsp['compatible'] = True
                 compatible_hsps.append(hsp)
 
@@ -154,16 +150,16 @@ def is_reciprocal(qppid, sppid, graph):
 
 
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
-              'NCBI': r'([NXY]P_[0-9]+)'}
-columns = {'qppid': str, 'qgnid': str, 'qspid': str,
-           'sppid': str, 'sgnid': str, 'sspid': str,
+              'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
+columns = {'qppid': str, 'qgnid': str,
+           'sppid': str, 'sgnid': str,
            'length': int, 'nident': int, 'gaps': int,
            'qlen': int, 'qstart': int, 'qend': int,
            'slen': int, 'sstart': int, 'send': int,
            'evalue': float, 'bitscore': float,
            'index_hsp': bool, 'disjoint': bool, 'compatible': bool}
-blast_version = '2.10.1+'  # Used to identify headers of queries
-compatible_cutoff = 50  # Bitscore cutoff for accepting HSPs as compatible
+blast_version = '2.13.0+'  # Used to identify headers of queries
+compatible_cutoff = 1E-10  # E-value cutoff for accepting HSPs as compatible
 
 # Load genomes
 genomes = {}
@@ -174,12 +170,13 @@ with open('../config/genomes.tsv') as file:
         genomes[spid] = source
 
 # Load sequence data
-ppid2gnid = {}
+ppid2gnid, ppid2ppid = {}, {}
 with open('../sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, _ = line.rstrip('\n').split('\t')
         ppid2gnid[ppid] = gnid
+        ppid2ppid[ppid.split('.')[0]] = ppid  # Mapping from PPID w/o version to PPID w/ version since truncated in BLAST output
 
 # Load best scores from graph
 ppid2score = {}
