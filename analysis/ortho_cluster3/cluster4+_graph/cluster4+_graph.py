@@ -36,7 +36,7 @@ def get_sort_tuple(OG_record):
 
 clique_timeout = 90
 percolate_timeout = 90
-k_core_components = ['03b2', '03b4', '03b6', '03b9', '03bb', '089f']  # Histones and other complex OGs which directly use k_core
+k_core_components = ['0008', '0009', '000E', '001D']  # Histones and other complex OGs which directly use k_core
 
 # Load graph
 graph = {}
@@ -158,33 +158,36 @@ for k, OG_records_k, rows_k in zip(ks, OG_records_ks, rows_ks):
 
 """
 OUTPUT
-CliqueError: 03b2
-CliqueError: 03b4
-CliqueError: 03b6
-CliqueError: 03b9
-CliqueError: 03bb
-CliqueError: 089f
+CliqueError: 0008
+CliqueError: 0009
+CliqueError: 000E
+CliqueError: 001D
+CliqueError: 00A2
+PercolateError: (4, 02D0)
+PercolateError: (5, 02D0)
+PercolateError: (6, 02D0)
+CliqueError: 0486
 
 4-CLIQUE
-Type 0: 3229
-Type 1: 11247
-Type 2: 3773
-Type 3: 648
-Type 4: 1882
+Type 0: 7875
+Type 1: 11189
+Type 2: 3425
+Type 3: 593
+Type 4: 1922
 
 5-CLIQUE
-Type 0: 4473
-Type 1: 9893
-Type 2: 4004
-Type 3: 659
-Type 4: 1750
+Type 0: 8813
+Type 1: 9949
+Type 2: 3787
+Type 3: 651
+Type 4: 1804
 
 6-CLIQUE
-Type 0: 5320
-Type 1: 8998
-Type 2: 4169
-Type 3: 711
-Type 4: 1581
+Type 0: 9515
+Type 1: 9099
+Type 2: 4095
+Type 3: 702
+Type 4: 1593
 
 DEPENDENCIES
 ../connect_hit_graph/connect_hit_graph.py

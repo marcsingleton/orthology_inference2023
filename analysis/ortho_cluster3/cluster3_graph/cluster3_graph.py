@@ -109,11 +109,11 @@ for i, component_type in enumerate(component_types):
 
 """
 OUTPUT
-Type 0: 1199
-Type 1: 14031
-Type 2: 3117
-Type 3: 514
-Type 4: 1918
+Type 0: 6096
+Type 1: 13734
+Type 2: 2827
+Type 3: 523
+Type 4: 1824
 
 DEPENDENCIES
 ../connect_hit_graph/connect_hit_graph.py
