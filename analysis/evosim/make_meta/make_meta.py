@@ -15,6 +15,7 @@ def is_redundant(column, cutoff):
 
 
 rng = numpy.random.default_rng(seed=930715)
+num_columns = int(1E5)  # Scientific notation defaults to float
 
 # Load genomes
 spids = []
@@ -53,13 +54,18 @@ for OGid, regions in sorted(OGid2regions.items()):
                 if (region_disorder is pool_disorder) and condition(column):
                     column_pool.append(column)
 
-# Make meta alignments
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
+# Write column pool sizes
+with open('out/pool_sizes.tsv', 'w') as file:
+    file.write('pool_name\tpool_size\n')
+    for label, _, column_pool in column_pools:
+        file.write(f'{label}\t{len(column_pool)}\n')
+
+# Make meta alignments
 for label, _, _, column_pool in column_pools:
-    print(f'{label}:', len(column_pool))
-    sample = rng.choice(column_pool, size=int(1E5))
+    sample = rng.choice(column_pool, size=num_columns)
     seqs = {spid: [] for spid in spids}
     for column in sample:
         for i, sym in enumerate(column):
@@ -71,14 +77,6 @@ for label, _, _, column_pool in column_pools:
             file.write(f'>{spid} {label}\n{seqstring}\n')
 
 """
-OUTPUT
-100red_D: 655952
-100red_O: 3004444
-50red_D: 1080267
-50red_O: 3294780
-0red_D: 1559840
-0red_O: 3420469
-
 DEPENDENCIES
 ../../brownian2/aucpred_regions/get_regions.py
     ../..brownian2/aucpred_regions/out/regions.tsv

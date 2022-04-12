@@ -25,6 +25,8 @@ def is_invariant(column):
 
 
 rng = numpy.random.default_rng(seed=930715)
+num_samples = 100
+num_columns = 10000
 
 # Load genomes
 spids = []
@@ -50,14 +52,22 @@ for path in paths:
             if condition(column):
                 column_pool.append(column)
 
+if not os.path.exists('out/'):
+    os.mkdir('out/')
+
+# Write column pool sizes
+with open('out/pool_sizes.tsv', 'w') as file:
+    file.write('pool_name\tpool_size\n')
+    for label, _, column_pool in column_pools:
+        file.write(f'{label}\t{len(column_pool)}\n')
+
 # Make meta alignments
 for label, _, column_pool in column_pools:
     if not os.path.exists(f'out/{label}/'):
-        os.makedirs(f'out/{label}/')
+        os.mkdir(f'out/{label}/')
 
-    print(f'{label}:', len(column_pool))
-    for sample_id in range(100):
-        sample = rng.choice(column_pool, size=10000)
+    for sample_id in range(num_samples):
+        sample = rng.choice(column_pool, size=num_columns)
         seqs = {spid: [] for spid in spids}
         for column in sample:
             for i, sym in enumerate(column):
@@ -69,14 +79,6 @@ for label, _, column_pool in column_pools:
                 file.write(f'>{spid} {label}_{sample_id:03}\n{seqstring}\n')
 
 """
-OUTPUT
-100red: 2240900
-100red_ni: 853598
-50red: 2526699
-50red_ni: 1072823
-0red: 2937882
-0red_ni: 1219886
-
 DEPENDENCIES
 ../config/genomes.tsv
 ../align_fastas/align_fastas.py
