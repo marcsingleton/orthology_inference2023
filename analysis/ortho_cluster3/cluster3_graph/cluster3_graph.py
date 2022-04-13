@@ -97,8 +97,8 @@ plt.savefig('out/bar_connectnum-OGnum_type_dist2-2.png')
 plt.close()
 
 counts = [component_type.sum() for component_type in component_types]
-labels = [f'Type {i}\n{count}' for i, count in zip(range(len(component_types)), counts)]
-plt.pie(counts, labels=labels, labeldistance=1.3, textprops={'ha': 'center'})
+labels = [f'Type {i}\n({count})' for i, count in zip(range(len(component_types)), counts)]
+plt.pie(counts, labels=labels, labeldistance=1.2, textprops={'ha': 'center'})
 plt.title('Connected components by type')
 plt.savefig('out/pie_component_type.png')
 plt.close()
