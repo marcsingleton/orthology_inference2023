@@ -9,7 +9,7 @@ import numpy as np
 
 def parse_file(query_spid, subject_spid):
     hits = []
-    with open(f'../blast_search/out/{query_spid}/{subject_spid}.blast') as file:
+    with open(f'../../ortho_search/blast_search/out/{query_spid}/{subject_spid}.blast') as file:
         query_ppid, input_hsps = None, []
         line = file.readline()
         while line:
@@ -42,7 +42,7 @@ def parse_file(query_spid, subject_spid):
 def filter_hsps(input_hsps):
     # Sort and group HSPs by sppid and sgnid then extract max bitscore within groups
     hsp2key = lambda x: (x['sppid'], x['sgnid'])
-    input_hsps = sorted(input_hsps, key=hsp2key)
+    input_hsps = sorted([hsp for hsp in input_hsps if hsp['qgnid'] != hsp['sgnid']], key=hsp2key)  # Remove self HSPs
     grouped_hsps = {key: list(group) for key, group in groupby(input_hsps, hsp2key)}
 
     # Identify index, disjoint, and compatible HSPs
@@ -65,14 +65,15 @@ def filter_hsps(input_hsps):
                 hsp['compatible'] = True
                 compatible_hsps.append(hsp)
 
-        hits.append(hsps2hit(compatible_hsps))
+        if compatible_hsps:  # Check for empty list
+            hits.append(hsps2hit(compatible_hsps))
 
     return hits
 
 
 def hsps2hit(hsps):
     # Calculate values from all HSPs
-    hit = {key: hsps[0][key] for key in ['qppid', 'qgnid', 'qspid', 'sppid', 'sgnid', 'sspid', 'qlen', 'slen']}
+    hit = {key: hsps[0][key] for key in ['qppid', 'qgnid', 'sppid', 'sgnid', 'qlen', 'slen']}
     hit['chspnum'] = len(hsps)
     qcov = np.zeros((1, hsps[0]['qlen']), dtype=bool)
     scov = np.zeros((1, hsps[0]['slen']), dtype=bool)
@@ -171,7 +172,7 @@ with open('../config/genomes.tsv') as file:
 
 # Load sequence data
 ppid2gnid, ppid2ppid = {}, {}
-with open('../sequence_data/out/sequence_data.tsv') as file:
+with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, _, _ = line.rstrip('\n').split('\t')
@@ -198,8 +199,11 @@ with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
 graph = {}
 for spid in genomes:
     hits = parse_file(spid, spid)
-    for _, group in groupby(hits, lambda x: (x['qppid'], x['sgnid'])):  # Group by gene as well to select best isoforms only
+    for (qppid, _), group in groupby(hits, lambda x: (x['qppid'], x['sgnid'])):  # Group by gene as well to select best isoforms only
+        group = list(group)  # Convert from iterator to list since used multiple times
         max_bitscore = max([hit['bitscore'] for hit in group])
+        if max_bitscore <= ppid2score.get(qppid, 0):  # Only add in-paralogs to graph if they exceed score of inter-genome hits
+            continue
         for hit in group:
             if max_bitscore == hit['bitscore']:  # Only record hits with maximum bitscore
                 qppid, sppid = hit['qppid'], hit['sppid']
@@ -214,7 +218,7 @@ for spid in genomes:
 
 # Find in-paralogs
 ppid2paralogs = {}
-for node, adjs in graph:
+for node, adjs in graph.items():
     ppid2paralogs[node] = [node]
     for adj in adjs:
         if is_reciprocal(node, adj, graph):
@@ -229,8 +233,8 @@ with open('out/clusters.tsv', 'w') as file:
     for component_id, OGid, algorithm, edges1 in OGs:
         edges2 = []
         for node1, node2 in edges1:
-            paralogs1 = ppid2paralogs[node1]
-            paralogs2 = ppid2paralogs[node2]
+            paralogs1 = ppid2paralogs.get(node1, [node1])  # Not all PPIDs are in graph so return [self]
+            paralogs2 = ppid2paralogs.get(node2, [node2])
             edges2.extend(product(paralogs1, paralogs2))
         edgestring = ','.join([f'{node1}:{node2}' for node1, node2 in edges2])
         file.write(f'{component_id}\t{OGid}\t{algorithm}\t{edgestring}\n')
