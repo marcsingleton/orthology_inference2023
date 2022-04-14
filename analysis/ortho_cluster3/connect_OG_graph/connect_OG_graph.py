@@ -17,7 +17,7 @@ with open('../OGs2graph/out/OG_graph.tsv') as file:
 
 # Find connected components
 components = get_connected_components(graph)
-components = sorted(components, key=get_sort_tuple)
+components = sorted(components, key=get_sort_tuple, reverse=True)
 
 # Write components to file
 if not os.path.exists('out/'):
