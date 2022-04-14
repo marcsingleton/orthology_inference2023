@@ -269,7 +269,7 @@ if __name__ == '__main__':
 
     # 11 FQA-FSA SCATTERS
     for hit, file_label, label in zip(hits, file_labels, labels):
-        plt.hist2d(hit['fqa'], hit['fsa'], bins=50, norm=mpl_colors.PowerNorm(0.3))
+        plt.hist2d(hit['fqa'], hit['fsa'], bins=50, norm=mpl_colors.LogNorm())
         plt.xlabel('Fraction of query aligned')
         plt.ylabel('Fraction of subject aligned')
         plt.title(label)
