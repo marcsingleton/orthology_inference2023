@@ -34,7 +34,7 @@ for label in ['norm1', 'norm2']:
 DEPENDENCIES
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../gap_contrasts/contrasts.py
+../gap_contrasts/gap_contrasts.py
     ../gap_contrasts/out/total_sums.tsv
 ../realign_hmmer/realign_hmmer.py
     ../realign_hmmer/out/*.afa

@@ -102,7 +102,7 @@ for label in ['norm1', 'norm2']:
     ../align_fastas2/out/*.afa
 ../OG_filter/OG_filter.py
     ../OG_filter/out/OG_filter.tsv
-./contrasts.py
+./gap_contrasts.py
     ./out/row_sums.tsv
     ./out/total_sums.tsv'
 """

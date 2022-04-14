@@ -115,7 +115,7 @@ DEPENDENCIES
     ../insertion_trim/out/*.afa
 ../aucpred_filter/aucpred_filter.py
     ../aucpred_filter/out/regions_30.tsv
-./contrasts.py
+./gap_contrasts.py
     ./out/row_sums.tsv
     ./out/total_sums.tsv'
 """

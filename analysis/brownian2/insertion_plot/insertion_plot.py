@@ -52,7 +52,7 @@ for label in ['norm1', 'norm2']:
 
 """
 DEPENDENCIES
-../../ortho_MSA/gap_contrasts/contrasts.py
+../../ortho_MSA/gap_contrasts/gap_contrasts.py
     ../gap_contrasts/out/total_sums.tsv
 ../../ortho_MSA/realign_hmmer/realign_hmmer.py
     ../../ortho_MSA/realign_hmmer/out/*
