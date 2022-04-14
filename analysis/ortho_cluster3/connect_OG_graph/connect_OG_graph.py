@@ -26,7 +26,7 @@ if not os.path.exists('out/'):
 with open('out/components.tsv', 'w') as file:
     file.write('GGid\tOGids\n')
     for i, component in enumerate(components):
-        GGid = hex(i)[2:].zfill(4).upper()
+        GGid = f'{i:04X}'  # Uppercase hex, zero-padded to 4
         nodestring = ','.join(component)
         file.write(f'{GGid}\t{nodestring}\n')
 

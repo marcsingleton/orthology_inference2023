@@ -81,14 +81,14 @@ for k, records_k in zip(ks, records_ks):
     if not os.path.exists(f'out/{k}clique/'):
         os.makedirs(f'out/{k}clique/')
 
-    j = 0
+    i = 0
     with open(f'out/{k}clique/clusters.tsv', 'w') as file:
         file.write('component_id\tOGid\talgorithm\tedges\n')
         for component_id, OG, algorithm in sorted(records_k, key=get_sort_tuple, reverse=True):
-            OGid = hex(j)[2:].zfill(4).upper()
+            OGid = f'{i:04X}'  # Uppercase hex, zero-padded to 4
             edgestring = ','.join([f'{node1}:{node2}' for node1, node2 in OG])
             file.write(f'{component_id}\t{OGid}\t{algorithm}\t{edgestring}\n')
-            j += 1
+            i += 1
 
 """
 OUTPUT

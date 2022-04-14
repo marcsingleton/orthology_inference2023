@@ -27,7 +27,7 @@ def load_OGs(path):
 def blend_colors(colors):
     rgbs = [[int(color[i:i+2], 16) for i in range(0, 6, 2)] for color in colors]
     avg = [int(sum(c) / len(c)) for c in zip(*rgbs)]
-    return '#' + ''.join([hex(c)[2:] for c in avg])
+    return '#' + ''.join([f'{c:X}' for c in avg])
 
 
 def get_node_colors(graph, OGs):
