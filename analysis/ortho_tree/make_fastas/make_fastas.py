@@ -35,7 +35,7 @@ for source, prot_path in genomes:
 
 # Load OGs and OG data
 OGs = {}
-with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
+with open('../add_paralogs/out/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         _, OGid, _, edges = line.rstrip('\n').split('\t')
@@ -71,8 +71,8 @@ DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../config/genomes.tsv
-../cluster4+_graph/cluster.py
-    ../cluster4+_graph/out/4clique/clusters.tsv
+../add_paralogs/add_paralogs.py
+    ../add_paralogs/out/clusters.tsv
 ../OG_data/OG_data.py
     ../OG_data/out/OG_data.tsv
 """
