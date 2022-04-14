@@ -7,7 +7,7 @@ import pandas as pd
 from src.utils import read_fasta
 
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
-              'NCBI': r'([NXY]P_[0-9]+)'}
+              'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
 
 # Load genomes
 genomes = []
@@ -30,7 +30,7 @@ ppid2seq = {}
 for source, prot_path in genomes:
     fasta = read_fasta(prot_path)
     for header, seq in fasta:
-        ppid = re.search(ppid_regex[header], line).group(1)
+        ppid = re.search(ppid_regex[source], header).group(1)
         ppid2seq[ppid] = seq
 
 # Load OGs and OG data
@@ -67,7 +67,7 @@ for OGid in OGids:
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.38_FB2021_01/fasta/dmel-all-translation-r6.38.fasta
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2022_02/fasta/dmel-all-translation-r6.45.fasta
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../config/genomes.tsv

@@ -45,6 +45,6 @@ for spid, source, prot_path in genomes:
 """
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
-../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2021_02/fasta/dmel-all-translation-r6.45.fasta
+../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2022_02/fasta/dmel-all-translation-r6.45.fasta
 ../config/genomes.tsv
 """
