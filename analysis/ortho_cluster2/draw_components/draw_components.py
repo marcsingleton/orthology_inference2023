@@ -167,7 +167,7 @@ for i, (component_id, component) in enumerate(component_records[:50]):  # 50 lar
 
 """
 DEPENDENCIES
-../cluster4+_graph/cluster4+_graph.py
+../cluster4+_graph/cluster.py
     ../cluster4+_graph/out/4clique/clusters.tsv
     ../cluster4+_graph/out/5clique/clusters.tsv
     ../cluster4+_graph/out/6clique/clusters.tsv

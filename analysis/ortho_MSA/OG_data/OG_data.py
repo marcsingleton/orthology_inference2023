@@ -64,7 +64,7 @@ OGs.to_csv('out/OG_data.tsv', sep='\t', index=False)
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../../ortho_cluster3/cluster4+_graph/cluster4+_graph.py
+../../ortho_cluster3/cluster4+_graph/cluster.py
     ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
 ../../ortho_cluster3/connect_OG_graph/connect_OG_graph.py
     ../../ortho_cluster3/connect_OG_graph/out/components.tsv

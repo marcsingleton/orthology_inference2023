@@ -244,7 +244,7 @@ DEPENDENCIES
 ../../ortho_search/blast_search/blast_search.py
     ../../ortho_search/blast_search/out/*
 ../config/genomes.tsv
-../cluster4+_graph/cluster4+_graph.py
+../cluster4+_graph/cluster.py
     ../cluster4+_graph/out/4clique/clusters.tsv
 ../hits2graph/hits2graph.py
     ../hits2graph/out/hit_graph.tsv
