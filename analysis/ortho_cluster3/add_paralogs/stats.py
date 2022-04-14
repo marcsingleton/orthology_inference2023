@@ -1,7 +1,5 @@
 """Statistics related to the addition of in-paralogs to clusters."""
 
-import os
-
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -15,7 +13,7 @@ with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
         OGs1[OGid] = ppids
 
 OGs2 = {}
-with open('../add_paralogs/out/clusters.tsv') as file:
+with open('out/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         _, OGid, _, edges = line.rstrip('\n').split('\t')
@@ -28,9 +26,6 @@ for OGid, OG1 in OGs1.items():
     OG2 = OGs2[OGid]
     rows.append({'OGid': OGid, 'ppidnum1': len(OG1), 'ppidnum2': len(OG2), 'delta': len(OG2 - OG1)})
 df = pd.DataFrame(rows)
-
-if not os.path.exists('out/'):
-    os.mkdir('out/')
 
 # Make plots
 plt.scatter(df['ppidnum1'], df['ppidnum2'], s=5, alpha=0.2)
@@ -57,8 +52,8 @@ plt.close()
 
 """
 DEPENDENCIES
-../add_paralogs/add_paralogs.py
-    ../add_paralogs/out/clusters.tsv
 ../cluster4+_graph/cluster.py
     ../cluster4+_graph/out/4clique/clusters.tsv
+./add_paralogs.py
+    ../out/clusters.tsv
 """
