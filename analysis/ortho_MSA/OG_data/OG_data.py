@@ -1,7 +1,19 @@
-"""Extract metadata from OGs including numbers of edges, genes, species, and sequences."""
+"""Extract metadata from OGs including numbers of sequences, genes, species, and edges."""
 
 import os
 import pandas as pd
+
+
+def get_bitscore(node1, node2, graph):
+    """Return bitscore of edge in graph.
+
+    Edges from in-paralogs are not in graph, so they are ignored.
+    """
+    try:
+        return graph[node1][node2]
+    except KeyError:
+        return 0
+
 
 # Load sequence data
 ppid2data, spids = {}, []
@@ -14,7 +26,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load graph
 graph = {}
-with open('../../ortho_cluster3/hits2graph/out/hit_graph.tsv') as file:
+with open('../hits2graph/out/hit_graph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         bitscores = {}
@@ -23,18 +35,9 @@ with open('../../ortho_cluster3/hits2graph/out/hit_graph.tsv') as file:
             bitscores[adj_node] = float(adj_bitscore)
         graph[node] = bitscores
 
-# Load GGs
-OGid2GGid = {}
-with open('../../ortho_cluster3/connect_OG_graph/out/components.tsv') as file:
-    file.readline()  # Skip header
-    for line in file:
-        GGid, OGids = line.rstrip('\n').split('\t')
-        for OGid in OGids.split(','):
-            OGid2GGid[OGid] = GGid
-
 # Load OGs
 rows = []
-with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
+with open('../../ortho_cluster3/add_paralogs/out/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         component_id, OGid, _, edges = line.rstrip('\n').split('\t')
@@ -45,12 +48,12 @@ with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as fi
         sqids = {ppid2data[ppid][2] for ppid in ppids}
         bitscore = 0
         for node1, node2 in edges:
-            bitscore += graph[node1][node2] + graph[node2][node1]
+            bitscore += get_bitscore(node1, node2, graph) + get_bitscore(node2, node1, graph)
 
-        row = {'component_id': component_id, 'OGid': OGid, 'GGid': OGid2GGid[OGid],
-               'bitscore': round(bitscore, 1), 'edgenum': len(edges),
+        row = {'component_id': component_id, 'OGid': OGid,
                'ppidnum': len(ppids), 'sqidnum': len(sqids),
-               'gnidnum': len(gnids), 'spidnum': len(spids)}
+               'gnidnum': len(gnids), 'spidnum': len(spids),
+               'edgenum': len(edges), 'bitscore': round(bitscore, 1)}
         rows.append(row)
 OGs = pd.DataFrame(rows)
 
@@ -64,10 +67,8 @@ OGs.to_csv('out/OG_data.tsv', sep='\t', index=False)
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../../ortho_cluster3/cluster4+_graph/cluster.py
-    ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
-../../ortho_cluster3/connect_OG_graph/connect_OG_graph.py
-    ../../ortho_cluster3/connect_OG_graph/out/components.tsv
+../../ortho_cluster3/add_paralogs/add_paralogs.py
+    ../../ortho_cluster3/add_paralogs/out/clusters.tsv
 ../../ortho_cluster3/hits2graph/hits2graph.py
     ../../ortho_cluster3/hits2graph/out/hit_graph.tsv
 """
