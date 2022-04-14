@@ -22,7 +22,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
+with open('../add_paralogs/out/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         component_id, OGid, _, edges = line.rstrip('\n').split('\t')
@@ -248,6 +248,6 @@ DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../config/genomes.tsv
-../cluster4+_graph/cluster.py
-    ../cluster4+_graph/out/4clique/clusters.tsv
+../add_paralogs/add_paralogs.py
+    ../add_paralogs/out/clusters.tsv
 """
