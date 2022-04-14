@@ -53,15 +53,14 @@ def filter_hsps(input_hsps):
 
         disjoint_hsps = []
         for hsp in group:
-            if is_disjoint(hsp, disjoint_hsps, 'query') and is_disjoint(hsp, disjoint_hsps, 'subject'):
+            if is_disjoint(hsp, disjoint_hsps, 'query') and is_disjoint(hsp, disjoint_hsps, 'subject') and hsp['evalue'] <= evalue_cutoff:
                 hsp['disjoint'] = True  # Mark HSPs as disjoint greedily, beginning with highest score
-                if hsp['evalue'] <= compatible_cutoff:
-                    hsp['compatible'] = True  # Disjoint HSPs are compatible if they pass the cutoff
+                hsp['compatible'] = True  # All disjoint HSPs are compatible
                 disjoint_hsps.append(hsp)
 
         compatible_hsps = [hsp for hsp in group if hsp['compatible']]
         for hsp in group:
-            if is_compatible(hsp, compatible_hsps, 'query') and is_compatible(hsp, compatible_hsps, 'subject') and hsp['evalue'] <= compatible_cutoff:
+            if is_compatible(hsp, compatible_hsps, 'query') and is_compatible(hsp, compatible_hsps, 'subject') and hsp['evalue'] <= evalue_cutoff:
                 hsp['compatible'] = True
                 compatible_hsps.append(hsp)
 
@@ -160,7 +159,7 @@ columns = {'qppid': str, 'qgnid': str,
            'evalue': float, 'bitscore': float,
            'index_hsp': bool, 'disjoint': bool, 'compatible': bool}
 blast_version = '2.13.0+'  # Used to identify headers of queries
-compatible_cutoff = 1E-10  # E-value cutoff for accepting HSPs as compatible
+evalue_cutoff = 1E-10  # E-value cutoff for accepting HSPs as disjoint or compatible
 
 # Load genomes
 genomes = {}
