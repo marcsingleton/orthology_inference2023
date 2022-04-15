@@ -47,7 +47,7 @@ column_pools = [('100R', lambda x: is_redundant(x, 1), []),
                 ('0R_NI', lambda x: is_redundant(x, 0) and not is_invariant(x), [])]
 paths = sorted([path for path in os.listdir('../align_AA2NT/out/') if path.endswith('.afa')])  # Sort to ensure consistent order
 for path in paths:
-    msa = [(re.search(spid_regex, header).group(1), seq) for header, seq in read_fasta(f'../align_fastas/out/{path}')]
+    msa = [(re.search(spid_regex, header).group(1), seq) for header, seq in read_fasta(f'../align_AA2NT/out/{path}')]
     msa = sorted(msa, key=lambda x: spid2idx[x[0]])
     for i in range(len(msa[0][1])):
         column = [seq[i] for _, seq in msa]
