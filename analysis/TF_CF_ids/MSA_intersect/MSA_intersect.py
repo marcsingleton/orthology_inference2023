@@ -13,7 +13,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
+with open('../../ortho_cluster2/cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         component_id, OGid, _, edges = line.rstrip('\n').split('\t')
@@ -55,8 +55,8 @@ OGs (as opposed to one gene potentially being in multiple OGs which is quite pos
 removed OGs with multiple representatives from each species, so the OGs also uniquely map to genes.
 
 DEPENDENCIES
-../../ortho_cluster3/cluster4+_graph/cluster.py
-    ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
+../../ortho_cluster2/cluster4+_graph/cluster.py
+    ../../ortho_cluster2/cluster4+_graph/out/4clique/clusters.tsv
 ../../ortho_MSA/OG_filter/OG_filter.py
     ../../ortho_MSA/OG_filter/out/OG_filter.tsv
 ../../ortho_search/sequence_data/sequence_data.py

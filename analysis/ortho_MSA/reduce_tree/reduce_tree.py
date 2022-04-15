@@ -168,7 +168,7 @@ num_processes = 2
 
 # Load genomes
 genomes = []
-with open('../../ortho_cluster3/config/genomes.tsv') as file:
+with open('../../ortho_cluster2/config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         spid, _, source, prot_path = line.rstrip('\n').split('\t')
@@ -192,7 +192,7 @@ for _, source, prot_path in genomes:
 
 # Load OGs
 OGs = {}
-with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
+with open('../../ortho_cluster2/cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         _, OGid, _, edges = line.rstrip('\n').split('\t')
@@ -217,9 +217,9 @@ if __name__ == '__main__':
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2022_02/fasta/dmel-all-translation-r6.45.fasta
-../../ortho_cluster3/config/genomes.tsv
-../../ortho_cluster3/cluster4+_graph/cluster.py
-    ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
+../../ortho_cluster2/config/genomes.tsv
+../../ortho_cluster2/cluster4+_graph/cluster.py
+    ../../ortho_cluster2/cluster4+_graph/out/4clique/clusters.tsv
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 """

@@ -37,7 +37,7 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../../ortho_cluster3/add_paralogs/out/clusters.tsv') as file:
+with open('../../ortho_cluster2/add_paralogs/out/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         component_id, OGid, _, edges = line.rstrip('\n').split('\t')
@@ -67,8 +67,8 @@ OGs.to_csv('out/OG_data.tsv', sep='\t', index=False)
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../../ortho_cluster3/add_paralogs/add_paralogs.py
-    ../../ortho_cluster3/add_paralogs/out/clusters.tsv
-../../ortho_cluster3/hits2graph/hits2graph.py
-    ../../ortho_cluster3/hits2graph/out/hit_graph.tsv
+../../ortho_cluster2/add_paralogs/add_paralogs.py
+    ../../ortho_cluster2/add_paralogs/out/clusters.tsv
+../../ortho_cluster2/hits2graph/hits2graph.py
+    ../../ortho_cluster2/hits2graph/out/hit_graph.tsv
 """

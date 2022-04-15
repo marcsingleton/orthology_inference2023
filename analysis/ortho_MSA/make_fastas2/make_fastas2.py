@@ -11,7 +11,7 @@ ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
 
 # Load genomes
 genomes = []
-with open('../../ortho_cluster3/config/genomes.tsv') as file:
+with open('../../ortho_cluster2/config/genomes.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         spid, _, source, prot_path = line.rstrip('\n').split('\t')
@@ -62,7 +62,7 @@ for OGid in OGids:
 DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2022_02/fasta/dmel-all-translation-r6.45.fasta
-../../ortho_cluster3/config/genomes.tsv
+../../ortho_cluster2/config/genomes.tsv
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../OG_data/OG_data.py

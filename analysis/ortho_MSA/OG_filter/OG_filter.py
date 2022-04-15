@@ -34,7 +34,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load graph
 graph = {}
-with open('../../ortho_cluster3/hits2graph/out/hit_graph.tsv') as file:
+with open('../../ortho_cluster2/hits2graph/out/hit_graph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         bitscores = {}
@@ -45,7 +45,7 @@ with open('../../ortho_cluster3/hits2graph/out/hit_graph.tsv') as file:
 
 # Load GGs
 OGid2GGid = {}
-with open('../../ortho_cluster3/connect_OG_graph/out/components.tsv') as file:
+with open('../../ortho_cluster2/connect_OG_graph/out/components.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         GGid, OGids = line.rstrip('\n').split('\t')
@@ -54,7 +54,7 @@ with open('../../ortho_cluster3/connect_OG_graph/out/components.tsv') as file:
 
 # Load OGs
 GGid2OGs = {}
-with open('../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv') as file:
+with open('../../ortho_cluster2/cluster4+_graph/out/4clique/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         component_id, OGid, _, edges = line.rstrip('\n').split('\t')
@@ -99,10 +99,10 @@ OGs.to_csv('out/OG_filter.tsv', sep='\t', index=False)
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../../ortho_cluster3/cluster4+_graph/cluster.py
-    ../../ortho_cluster3/cluster4+_graph/out/4clique/clusters.tsv
-../../ortho_cluster3/connect_OG_graph/connect_OG_graph.py
-    ../../ortho_cluster3/connect_OG_graph/out/components.tsv
-../../ortho_cluster3/hits2graph/hits2graph.py
-    ../../ortho_cluster3/hits2graph/out/hit_graph.tsv
+../../ortho_cluster2/cluster4+_graph/cluster.py
+    ../../ortho_cluster2/cluster4+_graph/out/4clique/clusters.tsv
+../../ortho_cluster2/connect_OG_graph/connect_OG_graph.py
+    ../../ortho_cluster2/connect_OG_graph/out/components.tsv
+../../ortho_cluster2/hits2graph/hits2graph.py
+    ../../ortho_cluster2/hits2graph/out/hit_graph.tsv
 """
