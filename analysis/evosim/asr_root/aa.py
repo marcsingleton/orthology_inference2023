@@ -133,7 +133,8 @@ for OGid in OGids:
         # Convert to vectors at tips of tree
         tips = {tip.name: tip for tip in tree.tips()}
         for header, seq in partition_msa:
-            tip = tips[header[1:5]]
+            spid = header.split()[0][1:]  # Split on white space, first field, trim >
+            tip = tips[spid]
             conditional = np.zeros((len(alphabet), len(seq)))
             for j, sym in enumerate(seq):
                 if sym in sym2idx:

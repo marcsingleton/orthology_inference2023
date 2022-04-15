@@ -60,8 +60,9 @@ def get_codons(nt_seq, aa_seq, file_id):
     return codons
 
 
-ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
-              'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
+ppid_regex1 = {'FlyBase': r'(FBpp[0-9]+)',
+               'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
+ppid_regex2 = r'ppid=([A-Za-z0-9_.]+)'  # Regex for aligned sequences
 
 # Load genomes
 genomes = []
@@ -85,7 +86,7 @@ ppid2cds = {}
 for spid, source, cds_path in genomes:
     fasta = read_fasta(cds_path)
     for header, seq in fasta:
-        ppid = re.search(ppid_regex[source], header).group(1)
+        ppid = re.search(ppid_regex1[source], header).group(1)
         ppid2cds[ppid] = seq
 
 if not os.path.exists('out/'):
@@ -98,7 +99,7 @@ for path in [path for path in os.listdir('../align_fastas/out/') if path.endswit
     # Translate and write CDS
     nt_aligns = []
     for header, aa_align in read_fasta('../align_fastas/out/' + path):
-        ppid = re.search(r'ppid=([A-Za-z0-9_]+)', header).group(1)
+        ppid = re.search(ppid_regex2, header).group(1)
         aa_seq = aa_align.replace('-', '')
         nt_seq = ppid2cds[ppid]
 

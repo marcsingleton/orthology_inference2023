@@ -1,6 +1,7 @@
 """Make meta alignments of ordered and disordered regions."""
 
 import os
+import re
 
 import numpy.random
 from src.utils import read_fasta
@@ -16,6 +17,7 @@ def is_redundant(column, cutoff):
 
 rng = numpy.random.default_rng(seed=930715)
 num_columns = int(1E5)  # Scientific notation defaults to float
+spid_regex = r'spid=([a-z]+)'
 
 # Load genomes
 spids = []
@@ -44,7 +46,8 @@ column_pools = [('100R_disorder', True, lambda column: is_redundant(column, 1), 
                 ('0R_disorder', True, lambda column: is_redundant(column, 0), []),
                 ('0R_order', False, lambda column: is_redundant(column, 0), [])]
 for OGid, regions in sorted(OGid2regions.items()):
-    msa = sorted([(header[-4:], seq) for header, seq in read_fasta(f'../../brownian2/insertion_trim/out/{OGid}.afa')], key=lambda x: spid2idx[x[0]])
+    msa = [(re.search(spid_regex, header).group(1), seq) for header, seq in read_fasta(f'../../brownian2/insertion_trim/out/{OGid}.afa')]
+    msa = sorted(msa, key=lambda x: spid2idx[x[0]])
     if len(msa) < len(spids):  # Only use alignments with all species
         continue
     for start, stop, region_disorder in regions:

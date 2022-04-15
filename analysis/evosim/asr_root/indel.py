@@ -74,7 +74,8 @@ for OGid in OGids:
     mca = read_fasta(f'../asr_indel/out/{OGid}.afa')
     tips = {tip.name: tip for tip in tree.tips()}
     for header, seq in mca:
-        tip = tips[header[1:5]]
+        spid = header.split()[0][1:]  # Split on white space, first field, trim >
+        tip = tips[spid]
         conditional = np.zeros((2, len(seq)))
         for j, sym in enumerate(seq):
             conditional[int(sym), j] = 1

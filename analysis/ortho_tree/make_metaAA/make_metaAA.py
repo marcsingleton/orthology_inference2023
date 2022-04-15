@@ -1,6 +1,7 @@
 """Make meta alignments from amino acid alignments of genes."""
 
 import os
+import re
 
 import numpy.random
 from src.utils import read_fasta
@@ -27,6 +28,7 @@ def is_invariant(column):
 rng = numpy.random.default_rng(seed=930715)
 num_samples = 100
 num_columns = 10000
+spid_regex = r'spid=([a-z]+)'
 
 # Load genomes
 spids = []
@@ -45,7 +47,8 @@ column_pools = [('100R', lambda x: is_redundant(x, 1), []),
                 ('0R_NI', lambda x: is_redundant(x, 0) and not is_invariant(x), [])]
 paths = sorted([path for path in os.listdir('../align_fastas/out/') if path.endswith('.afa')])  # Sort to ensure consistent order
 for path in paths:
-    msa = sorted([(header[-4:], seq) for header, seq in read_fasta(f'../align_fastas/out/{path}')], key=lambda x: spid2idx[x[0]])
+    msa = [(re.search(spid_regex, header).group(1), seq) for header, seq in read_fasta(f'../align_fastas/out/{path}')]
+    msa = sorted(msa, key=lambda x: spid2idx[x[0]])
     for i in range(len(msa[0][1])):
         column = [seq[i] for _, seq in msa]
         for _, condition, column_pool in column_pools:
