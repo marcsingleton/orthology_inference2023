@@ -19,6 +19,9 @@
 module load gnu-parallel
 
 for folder in $(ls ../make_metaAA/out/); do
+  if [[ ! -d ../make_metaAA/out/${folder}/ ]]; then
+    continue
+  fi
   if [[ $folder == *_NI ]]; then
     invariant=""
   else
