@@ -241,9 +241,6 @@ plt.savefig('out/cluster/hist_componentnum-OGnum_log.png')
 plt.close()
 
 """
-NOTES
-These plots are largely based off those in analysis/EggNOGv5_validation/ali_stats/ali_stats.py
-
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
