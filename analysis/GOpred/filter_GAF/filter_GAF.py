@@ -48,7 +48,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load regions
 rows = []
-with open('../../brownian2/aucpred_filter/out/regions_30.tsv') as file:
+with open('../../brownian/aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
@@ -212,8 +212,8 @@ for df, label in zip(dfs[2:], labels[2:]):
 DEPENDENCIES
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2022_02/precomputed_files/gene_association.fb
 ../../../data/GO/go-basic.obo
-../../brownian2/aucpred_filter/aucpred_filter.py
-    ../../brownian2/aucpred_filter/out/regions_30.tsv
+../../brownian/aucpred_filter/aucpred_filter.py
+    ../../brownian/aucpred_filter/out/regions_30.tsv
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 """

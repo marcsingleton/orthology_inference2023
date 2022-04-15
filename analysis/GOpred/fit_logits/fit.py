@@ -20,7 +20,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load regions
 rows = []
-with open('../../brownian2/aucpred_filter/out/regions_30.tsv') as file:
+with open('../../brownian/aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
@@ -41,7 +41,7 @@ with open('../filter_GAF/out/GAF_drop.tsv') as file:
         except KeyError:
             gnid2GOids[gnid] = {GOid}
 
-contrasts = pd.read_table('../../brownian2/get_contrasts/out/contrasts.tsv')
+contrasts = pd.read_table('../../brownian/get_contrasts/out/contrasts.tsv')
 df1 = regions.merge(contrasts, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder', 'gnid', 'contrast_id'])
 
 rates = ((df1**2).groupby(['OGid', 'start', 'stop', 'disorder', 'gnid']).mean())
@@ -94,8 +94,8 @@ results.to_csv('out/models.tsv', sep='\t', index=False)
 
 """
 DEPENDENCIES
-../../brownian2/aucpred_filter/aucpred_filter.py
-    ../../brownian2/aucpred_filter/out/regions_30.tsv
+../../brownian/aucpred_filter/aucpred_filter.py
+    ../../brownian/aucpred_filter/out/regions_30.tsv
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../filter_GAF/filter_GAF.py

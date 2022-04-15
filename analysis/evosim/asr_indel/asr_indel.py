@@ -23,14 +23,14 @@ spid_regex = r'spid=([a-z]+)'
 tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 
 OGids = set()
-with open('../../brownian2/aucpred_filter/out/regions_30.tsv') as file:
+with open('../../brownian/aucpred_filter/out/regions_30.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
         OGids.add(OGid)
 
 OGid2regions = {}
-with open('../../brownian2/aucpred_regions/out/regions.tsv') as file:
+with open('../../brownian/aucpred_regions/out/regions.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         OGid, start, stop, disorder = line.rstrip('\n').split('\t')
@@ -43,7 +43,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 for OGid in OGids:
-    msa = read_fasta(f'../../brownian2/insertion_trim/out/{OGid}.afa')
+    msa = read_fasta(f'../../brownian/insertion_trim/out/{OGid}.afa')
     msa = [(re.search(ppid_regex, header).group(1), re.search(spid_regex, header).group(1), seq) for header, seq in msa]
 
     # Check regions (continuing only if alignment is fit by asr_aa.py)
@@ -126,12 +126,12 @@ least one at each stop position, like a staircase. Thus, the nested structure of
 character codings.
 
 DEPENDENCIES
-../../brownian2/aucpred_filter/aucpred_filter.py
-    ../../brownian2/aucpred_filter/out/regions_30.tsv
-../../brownian2/aucpred_regions/get_regions.py
-    ../../brownian2/aucpred_regions/out/regions.tsv
-../../brownian2/insertion_trim/extract.py
-    ../../brownian2/insertion_trim/out/*.afa
+../../brownian/aucpred_filter/aucpred_filter.py
+    ../../brownian/aucpred_filter/out/regions_30.tsv
+../../brownian/aucpred_regions/get_regions.py
+    ../../brownian/aucpred_regions/out/regions.tsv
+../../brownian/insertion_trim/extract.py
+    ../../brownian/insertion_trim/out/*.afa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 """
