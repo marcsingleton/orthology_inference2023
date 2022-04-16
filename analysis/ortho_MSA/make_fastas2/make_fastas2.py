@@ -1,4 +1,4 @@
-"""Make FASTAs of remaining OGs using trees."""
+"""Make FASTAs of remaining OGs after removing multiple representatives per gene."""
 
 import os
 import re

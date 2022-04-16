@@ -1,4 +1,4 @@
-"""Reduce gene clusters to representative polypeptides using trees."""
+"""Reduce gene clusters to representative proteins using trees."""
 
 import multiprocessing as mp
 import os
@@ -192,7 +192,7 @@ for _, source, prot_path in genomes:
 
 # Load OGs
 OGs = {}
-with open('../../ortho_cluster2/cluster4+_graph/out/4clique/clusters.tsv') as file:
+with open('../../ortho_cluster2/add_paralogs/out/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         _, OGid, _, edges = line.rstrip('\n').split('\t')
@@ -218,8 +218,8 @@ DEPENDENCIES
 ../../../data/ncbi_annotations/*/*/*/*_protein.faa
 ../../../data/flybase_genomes/Drosophila_melanogaster/dmel_r6.45_FB2022_02/fasta/dmel-all-translation-r6.45.fasta
 ../../ortho_cluster2/config/genomes.tsv
-../../ortho_cluster2/cluster4+_graph/cluster.py
-    ../../ortho_cluster2/cluster4+_graph/out/4clique/clusters.tsv
+../../ortho_cluster2/add_paralogs/add_paralogs.py
+    ../../ortho_cluster2/add_paralogs/out/clusters.tsv
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 """
