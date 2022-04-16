@@ -16,17 +16,16 @@ def get_bitscore(node1, node2, graph):
 
 
 # Load sequence data
-ppid2data, spids = {}, []
+ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         ppid, gnid, spid, sqid = line.rstrip('\n').split('\t')
         ppid2data[ppid] = (gnid, spid, sqid)
-        spids.append(spid)
 
 # Load graph
 graph = {}
-with open('../hits2graph/out/hit_graph.tsv') as file:
+with open('../../ortho_cluster2/hits2graph/out/hit_graph.tsv') as file:
     for line in file:
         node, adjs = line.rstrip('\n').split('\t')
         bitscores = {}
