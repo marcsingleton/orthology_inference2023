@@ -19,7 +19,7 @@ with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
 
 # Load OGs
 rows = []
-with open('../../ortho_cluster2/cluster4+_graph/out/4clique/clusters.tsv') as file:
+with open('../../ortho_cluster2/add_paralogs/out/clusters.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         component_id, OGid, _, edges = line.rstrip('\n').split('\t')
@@ -57,8 +57,8 @@ for row in df.dropna().itertuples():
 
 """
 DEPENDENCIES
-../../ortho_cluster2/cluster4+_graph/cluster.py
-    ../../ortho_cluster2/cluster4+_graph/out/4clique/clusters.tsv
+../../ortho_cluster2/add_paralogs/add_paralogs.py
+    ../../ortho_cluster2/add_paralogs/out/clusters.tsv
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../../ortho_tree/consensus_LG/consensus_LG.py
