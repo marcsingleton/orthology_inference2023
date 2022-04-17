@@ -34,6 +34,15 @@ with open('../../ortho_cluster2/hits2graph/out/hit_graph.tsv') as file:
             bitscores[adj_node] = float(adj_bitscore)
         graph[node] = bitscores
 
+# Load GGs
+OGid2GGid = {}
+with open('../../ortho_cluster2/connect_OG_graph/out/components.tsv') as file:
+    file.readline()  # Skip header
+    for line in file:
+        GGid, OGids = line.rstrip('\n').split('\t')
+        for OGid in OGids.split(','):
+            OGid2GGid[OGid] = GGid
+
 # Load OGs
 rows = []
 with open('../../ortho_cluster2/add_paralogs/out/clusters.tsv') as file:
@@ -49,7 +58,7 @@ with open('../../ortho_cluster2/add_paralogs/out/clusters.tsv') as file:
         for node1, node2 in edges:
             bitscore += get_bitscore(node1, node2, graph) + get_bitscore(node2, node1, graph)
 
-        row = {'component_id': component_id, 'OGid': OGid,
+        row = {'component_id': component_id, 'OGid': OGid, 'GGid': OGid2GGid[OGid],
                'ppidnum': len(ppids), 'sqidnum': len(sqids),
                'gnidnum': len(gnids), 'spidnum': len(spids),
                'edgenum': len(edges), 'bitscore': round(bitscore, 1)}
@@ -68,6 +77,8 @@ DEPENDENCIES
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../../ortho_cluster2/add_paralogs/add_paralogs.py
     ../../ortho_cluster2/add_paralogs/out/clusters.tsv
+../../ortho_cluster2/connect_OG_graph/connect_OG_graph.py
+    ../../ortho_cluster2/connect_OG_graph/out/components.tsv
 ../../ortho_cluster2/hits2graph/hits2graph.py
     ../../ortho_cluster2/hits2graph/out/hit_graph.tsv
 """
