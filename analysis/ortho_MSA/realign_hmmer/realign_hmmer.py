@@ -50,7 +50,7 @@ with open('../OG_filter/out/OG_filter.tsv') as file:
     file.readline()  # Skip header
     for line in file:
         fields = line.rstrip('\n').split('\t')
-        OGid, ppidnum, gnidnum = fields[1], int(fields[5]), int(fields[7])
+        OGid, ppidnum, gnidnum = fields[1], int(fields[3]), int(fields[5])
         OGid2data[OGid] = (ppidnum, gnidnum)
 
 if __name__ == '__main__':
