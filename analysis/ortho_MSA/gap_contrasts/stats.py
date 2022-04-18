@@ -19,35 +19,37 @@ num_contrasts = len(spids) - 1
 # 1 PLOT STATISTICS (OGS WITH ALL SPECIES)
 df = pd.read_table('out/row_sums.tsv')
 df['total'] = df[[f'row{i}' for i in range(num_contrasts)]].sum(axis=1)
-df['avg'] = df['total'] / df['len2']
+contrasts = df.drop(['len1', 'len2', 'total'], axis=1).set_index('OGid').stack()
 
 # 1.1 Tail fraction
-max_percentile = 0.30
+max_percentile = 0.3
 window_percent = 3
-window_width = ceil(window_percent / 200 * len(df))
-max_idx = int(max_percentile * len(df)) - 1  # Subtract 1 due to 0 indexing
-x = [i / len(df) for i in range(window_width + 1, max_idx - window_width + 1)]
+max_idx = ceil(max_percentile * len(df))
+window_width = ceil(window_percent / 100 * len(df))
 
-contrasts = pd.concat([df[f'row{i}'] for i in range(num_contrasts)], keys=[f'row{i}' for i in range(num_contrasts)],
-                      names=['contrast_id', 'OGid']).sort_values(ascending=False)
-counts = [(i, contrasts[:max_idx].index.get_level_values('contrast_id') == f'row{i}') for i in range(num_contrasts)]
-tails = sorted([(i, np.convolve(count, np.ones(2 * window_width + 1) / (2 * window_width + 1), 'valid')) for i, count in counts],
-               key=lambda y: sum(y[1]), reverse=True)
-for i, tail in tails[:9]:
-    plt.plot(x, tail, label=i, linewidth=1)
-plt.plot(x, sum([tail for _, tail in tails[9:]]), label='others', linewidth=1)
+labels = df[[f'row{i}' for i in range(num_contrasts)]].stack().sort_values(ascending=False).index.get_level_values(1)
+counts = []
+for i in range(num_contrasts):
+    count = np.convolve(labels == f'row{i}', np.ones(window_width), 'valid') / window_width
+    counts.append((i, count[:max_idx]))
+counts = sorted(counts, key=lambda x: x[1].sum(), reverse=True)
+
+x = [i / len(df) for i in range(max_idx)]
+for i, count in counts[:9]:
+    plt.plot(x, count, label=i, linewidth=1)
+plt.plot(x, sum([count for _, count in counts[9:]]), label='others', linewidth=1)
 plt.legend()
-plt.title(f'Contrast Fractions in {window_percent}% Sliding Windows')
-plt.xlabel('Right Tail Percentile')
+plt.title(f'Contrast fractions in {window_percent}% sliding windows')
+plt.xlabel('Right tail percentile')
 plt.ylabel('Fraction')
-plt.legend(title='Contrast ID', bbox_to_anchor=(1.025, 0.5), loc='center left')
+plt.legend(title='Contrast ID', bbox_to_anchor=(1, 0.5), loc='center left')
 plt.subplots_adjust(right=0.8)
 plt.savefig('out/line_contrast_window.png')
 plt.close()
 
 # 1.2 Overall contrast distribution
 plt.hist(contrasts, bins=200)
-plt.xlabel('Contrast Value')
+plt.xlabel('Contrast value')
 plt.ylabel('Count')
 plt.savefig('out/hist_contrast.png')
 plt.yscale('log')
@@ -64,10 +66,11 @@ plt.savefig('out/hist_contrast_OGmean_log.png')
 plt.close()
 
 # 1.4 Contrast averages across all OGs
-plt.bar(list(range(num_contrasts)), [df[f'row{i}'].mean() for i in range(num_contrasts)],
-        yerr=[df[f'row{i}'].std()/50 for i in range(num_contrasts)])
+scale = 50
+plt.bar(range(num_contrasts), [df[f'row{i}'].mean() for i in range(num_contrasts)],
+        yerr=[df[f'row{i}'].std()/scale for i in range(num_contrasts)])
 plt.xlabel('Contrast ID')
-plt.ylabel('Mean ± STD/50')
+plt.ylabel(f'Mean ± STD/{scale}')
 plt.savefig('out/bar_contrast_mean.png')
 plt.close()
 
