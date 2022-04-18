@@ -44,7 +44,7 @@ with open('../aucpred_filter/out/regions_30.tsv') as file:
         regions.append((OGid, int(start), int(stop), set(ppids.split(','))))
 
 # Calculate contrasts
-totals, rows = [], []
+total_records, sum_records = [], []
 for OGid, start, stop, ppids in regions:
     msa = {}
     for header, seq in read_fasta(f'../insertion_trim/out/{OGid}.afa'):
@@ -61,12 +61,12 @@ for OGid, start, stop, ppids in regions:
 
     contrasts, _, _ = get_contrasts(tree)
     gap_matrix = np.asarray([[0 if sym == '-' else 1 for sym in seq] for seq in msa.values()])
-    len1 = len(msa['dmel'])  # Total length of alignment
+    len1 = gap_matrix.shape[1]  # Total length of alignment
     len2 = (gap_matrix / len(msa)).sum()  # Adjusted length of alignment
-    totals.append([OGid, str(start), str(stop), str(len(msa)), str(len1), str(len2), str(np.abs(contrasts).sum())])
+    total_records.append([OGid, start, stop, len(msa), len1, len2, np.abs(contrasts).sum()])
     if len(msa) == len(spids):
         row_sums = list(np.abs(contrasts).sum(axis=1))
-        rows.append([OGid, str(start), str(stop), str(len1), str(len2)] + [str(row_sum) for row_sum in row_sums])
+        sum_records.append([OGid, start, stop, len1, len2, *row_sums])
 
 # Write contrasts to file
 if not os.path.exists('out/'):
@@ -74,12 +74,12 @@ if not os.path.exists('out/'):
 
 with open('out/total_sums.tsv', 'w') as file:
     file.write('OGid\tstart\tstop\tgnidnum\tlen1\tlen2\ttotal\n')
-    for total in totals:
-        file.write('\t'.join(total) + '\n')
+    for total_record in total_records:
+        file.write('\t'.join([str(field) for field in total_record]) + '\n')
 with open('out/row_sums.tsv', 'w') as file:
-    file.write('\t'.join(['OGid', 'start', 'stop', 'len1', 'len2'] + [f'row{i}' for i in range(len(spids)-1)]) + '\n')
-    for row in rows:
-        file.write('\t'.join(row) + '\n')
+    file.write('OGid\tstart\tstop\tlen1\tlen2\t' + '\t'.join([f'row{i}' for i in range(len(spids)-1)]) + '\n')
+    for sum_record in sum_records:
+        file.write('\t'.join([str(field) for field in sum_record]) + '\n')
 
 """
 DEPENDENCIES

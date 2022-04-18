@@ -37,12 +37,12 @@ spids = {tip.name for tip in tree_template.tips() if tip.name != 'sleb'}
 OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
 
 # Calculate contrasts
-totals, rows = [], []
-for record in OG_filter.itertuples():
-    if record.ppdidnum == record.gnidnum:
-        msa = read_fasta(f'../align_fastas1/out/{record.OGid}.afa')
+total_records, sum_records = [], []
+for row in OG_filter.itertuples():
+    if row.ppidnum == row.gnidnum:
+        msa = read_fasta(f'../align_fastas1/out/{row.OGid}.afa')
     else:
-        msa = read_fasta(f'../align_fastas2/out/{record.OGid}.afa')
+        msa = read_fasta(f'../align_fastas2/out/{row.OGid}.afa')
     msa = {re.search(r'spid=([a-z]+)', header).group(1): seq for header, seq in msa}
 
     tree = tree_template.deepcopy().shear(msa.keys())
@@ -53,25 +53,25 @@ for record in OG_filter.itertuples():
 
     contrasts, _, _ = get_contrasts(tree)
     gap_matrix = np.asarray([[0 if sym == '-' else 1 for sym in seq] for seq in msa.values()])
-    len1 = len(msa['dmel'])  # Total length of alignment
+    len1 = gap_matrix.shape[1]  # Total length of alignment
     len2 = (gap_matrix / len(msa)).sum()  # Adjusted length of alignment
-    totals.append([record.OGid, str(len(msa)), str(len1), str(len2), str(np.abs(contrasts).sum())])
+    total_records.append([row.OGid, len(msa), len1, len2, np.abs(contrasts).sum()])
     if len(msa) == len(spids):
-        row_sums = list(np.abs(contrasts).sum(axis=1))
-        rows.append([record.OGid, str(len1), str(len2)] + [str(row_sum) for row_sum in row_sums])
+        row_sums = np.abs(contrasts).sum(axis=1)
+        sum_records.append([row.OGid, len1, len2, *row_sums])
 
 # Write contrasts to file
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
 with open('out/total_sums.tsv', 'w') as file:
-    file.write('OGid\tstart\tstop\tgnidnum\tlen1\tlen2\ttotal\n')
-    for total in totals:
-        file.write('\t'.join(total) + '\n')
+    file.write('OGid\tgnidnum\tlen1\tlen2\ttotal\n')
+    for total_record in total_records:
+        file.write('\t'.join([str(field) for field in total_record]) + '\n')
 with open('out/row_sums.tsv', 'w') as file:
-    file.write('\t'.join(['OGid', 'start', 'stop', 'len1', 'len2'] + [f'row{i}' for i in range(len(spids)-1)]) + '\n')
-    for row in rows:
-        file.write('\t'.join(row) + '\n')
+    file.write('OGid\tlen1\tlen2\t' + '\t'.join([f'row{i}' for i in range(len(spids)-1)]) + '\n')
+    for sum_record in sum_records:
+        file.write('\t'.join([str(field) for field in sum_record]) + '\n')
 
 """
 DEPENDENCIES
