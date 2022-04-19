@@ -113,7 +113,7 @@ def draw_msa(msa,
 
 def plot_msa_lines(msa, lines, figsize=(12, 6),
                    msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6, y_labelsize=6,
-                   msa_height=1, data_height=1, hspace=0.75, sym_length=7, sym_height=7,
+                   height_ratio=1, hspace=0.75, sym_length=7, sym_height=7,
                    legend=False, legend_markersize=8, legend_kwargs=None,
                    lines_min=None, lines_max=None,
                    block_cols=None, aa2color=None, gap2color=None):
@@ -124,7 +124,7 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
     def get_dims(block_cols):
         plot_length = block_cols  # Length of final plot
         block_num = COLS // block_cols - (1 if COLS % block_cols == 0 else 0)  # Number of blocks in addition to the first
-        plot_height = 2 * (ROWS + hspace) * block_num + (2 + hspace) * ROWS  # Height of final image
+        plot_height = (1 + height_ratio + 2*hspace) * ROWS * block_num + (1 + height_ratio + hspace) * ROWS  # Height of final image
         return plot_length, plot_height
 
     def get_aspect(block_cols):
@@ -181,11 +181,11 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
                   sym_length=sym_length, sym_height=sym_height, aa2color=aa2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
     gs = GridSpec(2*block_num, 1, figure=fig,
-                  height_ratios=[msa_height if i % 2 == 0 else data_height for i in range(2*block_num)],
+                  height_ratios=[1 if i % 2 == 0 else height_ratio for i in range(2*block_num)],
                   hspace=hspace)
     for i in range(block_num):
-        msa_ax = fig.add_subplot(gs[2*i:2*i+1, :])
-        lines_ax = fig.add_subplot(gs[2*i+1:2*(i+1), :], sharex=msa_ax, aspect=block_rows*data_height/(msa_height * (lines_max - lines_min)))
+        msa_ax = fig.add_subplot(gs[2*i, :])
+        lines_ax = fig.add_subplot(gs[2*i+1, :], sharex=msa_ax, aspect=block_rows*height_ratio/(lines_max - lines_min))
 
         block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
         x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
@@ -233,7 +233,7 @@ def plot_msa(msa, figsize=(12, 6),
     def get_dims(block_cols):
         plot_length = block_cols  # Length of final plot
         block_num = COLS // block_cols - (1 if COLS % block_cols == 0 else 0)  # Number of blocks in addition to the first
-        plot_height = (ROWS + hspace) * block_num + (1 + hspace) * ROWS  # Height of final image
+        plot_height = (1 + hspace) * ROWS * block_num + ROWS  # Height of final image
         return plot_length, plot_height
 
     def get_aspect(block_cols):
@@ -289,7 +289,7 @@ def plot_msa(msa, figsize=(12, 6),
     fig = plt.figure(figsize=figsize)
     gs = GridSpec(block_num, 1, figure=fig, hspace=hspace)
     for i in range(block_num):
-        msa_ax = fig.add_subplot(gs[i:i+1, :])
+        msa_ax = fig.add_subplot(gs[i, :])
 
         block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
         x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
