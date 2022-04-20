@@ -11,14 +11,14 @@ from matplotlib.lines import Line2D
 
 
 def draw_msa(msa,
-             ratio=2.5, hspace=25, sym_length=7, sym_height=7,
-             im_cols=None, aa2color=None, gap2color=None):
+             aspect=2.5, hspace=25, sym_length=7, sym_height=7,
+             im_cols=None, sym2color=None, gap2color=None):
     """Draw alignment as PNG.
 
     Parameters
     ----------
     msa: list of strings
-    ratio: float
+    aspect: float
         Aspect ratio (length:height) of image. The function will calculate the
         number of columns in each block that yields an image that best matches
         this aspect ratio.
@@ -30,7 +30,7 @@ def draw_msa(msa,
         Number of pixels in height of symbol rectangle.
     im_cols: int
         Number of columns in each block. Will override ratio if is not None.
-    aa2color: dict
+    sym2color: dict
         Mapping of symbols to color hex codes.
     gap2color: dict
         Mapping of symbols to color hex codes of center dot. Intended for
@@ -60,13 +60,13 @@ def draw_msa(msa,
         while interval[1] - interval[0] > 1:
             i1 = (interval[0], (interval[0] + interval[1]) // 2)
             i2 = ((interval[0] + interval[1]) // 2, interval[1])
-            if (get_aspect(i1[0]) - ratio) * (get_aspect(i1[1]) - ratio) < 0:
+            if (get_aspect(i1[0]) - aspect) * (get_aspect(i1[1]) - aspect) < 0:
                 interval = i1
-            elif (get_aspect(i2[0]) - ratio) * (get_aspect(i2[1]) - ratio) < 0:
+            elif (get_aspect(i2[0]) - aspect) * (get_aspect(i2[1]) - aspect) < 0:
                 interval = i2
             else:
                 break
-        im_cols = min(interval, key=lambda x: abs(get_aspect(x) - ratio))  # Choose value that minimizes difference
+        im_cols = min(interval, key=lambda x: abs(get_aspect(x) - aspect))  # Choose value that minimizes difference
 
         # Ensure last block is at least 50% of im_cols
         if COLS % im_cols < 0.5 * im_cols:  # Guarantees at least two blocks
@@ -77,8 +77,8 @@ def draw_msa(msa,
     # Set options
     if im_cols is None:
         im_cols = get_im_cols()
-    if aa2color is None:
-        aa2color = default_aa2color
+    if sym2color is None:
+        sym2color = default_sym2color
     if gap2color is None:
         gap2color = default_gap2color
 
@@ -94,20 +94,20 @@ def draw_msa(msa,
 
             # Create color tuple
             try:
-                hex = aa2color[sym]
+                color = sym2color[sym]
             except KeyError as error:
                 print(f"Warning: Symbol {error} not in dictionary. Using color for symbol 'X' in its place.")
-                hex = aa2color['X']
-            color = [int(hex[i:i+2], 16) for i in (0, 2, 4)]
+                color = sym2color['X']
+            rgb = [int(color[i:i+2], 16) for i in (0, 2, 4)]
 
             # Fill slice with color
-            im[slice(y, y + sym_height), slice(x, x + sym_length), :] = color
+            im[slice(y, y + sym_height), slice(x, x + sym_length), :] = rgb
             if sym in gap2color:
-                hex = gap2color[sym]
-                color = [int(hex[i:i+2], 16) for i in (0, 2, 4)]
+                color = gap2color[sym]
+                rgb = [int(color[i:i+2], 16) for i in (0, 2, 4)]
                 y1, y2 = y + ceil((sym_height - 2) / 2), y + ceil((sym_height + 1) / 2)
                 x1, x2 = x + ceil((sym_length - 2) / 2), x + ceil((sym_length + 1) / 2)
-                im[slice(y1, y2), slice(x1, x2), :] = color
+                im[slice(y1, y2), slice(x1, x2), :] = rgb
     return im
 
 
@@ -116,10 +116,10 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
                    height_ratio=1, hspace=0.75, sym_length=7, sym_height=7,
                    legend=False, legend_markersize=8, legend_kwargs=None,
                    lines_min=None, lines_max=None,
-                   block_cols=None, aa2color=None, gap2color=None):
+                   block_cols=None, sym2color=None, gap2color=None):
     # Define functions and globals
     ROWS, COLS = len(msa), len(msa[0])
-    RATIO = figsize[0] / figsize[1]
+    ASPECT = figsize[0] / figsize[1]
 
     def get_dims(block_cols):
         plot_length = block_cols  # Length of final plot
@@ -137,13 +137,13 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
         while interval[1] - interval[0] > 1:
             i1 = (interval[0], (interval[0] + interval[1]) // 2)
             i2 = ((interval[0] + interval[1]) // 2, interval[1])
-            if (get_aspect(i1[0]) - RATIO) * (get_aspect(i1[1]) - RATIO) < 0:
+            if (get_aspect(i1[0]) - ASPECT) * (get_aspect(i1[1]) - ASPECT) < 0:
                 interval = i1
-            elif (get_aspect(i2[0]) - RATIO) * (get_aspect(i2[1]) - RATIO) < 0:
+            elif (get_aspect(i2[0]) - ASPECT) * (get_aspect(i2[1]) - ASPECT) < 0:
                 interval = i2
             else:
                 break
-        block_cols = min(interval, key=lambda x: abs(get_aspect(x) - RATIO))  # Choose value that minimizes difference
+        block_cols = min(interval, key=lambda x: abs(get_aspect(x) - ASPECT))  # Choose value that minimizes difference
 
         # Ensure last block is at least 50% of block_cols
         if COLS % block_cols < 0.5 * block_cols:  # Guarantees at least two blocks
@@ -158,8 +158,8 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
         legend_kwargs = {}
     if block_cols is None:
         block_cols = get_block_cols()
-    if aa2color is None:
-        aa2color = default_aa2color
+    if sym2color is None:
+        sym2color = default_sym2color
     if gap2color is None:
         gap2color = default_gap2color
     if isinstance(lines, list):
@@ -188,7 +188,7 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
             h = hspace
         height_ratios.append(h)
 
-    im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, aa2color=aa2color, gap2color=gap2color)
+    im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
     gs = GridSpec(3*block_num, 1, figure=fig, height_ratios=height_ratios)
     for i in range(block_num):
@@ -213,29 +213,29 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
 
     # Draw legend
     if legend:
-        color2aas = {}
-        for aa, color in aa2color.items():
-            if aa in gap2color:
+        color2syms = {}
+        for sym, color in sym2color.items():
+            if sym in gap2color:
                 continue
             try:
-                color2aas[color].append(aa)
+                color2syms[color].append(sym)
             except KeyError:
-                color2aas[color] = [aa]
+                color2syms[color] = [sym]
         handles = []
-        for color, aas in color2aas.items():
-            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', markersize=legend_markersize, label=', '.join(aas)))
+        for color, syms in color2syms.items():
+            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', markersize=legend_markersize, label=', '.join(syms)))
         fig.legend(handles=handles, **legend_kwargs)
     return fig
 
 
 def plot_msa(msa, figsize=(12, 6),
-            msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6,
-            legend=False, legend_markersize=8, legend_kwargs=None,
-            hspace=0.5, sym_length=7, sym_height=7,
-            block_cols=None, aa2color=None, gap2color=None):
+             msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6,
+             legend=False, legend_markersize=8, legend_kwargs=None,
+             hspace=0.5, sym_length=7, sym_height=7,
+             block_cols=None, sym2color=None, gap2color=None):
     # Define functions and globals
     ROWS, COLS = len(msa), len(msa[0])
-    RATIO = figsize[0] / figsize[1]
+    ASPECT = figsize[0] / figsize[1]
 
     def get_dims(block_cols):
         plot_length = block_cols  # Length of final plot
@@ -255,7 +255,7 @@ def plot_msa(msa, figsize=(12, 6),
         while interval[1] - interval[0] > 1:
             c0, c2 = interval
             c1 = (c0 + c2) // 2
-            deltas = [get_aspect(c) - RATIO for c in (c0, c1, c2)]
+            deltas = [get_aspect(c) - ASPECT for c in (c0, c1, c2)]
 
             if any([delta == 0 for delta in deltas]):
                 c = min(zip((c0, c1, c2), deltas), key=lambda x: abs(x[1]))[0]
@@ -268,7 +268,7 @@ def plot_msa(msa, figsize=(12, 6),
             else:
                 interval = (c0, c2)
                 break
-        block_cols = min(range(interval[0], interval[1]+1), key=lambda x: abs(get_aspect(x) - RATIO))  # Choose value that minimizes difference
+        block_cols = min(range(interval[0], interval[1]+1), key=lambda x: abs(get_aspect(x) - ASPECT))  # Choose value that minimizes difference
 
         # Ensure last block is at least 50% of block_cols
         if COLS % block_cols < 0.5 * block_cols:  # Guarantees at least two blocks
@@ -283,15 +283,15 @@ def plot_msa(msa, figsize=(12, 6),
         legend_kwargs = {}
     if block_cols is None:
         block_cols = get_block_cols()
-    if aa2color is None:
-        aa2color = default_aa2color
+    if sym2color is None:
+        sym2color = default_sym2color
     if gap2color is None:
         gap2color = default_gap2color
     block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
     block_rows = len(msa)
 
     # Draw axes
-    im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, aa2color=aa2color, gap2color=gap2color)
+    im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
     gs = GridSpec(block_num, 1, figure=fig, hspace=hspace)
     for i in range(block_num):
@@ -309,17 +309,17 @@ def plot_msa(msa, figsize=(12, 6),
 
     # Draw legend
     if legend:
-        color2aas = {}
-        for aa, color in aa2color.items():
-            if aa in gap2color:
+        color2syms = {}
+        for sym, color in sym2color.items():
+            if sym in gap2color:
                 continue
             try:
-                color2aas[color].append(aa)
+                color2syms[color].append(sym)
             except KeyError:
-                color2aas[color] = [aa]
+                color2syms[color] = [sym]
         handles = []
-        for color, aas in color2aas.items():
-            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', markersize=legend_markersize, label=', '.join(aas)))
+        for color, syms in color2syms.items():
+            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', markersize=legend_markersize, label=', '.join(syms)))
         fig.legend(handles=handles, **legend_kwargs)
     return fig
 
@@ -432,12 +432,12 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
     return fig, ax
 
 
-default_aa2color = {'A': '6DD7A1', 'I': '55C08C', 'L': '55C08C', 'V': '55C08C', 'M': '55C08C',
-                    'F': 'B897EC', 'Y': 'B897EC', 'W': 'A180D2',
-                    'S': 'FFBE74', 'T': 'FFBE74',
-                    'N': '77EAF4', 'Q': '77EAF4',
-                    'D': 'EE8485', 'E': 'EE8485',
-                    'H': '96C4FF', 'K': '7FADEA', 'R': '7FADEA',
-                    'C': 'FAED70', 'G': 'E2DEDD', 'P': 'FFB1F1',
-                    'X': '93908F', '-': 'FFFFFF', '.': '3F3F3F'}
+default_sym2color = {'A': '6DD7A1', 'I': '55C08C', 'L': '55C08C', 'V': '55C08C', 'M': '55C08C',
+                     'F': 'B897EC', 'Y': 'B897EC', 'W': 'A180D2',
+                     'S': 'FFBE74', 'T': 'FFBE74',
+                     'N': '77EAF4', 'Q': '77EAF4',
+                     'D': 'EE8485', 'E': 'EE8485',
+                     'H': '96C4FF', 'K': '7FADEA', 'R': '7FADEA',
+                     'C': 'FAED70', 'G': 'E2DEDD', 'P': 'FFB1F1',
+                     'X': '93908F', '-': 'FFFFFF', '.': '3F3F3F'}
 default_gap2color = {'-': '3F3F3F', '.': 'FFFFFF'}
