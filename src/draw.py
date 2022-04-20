@@ -123,7 +123,7 @@ def draw_msa(msa,
 
 def plot_msa_data(msa, data, figsize=(12, 6),
                   msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6, y_labelsize=6,
-                  height_ratio=1, hspace=0.75, sym_length=7, sym_height=7,
+                  height_ratio=1, hspace=0.5, sym_length=7, sym_height=7,
                   data_min=None, data_max=None,
                   legend=False, legend_markersize=8, legend_kwargs=None,
                   block_cols=None, sym2color=None, gap2color=None):
