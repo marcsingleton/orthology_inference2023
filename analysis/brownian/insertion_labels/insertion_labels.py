@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import skbio
 from src.brownian2.trim import trim_terminals
-from src.draw import plot_msa_lines
+from src.draw import plot_msa_data
 from src.utils import read_fasta
 
 OGid2labels = {}
@@ -45,7 +45,7 @@ for OGid, labels in OGid2labels.items():
         lines[state] = line
 
     msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
-    plot_msa_lines(msa, [lines['1A'], lines['2'], lines['3'], lines['1B']], figsize=(15, 6))
+    plot_msa_data(msa, [lines['1A'], lines['2'], lines['3'], lines['1B']], figsize=(15, 6))
     plt.savefig(f'out/{OGid}.png', bbox_inches='tight')
     plt.close()
 

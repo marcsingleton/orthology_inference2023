@@ -121,18 +121,18 @@ def draw_msa(msa,
     return im
 
 
-def plot_msa_lines(msa, lines, figsize=(12, 6),
-                   msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6, y_labelsize=6,
-                   height_ratio=1, hspace=0.75, sym_length=7, sym_height=7,
-                   lines_min=None, lines_max=None,
-                   legend=False, legend_markersize=8, legend_kwargs=None,
-                   block_cols=None, sym2color=None, gap2color=None):
+def plot_msa_data(msa, data, figsize=(12, 6),
+                  msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6, y_labelsize=6,
+                  height_ratio=1, hspace=0.75, sym_length=7, sym_height=7,
+                  data_min=None, data_max=None,
+                  legend=False, legend_markersize=8, legend_kwargs=None,
+                  block_cols=None, sym2color=None, gap2color=None):
     """Plot MSA with associated positional data as matplotlib figure.
 
     Parameters
     ----------
     msa: list of strings
-    lines: list of lists or ndarray with shape 2
+    data: list of lists or ndarray with shape 2
         Data series to be plotted where outer list is the series and the inner
         list is a value associated with each column of the msa.
     figsize: 2-tuple of floats
@@ -156,9 +156,9 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
         Number of pixels in length of the rectangles for each symbol.
     sym_height: int
         Number of pixels in height of the rectangles for each symbol.
-    lines_min: float
+    data_min: float
         Minimum of y-axis across all data axes.
-    lines_max: float
+    data_max: float
         Maximum of y-axis across all data axes.
     legend: bool
         True if legend is drawn.
@@ -234,17 +234,17 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
         sym2color = default_sym2color
     if gap2color is None:
         gap2color = default_gap2color
-    if isinstance(lines, list):
-        lines = np.array(lines)
-    if lines.ndim == 1:
-        lines = np.expand_dims(lines, axis=0)
-    if lines_min is None:
-        lines_min = lines.min() - 0.05 * (lines.max() - lines.min())
-    if lines_max is None:
-        lines_max = lines.max() + 0.05 * (lines.max() - lines.min())
-    if lines_min == lines_max:
-        lines_min -= 0.5
-        lines_max += 0.5
+    if isinstance(data, list):
+        data = np.array(data)
+    if data.ndim == 1:
+        data = np.expand_dims(data, axis=0)
+    if data_min is None:
+        data_min = data.min() - 0.05 * (data.max() - data.min())
+    if data_max is None:
+        data_max = data.max() + 0.05 * (data.max() - data.min())
+    if data_min == data_max:
+        data_min -= 0.5
+        data_max += 0.5
     block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
     block_rows = len(msa)
 
@@ -265,7 +265,7 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
     gs = GridSpec(3*block_num, 1, figure=fig, height_ratios=height_ratios)
     for i in range(block_num):
         msa_ax = fig.add_subplot(gs[3*i, :])
-        lines_ax = fig.add_subplot(gs[3*i+1, :], sharex=msa_ax, aspect=block_rows*height_ratio/(lines_max - lines_min))
+        data_ax = fig.add_subplot(gs[3*i+1, :], sharex=msa_ax, aspect=block_rows*height_ratio/(data_max - data_min))
 
         block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
         x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
@@ -277,11 +277,11 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
         for spine in ['left', 'right', 'top', 'bottom']:
             msa_ax.spines[spine].set_visible(False)
 
-        for line in lines:
-            lines_ax.plot(range(x_left, x_right), line[i*block_cols:i*block_cols + block.shape[1]//sym_length])
-        lines_ax.set_ylim(lines_min, lines_max)
-        lines_ax.tick_params(axis='y', labelsize=y_labelsize)
-        lines_ax.tick_params(axis='x', labelsize=x_labelsize)
+        for d in data:
+            data_ax.plot(range(x_left, x_right), d[i*block_cols:i*block_cols + block.shape[1]//sym_length])
+        data_ax.set_ylim(data_min, data_max)
+        data_ax.tick_params(axis='y', labelsize=y_labelsize)
+        data_ax.tick_params(axis='x', labelsize=x_labelsize)
 
     # Draw legend
     if legend:

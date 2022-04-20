@@ -68,15 +68,15 @@ for OGid, ppid in ids:
 
     # Decode states and plot
     fbs = model.forward_backward(emits)
-    draw.plot_msa_lines([seq.upper() for _, seq in msa], fbs['1'],
-                        msa_labels=[ppid if ppid in header else '' for header, _ in msa], msa_labelsize=4,
-                        figsize=(15, 6))
+    draw.plot_msa_data([seq.upper() for _, seq in msa], fbs['1'],
+                       msa_labels=[ppid if ppid in header else '' for header, _ in msa], msa_labelsize=4,
+                       figsize=(15, 6))
     plt.savefig(f'out/{OGid}_{ppid}_wide.png', bbox_inches='tight')
     plt.close()
 
-    draw.plot_msa_lines([seq.upper() for _, seq in msa], fbs['1'],
-                        msa_labels=[ppid if ppid in header else '' for header, _ in msa], msa_labelsize=4,
-                        figsize=(8, 8))
+    draw.plot_msa_data([seq.upper() for _, seq in msa], fbs['1'],
+                       msa_labels=[ppid if ppid in header else '' for header, _ in msa], msa_labelsize=4,
+                       figsize=(8, 8))
     plt.savefig(f'out/{OGid}_{ppid}_tall.png', bbox_inches='tight')
     plt.close()
 

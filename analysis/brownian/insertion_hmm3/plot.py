@@ -52,11 +52,11 @@ for OGid in OGids:
     fbs = model.forward_backward(emits)
     msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
 
-    draw.plot_msa_lines(msa, [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(15, 6))
+    draw.plot_msa_data(msa, [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(15, 6))
     plt.savefig(f'out/{OGid}_wide.png', bbox_inches='tight')
     plt.close()
 
-    draw.plot_msa_lines(msa, [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(8, 8))
+    draw.plot_msa_data(msa, [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(8, 8))
     plt.savefig(f'out/{OGid}_tall.png', bbox_inches='tight')
     plt.close()
 

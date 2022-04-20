@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import skbio
-from src.draw import plot_msa_lines
+from src.draw import plot_msa_data
 from src.brownian2.trim import trim_terminals, get_slices
 from src.utils import read_fasta
 
@@ -46,7 +46,7 @@ for label in ['norm1', 'norm2']:
             trims[s] = 1
 
         msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
-        plot_msa_lines(msa, [posterior, trims], figsize=(15, 6))
+        plot_msa_data(msa, [posterior, trims], figsize=(15, 6))
         plt.savefig(f'out/{label}/{i:03}_{row.OGid}.png', bbox_inches='tight')
         plt.close()
 

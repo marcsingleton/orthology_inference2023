@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage as ndimage
 import skbio
-from src.draw import plot_msa_lines
+from src.draw import plot_msa_data
 from src.utils import read_fasta
 
 # LG background frequencies
@@ -121,7 +121,7 @@ for record in outliers:
     line = np.zeros(len(msa[0]))
     for region in regions:
         line[region] = 1
-    plot_msa_lines(msa, line, figsize=(16, 6))
+    plot_msa_data(msa, line, figsize=(16, 6))
     plt.savefig(f'out/{len(OGids)-1}_{OGid}.png', bbox_inches='tight', dpi=400)
     plt.close()
 
