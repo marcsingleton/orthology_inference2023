@@ -113,13 +113,13 @@ def draw_msa(msa,
             rgb = [int(color[i:i+2], 16) for i in (0, 2, 4)]
 
             # Fill slice with color
-            im[slice(y, y + sym_height), slice(x, x + sym_length), :] = rgb
+            im[y:y+sym_height, x:x+sym_length] = rgb
             if sym in gap2color:
                 color = gap2color[sym]
                 rgb = [int(color[i:i+2], 16) for i in (0, 2, 4)]
                 y1, y2 = y + ceil((sym_height - 2) / 2), y + ceil((sym_height + 1) / 2)
                 x1, x2 = x + ceil((sym_length - 2) / 2), x + ceil((sym_length + 1) / 2)
-                im[slice(y1, y2), slice(x1, x2), :] = rgb
+                im[y1:y2, x1:x2] = rgb
     return im
 
 
