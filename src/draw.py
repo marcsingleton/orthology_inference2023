@@ -10,9 +10,44 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.lines import Line2D
 
 
+def _get_aspect(block_cols, ROWS, COLS, get_dims):
+    length, height = get_dims(block_cols, ROWS, COLS)
+    return length / height
+
+
+def _get_block_cols(ROWS, COLS, ASPECT, get_dims):
+    # Use binary search to find interval containing optimal block_cols
+    # If an interval endpoint exactly equals the ratio, choose that endpoint
+    # Otherwise choose the interval where the deviation changes sign between the two endpoints
+    interval = (1, COLS)
+    while interval[1] - interval[0] > 1:
+        i0, i2 = interval
+        i1 = (i0 + i2) // 2
+        deltas = [_get_aspect(i, ROWS, COLS, get_dims) - ASPECT for i in (i0, i1, i2)]
+
+        if any([delta == 0 for delta in deltas]):
+            _, i = min(zip(deltas, (i0, i1, i2)), key=lambda x: abs(x[0]))
+            interval = (i, i)  # Make degenerate interval to fit with min
+            break
+        elif deltas[0] * deltas[1] < 0:
+            interval = (i0, i1)
+        elif deltas[1] * deltas[2] < 0:
+            interval = (i1, i2)
+        else:
+            interval = (i0, i2)
+            break
+    block_cols = min(range(interval[0], interval[1] + 1), key=lambda x: abs(_get_aspect(x, ROWS, COLS, get_dims) - ASPECT))  # Choose value that minimizes difference
+
+    # Ensure last block is at least 50% of block_cols
+    if COLS % block_cols < 0.5 * block_cols:  # Guarantees at least two blocks
+        blocks_im = COLS // block_cols  # Total blocks minus 1
+        block_cols += ceil((COLS % block_cols) / blocks_im)  # Distribute excess to other blocks
+    return block_cols
+
+
 def draw_msa(msa,
              aspect=2.5, hspace=25, sym_length=7, sym_height=7,
-             im_cols=None, sym2color=None, gap2color=None):
+             block_cols=None, sym2color=None, gap2color=None):
     """Draw alignment as PNG.
 
     Parameters
@@ -28,7 +63,7 @@ def draw_msa(msa,
         Number of pixels in length of symbol rectangle.
     sym_height: int
         Number of pixels in height of symbol rectangle.
-    im_cols: int
+    block_cols: int
         Number of columns in each block. Will override ratio if is not None.
     sym2color: dict
         Mapping of symbols to color hex codes.
@@ -45,62 +80,29 @@ def draw_msa(msa,
     ROWS, COLS = len(msa), len(msa[0])
     ASPECT = aspect
 
-    def get_dims(im_cols):
-        im_length = sym_length * im_cols  # Length of final image
-        block_num = COLS // im_cols - (1 if COLS % im_cols == 0 else 0)  # Number of blocks in addition to the first
+    def get_dims(block_cols, ROWS, COLS):
+        im_length = sym_length * block_cols  # Length of final image
+        block_num = COLS // block_cols - (1 if COLS % block_cols == 0 else 0)  # Number of blocks in addition to the first
         im_height = (sym_height * ROWS + hspace) * block_num + sym_height * ROWS  # Height of final image
         return im_length, im_height
 
-    def get_aspect(im_cols):
-        im_length, im_height = get_dims(im_cols)
-        return im_length / im_height
-
-    def get_im_cols():
-        # Use binary search to find interval containing optimal im_cols
-        # If an interval endpoint exactly equals the ratio, choose that endpoint
-        # Otherwise choose the interval where the deviation changes sign between the two endpoints
-        interval = (1, COLS)
-        while interval[1] - interval[0] > 1:
-            i0, i2 = interval
-            i1 = (i0 + i2) // 2
-            deltas = [get_aspect(c) - ASPECT for c in (i0, i1, i2)]
-
-            if any([delta == 0 for delta in deltas]):
-                _, i = min(zip(deltas, (i0, i1, i2)), key=lambda x: abs(x[0]))
-                interval = (i, i)  # Make degenerate interval to fit with min
-                break
-            elif deltas[0] * deltas[1] < 0:
-                interval = (i0, i1)
-            elif deltas[1] * deltas[2] < 0:
-                interval = (i1, i2)
-            else:
-                interval = (i0, i2)
-                break
-        im_cols = min(range(interval[0], interval[1]+1), key=lambda x: abs(get_aspect(x) - ASPECT))  # Choose value that minimizes difference
-
-        # Ensure last block is at least 50% of im_cols
-        if COLS % im_cols < 0.5 * im_cols:  # Guarantees at least two blocks
-            blocks_im = COLS // im_cols  # Total blocks minus 1
-            im_cols += ceil((COLS % im_cols) / blocks_im)  # Distribute excess to other blocks
-        return im_cols
-
     # Set options
-    if im_cols is None:
-        im_cols = get_im_cols()
+    if block_cols is None:
+        block_cols = _get_block_cols(ROWS, COLS, ASPECT, get_dims)
     if sym2color is None:
         sym2color = default_sym2color
     if gap2color is None:
         gap2color = default_gap2color
 
     # Instantiate array and fill with values
-    im_length, im_height = get_dims(im_cols)
+    im_length, im_height = get_dims(block_cols, ROWS, COLS)
     im = np.full((im_height, im_length, 3), 255, dtype='uint8')
     for i, seq in enumerate(msa):
         for j, sym in enumerate(seq):
             # Position of symbol rectangle
-            block = j // im_cols
+            block = j // block_cols
             y = (sym_height * ROWS + hspace) * block + sym_height * i
-            x = j % im_cols * sym_length
+            x = j % block_cols * sym_length
 
             # Create color tuple
             try:
@@ -184,44 +186,11 @@ def plot_msa_data(msa, data, figsize=(12, 6),
     ROWS, COLS = len(msa), len(msa[0])
     ASPECT = figsize[0] / figsize[1]
 
-    def get_dims(block_cols):
+    def get_dims(block_cols, ROWS, COLS):
         plot_length = block_cols  # Length of final plot
         block_num = COLS // block_cols - (1 if COLS % block_cols == 0 else 0)  # Number of blocks in addition to the first
         plot_height = (1 + height_ratio + 2*hspace) * ROWS * block_num + (1 + height_ratio + hspace) * ROWS  # Height of final image
         return plot_length, plot_height
-
-    def get_aspect(block_cols):
-        plot_length, plot_height = get_dims(block_cols)
-        return plot_length / plot_height
-
-    def get_block_cols():
-        # Use binary search to find interval containing optimal block_cols
-        # If an interval endpoint exactly equals the ratio, choose that endpoint
-        # Otherwise choose the interval where the deviation changes sign between the two endpoints
-        interval = (1, COLS)
-        while interval[1] - interval[0] > 1:
-            i0, i2 = interval
-            i1 = (i0 + i2) // 2
-            deltas = [get_aspect(c) - ASPECT for c in (i0, i1, i2)]
-
-            if any([delta == 0 for delta in deltas]):
-                _, i = min(zip(deltas, (i0, i1, i2)), key=lambda x: abs(x[0]))
-                interval = (i, i)  # Make degenerate interval to fit with min
-                break
-            elif deltas[0] * deltas[1] < 0:
-                interval = (i0, i1)
-            elif deltas[1] * deltas[2] < 0:
-                interval = (i1, i2)
-            else:
-                interval = (i0, i2)
-                break
-        block_cols = min(range(interval[0], interval[1]+1), key=lambda x: abs(get_aspect(x) - ASPECT))  # Choose value that minimizes difference
-
-        # Ensure last block is at least 50% of block_cols
-        if COLS % block_cols < 0.5 * block_cols:  # Guarantees at least two blocks
-            blocks_im = COLS // block_cols  # Total blocks minus 1
-            block_cols += ceil((COLS % block_cols) / blocks_im)  # Distribute excess to other blocks
-        return block_cols
 
     # Set options
     if msa_labels is None:
@@ -229,7 +198,7 @@ def plot_msa_data(msa, data, figsize=(12, 6),
     if legend_kwargs is None:
         legend_kwargs = {}
     if block_cols is None:
-        block_cols = get_block_cols()
+        block_cols = _get_block_cols(ROWS, COLS, ASPECT, get_dims)
     if sym2color is None:
         sym2color = default_sym2color
     if gap2color is None:
@@ -260,7 +229,7 @@ def plot_msa_data(msa, data, figsize=(12, 6),
             h = hspace
         height_ratios.append(h)
 
-    im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
+    im = draw_msa(msa, block_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
     gs = GridSpec(3*block_num, 1, figure=fig, height_ratios=height_ratios)
     for i in range(block_num):
@@ -350,44 +319,11 @@ def plot_msa(msa, figsize=(12, 6),
     ROWS, COLS = len(msa), len(msa[0])
     ASPECT = figsize[0] / figsize[1]
 
-    def get_dims(block_cols):
+    def get_dims(block_cols, ROWS, COLS):
         plot_length = block_cols  # Length of final plot
         block_num = COLS // block_cols - (1 if COLS % block_cols == 0 else 0)  # Number of blocks in addition to the first
         plot_height = (1 + hspace) * ROWS * block_num + ROWS  # Height of final image
         return plot_length, plot_height
-
-    def get_aspect(block_cols):
-        plot_length, plot_height = get_dims(block_cols)
-        return plot_length / plot_height
-
-    def get_block_cols():
-        # Use binary search to find interval containing optimal block_cols
-        # If an interval endpoint exactly equals the ratio, choose that endpoint
-        # Otherwise choose the interval where the deviation changes sign between the two endpoints
-        interval = (1, COLS)
-        while interval[1] - interval[0] > 1:
-            i0, i2 = interval
-            i1 = (i0 + i2) // 2
-            deltas = [get_aspect(c) - ASPECT for c in (i0, i1, i2)]
-
-            if any([delta == 0 for delta in deltas]):
-                _, i = min(zip(deltas, (i0, i1, i2)), key=lambda x: abs(x[0]))
-                interval = (i, i)  # Make degenerate interval to fit with min
-                break
-            elif deltas[0] * deltas[1] < 0:
-                interval = (i0, i1)
-            elif deltas[1] * deltas[2] < 0:
-                interval = (i1, i2)
-            else:
-                interval = (i0, i2)
-                break
-        block_cols = min(range(interval[0], interval[1]+1), key=lambda x: abs(get_aspect(x) - ASPECT))  # Choose value that minimizes difference
-
-        # Ensure last block is at least 50% of block_cols
-        if COLS % block_cols < 0.5 * block_cols:  # Guarantees at least two blocks
-            blocks_im = COLS // block_cols  # Total blocks minus 1
-            block_cols += ceil((COLS % block_cols) / blocks_im)  # Distribute excess to other blocks
-        return block_cols
 
     # Set options
     if msa_labels is None:
@@ -395,7 +331,7 @@ def plot_msa(msa, figsize=(12, 6),
     if legend_kwargs is None:
         legend_kwargs = {}
     if block_cols is None:
-        block_cols = get_block_cols()
+        block_cols = _get_block_cols(ROWS, COLS, ASPECT, get_dims)
     if sym2color is None:
         sym2color = default_sym2color
     if gap2color is None:
@@ -404,7 +340,7 @@ def plot_msa(msa, figsize=(12, 6),
     block_rows = len(msa)
 
     # Draw axes
-    im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
+    im = draw_msa(msa, block_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
     gs = GridSpec(block_num, 1, figure=fig, hspace=hspace)
     for i in range(block_num):
