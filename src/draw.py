@@ -43,6 +43,7 @@ def draw_msa(msa,
     """
     # Define functions and globals
     ROWS, COLS = len(msa), len(msa[0])
+    ASPECT = aspect
 
     def get_dims(im_cols):
         im_length = sym_length * im_cols  # Length of final image
@@ -56,17 +57,26 @@ def draw_msa(msa,
 
     def get_im_cols():
         # Use binary search to find interval containing optimal im_cols
+        # If an interval endpoint exactly equals the ratio, choose that endpoint
+        # Otherwise choose the interval where the deviation changes sign between the two endpoints
         interval = (1, COLS)
         while interval[1] - interval[0] > 1:
-            i1 = (interval[0], (interval[0] + interval[1]) // 2)
-            i2 = ((interval[0] + interval[1]) // 2, interval[1])
-            if (get_aspect(i1[0]) - aspect) * (get_aspect(i1[1]) - aspect) < 0:
-                interval = i1
-            elif (get_aspect(i2[0]) - aspect) * (get_aspect(i2[1]) - aspect) < 0:
-                interval = i2
-            else:
+            i0, i2 = interval
+            i1 = (i0 + i2) // 2
+            deltas = [get_aspect(c) - ASPECT for c in (i0, i1, i2)]
+
+            if any([delta == 0 for delta in deltas]):
+                _, i = min(zip(deltas, (i0, i1, i2)), key=lambda x: abs(x[0]))
+                interval = (i, i)  # Make degenerate interval to fit with min
                 break
-        im_cols = min(interval, key=lambda x: abs(get_aspect(x) - aspect))  # Choose value that minimizes difference
+            elif deltas[0] * deltas[1] < 0:
+                interval = (i0, i1)
+            elif deltas[1] * deltas[2] < 0:
+                interval = (i1, i2)
+            else:
+                interval = (i0, i2)
+                break
+        im_cols = min(range(interval[0], interval[1]+1), key=lambda x: abs(get_aspect(x) - ASPECT))  # Choose value that minimizes difference
 
         # Ensure last block is at least 50% of im_cols
         if COLS % im_cols < 0.5 * im_cols:  # Guarantees at least two blocks
@@ -133,17 +143,26 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
 
     def get_block_cols():
         # Use binary search to find interval containing optimal block_cols
+        # If an interval endpoint exactly equals the ratio, choose that endpoint
+        # Otherwise choose the interval where the deviation changes sign between the two endpoints
         interval = (1, COLS)
         while interval[1] - interval[0] > 1:
-            i1 = (interval[0], (interval[0] + interval[1]) // 2)
-            i2 = ((interval[0] + interval[1]) // 2, interval[1])
-            if (get_aspect(i1[0]) - ASPECT) * (get_aspect(i1[1]) - ASPECT) < 0:
-                interval = i1
-            elif (get_aspect(i2[0]) - ASPECT) * (get_aspect(i2[1]) - ASPECT) < 0:
-                interval = i2
-            else:
+            i0, i2 = interval
+            i1 = (i0 + i2) // 2
+            deltas = [get_aspect(c) - ASPECT for c in (i0, i1, i2)]
+
+            if any([delta == 0 for delta in deltas]):
+                _, i = min(zip(deltas, (i0, i1, i2)), key=lambda x: abs(x[0]))
+                interval = (i, i)  # Make degenerate interval to fit with min
                 break
-        block_cols = min(interval, key=lambda x: abs(get_aspect(x) - ASPECT))  # Choose value that minimizes difference
+            elif deltas[0] * deltas[1] < 0:
+                interval = (i0, i1)
+            elif deltas[1] * deltas[2] < 0:
+                interval = (i1, i2)
+            else:
+                interval = (i0, i2)
+                break
+        block_cols = min(range(interval[0], interval[1]+1), key=lambda x: abs(get_aspect(x) - ASPECT))  # Choose value that minimizes difference
 
         # Ensure last block is at least 50% of block_cols
         if COLS % block_cols < 0.5 * block_cols:  # Guarantees at least two blocks
@@ -253,20 +272,20 @@ def plot_msa(msa, figsize=(12, 6),
         # Otherwise choose the interval where the deviation changes sign between the two endpoints
         interval = (1, COLS)
         while interval[1] - interval[0] > 1:
-            c0, c2 = interval
-            c1 = (c0 + c2) // 2
-            deltas = [get_aspect(c) - ASPECT for c in (c0, c1, c2)]
+            i0, i2 = interval
+            i1 = (i0 + i2) // 2
+            deltas = [get_aspect(c) - ASPECT for c in (i0, i1, i2)]
 
             if any([delta == 0 for delta in deltas]):
-                c = min(zip((c0, c1, c2), deltas), key=lambda x: abs(x[1]))[0]
-                interval = (c, c)  # Make degenerate interval to fit with min
+                _, i = min(zip(deltas, (i0, i1, i2)), key=lambda x: abs(x[0]))
+                interval = (i, i)  # Make degenerate interval to fit with min
                 break
             elif deltas[0] * deltas[1] < 0:
-                interval = (c0, c1)
+                interval = (i0, i1)
             elif deltas[1] * deltas[2] < 0:
-                interval = (c1, c2)
+                interval = (i1, i2)
             else:
-                interval = (c0, c2)
+                interval = (i0, i2)
                 break
         block_cols = min(range(interval[0], interval[1]+1), key=lambda x: abs(get_aspect(x) - ASPECT))  # Choose value that minimizes difference
 
