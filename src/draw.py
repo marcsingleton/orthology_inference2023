@@ -124,9 +124,62 @@ def draw_msa(msa,
 def plot_msa_lines(msa, lines, figsize=(12, 6),
                    msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6, y_labelsize=6,
                    height_ratio=1, hspace=0.75, sym_length=7, sym_height=7,
-                   legend=False, legend_markersize=8, legend_kwargs=None,
                    lines_min=None, lines_max=None,
+                   legend=False, legend_markersize=8, legend_kwargs=None,
                    block_cols=None, sym2color=None, gap2color=None):
+    """Plot MSA with associated positional data as matplotlib figure.
+
+    Parameters
+    ----------
+    msa: list of strings
+    lines: list of lists or ndarray with shape 2
+        Data series to be plotted where outer list is the series and the inner
+        list is a value associated with each column of the msa.
+    figsize: 2-tuple of floats
+        Figure dimension (width, height) in inches.
+    msa_labels: list of strings
+        Strings of labels of sequences in MSA in the same order as in msa.
+    msa_labelsize: float
+        Font size of MSA labels.
+    x_start: int
+        Starting value of x-axis.
+    x_labelsize: float
+        Font size of x-axis labels.
+    y_labelsize: float
+        Font size of y-axis labels.
+    height_ratio: float
+        Height of data axes as fraction of height of block.
+    hspace: float
+        Padding between each data axes and subsequent block of MSA as fraction
+        of height of block.
+    sym_length: int
+        Number of pixels in length of the rectangles for each symbol.
+    sym_height: int
+        Number of pixels in height of the rectangles for each symbol.
+    lines_min: float
+        Minimum of y-axis across all data axes.
+    lines_max: float
+        Maximum of y-axis across all data axes.
+    legend: bool
+        True if legend is drawn.
+    legend_markersize: float
+        Size of legend markers.
+    legend_kwargs: dict
+        Additional kwargs passed to fig.legend call.
+    block_cols: int
+        The number of columns in each block. Overrides determination of optimal
+        number if not None.
+    sym2color: dict
+        Mapping of symbols to colors given as hex strings. These values
+        determine the background color of the rectangles.
+    gap2color: dict
+        Mapping of symbols to colors given as hex strings. These values
+        determine the foreground color of the dash in gap symbols.
+
+    Returns
+    -------
+    fig: Figure (matplotlib)
+    """
     # Define functions and globals
     ROWS, COLS = len(msa), len(msa[0])
     ASPECT = figsize[0] / figsize[1]
@@ -249,9 +302,50 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
 
 def plot_msa(msa, figsize=(12, 6),
              msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6,
-             legend=False, legend_markersize=8, legend_kwargs=None,
              hspace=0.5, sym_length=7, sym_height=7,
+             legend=False, legend_markersize=8, legend_kwargs=None,
              block_cols=None, sym2color=None, gap2color=None):
+    """Plot MSA as matplotlib figure.
+
+    Parameters
+    ----------
+    msa: list of strings
+    figsize: 2-tuple of floats
+        Figure dimension (width, height) in inches.
+    msa_labels: list of strings
+        Strings of labels of sequences in MSA in the same order as in msa.
+    msa_labelsize: float
+        Font size of MSA labels.
+    x_start: int
+        Starting value of x-axis.
+    x_labelsize: float
+        Font size of x-axis labels.
+    hspace: float
+        Padding between blocks of MSA as fraction of height of block.
+    sym_length: int
+        Number of pixels in length of the rectangles for each symbol.
+    sym_height: int
+        Number of pixels in height of the rectangles for each symbol.
+    legend: bool
+        True if legend is drawn.
+    legend_markersize: float
+        Size of legend markers.
+    legend_kwargs: dict
+        Additional kwargs passed to fig.legend call.
+    block_cols: int
+        The number of columns in each block. Overrides determination of optimal
+        number if not None.
+    sym2color: dict
+        Mapping of symbols to colors given as hex strings. These values
+        determine the background color of the rectangles.
+    gap2color: dict
+        Mapping of symbols to colors given as hex strings. These values
+        determine the foreground color of the dash in gap symbols.
+
+    Returns
+    -------
+    fig: Figure (matplotlib)
+    """
     # Define functions and globals
     ROWS, COLS = len(msa), len(msa[0])
     ASPECT = figsize[0] / figsize[1]
