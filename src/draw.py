@@ -177,15 +177,23 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
     block_rows = len(msa)
 
     # Draw axes
-    im = draw_msa(msa, im_cols=len(msa[0]),
-                  sym_length=sym_length, sym_height=sym_height, aa2color=aa2color, gap2color=gap2color)
+    height_ratios = []
+    for i in range(3*block_num):
+        r = i % 3
+        if r == 0:
+            h = 1
+        elif r == 1:
+            h = height_ratio
+        else:
+            h = hspace
+        height_ratios.append(h)
+
+    im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, aa2color=aa2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
-    gs = GridSpec(2*block_num, 1, figure=fig,
-                  height_ratios=[1 if i % 2 == 0 else height_ratio for i in range(2*block_num)],
-                  hspace=hspace)
+    gs = GridSpec(3*block_num, 1, figure=fig, height_ratios=height_ratios)
     for i in range(block_num):
-        msa_ax = fig.add_subplot(gs[2*i, :])
-        lines_ax = fig.add_subplot(gs[2*i+1, :], sharex=msa_ax, aspect=block_rows*height_ratio/(lines_max - lines_min))
+        msa_ax = fig.add_subplot(gs[3*i, :])
+        lines_ax = fig.add_subplot(gs[3*i+1, :], sharex=msa_ax, aspect=block_rows*height_ratio/(lines_max - lines_min))
 
         block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
         x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
@@ -198,8 +206,7 @@ def plot_msa_lines(msa, lines, figsize=(12, 6),
             msa_ax.spines[spine].set_visible(False)
 
         for line in lines:
-            lines_ax.plot(list(range(x_left, x_right)),
-                          line[i*block_cols:i*block_cols + block.shape[1]//sym_length])
+            lines_ax.plot(range(x_left, x_right), line[i*block_cols:i*block_cols + block.shape[1]//sym_length])
         lines_ax.set_ylim(lines_min, lines_max)
         lines_ax.tick_params(axis='y', labelsize=y_labelsize)
         lines_ax.tick_params(axis='x', labelsize=x_labelsize)
@@ -284,8 +291,7 @@ def plot_msa(msa, figsize=(12, 6),
     block_rows = len(msa)
 
     # Draw axes
-    im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height,
-                  aa2color=aa2color, gap2color=gap2color)
+    im = draw_msa(msa, im_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, aa2color=aa2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
     gs = GridSpec(block_num, 1, figure=fig, hspace=hspace)
     for i in range(block_num):
