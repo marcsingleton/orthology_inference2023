@@ -104,7 +104,7 @@ def draw_msa(msa,
             y = (sym_height * ROWS + hspace) * block + sym_height * i
             x = j % block_cols * sym_length
 
-            # Create color tuple
+            # Create RGB tuple
             try:
                 color = sym2color[sym]
             except KeyError as error:
@@ -134,7 +134,7 @@ def plot_msa_data(msa, data, figsize=(12, 6),
     Parameters
     ----------
     msa: list of strings
-    data: list of lists or ndarray with shape 2
+    data: list of lists or two-dimensional ndarray
         Data series to be plotted where outer list is the series and the inner
         list is a value associated with each column of the msa.
     figsize: 2-tuple of floats
