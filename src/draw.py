@@ -124,7 +124,8 @@ def draw_msa(msa,
 
 
 def plot_msa_data(msa, data, figsize=(12, 6),
-                  msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6, y_labelsize=6,
+                  msa_labels=None, msa_labelsize=6, msa_length=0, msa_width=0.5, msa_pad=1,
+                  x_start=0, x_labelsize=6, y_labelsize=6,
                   height_ratio=1, hspace=0.5, sym_length=7, sym_height=7,
                   data_min=None, data_max=None,
                   legend=False, legend_markersize=8, legend_kwargs=None,
@@ -141,8 +142,15 @@ def plot_msa_data(msa, data, figsize=(12, 6),
         Figure dimension (width, height) in inches.
     msa_labels: list of strings
         Strings of labels of sequences in MSA in the same order as in msa.
+        len(msa) must match len(msa_labels). Empty strings are not displayed.
     msa_labelsize: float
         Font size of MSA labels.
+    msa_length: float
+        Length of MSA ticks.
+    msa_width: float
+        Width of MSA ticks.
+    msa_pad: float
+        Padding between MSA ticks and labels.
     x_start: int
         Starting value of x-axis.
     x_labelsize: float
@@ -195,6 +203,8 @@ def plot_msa_data(msa, data, figsize=(12, 6),
     # Set options
     if msa_labels is None:
         msa_labels = []
+    if len(msa_labels) != ROWS:
+        raise RuntimeError('len(msa_labels) does not match len(msa)')
     if legend_kwargs is None:
         legend_kwargs = {}
     if block_cols is None:
@@ -239,9 +249,9 @@ def plot_msa_data(msa, data, figsize=(12, 6),
         block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
         x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
         msa_ax.imshow(block, extent=[x_left, x_right, block_rows, 0])
-        msa_ax.set_yticks([x+0.5 for x in range(ROWS)])
-        msa_ax.set_yticklabels(msa_labels)
-        msa_ax.tick_params(axis='y', length=0, labelsize=msa_labelsize)
+        msa_ax.set_yticks([y+0.5 for y, msa_label in zip(range(ROWS), msa_labels) if msa_label != ''])
+        msa_ax.set_yticklabels([msa_label for msa_label in msa_labels if msa_label != ''])
+        msa_ax.tick_params(axis='y', length=msa_length, width=msa_width, pad=msa_pad, labelsize=msa_labelsize)
         msa_ax.xaxis.set_visible(False)
         for spine in ['left', 'right', 'top', 'bottom']:
             msa_ax.spines[spine].set_visible(False)
@@ -270,7 +280,8 @@ def plot_msa_data(msa, data, figsize=(12, 6),
 
 
 def plot_msa(msa, figsize=(12, 6),
-             msa_labels=None, msa_labelsize=6, x_start=0, x_labelsize=6,
+             msa_labels=None, msa_labelsize=6, msa_length=0, msa_width=0.5, msa_pad=1,
+             x_start=0, x_labelsize=6,
              hspace=0.5, sym_length=7, sym_height=7,
              legend=False, legend_markersize=8, legend_kwargs=None,
              block_cols=None, sym2color=None, gap2color=None):
@@ -283,8 +294,15 @@ def plot_msa(msa, figsize=(12, 6),
         Figure dimension (width, height) in inches.
     msa_labels: list of strings
         Strings of labels of sequences in MSA in the same order as in msa.
+        len(msa) must match len(msa_labels). Empty strings are not displayed.
     msa_labelsize: float
         Font size of MSA labels.
+    msa_length: float
+        Length of MSA ticks.
+    msa_width: float
+        Width of MSA ticks.
+    msa_pad: float
+        Padding between MSA ticks and labels.
     x_start: int
         Starting value of x-axis.
     x_labelsize: float
@@ -328,6 +346,8 @@ def plot_msa(msa, figsize=(12, 6),
     # Set options
     if msa_labels is None:
         msa_labels = []
+    if len(msa_labels) != ROWS:
+        raise RuntimeError('len(msa_labels) does not match len(msa)')
     if legend_kwargs is None:
         legend_kwargs = {}
     if block_cols is None:
@@ -349,9 +369,9 @@ def plot_msa(msa, figsize=(12, 6),
         block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
         x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
         msa_ax.imshow(block, extent=[x_left, x_right, block_rows, 0])
-        msa_ax.set_yticks([x+0.5 for x in range(ROWS)])
-        msa_ax.set_yticklabels(msa_labels)
-        msa_ax.tick_params(axis='y', length=0, labelsize=msa_labelsize)
+        msa_ax.set_yticks([y+0.5 for y, msa_label in zip(range(ROWS), msa_labels) if msa_label != ''])
+        msa_ax.set_yticklabels([msa_label for msa_label in msa_labels if msa_label != ''])
+        msa_ax.tick_params(axis='y', length=msa_length, width=msa_width, pad=msa_pad, labelsize=msa_labelsize)
         msa_ax.tick_params(axis='x', labelsize=x_labelsize)
         for spine in ['left', 'right', 'top', 'bottom']:
             msa_ax.spines[spine].set_visible(False)
