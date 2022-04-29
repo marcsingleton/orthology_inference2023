@@ -13,7 +13,7 @@ def hmm_align(OGid):
         path = f'../make_fastas1/out/{OGid}.fa'
     else:
         path = f'../make_fastas2/out/{OGid}.fa'
-    run(f'../../../bin/hmmbuild --hand --eset {eset_scalar*gnidnum} --wnone out/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/{OGid}.txt', shell=True, check=True)
+    run(f'../../../bin/hmmbuild --hand --eset {eset_scalar*gnidnum} --wnone out/{OGid}.hmm ../cnn_trim/out/{OGid}.sto > out/{OGid}.txt', shell=True, check=True)
     run(f'../../../bin/hmmalign --outformat afa out/{OGid}.hmm {path} > out/{OGid}_temp.afa', shell=True, check=True)
 
     # Remove excess gaps
@@ -43,7 +43,7 @@ def hmm_align(OGid):
 
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
-eset_scalar = 1.5  # Effective sequence number scalar; multiplies the gnidnum by this value to add weight to observed sequences
+eset_scalar = 1  # Effective sequence number scalar; multiplies the gnidnum by this value to add weight to observed sequences
 
 OGid2data = {}
 with open('../OG_filter/out/OG_filter.tsv') as file:
@@ -62,15 +62,15 @@ if __name__ == '__main__':
 
 """
 NOTES
-This version up-weights the number of sequences by 1.5x to prevent spurious alignments. These are typically caused by
+This version up-weights the number of sequences by 1x to prevent spurious alignments. These are typically caused by
 unusual patterns of indels and chance similarities between segments that are over-weighted by the strong priors that
 HMMer uses when building its profiles. Placing more weight on the observed sequences typically corrects these issues. 
 
 DEPENDENCIES
+../cnn_trim/cnn_trim.py
+    ../cnn_trim/out/*.sto
 ../make_fastas1/make_fastas1.py
     ../make_fastas1/out/*.fa
 ../make_fastas2/make_fastas2.py
     ../make_fastas2/out/*.fa
-../realign_trim/realign_trim.py
-    ../realign_trim/out/*.afa
 """
