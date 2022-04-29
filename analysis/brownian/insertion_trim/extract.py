@@ -6,6 +6,10 @@ import numpy as np
 from src.brownian2.trim import trim_terminals, get_slices
 from src.utils import read_fasta
 
+posterior_high = 0.75
+posterior_low = 0.5
+gradient_high = 0.02
+gradient_low = 0.001
 
 OGids = [path.removesuffix('.afa') for path in os.listdir('../../ortho_MSA/realign_hmmer/out/') if path.endswith('.afa')]
 for OGid in OGids:
@@ -23,7 +27,7 @@ for OGid in OGids:
     gradient = np.gradient(posterior)
 
     # Find trimmed regions
-    slices = get_slices(msa, posterior, gradient)
+    slices = get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient_high, gradient_low)
 
     # Invert slices
     # Original slices may overlap due to extension,

@@ -11,6 +11,11 @@ from src.draw import plot_msa_data
 from src.brownian2.trim import trim_terminals, get_slices
 from src.utils import read_fasta
 
+posterior_high = 0.75
+posterior_low = 0.5
+gradient_high = 0.02
+gradient_low = 0.001
+
 tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 spids = {tip.name for tip in tree.tips() if tip.name != 'sleb'}
@@ -40,7 +45,7 @@ for label in ['norm1', 'norm2']:
         gradient = np.gradient(posterior)
 
         # Make trim plot
-        slices = get_slices(msa, posterior, gradient)
+        slices = get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient_high, gradient_low)
         trims = np.zeros(len(posterior))
         for s in slices:
             trims[s] = 1
