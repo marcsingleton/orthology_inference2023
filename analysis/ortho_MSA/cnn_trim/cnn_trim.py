@@ -6,10 +6,16 @@ import numpy as np
 import skbio
 import tensorflow as tf
 from src.utils import read_fasta
+from src.brownian2.trim import get_slices
 
 alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'X', '-']
 sym2idx = {sym: i for i, sym in enumerate(alphabet)}
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
+
+posterior_high = 0.9
+posterior_low = 0.005
+gradient_high = np.inf
+gradient_low = np.inf
 
 OGids = []
 with open('../OG_filter/out/OG_filter.tsv') as file:
@@ -43,7 +49,10 @@ for OGid in OGids:
     trims_array = np.full((len(msa1), len(msa1[0][1])), False)
     for i, seq in enumerate(msa2):
         output = tf.squeeze(model([np.expand_dims(profile, 0), np.expand_dims(seq, 0)]))  # Expand and contract dims
-        trims_array[i] = output >= 0.5
+        gradient = np.gradient(output)
+        slices = get_slices(msa1, output, gradient, posterior_high, posterior_low, gradient_high, gradient_low)
+        for s in slices:
+            trims_array[i, s] = True
 
     # Identify gaps
     gaps_array = np.full((len(msa1), len(msa1[0][1])), False)
