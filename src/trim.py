@@ -44,12 +44,17 @@ def trim_terminals(msa):
 
 
 def get_bound(msa, gradient, start, stop, sign):
-    """Return column index with largest weighted change in number of gaps in range from start to stop.
+    """Return column index with largest weighted change in number of gaps in the range from start to stop.
 
-    Gaps are calculated from the range of lower to upper, inclusive. Ties are
-    broken towards the most "exterior" column via the sign argument, which is
-    either +1 or -1, and correctly controls the ordering of both the delta and
-    index for both the start and stop bounds.)
+    To select the column where the number of gaps changes most rapidly, the
+    gradient data is multiplied by the raw gap deltas. This weighting should
+    select the column with a large gap delta that is also supported by the
+    posterior decoding, i.e. its confidence is also rapidly changing at that
+    column.
+
+    Ties are broken towards the most "exterior" column via the sign argument,
+    which is either +1 or -1 and correctly controls the ordering of both the
+    delta and index for both the start and stop bounds.
 
     Parameters
     ----------
@@ -86,11 +91,19 @@ def get_bound(msa, gradient, start, stop, sign):
 def get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient_high, gradient_low):
     """Return slices corresponding to trimmed regions.
 
-    The first and last column of the gradient_high threshold are included so at
-    least one delta is calculated. Since the deltas are calculated as
-    current - previous, the stop bound corresponds to the column with
-    (presumably) a small number of gaps and will be correctly excluded from the
-    slice.
+    This algorithm is designed to cleanly trim alignments at points where the
+    number of gaps changes rapidly. It does this by first identifying core
+    regions which exceed the posterior_high threshold. It identifies margins on
+    the left and right sides of this core region. The extent of the margins is
+    determined by the posterior_low, gradient_high, and gradient_low
+    thresholds. When expanding the margin outward, columns are added if the
+    posterior or gradient is higher than posterior_low and gradient_low,
+    respectively. When expanding inward, columns are added if the gradient is
+    higher than gradient_high. These rules ensure that the margins of the core
+    region fully capture the shoulders of posterior peaks.
+
+    Specific columns from these left and right margins are then chosen using
+    the get_bound function.
 
     Parameters
     ----------
