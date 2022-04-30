@@ -6,7 +6,7 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 import skbio
-from src.brownian2.trim import trim_terminals
+from src.brownian.trim import trim_terminals
 from src.draw import plot_msa_data
 from src.utils import read_fasta
 

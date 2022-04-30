@@ -6,7 +6,7 @@ import os
 from math import comb
 from functools import reduce
 
-import src.brownian2.hmm as hmm
+import src.brownian.hmm as hmm
 import utils
 from numpy import exp, log
 from scipy.special import beta, digamma
