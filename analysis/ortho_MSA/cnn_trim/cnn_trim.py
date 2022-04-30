@@ -6,7 +6,7 @@ import numpy as np
 import skbio
 import tensorflow as tf
 from src.utils import read_fasta
-from src.brownian.trim import get_slices
+from src.trim import get_slices
 
 alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'X', '-']
 sym2idx = {sym: i for i, sym in enumerate(alphabet)}

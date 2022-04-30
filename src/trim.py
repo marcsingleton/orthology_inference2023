@@ -1,4 +1,4 @@
-"""Trim columns from alignment using decoded states from HMM."""
+"""Functions for trimming columns from alignments."""
 
 import scipy.ndimage as ndimage
 
