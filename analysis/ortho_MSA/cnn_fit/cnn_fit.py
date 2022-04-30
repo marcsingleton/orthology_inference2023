@@ -144,12 +144,12 @@ model.summary()
 history = model.fit(train_batches, epochs=epochs, validation_data=validation_batches)
 
 # Save model and history
+if not os.path.exists('out/'):
+    os.mkdir('out/')
+
 df = pd.DataFrame(history.history)
 df.to_csv('out/history.tsv', sep='\t', index=False)
 model.save('out/model.h5')
-
-if not os.path.exists('out/'):
-    os.mkdir('out/')
 
 # Plot embedding
 fig, ax = plt.subplots()
