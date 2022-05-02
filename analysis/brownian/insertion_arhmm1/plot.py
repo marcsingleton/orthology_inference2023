@@ -10,7 +10,7 @@ import skbio
 import src.hmm as hmm
 import src.draw as draw
 from scipy.linalg import solve
-from src.trim import trim_terminals
+from src.brownian.trim import trim_terminals
 from src.utils import read_fasta
 
 
