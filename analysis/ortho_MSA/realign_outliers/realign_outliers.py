@@ -21,30 +21,8 @@ tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skb
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
 records = []
-for OGid in [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/out/') if path.endswith('.afa')]:
-    msa = [(re.search(spid_regex, header).group(1), seq.upper()) for header, seq in read_fasta(f'../realign_hmmer/out/{OGid}.afa')]
-
-    idx = 0
-    for j in range(len(msa[0][1])):
-        for i in range(len(msa)):
-            sym = msa[i][1][j]
-            if sym == '.' or sym.islower():
-                break
-        else:
-            idx = j
-            break  # if no break exit
-    msa = [(header, seq[idx:]) for header, seq in msa]
-
-    idx = len(msa[0][1])
-    for j in range(len(msa[0][1]), 0, -1):
-        for i in range(len(msa)):
-            sym = msa[i][1][j - 1]
-            if sym == '.' or sym.islower():
-                break
-        else:
-            idx = j
-            break  # if no break exit
-    msa = [(header, seq[:idx]) for header, seq in msa]
+for OGid in [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/out/mafft/') if path.endswith('.afa')]:
+    msa = [(re.search(spid_regex, header).group(1), seq.upper()) for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa')]
 
     # Count gaps
     gaps = []
@@ -130,5 +108,5 @@ DEPENDENCIES
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/*.afa
+    ../realign_hmmer/out/mafft/*.afa
 """

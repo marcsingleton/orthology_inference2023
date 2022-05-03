@@ -4,6 +4,7 @@ import multiprocessing as mp
 import os
 from subprocess import run
 
+from src.brownian.trim import trim_terminals
 from src.utils import read_fasta
 
 
@@ -13,11 +14,11 @@ def hmm_align(OGid):
         path = f'../make_fastas1/out/{OGid}.fa'
     else:
         path = f'../make_fastas2/out/{OGid}.fa'
-    run(f'../../../bin/hmmbuild --hand --eset {eset_scalar*gnidnum} --wnone out/{OGid}.hmm ../cnn_trim/out/{OGid}.sto > out/{OGid}.txt', shell=True, check=True)
-    run(f'../../../bin/hmmalign --outformat afa out/{OGid}.hmm {path} > out/{OGid}_temp.afa', shell=True, check=True)
+    run(f'../../../bin/hmmbuild --hand --eset {eset_scalar*gnidnum} --wnone out/hmmer/{OGid}.hmm ../cnn_trim/out/{OGid}.sto > out/hmmer/{OGid}.txt', shell=True, check=True)
+    run(f'../../../bin/hmmalign --outformat afa out/hmmer/{OGid}.hmm {path} > out/hmmer/{OGid}_temp.afa', shell=True, check=True)
 
     # Remove excess gaps
-    msa = read_fasta(f'out/{OGid}_temp.afa')
+    msa = read_fasta(f'out/hmmer/{OGid}_temp.afa')
     slices, idx = [], None
     for j in range(len(msa[0][1])):
         for i in range(len(msa)):
@@ -34,16 +35,93 @@ def hmm_align(OGid):
         slices.append(slice(idx, len(msa[0][1])))
 
     # Write to file and remove temp alignment
-    with open(f'out/{OGid}.afa', 'w') as file:
+    with open(f'out/hmmer/{OGid}.afa', 'w') as file:
         for header, seq1 in msa:
             seq2 = ''.join([seq1[s] for s in slices])
             seqstring = '\n'.join([seq2[i:i+80] for i in range(0, len(seq2), 80)])
             file.write(f'{header}\n{seqstring}\n')
-    os.remove(f'out/{OGid}_temp.afa')
+    os.remove(f'out/hmmer/{OGid}_temp.afa')
+
+    # Load new alignment and identify unaligned regions
+    msa1 = trim_terminals(read_fasta(f'out/hmmer/{OGid}.afa'))
+    slices, idx = [], None
+    for j in range(len(msa1[0][1])):
+        for i in range(len(msa1)):
+            sym = msa1[i][1][j]
+            if sym == '.' or sym.islower():
+                if idx is None:  # Store position only if new slice is not started
+                    idx = j
+                break
+        else:
+            if idx is not None:
+                slices.append(slice(idx, j))
+                idx = None
+    if idx is not None:  # Add final slice to end
+        slices.append(slice(idx, len(msa1[0][1])))
+
+    # Align subsequences and stitch together results
+    submsas = []
+    for s in slices:
+        # Collect subsequences
+        subseqs = []
+        for header, seq in msa1:
+            subseq = seq[s]
+            for sym in subseq:
+                if sym != '.':
+                    subseqs.append((header, subseq.replace('.', '')))
+                    break
+
+        # Align subsequences
+        if len(subseqs) == 1:
+            output = subseqs
+        else:
+            with open(f'out/mafft/{OGid}_temp.fa', 'w') as file:
+                for header, seq in subseqs:
+                    seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
+                    file.write(f'{header}\n{seqstring}\n')
+
+            cmd = (f'../../../bin/mafft --globalpair --maxiterate 1000 '
+                   f'--thread 1 --anysymbol --allowshift --unalignlevel 0.4 --leavegappyregion '
+                   f'out/mafft/{OGid}_temp.fa '
+                   f'1> out/mafft/{OGid}_temp.afa 2> out/mafft/{OGid}_temp.err')
+            run(cmd, shell=True, check=True)
+
+            output = read_fasta(f'out/mafft/{OGid}_temp.afa')
+            os.remove(f'out/mafft/{OGid}_temp.fa')
+            os.remove(f'out/mafft/{OGid}_temp.afa')
+            os.remove(f'out/mafft/{OGid}_temp.err')
+        length = len(output[0][1])
+        output = {header: seq for header, seq in output}
+
+        # Fill missing subsequences with gaps
+        submsa = []
+        for header, _ in msa1:
+            if header in output:
+                submsa.append((header, output[header]))
+            else:
+                submsa.append((header, length * '-'))
+        submsas.append(submsa)
+
+    # Stitch together results
+    msa2, idx = [(header, []) for header, _ in msa1], 0
+    for s, submsa in zip(slices, submsas):
+        for (_, subseq), (_, seq1), (_, seq2) in zip(submsa, msa1, msa2):
+            seq2.append(seq1[idx:s.start])
+            seq2.append(subseq)
+        idx = s.stop
+    for (_, seq1), (_, seq2) in zip(msa1, msa2):  # Add final region
+        seq2.append(seq1[idx:])
+
+    # Write to file
+    with open(f'out/mafft/{OGid}.afa', 'w') as file:
+        for header, seq in msa2:
+            seq = ''.join(seq)
+            seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
+            file.write(f'{header}\n{seqstring}\n')
 
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
-eset_scalar = 1  # Effective sequence number scalar; multiplies the gnidnum by this value to add weight to observed sequences
+eset_scalar = 1.5  # Effective sequence number scalar; multiplies the gnidnum by this value to add weight to observed sequences
 
 OGid2data = {}
 with open('../OG_filter/out/OG_filter.tsv') as file:
@@ -54,8 +132,10 @@ with open('../OG_filter/out/OG_filter.tsv') as file:
         OGid2data[OGid] = (ppidnum, gnidnum)
 
 if __name__ == '__main__':
-    if not os.path.exists('out/'):
-        os.mkdir('out/')
+    if not os.path.exists('out/hmmer/'):
+        os.makedirs('out/hmmer/')
+    if not os.path.exists('out/mafft/'):
+        os.makedirs('out/mafft/')
 
     with mp.Pool(processes=num_processes) as pool:
         pool.map(hmm_align, OGid2data)

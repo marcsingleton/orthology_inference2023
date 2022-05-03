@@ -23,12 +23,13 @@ for label in ['norm1', 'norm2']:
 
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
-        msa = read_fasta(f'../realign_hmmer/out/{row.OGid}.afa')
-        msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
+        for alignment in ['hmmer', 'mafft']:
+            msa = read_fasta(f'../realign_hmmer/out/{alignment}/{row.OGid}.afa')
+            msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
-        msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
-        im = draw_msa(msa)
-        plt.imsave(f'out/{label}/{i:03}_{row.OGid}.png', im)
+            msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
+            im = draw_msa(msa)
+            plt.imsave(f'out/{label}/{i:03}_{row.OGid}_{alignment}.png', im)
 
 """
 DEPENDENCIES
@@ -37,5 +38,6 @@ DEPENDENCIES
 ../gap_contrasts/gap_contrasts.py
     ../gap_contrasts/out/total_sums.tsv
 ../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/*.afa
+    ../realign_hmmer/out/hmmer/*.afa
+    ../realign_hmmer/out/mafft/*.afa
 """
