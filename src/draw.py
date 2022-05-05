@@ -128,7 +128,7 @@ def plot_msa_data(msa, data, figsize=(12, 6),
                   x_start=0, x_labelsize=6, y_labelsize=6,
                   height_ratio=1, hspace=0.5, sym_length=7, sym_height=7,
                   data_min=None, data_max=None,
-                  legend=False, legend_markersize=8, legend_kwargs=None,
+                  msa_legend=False, data_labels=None, legend_kwargs=None,
                   block_cols=None, sym2color=None, gap2color=None):
     """Plot MSA with associated positional data as matplotlib figure.
 
@@ -170,10 +170,11 @@ def plot_msa_data(msa, data, figsize=(12, 6),
         Minimum of y-axis across all data axes.
     data_max: float
         Maximum of y-axis across all data axes.
-    legend: bool
-        True if legend is drawn.
-    legend_markersize: float
-        Size of legend markers.
+    msa_legend: bool
+        True if MSA legend is drawn.
+    data_labels: list of strings
+        Labels for data series. If not None, will draw legend. Length does not
+        need to match the number of series in data.
     legend_kwargs: dict
         Additional kwargs passed to fig.legend call.
     block_cols: int
@@ -263,7 +264,8 @@ def plot_msa_data(msa, data, figsize=(12, 6),
         data_ax.tick_params(axis='x', labelsize=x_labelsize)
 
     # Draw legend
-    if legend:
+    handles = []
+    if msa_legend:
         color2syms = {}
         for sym, color in sym2color.items():
             if sym in gap2color:
@@ -272,9 +274,15 @@ def plot_msa_data(msa, data, figsize=(12, 6),
                 color2syms[color].append(sym)
             except KeyError:
                 color2syms[color] = [sym]
-        handles = []
         for color, syms in color2syms.items():
-            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', markersize=legend_markersize, label=', '.join(syms)))
+            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', label=', '.join(syms)))
+    if data_labels:
+        if handles:  # Add spacer entry if MSA legend is also drawn
+            handles.append(Line2D([], [], color='none'))
+        colors = rcParams['axes.prop_cycle'].by_key()['color']
+        for i, data_label in enumerate(data_labels):
+            handles.append(Line2D([], [], color=colors[i % len(colors)], label=data_label))
+    if handles:
         fig.legend(handles=handles, **legend_kwargs)
     return fig
 
@@ -283,7 +291,7 @@ def plot_msa(msa, figsize=(12, 6),
              msa_labels=None, msa_labelsize=6, msa_length=0, msa_width=0.5, msa_pad=1,
              x_start=0, x_labelsize=6,
              hspace=0.5, sym_length=7, sym_height=7,
-             legend=False, legend_markersize=8, legend_kwargs=None,
+             msa_legend=False, legend_kwargs=None,
              block_cols=None, sym2color=None, gap2color=None):
     """Plot MSA as matplotlib figure.
 
@@ -313,10 +321,8 @@ def plot_msa(msa, figsize=(12, 6),
         Number of pixels in length of the rectangles for each symbol.
     sym_height: int
         Number of pixels in height of the rectangles for each symbol.
-    legend: bool
+    msa_legend: bool
         True if legend is drawn.
-    legend_markersize: float
-        Size of legend markers.
     legend_kwargs: dict
         Additional kwargs passed to fig.legend call.
     block_cols: int
@@ -377,7 +383,8 @@ def plot_msa(msa, figsize=(12, 6),
             msa_ax.spines[spine].set_visible(False)
 
     # Draw legend
-    if legend:
+    handles = []
+    if msa_legend:
         color2syms = {}
         for sym, color in sym2color.items():
             if sym in gap2color:
@@ -386,9 +393,9 @@ def plot_msa(msa, figsize=(12, 6),
                 color2syms[color].append(sym)
             except KeyError:
                 color2syms[color] = [sym]
-        handles = []
         for color, syms in color2syms.items():
-            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', markersize=legend_markersize, label=', '.join(syms)))
+            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', label=', '.join(syms)))
+    if handles:
         fig.legend(handles=handles, **legend_kwargs)
     return fig
 
