@@ -344,6 +344,6 @@ DEPENDENCIES
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../config/labels.tsv
-../insertion_hmm2/fit.py
-    ../insertion_hmm2/out/model.json
+../insertion_hmm/fit.py
+    ../insertion_hmm/out/model.json
 """
