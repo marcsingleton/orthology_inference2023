@@ -60,8 +60,8 @@ alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F'
 sym2idx = {sym: i for i, sym in enumerate(alphabet)}
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 epochs = 300
-batch_size = 10
-validation_split = 0.2
+batch_size = 30
+validation_split = 0.1
 embedding_dim = 2
 regularizer = tf.keras.regularizers.L2(0.0025)
 tf.keras.utils.set_random_seed(930715)  # Make validation split and all TensorFlow operations consistent
@@ -122,7 +122,7 @@ validation_records = records[split_idx:]
 
 # Batch data
 train_batches = BatchGenerator(train_records, batch_size)
-validation_batches = BatchGenerator(validation_records, batch_size)
+validation_batches = BatchGenerator(validation_records, len(validation_records))
 
 # Build model
 embedding = tf.keras.layers.Dense(embedding_dim, activation='linear', use_bias=False, name='embedding1')
