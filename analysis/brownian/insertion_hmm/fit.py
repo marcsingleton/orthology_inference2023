@@ -179,7 +179,7 @@ if __name__ == '__main__':
     # Load regions
     OGid2regions = {}
     state_set = set()
-    with open('../config/labels.tsv') as file:
+    with open('labels.tsv') as file:
         file.readline()  # Skip header
         for line in file:
             OGid, start, stop, state = line.rstrip('\n').split('\t')
