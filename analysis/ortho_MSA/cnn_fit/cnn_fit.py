@@ -226,10 +226,10 @@ for label, records in [('train', train_records), ('validation', validation_recor
         msa_labels = [header if header == ppid else '' for header, _ in msa]
         plot_msa_data([seq for _, seq in msa], data,
                       msa_labels=msa_labels, msa_length=1, msa_width=0.25, msa_pad=1.1, msa_labelsize=2.5,
-                      height_ratio=0.5, hspace=0.2, data_max=1.1, data_min=-0.1,
-                      legend=True, legend_kwargs={'bbox_to_anchor': (0.925, 0.5), 'loc': 'center left', 'fontsize': 8, 'handletextpad': 0, 'markerscale': 1.25})
+                      height_ratio=0.5, hspace=0.2, data_max=1.1, data_min=-0.1, data_labels=['output', 'label', 'weight'],
+                      msa_legend=True, legend_kwargs={'bbox_to_anchor': (0.925, 0.5), 'loc': 'center left', 'fontsize': 8, 'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1})
         plt.subplots_adjust(left=0.05, bottom=0.01, right=0.925, top=0.99)
-        plt.savefig(f'out/{label}/{OGid}_{ppid}.png', dpi=100)
+        plt.savefig(f'out/{label}/{OGid}_{ppid}.png', dpi=500)
         plt.close()
 
 """
