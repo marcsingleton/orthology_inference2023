@@ -3,46 +3,6 @@
 import scipy.ndimage as ndimage
 
 
-def trim_terminals(msa):
-    """Return MSA with unaligned terminal regions removed.
-
-    Unaligned regions are created by HMMer a symbol in the sequence does not
-    match any of the consensus columns columns in the profile HMM. These
-    regions are indicated with lowercase symbols for . for gaps.
-
-    Parameters
-    ----------
-    msa: list of (header, seq)
-
-    Returns
-    -------
-    msa: list of (header, seq)
-    """
-    idx = 0
-    for j in range(len(msa[0][1])):
-        for i in range(len(msa)):
-            sym = msa[i][1][j]
-            if sym == '.' or sym.islower():
-                break
-        else:
-            idx = j
-            break  # if no break exit
-    msa = [(header, seq[idx:]) for header, seq in msa]
-
-    idx = len(msa[0][1])
-    for j in range(len(msa[0][1]), 0, -1):
-        for i in range(len(msa)):
-            sym = msa[i][1][j - 1]
-            if sym == '.' or sym.islower():
-                break
-        else:
-            idx = j
-            break  # if no break exit
-    msa = [(header, seq[:idx]) for header, seq in msa]
-
-    return msa
-
-
 def get_bound(msa, gradient, start, stop, sign):
     """Return column index with largest weighted change in number of gaps in the range from start to stop.
 

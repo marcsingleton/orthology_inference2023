@@ -4,7 +4,6 @@ import multiprocessing as mp
 import os
 from subprocess import run
 
-from src.brownian.trim import trim_terminals
 from src.utils import read_fasta
 
 
@@ -118,6 +117,46 @@ def hmm_align(OGid):
             seq = ''.join(seq)
             seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
             file.write(f'{header}\n{seqstring}\n')
+
+
+def trim_terminals(msa):
+    """Return MSA with unaligned terminal regions removed.
+
+    Unaligned regions are created by HMMer a symbol in the sequence does not
+    match any of the consensus columns columns in the profile HMM. These
+    regions are indicated with lowercase symbols for . for gaps.
+
+    Parameters
+    ----------
+    msa: list of (header, seq)
+
+    Returns
+    -------
+    msa: list of (header, seq)
+    """
+    idx = 0
+    for j in range(len(msa[0][1])):
+        for i in range(len(msa)):
+            sym = msa[i][1][j]
+            if sym == '.' or sym.islower():
+                break
+        else:
+            idx = j
+            break  # if no break exit
+    msa = [(header, seq[idx:]) for header, seq in msa]
+
+    idx = len(msa[0][1])
+    for j in range(len(msa[0][1]), 0, -1):
+        for i in range(len(msa)):
+            sym = msa[i][1][j - 1]
+            if sym == '.' or sym.islower():
+                break
+        else:
+            idx = j
+            break  # if no break exit
+    msa = [(header, seq[:idx]) for header, seq in msa]
+
+    return msa
 
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
