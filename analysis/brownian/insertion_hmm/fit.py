@@ -323,7 +323,7 @@ DEPENDENCIES
     ../../ortho_MSA/realign_hmmer/out/*.afa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../config/labels.tsv
 ../insertion_hmm/fit.py
     ../insertion_hmm/out/model.json
+./labels.tsv
 """
