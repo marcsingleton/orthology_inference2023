@@ -29,7 +29,7 @@ alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F'
 sym2idx = {sym: i for i, sym in enumerate(alphabet)}
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 
-posterior_high = 0.7
+posterior_high = 0.75
 posterior_low = 0.01
 
 OGids = []
