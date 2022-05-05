@@ -3,7 +3,7 @@
 import os
 
 import numpy as np
-from src.brownian.trim import trim_terminals, get_slices
+from src.brownian.trim import get_slices
 from src.utils import read_fasta
 
 posterior_high = 0.75
@@ -13,8 +13,8 @@ gradient_low = 0.001
 
 OGids = [path.removesuffix('.afa') for path in os.listdir('../../ortho_MSA/realign_hmmer/out/') if path.endswith('.afa')]
 for OGid in OGids:
-    # Load msa and trim terminal insertions
-    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.afa'))
+    # Load MSA
+    msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.afa')
 
     # Load decoded states and calculate derivative
     posterior = []

@@ -9,7 +9,6 @@ import skbio
 import src.hmm as hmm
 import src.draw as draw
 import utils
-from src.brownian.trim import trim_terminals
 from src.utils import read_fasta
 
 # Load model parameters
@@ -31,8 +30,8 @@ tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 
 # Plot alignments
 for OGid in OGids:
-    # Load msa and trim terminal insertions
-    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.afa'))
+    # Load MSA
+    msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.afa')
     msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
     # Create emission sequence

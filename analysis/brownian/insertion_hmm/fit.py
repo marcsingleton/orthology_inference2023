@@ -183,8 +183,7 @@ if __name__ == '__main__':
         file.readline()  # Skip header
         for line in file:
             OGid, start, stop, state = line.rstrip('\n').split('\t')
-            if state != '0':  # Skip terminal insertions as actual state
-                state_set.add(state)
+            state_set.add(state)
             try:
                 OGid2regions[OGid].append((int(start), int(stop), state))
             except KeyError:
@@ -193,28 +192,9 @@ if __name__ == '__main__':
     # Convert MSAs to records containing state-emissions sequences and other data
     records = []
     for OGid, regions in OGid2regions.items():
-        # Load MSA and trim terminal insertions
+        # Load MSA
         msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.afa')
         msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
-        if regions[-1][2] == '0':
-            start, _, _ = regions[-1]
-            regions = regions[:-1]
-            trim = []
-            for header, seq in msa:
-                trim.append((header, seq[:start]))
-            msa = trim
-        if regions[0][2] == '0':
-            _, stop, _ = regions[0]
-            trim = []
-            for header, seq in msa:
-                trim.append((header, seq[stop:]))
-            msa = trim
-
-            offset = regions[0][1]
-            rs = []
-            for start, stop, state in regions[1:]:
-                rs.append((start-offset, stop-offset, state))
-            regions = rs
 
         # Create emission sequence
         col0 = []

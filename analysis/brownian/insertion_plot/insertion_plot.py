@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import skbio
 from src.draw import plot_msa_data
-from src.brownian.trim import trim_terminals, get_slices
+from src.brownian.trim import get_slices
 from src.utils import read_fasta
 
 posterior_high = 0.75
@@ -30,8 +30,8 @@ for label in ['norm1', 'norm2']:
 
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
-        # Load msa and trim terminal insertions
-        msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer/out/{row.OGid}.afa'))
+        # Load MSA
+        msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/{row.OGid}.afa')
         msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
         # Load decoded states

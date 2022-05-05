@@ -6,7 +6,6 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 import skbio
-from src.brownian.trim import trim_terminals
 from src.draw import plot_msa_data
 from src.utils import read_fasta
 
@@ -29,19 +28,14 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 for OGid, labels in OGid2labels.items():
-    msa = trim_terminals(read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.afa'))
+    msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.afa')
     msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
-
-    if labels['0'] and labels['0'][0][0] == 0:
-        offset = labels['0'][0][1]
-    else:
-        offset = 0
 
     lines = {}
     for state in ['1A', '1B', '2', '3']:
         line = np.zeros(len(msa[0][1]))
         for start, stop in labels[state]:
-            line[slice(start-offset, stop-offset)] = 1
+            line[start:stop] = 1
         lines[state] = line
 
     msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
