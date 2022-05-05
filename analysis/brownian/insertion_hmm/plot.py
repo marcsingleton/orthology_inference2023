@@ -66,7 +66,7 @@ for OGid in OGids:
 
     # Decode states and plot
     fbs = model.forward_backward(emits)
-    msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
+    msa = [seq for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
 
     draw.plot_msa_data(msa, [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(15, 6))
     plt.savefig(f'out/{OGid}_wide.png', bbox_inches='tight')

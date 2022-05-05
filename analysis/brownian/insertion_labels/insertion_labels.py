@@ -38,7 +38,7 @@ for OGid, labels in OGid2labels.items():
             line[start:stop] = 1
         lines[state] = line
 
-    msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
+    msa = [seq for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
     plot_msa_data(msa, [lines['1A'], lines['2'], lines['3'], lines['1B']], figsize=(15, 6))
     plt.savefig(f'out/{OGid}.png', bbox_inches='tight')
     plt.close()

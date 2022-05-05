@@ -106,7 +106,7 @@ for label in ['norm1', 'norm2']:
             if ppid in row.ppids:
                 msa.append((spid, seq[row.start:row.stop]))
 
-        msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
+        msa = [seq for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
         im = draw_msa(msa)
         plt.imsave(f'out/{label}/{i:03}_{row.OGid}-{row.start}-{row.stop}.png', im)
 
