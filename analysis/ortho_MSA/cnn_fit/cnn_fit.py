@@ -59,12 +59,12 @@ class BatchGenerator(tf.keras.utils.Sequence):
 alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'X', '-']
 sym2idx = {sym: i for i, sym in enumerate(alphabet)}
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
-epochs = 500
-batch_size = 20
+epochs = 300
+batch_size = 10
 validation_split = 0.2
 embedding_dim = 2
 regularizer = tf.keras.regularizers.L2(0.0025)
-random.seed(930715)  # Make validation split consistent
+tf.keras.utils.set_random_seed(930715)  # Make validation split and all TensorFlow operations consistent
 
 # Load labels
 OGid2ppids = {}
@@ -74,7 +74,9 @@ with open('labels.tsv') as file:
     for line in file:
         if line.startswith('#'):
             continue
-        OGid, ppid, start, stop, label = line.rstrip('\n').split('\t')
+        OGid, ppid, start, stop, label, active = line.rstrip('\n').split('\t')
+        if active == 'False':
+            continue
         try:
             OGid2ppids[OGid].add(ppid)
         except KeyError:
