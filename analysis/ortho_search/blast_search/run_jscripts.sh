@@ -38,7 +38,7 @@ do
 # Command(s) to run:
 source /global/home/users/singleton/.bashrc
 conda activate IDREvoDevo
-python blast_search.py ${spid} ../remove_duplicates/out/${spid}.fa ../../../bin/ncbi-blast-2.13.0+/bin/blastp
+python blast_search.py ${spid} ../remove_duplicates/out/${spid}.fa
 _EOF_
   fi
 done

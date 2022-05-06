@@ -8,7 +8,6 @@ from time import asctime
 num_threads = os.environ['SLURM_CPUS_ON_NODE']
 query_spid = argv[1]
 prot_path = argv[2]
-blast_path = argv[3]
 
 # Load genomes
 spids = []
@@ -26,7 +25,7 @@ for subject_spid in spids:
         continue
 
     # Generate args
-    input_args = [blast_path, '-query', prot_path]
+    input_args = ['../../../bin/ncbi-blast-2.13.0+/bin/blastp', '-query', prot_path]
     output_args = ['-out', f'out/{query_spid}/{subject_spid}.blast']
     search_args = ['-db', f'../blast_makedbs/out/{subject_spid}_blastdb', '-evalue', '1', '-num_threads', num_threads]
     format_args = ['-outfmt', '7 qacc sacc length nident gaps qlen qstart qend slen sstart send evalue bitscore']
