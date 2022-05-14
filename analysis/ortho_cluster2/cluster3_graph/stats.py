@@ -8,18 +8,19 @@ import pandas as pd
 # Load connected components
 components = []
 with open('../connect_hit_graph/out/components.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        component_id, nodes = line.rstrip('\n').split('\t')
-        components.append((component_id, set(nodes.split(','))))
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        components.append((fields['component_id'], set(fields['ppids'].split(','))))
 
 # Load OGs
 component2OGs = {}
 with open('out/clusters.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        component_id, _, _, edges = line.rstrip('\n').split('\t')
-        edges = [edge.split(':') for edge in edges.split(',')]
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        component_id = fields['component_id']
+        edges = [edge.split(':') for edge in fields['edges'].split(',')]
         try:
             component2OGs[component_id].append(edges)
         except KeyError:

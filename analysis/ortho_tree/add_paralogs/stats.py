@@ -6,19 +6,19 @@ import pandas as pd
 # Load OGs
 OGs1 = {}
 with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        _, OGid, _, edges = line.rstrip('\n').split('\t')
-        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
-        OGs1[OGid] = ppids
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppids = {node for edge in fields['edges'].split(',') for node in edge.split(':')}
+        OGs1[fields['OGid']] = ppids
 
 OGs2 = {}
 with open('out/clusters.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        _, OGid, _, edges = line.rstrip('\n').split('\t')
-        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
-        OGs2[OGid] = ppids
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppids = {node for edge in fields['edges'].split(',') for node in edge.split(':')}
+        OGs2[fields['OGid']] = ppids
 
 # Calculate stats
 rows = []

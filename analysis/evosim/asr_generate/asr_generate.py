@@ -31,9 +31,10 @@ for OGid in sorted(OGids):  # Ensure consistent order and thus consistent sample
 
         idx2indel = {}
         with open(f'../asr_indel/out/{OGid}.tsv') as file:
-            file.readline()  # Skip header
+            field_names = file.readline().rstrip('\n').split('\t')
             for line in file:
-                idx, start, stop = [int(field) for field in line.rstrip('\n').split('\t')]
+                fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+                idx, start, stop = int(fields['index']), int(fields['start']), int(fields['stop'])
                 idx2indel[idx] = (start, stop)
 
         for j in range(indel_marginal.shape[1]):

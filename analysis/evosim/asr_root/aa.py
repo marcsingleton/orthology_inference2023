@@ -61,23 +61,25 @@ for OGid in OGids:
     # Load partition model parameters
     with open(f'../asr_aa/out/{OGid}.iqtree') as file:
         # Get partition ID and name
+        field_names = ['ID', 'Name', 'Type', 'Seq', 'Site', 'Unique', 'Infor', 'Invar', 'Const']
         line = file.readline()
-        while line.split() != ['ID', 'Name', 'Type', 'Seq', 'Site', 'Unique', 'Infor', 'Invar', 'Const']:  # Spacing can differ so check for fields
+        while line.split() != field_names:  # Spacing can differ so check for field names
             line = file.readline()
         line = file.readline()
         while line != '\n':
-            fields = line.split()
-            partition_id, name = int(fields[0]), fields[1]
+            fields = {key: value for key, value in zip(field_names, line.split())}
+            partition_id, name = int(fields['ID']), fields['Name']
             partitions[partition_id] = {'name': name}
             line = file.readline()
 
         # Get partition model parameters
-        while line != '  ID  Model           Speed  Parameters\n':
+        field_names = ['ID', 'Model', 'Speed', 'Parameters']
+        while line.split() != field_names:  # Spacing can differ so check for field names
             line = file.readline()
         line = file.readline()
         while line != '\n':
-            fields = line.split()
-            partition_id, speed, parameters = int(fields[0]), float(fields[2]), fields[3]
+            fields = {key: value for key, value in zip(field_names, line.split())}
+            partition_id, speed, parameters = int(fields['ID']), float(fields['Speed']), fields['Parameters']
             match = re.search(r'(?P<model>[^+]+)\+I{(?P<pinv>[0-9.e-]+)}\+G(?P<num_categories>[0-9]+){(?P<alpha>[0-9.e-]+)}', parameters)
             partition = partitions[partition_id]
             partition.update({'model': match['model'], 'speed': speed,

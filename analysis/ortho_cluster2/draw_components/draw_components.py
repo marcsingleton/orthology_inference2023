@@ -13,14 +13,15 @@ from numpy import linspace
 def load_OGs(path):
     OGs = {}
     with open(path) as file:
-        file.readline()  # Skip header
+        field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
-            component_id, _, _, edges = line.rstrip('\n').split('\t')
-            gnids = {node for edge in edges.split(',') for node in edge.split(':')}
+            fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+            component_id = fields['component_id']
+            ppids = {node for edge in fields['edges'].split(',') for node in edge.split(':')}
             try:
-                OGs[component_id].append(gnids)
+                OGs[component_id].append(ppids)
             except KeyError:
-                OGs[component_id] = [gnids]
+                OGs[component_id] = [ppids]
     return OGs
 
 
@@ -57,10 +58,10 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
 # Load connected components
 components = {}
 with open('../connect_hit_graph/out/components.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        component_id, nodes = line.rstrip('\n').split('\t')
-        components[component_id] = set(nodes.split(','))
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        components[fields['component_id']] = set(fields['ppids'].split(','))
 
 # Load OGs
 OG3s = load_OGs('../cluster3_graph/out/clusters.tsv')

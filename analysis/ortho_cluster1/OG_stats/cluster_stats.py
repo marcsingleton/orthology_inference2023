@@ -8,25 +8,27 @@ import pandas as pd
 # Load genomes
 spids = set()
 with open('../config/genomes.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        spids.add(line.rstrip('\n').split('\t')[0])
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        spids.add(fields['spid'])
 
 # Load sequence data
 ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, gnid, spid, _ = line.rstrip('\n').split('\t')
-        ppid2data[ppid] = gnid, spid
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid2data[fields['ppid']] = (fields['gnid'], fields['spid'])
 
 # Load OGs
 rows = []
 with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        component_id, OGid, _, edges = line.rstrip('\n').split('\t')
-        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        component_id, OGid = fields['component_id'], fields['OGid']
+        ppids = {node for edge in fields['edges'].split(',') for node in edge.split(':')}
         for ppid in ppids:
             gnid, spid = ppid2data[ppid]
             rows.append({'component_id': component_id, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid, 'spid': spid})

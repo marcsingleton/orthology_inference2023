@@ -34,16 +34,16 @@ with open('out/model.json') as file:
 
 
 # Load OGids
-ids = set()
+records = set()
 with open('labels.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        OGid, ppid, _, _, _ = line.rstrip('\n').split('\t')
-        ids.add((OGid, ppid))
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        records.add((fields['OGid'], fields['ppid']))
 
 # Plot alignments
-for OGid, ppid in ids:
-    # Load msa and trim terminal insertions
+for OGid, ppid in records:
+    # Load MSA
     msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
     seq = [seq for header, seq in msa if re.search(ppid_regex, header).group(1) == ppid][0]
 

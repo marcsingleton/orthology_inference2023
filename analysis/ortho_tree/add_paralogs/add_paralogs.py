@@ -164,18 +164,19 @@ evalue_cutoff = 1E-10  # E-value cutoff for accepting HSPs as disjoint or compat
 # Load genomes
 genomes = {}
 with open('../config/genomes.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        spid, _, source, _, _ = line.rstrip('\n').split('\t')
-        genomes[spid] = source
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        genomes[fields['spid']] = fields['source']
 
 # Load sequence data
 ppid2gnid, ppid2ppid = {}, {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, gnid, _, _ = line.rstrip('\n').split('\t')
-        ppid2gnid[ppid] = gnid
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid = fields['ppid']
+        ppid2gnid[ppid] = fields['gnid']
         ppid2ppid[ppid.split('.')[0]] = ppid  # Mapping from PPID w/o version to PPID w/ version since truncated in BLAST output
 
 # Load best scores from graph
@@ -188,22 +189,22 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
 # Load OGs
 OGs = []
 with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        component_id, OGid, algorithm, edges = line.rstrip('\n').split('\t')
-        edges = [edge.split(':') for edge in edges.split(',')]
-        OGs.append((component_id, OGid, algorithm, edges))
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        edges = [edge.split(':') for edge in fields['edges'].split(',')]
+        OGs.append((fields['component_id'], fields['OGid'], fields['algorithm'], edges))
 
 # Parse raw BLAST output finding intra-genome hits with scores greater than best inter-genome hit
 graph = {}
 for spid in genomes:
-    hits = parse_file(spid, spid)
-    for (qppid, _), group in groupby(hits, lambda x: (x['qppid'], x['sgnid'])):  # Group by gene as well to select best isoforms only
-        group = list(group)  # Convert from iterator to list since used multiple times
-        max_bitscore = max([hit['bitscore'] for hit in group])
+    for (qppid, _), group in groupby(parse_file(spid, spid), lambda x: (x['qppid'], x['sgnid'])):  # Group by gene as well to select best isoforms only
+        hits = list(group)  # Convert from iterator to list since used multiple times
+        max_bitscore = max([hit['bitscore'] for hit in hits])
         if max_bitscore <= ppid2score.get(qppid, 0):  # Only add in-paralogs to graph if they exceed score of inter-genome hits
             continue
-        for hit in group:
+
+        for hit in hits:
             if max_bitscore == hit['bitscore']:  # Only record hits with maximum bitscore
                 qppid, sppid = hit['qppid'], hit['sppid']
                 qlen, cnqa = hit['qlen'], hit['cnqa']

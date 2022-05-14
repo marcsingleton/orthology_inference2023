@@ -67,10 +67,10 @@ ppid_regex2 = r'ppid=([A-Za-z0-9_.]+)'  # Regex for aligned sequences
 # Load genomes
 genomes = []
 with open('../config/genomes.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        spid, _, source, _, cds_path = line.rstrip('\n').split('\t')
-        genomes.append((spid, source, cds_path))
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        genomes.append((fields['spid'], fields['source'], fields['cds_path']))
 
 # Load codon table
 codon2aa = {}

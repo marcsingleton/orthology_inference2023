@@ -41,20 +41,20 @@ def write_table(counts, title):
 # Load sequence data
 ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, gnid, _, _ = line.rstrip('\n').split('\t')
-        ppid2gnid[ppid] = gnid
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid2gnid[fields['ppid']] = fields['gnid']
 
 # Load regions
 rows = []
 with open('../../brownian/aucpred_filter/out/regions_30.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
-        for ppid in ppids.split(','):
-            gnid = ppid2gnid[ppid]
-            rows.append({'OGid': OGid, 'start': start, 'stop': stop, 'disorder': disorder, 'gnid': gnid})
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        for ppid in fields['ppids'].split(','):
+            rows.append({'OGid': fields['OGid'], 'start': int(fields['start']), 'stop': int(fields['stop']),
+                         'disorder': fields['disorder'] == 'True', 'gnid': ppid2gnid[ppid]})
 regions = pd.DataFrame(rows)
 
 # Load ontology

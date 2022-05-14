@@ -12,21 +12,20 @@ from src.utils import read_fasta
 # Load sequence data
 ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, gnid, _, _ = line.rstrip('\n').split('\t')
-        ppid2gnid[ppid] = gnid
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid2gnid[fields['ppid']] = fields['gnid']
 
 # Load OGs
 rows = []
 with open('../../ortho_cluster2/add_paralogs/out/clusters.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        component_id, OGid, _, edges = line.rstrip('\n').split('\t')
-        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppids = {node for edge in fields['edges'].split(',') for node in edge.split(':')}
         for ppid in ppids:
-            gnid = ppid2gnid[ppid]
-            rows.append({'component_id': component_id, 'OGid': OGid, 'ppid': ppid, 'gnid': gnid})
+            rows.append({'component_id': fields['component_id'], 'OGid': fields['OGid'], 'ppid': ppid, 'gnid': ppid2gnid[ppid]})
 OGs = pd.DataFrame(rows)
 
 # Load OG data and test genes

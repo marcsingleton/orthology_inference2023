@@ -19,9 +19,10 @@ columns = {'qppid': str, 'qgnid': str,
 # Load genomes
 spids = []
 with open('../config/genomes.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        spids.append(line.rstrip('\n').split('\t')[0])
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        spids.append(fields['spid'])
 
 # Make graph
 graph = {}
@@ -29,11 +30,14 @@ for qspid, sspid in permutations(spids, 2):
     with open(f'../hsps2hits/out/{qspid}/{sspid}.tsv') as file:
         file.readline()  # Skip header
         for _, group in groupby(file, line2key):
-            group = [line.rstrip('\n').split('\t') for line in group]
-            max_bitscore = max([float(fields[12]) for fields in group])
-            for fields in group:
-                if max_bitscore == float(fields[12]):  # Only record hits with maximum bitscore
-                    hit = {column: f(field) for (column, f), field in zip(columns.items(), fields)}
+            hits = []
+            for line in group:
+                fields = line.rstrip('\n').split('\t')
+                hits.append({column: f(field) for (column, f), field in zip(columns.items(), fields)})
+            max_bitscore = max([hit['bitscore'] for hit in hits])
+
+            for hit in hits:
+                if max_bitscore == hit['bitscore']:
                     qppid, sppid = hit['qppid'], hit['sppid']
                     qlen, cnqa = hit['qlen'], hit['cnqa']
                     bitscore = hit['bitscore']

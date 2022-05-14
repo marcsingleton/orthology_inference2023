@@ -13,27 +13,28 @@ pdidx = pd.IndexSlice
 # Load sequence data
 ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, gnid, _, _ = line.rstrip('\n').split('\t')
-        ppid2gnid[ppid] = gnid
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid2gnid[fields['ppid']] = fields['gnid']
 
 # Load regions
 rows = []
 with open('../../brownian/aucpred_filter/out/regions_30.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
-        ppid = re.search(r'(FBpp[0-9]+)', ppids).group(1)
-        rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True', 'gnid': ppid2gnid[ppid]})
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid = re.search(r'(FBpp[0-9]+)', fields['ppids']).group(1)
+        rows.append({'OGid': fields['OGid'], 'start': int(fields['start']), 'stop': int(fields['stop']),
+                     'disorder': fields['disorder'] == 'True', 'gnid': ppid2gnid[ppid]})
 regions = pd.DataFrame(rows)
 
 # Load GOids
 GOids, gnid2GOids = set(), {}
 with open('../filter_GAF/out/GAF_drop.tsv') as file:
-    header = file.readline().rstrip('\n').split('\t')
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        fields = {key: value for key, value in zip(header, line.rstrip('\n').split('\t'))}
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
         gnid, GOid = fields['gnid'], fields['GOid']
         GOids.add(GOid)
         try:

@@ -20,10 +20,10 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
 # Load connected components
 components = []
 with open('../connect_hit_graph/out/components.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        component_id, nodes = line.rstrip('\n').split('\t')
-        components.append((component_id, set(nodes.split(','))))
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        components.append((fields['component_id'], set(fields['ppids'].split(','))))
 
 # Cluster by triangle criterion
 records = []

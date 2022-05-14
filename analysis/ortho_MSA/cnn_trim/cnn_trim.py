@@ -34,12 +34,10 @@ posterior_low = 0.01
 
 OGids = []
 with open('../OG_filter/out/OG_filter.tsv') as file:
-    header = file.readline().rstrip('\n').split('\t')
-    field2idx = {field: i for i, field in enumerate(header)}
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        fields = line.rstrip('\n').split('\t')
-        OGid = fields[field2idx['OGid']]
-        OGids.append(OGid)
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        OGids.append(fields['OGid'])
 
 model = tf.keras.models.load_model('../cnn_fit/out/model.h5')
 

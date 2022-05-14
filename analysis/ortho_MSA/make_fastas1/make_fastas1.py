@@ -12,18 +12,18 @@ ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
 # Load genomes
 genomes = []
 with open('../../ortho_cluster2/config/genomes.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        spid, _, source, prot_path = line.rstrip('\n').split('\t')
-        genomes.append((spid, source, prot_path))
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        genomes.append((fields['spid'], fields['source'], fields['prot_path']))
 
 # Load sequence data
 ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, gnid, spid, _ = line.rstrip('\n').split('\t')
-        ppid2data[ppid] = (gnid, spid)
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid2data[fields['ppid']] = (fields['gnid'], fields['spid'])
 
 # Load seqs
 ppid2seq = {}
@@ -36,11 +36,11 @@ for spid, source, prot_path in genomes:
 # Load OGs and OG data
 OGs = {}
 with open('../../ortho_cluster2/add_paralogs/out/clusters.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        _, OGid, _, edges = line.rstrip('\n').split('\t')
-        ppids = {node for edge in edges.split(',') for node in edge.split(':')}
-        OGs[OGid] = ppids
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppids = {node for edge in fields['edges'].split(',') for node in edge.split(':')}
+        OGs[fields['OGid']] = ppids
 OG_data = pd.read_table('../OG_data/out/OG_data.tsv')
 
 # Write sequences

@@ -37,10 +37,10 @@ tcds_regex = {'FlyBase': r'ID=(FBpp[0-9]+)',
 # Load genomes
 genomes = []
 with open('../config/genomes.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        spid, _, source, prot_path, tcds_path = line.rstrip('\n').split('\t')
-        genomes.append((spid, source, prot_path, tcds_path))
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        genomes.append((fields['spid'], fields['source'], fields['prot_path'], fields['tcds_path']))
 
 # Extract and count IDs
 ppid_counts = {}

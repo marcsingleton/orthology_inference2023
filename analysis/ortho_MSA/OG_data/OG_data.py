@@ -18,10 +18,10 @@ def get_bitscore(node1, node2, graph):
 # Load sequence data
 ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, gnid, spid, sqid = line.rstrip('\n').split('\t')
-        ppid2data[ppid] = (gnid, spid, sqid)
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid2data[fields['ppid']] = (fields['gnid'], fields['spid'], fields['sqid'])
 
 # Load graph
 graph = {}
@@ -37,19 +37,21 @@ with open('../../ortho_cluster2/hits2graph/out/hit_graph.tsv') as file:
 # Load GGs
 OGid2GGid = {}
 with open('../../ortho_cluster2/connect_OG_graph/out/components.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        GGid, OGids = line.rstrip('\n').split('\t')
-        for OGid in OGids.split(','):
-            OGid2GGid[OGid] = GGid
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        for OGid in fields['OGids'].split(','):
+            OGid2GGid[OGid] = fields['GGid']
 
 # Load OGs
 rows = []
 with open('../../ortho_cluster2/add_paralogs/out/clusters.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        component_id, OGid, _, edges = line.rstrip('\n').split('\t')
-        edges = [edge.split(':') for edge in edges.split(',')]
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        component_id, OGid = fields['component_id'], fields['OGid']
+        GGid = OGid2GGid[OGid]
+        edges = [edge.split(':') for edge in fields['edges'].split(',')]
         ppids = {node for edge in edges for node in edge}
         gnids = {ppid2data[ppid][0] for ppid in ppids}
         spids = {ppid2data[ppid][1] for ppid in ppids}
@@ -58,7 +60,7 @@ with open('../../ortho_cluster2/add_paralogs/out/clusters.tsv') as file:
         for node1, node2 in edges:
             bitscore += get_bitscore(node1, node2, graph) + get_bitscore(node2, node1, graph)
 
-        row = {'component_id': component_id, 'OGid': OGid, 'GGid': OGid2GGid[OGid],
+        row = {'component_id': component_id, 'OGid': OGid, 'GGid': GGid,
                'ppidnum': len(ppids), 'sqidnum': len(sqids),
                'gnidnum': len(gnids), 'spidnum': len(spids),
                'edgenum': len(edges), 'bitscore': round(bitscore, 1)}

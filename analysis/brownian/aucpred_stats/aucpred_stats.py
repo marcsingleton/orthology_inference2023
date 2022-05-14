@@ -28,17 +28,18 @@ features.loc[features['omega'] == -1, 'omega'] = 1
 rows = []
 for min_length in sorted(min_lengths):
     with open(f'../aucpred_filter/out/regions_{min_length}.tsv') as file:
-        file.readline()  # Skip header
+        field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
-            OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
+            fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+            OGid, start, stop, disorder = fields['OGid'], int(fields['start']), int(fields['stop']), fields['disorder'] == 'True'
 
             msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
             msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
-            for ppid in ppids.split(','):
-                segment = msa[ppid][int(start):int(stop)]
+            for ppid in fields['ppids'].split(','):
+                segment = msa[ppid][start:stop]
                 length = len([sym for sym in segment if sym not in ['-', '.']])
-                rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True',
+                rows.append({'OGid': OGid, 'start': start, 'stop': stop, 'disorder': disorder,
                              'ppid': ppid, 'min_length': min_length, 'length': length})
 df = pd.DataFrame(rows)
 

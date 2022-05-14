@@ -164,10 +164,10 @@ eset_scalar = 1.5  # Effective sequence number scalar; multiplies the gnidnum by
 
 OGid2data = {}
 with open('../OG_filter/out/OG_filter.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        fields = line.rstrip('\n').split('\t')
-        OGid, ppidnum, gnidnum = fields[1], int(fields[3]), int(fields[5])
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        OGid, ppidnum, gnidnum = fields['OGid'], int(fields['ppidnum']), int(fields['gnidnum'])
         OGid2data[OGid] = (ppidnum, gnidnum)
 
 if __name__ == '__main__':

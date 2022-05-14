@@ -6,19 +6,18 @@ from itertools import combinations
 # Load sequence data
 ppid2gnid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, gnid, _, _ = line.rstrip('\n').split('\t')
-        ppid2gnid[ppid] = gnid
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid2gnid[fields['ppid']] = fields['gnid']
 
 # Load OGs
 OGid2gnids = {}
 with open('../add_paralogs/out/clusters.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        _, OGid, _, edges = line.rstrip('\n').split('\t')
-        gnids = {ppid2gnid[node] for edge in edges.split(',') for node in edge.split(':')}
-        OGid2gnids[OGid] = gnids
+        gnids = {ppid2gnid[node] for edge in fields['edges'].split(',') for node in edge.split(':')}
+        OGid2gnids[fields['OGid']] = gnids
 
 # Make OG graph
 graph = {OGid: set() for OGid in OGid2gnids}

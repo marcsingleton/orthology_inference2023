@@ -11,18 +11,18 @@ ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
 # Load genomes
 genomes = []
 with open('../config/genomes.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        spid, _, source, prot_path, _ = line.rstrip('\n').split('\t')
-        genomes.append((spid, source, prot_path))
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        genomes.append((fields['spid'], fields['source'], fields['prot_path']))
 
 # Load sequence data
 ppid2sqid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, _, _, sqid = line.rstrip('\n').split('\t')
-        ppid2sqid[ppid] = sqid
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid2sqid[fields['ppid']] = fields['sqid']
 
 if not os.path.exists('out/'):
     os.mkdir('out/')

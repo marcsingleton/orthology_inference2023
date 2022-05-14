@@ -9,13 +9,14 @@ from src.utils import read_fasta
 def load_posteriors(path):
     posteriors = {}
     with open(path) as file:
-        file.readline()  # Skip header
+        field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
-            ppid, p0, p1 = line.rstrip('\n').split('\t')
+            fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+            ppid, p0, p1 = fields['ppid'], float(fields['0']), float(fields['1'])
             try:
-                posteriors[ppid].append((float(p0), float(p1)))
+                posteriors[ppid].append((p0, p1))
             except KeyError:
-                posteriors[ppid] = [(float(p0), float(p1))]
+                posteriors[ppid] = [(p0, p1)]
     return posteriors
 
 
@@ -43,9 +44,10 @@ alphabet = {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F'
 # Load regions
 OGid2regions = {}
 with open('../aucpred_regions/out/regions.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        OGid, start, stop, disorder = line.rstrip('\n').split('\t')
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        OGid, start, stop, disorder = fields['OGid'], int(fields['start']), int(fields['stop']), fields['disorder']
         try:
             OGid2regions[OGid].append((start, stop, disorder))
         except KeyError:
@@ -59,7 +61,7 @@ for OGid, regions in OGid2regions.items():
 
     for region in regions:
         # Get indices and length
-        start, stop = int(region[0]), int(region[1])
+        start, stop = region[0], region[1]
         length = stop - start
         disorder = region[2]
 
@@ -89,7 +91,7 @@ for OGid, regions in OGid2regions.items():
             ppids = [ppid for ppid, _ in segments]
             spids = {spid for _, spid in segments}
             if len(spids) >= 20 and spid_filter(spids):
-                record_sets[min_length].append((OGid, str(start), str(stop), str(disorder), ','.join(ppids)))
+                record_sets[min_length].append((OGid, str(start), str(stop), disorder, ','.join(ppids)))
 
 # Write records to file
 if not os.path.exists('out/'):

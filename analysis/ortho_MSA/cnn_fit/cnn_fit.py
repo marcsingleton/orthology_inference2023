@@ -70,22 +70,23 @@ tf.keras.utils.set_random_seed(930715)  # Make validation split and all TensorFl
 OGid2ppids = {}
 ppid2labels = {}
 with open('labels.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
         if line.startswith('#'):
             continue
-        OGid, ppid, start, stop, label, active = line.rstrip('\n').split('\t')
-        if active == 'False':
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        if fields['active'] == 'False':
             continue
+        OGid, ppid = fields['OGid'], fields['ppid']
         try:
             OGid2ppids[OGid].add(ppid)
         except KeyError:
             OGid2ppids[OGid] = {ppid}
-        record = (int(start), int(stop), int(label))
+        start, stop, label = int(fields['start']), int(fields['stop']), int(fields['label'])
         try:
-            ppid2labels[ppid].append(record)
+            ppid2labels[ppid].append((start, stop, label))
         except KeyError:
-            ppid2labels[ppid] = [record]
+            ppid2labels[ppid] = [(start, stop, label)]
 
 # Create records
 records = []

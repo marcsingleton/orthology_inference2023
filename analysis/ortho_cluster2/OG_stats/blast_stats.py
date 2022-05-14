@@ -106,17 +106,19 @@ if __name__ == '__main__':
     # Load genomes
     spids = []
     with open('../config/genomes.tsv') as file:
-        file.readline()  # Skip header
+        field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
-            spids.append(line.rstrip('\n').split('\t')[0])
+            fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+            spids.append(fields['spid'])
 
     # Load data
     rows = []
     with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
-        file.readline()  # Skip header
+        field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
-            component_id, OGid, _, edges = line.rstrip('\n').split('\t')
-            for edge in edges.split(','):
+            fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+            component_id, OGid = fields['component_id'], fields['OGid']
+            for edge in fields['edges'].split(','):
                 node1, node2 = edge.split(':')
                 rows.append({'component_id': component_id, 'OGid': OGid, 'qppid': node1, 'sppid': node2})
                 rows.append({'component_id': component_id, 'OGid': OGid, 'qppid': node2, 'sppid': node1})

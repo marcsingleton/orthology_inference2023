@@ -11,21 +11,21 @@ df2 = pd.read_csv('../../../data/TF_CF_ids/nmeth.1763-S2.csv', usecols=['FBgn', 
 # (Not using pandas to_dict since it creates a nested dictionary)
 FBgn2type = {}
 with open('../../../data/TF_CF_ids/nature15545-s1.csv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split(',')
     for line in file:
-        fields = line.rstrip('\n').split(',')
-        if fields[2] in FBgn2type:
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split(','))}
+        if fields['FBGN'] in FBgn2type:
             raise RuntimeError('Duplicate FBgns detected.')
-        FBgn2type[fields[2]] = fields[0]
+        FBgn2type[fields['FBGN']] = fields['TYPE']
 
 # Load Stampfel et al. map
 TFs1, CFs, FBids = set(), set(), set()
 with open('../../../data/TF_CF_ids/nature15545-s1_map.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        fields = line.rstrip('\n').split('\t')
-        if len(fields) == 3 or fields[3] == 'True':
-            FBgn1, FBgn2 = fields[0], fields[1]
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        if len(fields) == 3 or fields['primary'] == 'True':
+            FBgn1, FBgn2 = fields['submitted_item'], fields['validated_id']
             if FBgn1 in FBids:
                 raise RuntimeError(f'Multiply-mapped keys detected: {FBgn1}')
             if FBgn2type[FBgn1] == 'TF':
@@ -37,11 +37,11 @@ with open('../../../data/TF_CF_ids/nature15545-s1_map.tsv') as file:
 # Load Hens et al. map
 TFs2, FBids = set(), set()
 with open('../../../data/TF_CF_ids/nmeth.1763-S2_map.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        fields = line.rstrip('\n').split('\t')
-        if len(fields) == 3 or fields[3] == 'True':
-            FBgn1, FBgn2 = fields[0], fields[1]
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        if len(fields) == 3 or fields['primary'] == 'True':
+            FBgn1, FBgn2 = fields['submitted_item'], fields['validated_id']
             if FBgn1 in FBids:
                 raise RuntimeError(f'Multiply-mapped keys detected: {FBgn1}')
             TFs2.add(FBgn2)

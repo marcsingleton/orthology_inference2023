@@ -18,11 +18,12 @@ features.loc[features['omega'] == -1, 'omega'] = 1
 # Load segments
 rows = []
 with open('../aucpred_filter/out/regions_30.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
-        for ppid in ppids.split(','):
-            rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True', 'ppid': ppid})
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        for ppid in fields['ppids'].split(','):
+            rows.append({'OGid': fields['OGid'], 'start': int(fields['start']), 'stop': int(fields['stop']),
+                         'disorder': fields['disorder'] == 'True', 'ppid': ppid})
 segments = pd.DataFrame(rows).merge(features, how='left', on=['OGid', 'start', 'stop', 'ppid'])
 regions = segments.groupby(['OGid', 'start', 'stop', 'disorder'])
 

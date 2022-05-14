@@ -29,19 +29,20 @@ features.loc[features['omega'] == -1, 'omega'] = 1
 # Load sequence data
 ppid2spid = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, _, spid, _ = line.rstrip('\n').split('\t')
-        ppid2spid[ppid] = spid
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid2spid[fields['ppid']] = fields['spid']
 
 # Load regions
 rows, region2spids = [], {}
 with open('../aucpred_filter/out/regions_30.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
-        rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop), 'disorder': disorder == 'True'})
-        region2spids[(OGid, int(start), int(stop))] = [ppid2spid[ppid] for ppid in ppids.split(',')]
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        OGid, start, stop, disorder = fields['OGid'], int(fields['start']), int(fields['stop']), fields['disorder'] == 'True'
+        rows.append({'OGid': OGid, 'start': start, 'stop': stop, 'disorder': disorder})
+        region2spids[(OGid, start, stop)] = [ppid2spid[ppid] for ppid in fields['ppids'].split(',')]
 regions = pd.DataFrame(rows)
 
 features = regions.merge(features, how='right', on=['OGid', 'start', 'stop']).set_index(['OGid', 'start', 'stop', 'disorder'])

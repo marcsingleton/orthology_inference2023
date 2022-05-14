@@ -79,9 +79,10 @@ num_processes = 2
 # Load genomes
 spids = []
 with open('../config/genomes.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        spids.append(line.rstrip('\n').split('\t')[0])
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        spids.append(fields['spid'])
 
 # Parse HSPs
 if __name__ == '__main__':

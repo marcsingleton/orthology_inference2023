@@ -140,14 +140,15 @@ if __name__ == '__main__':
     OGid2regions = {}
     state_set = set()
     with open('labels.tsv') as file:
-        file.readline()  # Skip header
+        field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
-            OGid, ppid, start, stop, state = line.rstrip('\n').split('\t')
+            fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+            OGid, ppid, start, stop, state = fields['OGid'], fields['ppid'], int(fields['start']), int(fields['stop']), fields['state']
             state_set.add(state)
             try:
-                OGid2regions[(OGid, ppid)].append((int(start), int(stop), state))
+                OGid2regions[(OGid, ppid)].append((start, stop, state))
             except KeyError:
-                OGid2regions[(OGid, ppid)] = [(int(start), int(stop), state)]
+                OGid2regions[(OGid, ppid)] = [(start, stop, state)]
 
     # Convert MSAs to records containing state-emissions sequences and other data
     records = []

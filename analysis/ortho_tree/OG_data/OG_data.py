@@ -18,10 +18,10 @@ def get_bitscore(node1, node2, graph):
 # Load sequence data
 ppid2data = {}
 with open('../../ortho_search/sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, gnid, spid, sqid = line.rstrip('\n').split('\t')
-        ppid2data[ppid] = (gnid, spid, sqid)
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid2data[fields['ppid']] = (fields['gnid'], fields['spid'], fields['sqid'])
 
 # Load graph
 graph = {}
@@ -37,10 +37,11 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
 # Load OGs
 rows = []
 with open('../add_paralogs/out/clusters.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        component_id, OGid, _, edges = line.rstrip('\n').split('\t')
-        edges = [edge.split(':') for edge in edges.split(',')]
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        component_id, OGid = fields['component_id'], fields['OGid']
+        edges = [edge.split(':') for edge in fields['edges'].split(',')]
         ppids = {node for edge in edges for node in edge}
         gnids = {ppid2data[ppid][0] for ppid in ppids}
         spids = {ppid2data[ppid][1] for ppid in ppids}

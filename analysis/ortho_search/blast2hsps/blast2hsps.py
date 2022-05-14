@@ -171,18 +171,19 @@ num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 # Load genomes
 genomes = {}
 with open('../config/genomes.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        spid, _, source, _, _ = line.rstrip('\n').split('\t')
-        genomes[spid] = source
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        genomes[fields['spid']] = fields['source']
 
 # Load sequence data
 ppid2gnid, ppid2ppid = {}, {}
 with open('../sequence_data/out/sequence_data.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        ppid, gnid, _, _ = line.rstrip('\n').split('\t')
-        ppid2gnid[ppid] = gnid
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppid = fields['ppid']
+        ppid2gnid[ppid] = fields['gnid']
         ppid2ppid[ppid.split('.')[0]] = ppid  # Mapping from PPID w/o version to PPID w/ version since truncated in BLAST output
 
 # Parse BLAST results

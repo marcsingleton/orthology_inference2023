@@ -13,20 +13,21 @@ tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'new
 
 OGids = set()
 with open('../../brownian/aucpred_filter/out/regions_30.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
-        OGids.add(OGid)
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        OGids.add(fields['OGid'])
 
 OGid2regions = {}
 with open('../../brownian/aucpred_regions/out/regions.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        OGid, start, stop, disorder = line.rstrip('\n').split('\t')
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        OGid, start, stop, disorder = fields['OGid'], int(fields['start']), int(fields['stop']), fields['disorder'] == 'True'
         try:
-            OGid2regions[OGid].append((int(start), int(stop), True if disorder == 'True' else False))
+            OGid2regions[OGid].append((start, stop, disorder))
         except KeyError:
-            OGid2regions[OGid] = [(int(start), int(stop), True if disorder == 'True' else False)]
+            OGid2regions[OGid] = [(start, stop, disorder)]
 
 if not os.path.exists('out/'):
     os.mkdir('out/')

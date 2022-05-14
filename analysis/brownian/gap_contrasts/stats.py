@@ -17,11 +17,12 @@ spid_regex = r'spid=([a-z]+)'
 # Load regions
 rows = []
 with open('../aucpred_filter/out/regions_30.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        OGid, start, stop, disorder, ppids = line.rstrip('\n').split('\t')
-        rows.append({'OGid': OGid, 'start': int(start), 'stop': int(stop),
-                     'gnidnum': len(ppids.split(',')), 'ppids': ppids.split(',')})
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        ppids = fields['ppids'].split(',)')
+        rows.append({'OGid': fields['OGid'], 'start': int(fields['start']), 'stop': int(fields['stop']),
+                     'gnidnum': len(ppids), 'ppids': ppids})
 regions = pd.DataFrame(rows)
 
 # Load tree

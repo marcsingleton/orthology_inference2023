@@ -21,22 +21,24 @@ spid_regex = r'spid=([a-z]+)'
 
 # Load genomes
 spids = []
-with open('../../ortho_MSA/config/genomes.tsv') as file:
-    file.readline()  # Skip header
+with open('../../ortho_cluster2/config/genomes.tsv') as file:
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        spids.append(line.rstrip('\n').split('\t')[0])
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        spids.append(fields['spid'])
 spid2idx = {spid: i for i, spid in enumerate(spids)}
 
 # Load regions
 OGid2regions = {}
 with open('../../brownian/aucpred_regions/out/regions.tsv') as file:
-    file.readline()  # Skip header
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        OGid, start, stop, disorder = line.rstrip('\n').split('\t')
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        OGid, start, stop, disorder = fields['OGid'], int(fields['start']), int(fields['stop']), fields['disorder'] == 'True'
         try:
-            OGid2regions[OGid].append((int(start), int(stop), disorder))
+            OGid2regions[OGid].append((start, stop, disorder))
         except KeyError:
-            OGid2regions[OGid] = [(int(start), int(stop), disorder)]
+            OGid2regions[OGid] = [(start, stop, disorder)]
 
 # Extract column pools
 column_pools = [('100R_disorder', True, lambda column: is_redundant(column, 1), []),

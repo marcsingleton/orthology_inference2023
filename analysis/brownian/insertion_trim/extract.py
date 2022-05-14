@@ -19,9 +19,9 @@ for OGid in OGids:
     # Load decoded states and calculate derivative
     posterior = []
     with open(f'out/{OGid}.tsv') as file:
-        header = file.readline().rstrip('\n').split('\t')
+        field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
-            fields = {key: float(value) for key, value in zip(header, line.rstrip('\n').split('\t'))}
+            fields = {key: float(value) for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
             posterior.append(fields['2'] + fields['3'])
     posterior = np.array(posterior)
     gradient = np.gradient(posterior)
