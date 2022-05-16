@@ -40,6 +40,7 @@ threshold = 0.99
 ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 spid_regex = r'spid=([a-z]+)'
 alphabet = {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V'}
+spid_min = 20
 
 # Load regions
 OGid2regions = {}
@@ -90,7 +91,7 @@ for OGid, regions in OGid2regions.items():
         for min_length, segments in segment_sets.items():
             ppids = [ppid for ppid, _ in segments]
             spids = {spid for _, spid in segments}
-            if len(spids) >= 20 and spid_filter(spids):
+            if len(spids) >= spid_min and spid_filter(spids):
                 record_sets[min_length].append((OGid, str(start), str(stop), disorder, ','.join(ppids)))
 
 # Write records to file
