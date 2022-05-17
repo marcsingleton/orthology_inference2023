@@ -10,13 +10,14 @@ import numpy as np
 def parse_file(qspid, sspid):
     # Open files and process lines
     with open(f'../blast2hsps/out/hsps/{qspid}/{sspid}.tsv') as file:
-        file.readline()  # Skip header
+        field_names = file.readline().rstrip('\n').split('\t')
+        line2key = make_line2key(field_names)
 
         hits = []
         for _, group in groupby(file, line2key):
             hsps = []
             for line in group:
-                hsp = {column: f(field) for (column, f), field in zip(hsp_columns.items(), line.rstrip('\n').split('\t'))}
+                hsp = {key: hsp_columns[key](value) for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
                 if hsp['compatible']:  # Use compatible HSPs only (which pass the E-value cutoff)
                     hsps.append(hsp)
             if hsps:
@@ -54,9 +55,11 @@ def hsps2hit(hsps):
     return hit
 
 
-def line2key(line):
-    fields = line.rstrip('\n').split('\t')
-    return fields[0], fields[2]
+def make_line2key(field_names):
+    def line2key(line):
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        return fields['qppid'], fields['sppid']
+    return line2key
 
 
 hsp_columns = {'qppid': str, 'qgnid': str,

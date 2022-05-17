@@ -41,9 +41,9 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
 for qspid, sspid in permutations(spids, 2):
     rows = []
     with open(f'../hsps2hits/out/{qspid}/{sspid}.tsv') as file:
-        file.readline()  # Skip header
+        field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
-            hit = {column: f(field) for (column, f), field in zip(columns.items(), line.rstrip('\n').split('\t'))}
+            hit = {key: columns[key](value) for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
             qppid, sppid = hit['qppid'], hit['sppid']
             reciprocal = is_reciprocal(qppid, sppid, graph)
             rows.append((qppid, sppid, str(reciprocal)))

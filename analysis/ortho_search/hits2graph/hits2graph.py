@@ -4,9 +4,11 @@ import os
 from itertools import groupby, permutations
 
 
-def line2key(line):
-    fields = line.rstrip('\n').split('\t')
-    return fields[0]
+def make_line2key(field_names):
+    def line2key(line):
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        return fields['qppid']
+    return line2key
 
 
 columns = {'qppid': str, 'qgnid': str,
@@ -28,12 +30,13 @@ with open('../config/genomes.tsv') as file:
 graph = {}
 for qspid, sspid in permutations(spids, 2):
     with open(f'../hsps2hits/out/{qspid}/{sspid}.tsv') as file:
-        file.readline()  # Skip header
+        field_names = file.readline().rstrip('\n').split('\t')
+        line2key = make_line2key(field_names)
         for _, group in groupby(file, line2key):
             hits = []
             for line in group:
-                fields = line.rstrip('\n').split('\t')
-                hits.append({column: f(field) for (column, f), field in zip(columns.items(), fields)})
+                hit = {key: columns[key](value) for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+                hits.append(hit)
             max_bitscore = max([hit['bitscore'] for hit in hits])
 
             for hit in hits:
