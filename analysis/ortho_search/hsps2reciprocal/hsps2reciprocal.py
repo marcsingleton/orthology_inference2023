@@ -38,7 +38,7 @@ for qspid, sspid in permutations(spids, 2):
                 reciprocal = qppid in graph[sppid]
             except KeyError:
                 reciprocal = False
-            rows.extend([(qppid, sppid, str(reciprocal))] * len(list(group)))
+            rows.extend([(qppid, sppid, str(reciprocal))] * len(list(group)))  # List multiply by scalar makes shallow copy of contents
 
     # Write to file
     if not os.path.exists(f'out/{qspid}/'):
