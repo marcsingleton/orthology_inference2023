@@ -181,9 +181,9 @@ if __name__ == '__main__':
 
 """
 NOTES
-This version up-weights the number of sequences by 1x to prevent spurious alignments. These are typically caused by
-unusual patterns of indels and chance similarities between segments that are over-weighted by the strong priors that
-HMMer uses when building its profiles. Placing more weight on the observed sequences typically corrects these issues. 
+This version up-weights the number of sequences to prevent spurious alignments. These are typically caused by unusual
+patterns of indels and chance similarities between segments that are over-weighted by the strong priors that HMMer uses
+when building its profiles. Placing more weight on the observed sequences typically corrects these issues. 
 
 DEPENDENCIES
 ../cnn_trim/cnn_trim.py
