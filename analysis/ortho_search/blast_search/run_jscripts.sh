@@ -12,11 +12,9 @@ if [ ! -d out ]; then
 fi
 
 # Queue up commands
-cat ../config/genomes.tsv | while read spid txid source prot_path tcds_path
+tail -n +2 ../config/genomes.tsv | while read spid txid source prot_path tcds_path
 do
-  if [[ ${spid} != \#* ]]  # Double brackets is expanded syntax for tests
-  then
-    sbatch << _EOF_
+  sbatch << _EOF_
 #!/bin/bash
 # Key parameters
 #SBATCH --account=fc_eisenlab
@@ -40,5 +38,4 @@ source /global/home/users/singleton/.bashrc
 conda activate IDREvoDevo
 python blast_search.py ${spid} ../remove_duplicates/out/${spid}.fa
 _EOF_
-  fi
 done

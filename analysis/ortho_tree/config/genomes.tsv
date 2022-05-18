@@ -1,4 +1,4 @@
-#spid	txid	source	prot_path	cds_path
+spid	txid	source	prot_path	cds_path
 dana	7217	NCBI	../../../data/ncbi_annotations/7217/102/GCF_017639315.1_ASM1763931v2/GCF_017639315.1_ASM1763931v2_protein.faa	../../../data/ncbi_annotations/7217/102/GCF_017639315.1_ASM1763931v2/GCF_017639315.1_ASM1763931v2_cds_from_genomic.fna
 dbia	125945	NCBI	../../../data/ncbi_annotations/125945/102/GCF_018148935.1_ASM1814893v1/GCF_018148935.1_ASM1814893v1_protein.faa	../../../data/ncbi_annotations/125945/102/GCF_018148935.1_ASM1814893v1/GCF_018148935.1_ASM1814893v1_cds_from_genomic.fna
 dbip	42026	NCBI	../../../data/ncbi_annotations/42026/102/GCF_018153845.1_ASM1815384v1/GCF_018153845.1_ASM1815384v1_protein.faa	../../../data/ncbi_annotations/42026/102/GCF_018153845.1_ASM1815384v1/GCF_018153845.1_ASM1815384v1_cds_from_genomic.fna

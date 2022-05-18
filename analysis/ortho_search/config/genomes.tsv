@@ -1,4 +1,4 @@
-#spid	txid	source	prot_path	tcds_path
+spid	txid	source	prot_path	tcds_path
 dalb	7291	NCBI	../../../data/ncbi_annotations/7291/100/GCF_009650485.1_drosAlbom15112-1751.03v1/GCF_009650485.1_drosAlbom15112-1751.03v1_protein.faa	../../../data/ncbi_annotations/7291/100/GCF_009650485.1_drosAlbom15112-1751.03v1/GCF_009650485.1_drosAlbom15112-1751.03v1_translated_cds.faa
 dana	7217	NCBI	../../../data/ncbi_annotations/7217/102/GCF_017639315.1_ASM1763931v2/GCF_017639315.1_ASM1763931v2_protein.faa	../../../data/ncbi_annotations/7217/102/GCF_017639315.1_ASM1763931v2/GCF_017639315.1_ASM1763931v2_translated_cds.faa
 dari	7263	NCBI	../../../data/ncbi_annotations/7263/100/GCF_001654025.1_ASM165402v1/GCF_001654025.1_ASM165402v1_protein.faa	../../../data/ncbi_annotations/7263/100/GCF_001654025.1_ASM165402v1/GCF_001654025.1_ASM165402v1_translated_cds.faa
