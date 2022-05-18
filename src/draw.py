@@ -203,7 +203,7 @@ def plot_msa_data(msa, data, figsize=(12, 6),
 
     # Set options
     if msa_labels is None:
-        msa_labels = []
+        msa_labels = ROWS * ['']
     if len(msa_labels) != ROWS:
         raise RuntimeError('len(msa_labels) does not match len(msa)')
     if legend_kwargs is None:
@@ -351,7 +351,7 @@ def plot_msa(msa, figsize=(12, 6),
 
     # Set options
     if msa_labels is None:
-        msa_labels = []
+        msa_labels = ROWS * ['']
     if len(msa_labels) != ROWS:
         raise RuntimeError('len(msa_labels) does not match len(msa)')
     if legend_kwargs is None:
@@ -410,33 +410,34 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
 
     Parameters
     ----------
-        tip_labels: bool
-            Toggle drawing tip labels.
-        support_labels: bool
-            Toggle drawing support labels. Support labels are obtained from
-            support attribute. Use assign_supports to extract the numerical
-            values from the node labels.
-        color: color (matplotlib)
-        linewidth: float
-        tip_fontsize: float or {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'}
-        tip_fontcolor: color (matplotlib)
-        tip_offset: float
-            The offset of the tip label from the end of the branch tip.
-        support_fontsize: float
-        support_fontcolor: color (matplotlib)
-        support_ha: {'left', 'right', 'center'}
-            The horizontal alignment of the support label relative to the branch.
-        support_va: {'center', 'top', 'bottom', 'baseline', 'center_baseline'}
-            The vertical alignment of the support label relative to the branch.
-        support_voffset: float
-            The vertical offset of the support label relative to its alignment.
-        support_hoffset: float
-            The horizontal offset of the support label relative to its alignment.
+    tree: TreeNode (skbio)
+    tip_labels: bool
+        Toggle drawing tip labels.
+    support_labels: bool
+        Toggle drawing support labels. Support labels are obtained from
+        support attribute. Use assign_supports to extract the numerical
+        values from the node labels.
+    color: color (matplotlib)
+    linewidth: float
+    tip_fontsize: float or {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'}
+    tip_fontcolor: color (matplotlib)
+    tip_offset: float
+        The offset of the tip label from the end of the branch tip.
+    support_fontsize: float
+    support_fontcolor: color (matplotlib)
+    support_ha: {'left', 'right', 'center'}
+        The horizontal alignment of the support label relative to the branch.
+    support_va: {'center', 'top', 'bottom', 'baseline', 'center_baseline'}
+        The vertical alignment of the support label relative to the branch.
+    support_voffset: float
+        The vertical offset of the support label relative to its alignment.
+    support_hoffset: float
+        The horizontal offset of the support label relative to its alignment.
 
     Returns
     -------
-        fig: Figure (matplotlib)
-        ax: Axes (matplotlib)
+    fig: Figure (matplotlib)
+    ax: Axes (matplotlib)
     """
     # Set options
     if color is None:
