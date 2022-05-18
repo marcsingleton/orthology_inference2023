@@ -242,8 +242,8 @@ bars = [(records[1].label, records[1].freqs, 'black'),
 plt.figure(figsize=(8, 4))
 for i, (label, freqs, color) in enumerate(bars):
     dx = -len(bars)//2 + i + (1.5 if len(bars)%2 == 0 else 1)
-    plt.bar([x+width*dx for x in range(len(alphabet))], freqs, label=label, facecolor=color, edgecolor='black', width=width)
-plt.xticks(range(len(alphabet)), alphabet)
+    plt.bar([x+width*dx for x in range(len(alphabet))], freqs, tick_label=alphabet, label=label,
+            facecolor=color, edgecolor='black', width=width)
 plt.xlabel('Amino acid')
 plt.ylabel('Frequency')
 plt.legend()
