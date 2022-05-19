@@ -31,6 +31,7 @@ ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 
 posterior_high = 0.75
 posterior_low = 0.01
+sym_min = 5  # Minimum number of symbols in consensus column
 
 OGids = []
 with open('../OG_filter/out/OG_filter.tsv') as file:
@@ -77,23 +78,23 @@ for OGid in OGids:
                 gap_array[i, j] = True
 
     # Identify consensus columns
-    counts = np.logical_or(trim_array, gap_array).sum(axis=0)
-    rf = ['.' if count == len(msa1) else 'x' for count in counts]  # Metadata for marking consensus columns in profile HMM
+    counts = len(msa1) - np.logical_or(trim_array, gap_array).sum(axis=0)  # Number of non-gap symbols after trimming
+    rfs = ['x' if count >= sym_min else '.' for count in counts]  # Metadata for marking consensus columns in profile HMM (ReFerence annotation)
 
-    # Replace trimmed sequences with gaps except when columns are entirely gaps
+    # Replace trimmed sequences with gaps in consensus columns
     msa3 = []
     for (header, seq1), trim_seq in zip(msa1, trim_array):
         seq3 = []
-        for sym, trim, count in zip(seq1, trim_seq, counts):
-            if not trim or count == len(msa1):
-                seq3.append(sym)
-            else:
+        for sym, trim, rf in zip(seq1, trim_seq, rfs):
+            if rf == 'x' and trim:
                 seq3.append('-')
+            else:
+                seq3.append(sym)
         msa3.append((header, ''.join(seq3)))
 
     # Write to file
     msa3 = skbio.TabularMSA([skbio.Protein(seq, metadata={'description': header}) for header, seq in msa3],
-                            positional_metadata={'RF': rf})
+                            positional_metadata={'RF': rfs})
     msa3.write(f'out/{OGid}.sto', 'stockholm')
 
 """
