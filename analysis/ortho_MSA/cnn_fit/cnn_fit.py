@@ -63,7 +63,7 @@ epochs = 300
 batch_size = 30
 validation_split = 0.1
 embedding_dim = 2
-regularizer = tf.keras.regularizers.L2(0.0025)
+regularizer = tf.keras.regularizers.L2(0.0035)
 tf.keras.utils.set_random_seed(930715)  # Make validation split and all TensorFlow operations consistent
 
 # Load labels
@@ -153,6 +153,36 @@ if not os.path.exists('out/'):
 df = pd.DataFrame(history.history)
 df.to_csv('out/history.tsv', sep='\t', index=False)
 model.save('out/model.h5')
+
+# Plot data set metrics
+plt.bar([0, 1], [len(train_records), len(validation_records)], tick_label=['train', 'validation'], width=0.35)
+plt.xlim((-0.5, 1.5))
+plt.xlabel('Data set')
+plt.ylabel('Number of examples')
+plt.savefig('out/bar_examples-data.png')
+plt.close()
+
+bottoms = [0, 0]
+for label in ['negative', 'positive']:
+    ys = []
+    for records in [train_records, validation_records]:
+        y = 0
+        for record in records:
+            labels, weights = record[4], record[5]
+            if label == 'positive':
+                y += labels.sum()
+            else:
+                y += weights.sum() - labels.sum()
+        ys.append(y)
+
+    plt.bar([0, 1], ys, bottom=bottoms, tick_label=['train', 'validation'], label=label, width=0.35)
+    bottoms = [b + y for b, y in zip(bottoms, ys)]
+plt.xlim((-0.5, 1.5))
+plt.xlabel('Data set')
+plt.ylabel('Number of residues')
+plt.legend()
+plt.savefig('out/bar_residues-data.png')
+plt.close()
 
 # Plot embedding
 fig, ax = plt.subplots()
