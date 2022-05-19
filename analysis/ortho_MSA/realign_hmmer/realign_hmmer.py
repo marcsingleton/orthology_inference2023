@@ -1,14 +1,14 @@
-"""Re-align sequences using HMMER."""
+"""Re-align sequences using HMMER and MAFFT."""
 
 import multiprocessing as mp
 import os
-from subprocess import run
+from subprocess import CalledProcessError, run
 
 from src.utils import read_fasta
 
 
-def hmm_align(OGid):
-    ppidnum, gnidnum = OGid2data[OGid]
+def hmm_align(record):
+    OGid, ppidnum, gnidnum = record
     if ppidnum == gnidnum:
         path = f'../make_fastas1/out/{OGid}.fa'
     else:
@@ -59,7 +59,7 @@ def hmm_align(OGid):
         slices.append(slice(idx, len(msa1[0][1])))
 
     # Align subsequences and stitch together results
-    submsas = []
+    submsas, error_flag = [], False
     for s in slices:
         # Collect subsequences
         subseqs = []
@@ -83,9 +83,13 @@ def hmm_align(OGid):
                    f'--thread 1 --anysymbol --allowshift --unalignlevel 0.4 --leavegappyregion '
                    f'out/mafft/{OGid}_temp.fa '
                    f'1> out/mafft/{OGid}_temp.afa 2> out/mafft/{OGid}_temp.err')
-            run(cmd, shell=True, check=True)
+            try:
+                run(cmd, shell=True, check=True)
+                output = [(header, seq.upper()) for header, seq in read_fasta(f'out/mafft/{OGid}_temp.afa')]  # Convert successfully realigned sequences to uppercase
+            except CalledProcessError:  # Catch re-alignment errors and use unaligned subseq; see notes for more details
+                output = read_fasta(f'out/mafft/{OGid}_temp.fa')
+                error_flag = True
 
-            output = read_fasta(f'out/mafft/{OGid}_temp.afa')
             os.remove(f'out/mafft/{OGid}_temp.fa')
             os.remove(f'out/mafft/{OGid}_temp.afa')
             os.remove(f'out/mafft/{OGid}_temp.err')
@@ -117,6 +121,8 @@ def hmm_align(OGid):
             seq = ''.join(seq)
             seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
             file.write(f'{header}\n{seqstring}\n')
+
+    return error_flag
 
 
 def trim_terminals(msa):
@@ -160,15 +166,15 @@ def trim_terminals(msa):
 
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
-eset_scalar = 1.5  # Effective sequence number scalar; multiplies the gnidnum by this value to add weight to observed sequences
+eset_scalar = 2  # Effective sequence number scalar; multiplies the gnidnum by this value to add weight to observed sequences
 
-OGid2data = {}
+records = []
 with open('../OG_filter/out/OG_filter.tsv') as file:
     field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
         fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
         OGid, ppidnum, gnidnum = fields['OGid'], int(fields['ppidnum']), int(fields['gnidnum'])
-        OGid2data[OGid] = (ppidnum, gnidnum)
+        records.append((OGid, ppidnum, gnidnum))
 
 if __name__ == '__main__':
     if not os.path.exists('out/hmmer/'):
@@ -177,13 +183,32 @@ if __name__ == '__main__':
         os.makedirs('out/mafft/')
 
     with mp.Pool(processes=num_processes) as pool:
-        pool.map(hmm_align, OGid2data)
+        error_flags = pool.map(hmm_align, records)
+
+    with open('out/output.tsv', 'w') as file:
+        file.write('OGid\terror_flag\n')
+        for record, error_flag in zip(records, error_flags):
+            file.write(f'{record[0]}\t{error_flag}\n')
 
 """
 NOTES
 This version up-weights the number of sequences to prevent spurious alignments. These are typically caused by unusual
 patterns of indels and chance similarities between segments that are over-weighted by the strong priors that HMMer uses
 when building its profiles. Placing more weight on the observed sequences typically corrects these issues. 
+
+In rare cases MAFFT will error out when aligning short sequences containing a large fraction of unknown amino acids (X).
+It is unclear exactly what triggers this behavior since it occurred with various combinations of sequences with
+different lengths and numbers of Xs. The error message was the following:
+
+ ../../../bin/mafft: line 2756: 57988 Segmentation fault: 11
+ "$prefix/tbfast" _ -u $unalignlevel $localparam -C $numthreads $seqtype $model -g $pgexp -f $pggop -Q $spfactor
+ -h $pgaof -A $usenaivepairscore $focusarg _ -+ $iterate -W $minimumweight -V "-"$gopdist -s $unalignlevel $legacygapopt
+ $mergearg $outnum $addarg $add2ndhalfarg -C $numthreadstb $rnaopt $weightopt $treeinopt $treeoutopt $distoutopt
+ $seqtype $model -f "-"$gop -Q $spfactor -h $aof $param_fft $localparam $algopt $treealg $scoreoutarg $focusarg
+ < infile > /dev/null 2>> "$progressfile"
+
+Sequences which are not successfully re-aligned should remain lowercase, which will indicate the position of unaligned
+regions.
 
 DEPENDENCIES
 ../cnn_trim/cnn_trim.py
