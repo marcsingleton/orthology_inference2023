@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
     with open('out/features.tsv', 'w') as file:
         if records:
-            header = list(records[0])
+            header = records[0]
             file.write('\t'.join(header) + '\n')
         for record in records:
             file.write('\t'.join(str(record.get(field, 'nan')) for field in header) + '\n')
