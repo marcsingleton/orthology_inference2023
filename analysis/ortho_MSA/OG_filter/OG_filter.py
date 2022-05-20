@@ -95,7 +95,7 @@ rows = []
 for OGs in GGid2OGs.values():
     OG = max(OGs, key=lambda x: (x['spidnum'], x['bitscore']))  # Most species, highest bitscore
     rows.append(OG)
-OGs = pd.DataFrame(rows)
+OGs = pd.DataFrame(rows).sort_values(by='OGid')
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
