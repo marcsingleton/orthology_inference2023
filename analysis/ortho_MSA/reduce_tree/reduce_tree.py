@@ -15,7 +15,7 @@ def get_ktuples(seq, k):
     """Return k-tuples of sequence."""
     ktuples = {}
     for i in range(len(seq)-k+1):
-        ktuple = seq[i:i+k]
+        ktuple = tuple(seq[i:i+k])
         ktuples[ktuple] = ktuples.get(ktuple, 0) + 1
     return ktuples
 
@@ -79,13 +79,14 @@ def update_tip_names(tree):
             node.tip_names = set().union(*[child.tip_names for child in node.children])
 
 
-def reduce(OGid, OG):
+def get_representatives(record):
     """Return representative PPIDs for all GNIDs associated with tips in node."""
+    OGid, ppids = record
+
     # Extract sequences
-    seqs = []
-    ids = []
-    for ppid in OG:
-        seqs.append(ppid2seq[ppid])
+    seqs, ids = [], []
+    for ppid in ppids:
+        seqs.append([alphabet.get(sym, sym) for sym in ppid2seq[ppid]])  # Use get to catch additional symbols
         gnid, spid = ppid2data[ppid]
         ids.append(f"'{spid}:{gnid}:{ppid}'")  # Wrap in quotes to ensure correct parsing
 
@@ -95,7 +96,7 @@ def reduce(OGid, OG):
     dm0 = np.zeros((len(seqs), len(seqs)))
     for seq1, seq2 in combinations(seqs, 2):
         # Calculate distance and store in matrix
-        d = get_ktuple_distance(seq1.translate(table), seq2.translate(table), k, p)
+        d = get_ktuple_distance(seq1, seq2, k, p)
         dm0[i, j] = d
         dm0[j, i] = d
 
@@ -113,7 +114,7 @@ def reduce(OGid, OG):
     msd = get_max_gnid_distances(dm)
 
     # Prune tree
-    gnids = {ppid2data[ppid][0] for ppid in OG}
+    gnids = {ppid2data[ppid][0] for ppid in ppids}
     while len(tree.tip_names) > len(gnids):
         # Remove non-minimal tips in single-species clades
         for node in tree.postorder():
@@ -150,20 +151,20 @@ def reduce(OGid, OG):
             update_tip_names(tree)
 
     # Extract sequences from tree
-    reduced_OG = [tip_name.split(':') for tip_name in tree.tip_names]
-    return OGid, reduced_OG
+    ppids = [tip_name.split(':')[2] for tip_name in tree.tip_names]
+    return OGid, ppids
 
 
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
               'NCBI': r'([NXY]P_[0-9]+(\.[0-9]+)?)'}
-table = {ord('I'): '!', ord('L'): '!', ord('M'): '!', ord('V'): '!',
-         ord('F'): '@', ord('W'): '@', ord('Y'): '@',
-         ord('A'): '#', ord('S'): '#', ord('T'): '#',
-         ord('D'): '$', ord('E'): '$', ord('N'): '$',
-         ord('H'): '%', ord('K'): '%', ord('R'): '%', ord('Q'): '%',
-         ord('C'): '^',
-         ord('P'): '&',
-         ord('G'): '~'}
+alphabet = {'I': 0, 'L': 0, 'M': 0, 'V': 0,
+            'F': 1, 'W': 1, 'Y': 1,
+            'A': 2, 'S': 2, 'T': 2,
+            'D': 3, 'E': 3, 'N': 3,
+            'H': 4, 'K': 4, 'R': 4, 'Q': 4,
+            'C': 5,
+            'P': 6,
+            'G': 7}
 num_processes = 2
 
 # Load genomes
@@ -191,17 +192,17 @@ for _, source, prot_path in genomes:
         ppid2seq[ppid] = seq
 
 # Load OGs
-OGs = {}
+input_records = []
 with open('../../ortho_cluster2/add_paralogs/out/clusters.tsv') as file:
     field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
         fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
         ppids = {node for edge in fields['edges'].split(',') for node in edge.split(':')}
-        OGs[fields['OGid']] = ppids
+        input_records.append((fields['OGid'], ppids))
 
 if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
-        reduced_OGs = pool.starmap(reduce, OGs.items())
+        output_records = pool.map(get_representatives, input_records)
 
     # Write reduced clusters to file
     if not os.path.exists('out/'):
@@ -209,8 +210,8 @@ if __name__ == '__main__':
 
     with open('out/clusters.tsv', 'w') as file:
         file.write('OGid\tppids\n')
-        for OGid, reduced_OG in reduced_OGs:
-            nodestring = ','.join([record[2] for record in reduced_OG])
+        for OGid, ppids in output_records:
+            nodestring = ','.join(ppids)
             file.write(f'{OGid}\t{nodestring}\n')
 
 """
