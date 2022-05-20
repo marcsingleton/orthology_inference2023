@@ -28,3 +28,17 @@ Only `analysis/` and `src/`, which together contain all code written for this pr
 - `ortho_tree/`: Set of orthologous groups using all genomes in `ortho_cluster2/` and an outgroup *S. lebanonensis*; this directory exists solely to calculate a phylogenetic tree for the species in `ortho_cluster2/`
 - `ortho_search/`: Scripts to run and parse BLAST searches for all genomes used in `ortho_cluster1/`
 - `TF_CF_ids/`: Analyses to parse and deduplicate lists of transcription factors and cofactors found in [Stampfel *et al.*](https://pubmed.ncbi.nlm.nih.gov/26550828/) and [Hens *et al.*](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3929264/)
+
+## Dependencies
+Nearly all code is written in Python and run with version 3.9.12. The remaining code is written in Bash shell scripts. The following Python libraries were used.
+
+|Library|Version|
+|---|---|
+|matplotlib|3.5.1|
+|NetworkX|2.7.1|
+|Numpy|1.22.3|
+|pandas|1.4.1|
+|SciPy|1.8.0|
+|scikit-bio|
+|scikit-learn|
+|TensorFlow|2.7.0|
