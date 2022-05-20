@@ -16,6 +16,7 @@ prior = {'A': 0.079066, 'R': 0.055941, 'N': 0.041977, 'D': 0.053052, 'C': 0.0129
          'L': 0.099081, 'K': 0.064600, 'M': 0.022951, 'F': 0.042302, 'P': 0.044040,
          'S': 0.061197, 'T': 0.053287, 'W': 0.012066, 'Y': 0.034155, 'V': 0.069147}
 a = 1E-3  # Coefficient of outlier curve
+min_length = 30  # Minimum length of region
 spid_regex = r'spid=([a-z]+)'
 tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
@@ -32,7 +33,7 @@ for OGid in [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/
 
     # Threshold, merge, and size filter to get regions
     binary = ndimage.binary_closing(np.array(gaps) < 1, structure=[1, 1, 1])
-    regions = [region for region, in ndimage.find_objects(ndimage.label(binary)[0]) if (region.stop-region.start) >= 30]
+    regions = [region for region, in ndimage.find_objects(ndimage.label(binary)[0]) if (region.stop-region.start) >= min_length]
 
     # Calculate total scores for each sequence over all regions
     scores = {header: 0 for header, _ in msa}
@@ -99,8 +100,11 @@ for record in outliers:
     line = np.zeros(len(msa[0]))
     for region in regions:
         line[region] = 1
-    plot_msa_data(msa, line, figsize=(16, 6))
-    plt.savefig(f'out/{len(OGids)-1}_{OGid}.png', bbox_inches='tight', dpi=400)
+    plot_msa_data(msa, line, figsize=(15, 6),
+                  height_ratio=0.5, hspace=0.2, data_max=1.1, data_min=-0.1, data_labels=['region'],
+                  msa_legend=True, legend_kwargs={'bbox_to_anchor': (0.925, 0.5), 'loc': 'center left', 'fontsize': 8, 'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1})
+    plt.subplots_adjust(left=0.05, bottom=0.01, right=0.925, top=0.99)
+    plt.savefig(f'out/{(len(OGids)-1):03}_{OGid}.png', bbox_inches='tight', dpi=500)
     plt.close()
 
 """
