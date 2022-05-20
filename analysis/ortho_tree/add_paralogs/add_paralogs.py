@@ -187,13 +187,13 @@ with open('../hits2graph/out/hit_graph.tsv') as file:
         ppid2score[node] = max([float(adj.split(':')[1]) for adj in adjs.split(',')])
 
 # Load OGs
-OGs = []
+records = []
 with open('../cluster4+_graph/out/4clique/clusters.tsv') as file:
     field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
         fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
         edges = [edge.split(':') for edge in fields['edges'].split(',')]
-        OGs.append((fields['component_id'], fields['OGid'], fields['algorithm'], edges))
+        records.append((fields['component_id'], fields['OGid'], fields['algorithm'], edges))
 
 # Parse raw BLAST output finding intra-genome hits with scores greater than best inter-genome hit
 graph = {}
@@ -230,7 +230,7 @@ if not os.path.exists('out/'):
 
 with open('out/clusters.tsv', 'w') as file:
     file.write('component_id\tOGid\talgorithm\tedges\n')
-    for component_id, OGid, algorithm, edges1 in OGs:
+    for component_id, OGid, algorithm, edges1 in records:
         edges2 = []
         for node1, node2 in edges1:
             paralogs1 = ppid2paralogs.get(node1, [node1])  # Not all PPIDs are in graph so return [self]
