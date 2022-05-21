@@ -185,7 +185,7 @@ if __name__ == '__main__':
     with mp.Pool(processes=num_processes) as pool:
         error_flags = pool.map(hmm_align, records)
 
-    with open('out/output.tsv', 'w') as file:
+    with open('out/errors.tsv', 'w') as file:
         file.write('OGid\terror_flag\n')
         for record, error_flag in zip(records, error_flags):
             file.write(f'{record[0]}\t{error_flag}\n')

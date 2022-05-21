@@ -92,7 +92,7 @@ for spid, source, cds_path in genomes:
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-sys.stdout = open('out/out.txt', 'w')  # Redirect stdout to file
+sys.stdout = open('out/output.txt', 'w')  # Redirect stdout to file
 for path in [path for path in os.listdir('../align_fastas/out/') if path.endswith('.afa')]:
     file_id = path.removesuffix('.afa')
 
