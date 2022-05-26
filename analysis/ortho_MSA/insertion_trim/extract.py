@@ -11,10 +11,10 @@ posterior_low = 0.5
 gradient_high = 0.02
 gradient_low = 0.001
 
-OGids = [path.removesuffix('.afa') for path in os.listdir('../../ortho_MSA/realign_hmmer/out/') if path.endswith('.afa')]
+OGids = [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/out/mafft/') if path.endswith('.afa')]
 for OGid in OGids:
     # Load MSA
-    msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.afa')
+    msa = read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa')
 
     # Load decoded states and calculate derivative
     posterior = []
@@ -47,8 +47,8 @@ for OGid in OGids:
 
 """
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer/realign_hmmer.py
-    ../../ortho_MSA/realign_hmmer/out/*.afa
+../realign_hmmer/realign_hmmer.py
+    ../realign_hmmer/out/mafft/*.afa
 ./decode.py
     ./out/*.tsv
 """

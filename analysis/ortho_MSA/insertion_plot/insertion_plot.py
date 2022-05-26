@@ -20,7 +20,7 @@ tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skb
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 spids = {tip.name for tip in tree.tips() if tip.name != 'sleb'}
 
-df = pd.read_table('../../ortho_MSA/gap_contrasts/out/total_sums.tsv')
+df = pd.read_table('../gap_contrasts/out/total_sums.tsv')
 df['norm1'] = df['total'] / df['gnidnum']
 df['norm2'] = df['total'] / (df['gnidnum'] * df['len2'])
 
@@ -31,7 +31,7 @@ for label in ['norm1', 'norm2']:
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
         # Load MSA
-        msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/{row.OGid}.afa')
+        msa = read_fasta(f'../realign_hmmer/out/mafft/{row.OGid}.afa')
         msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
         # Load decoded states
@@ -57,12 +57,12 @@ for label in ['norm1', 'norm2']:
 
 """
 DEPENDENCIES
-../../ortho_MSA/gap_contrasts/gap_contrasts.py
-    ../gap_contrasts/out/total_sums.tsv
-../../ortho_MSA/realign_hmmer/realign_hmmer.py
-    ../../ortho_MSA/realign_hmmer/out/*
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
+../gap_contrasts/gap_contrasts.py
+    ../gap_contrasts/out/total_sums.tsv
 ../insertion_trim/decode.py
     ./insertion_trim/out/*.tsv
+../realign_hmmer/realign_hmmer.py
+    ../realign_hmmer/out/mafft/*.afa
 """

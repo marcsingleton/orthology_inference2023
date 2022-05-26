@@ -86,7 +86,7 @@ for feature_label in df.columns:
         regions.add((OGid, start, stop))
 
         # Load MSA, filter seqs, and re-order
-        msa1 = read_fasta(f'../insertion_trim/out/{OGid}.afa')
+        msa1 = read_fasta(f'../../ortho_MSA/insertion_trim/out/{OGid}.afa')
         msa1 = {re.search(spid_regex, header).group(1): seq for header, seq in msa1}
 
         spids = region2spids[(OGid, start, stop)]
@@ -184,7 +184,7 @@ for feature_label in df.columns:
         regions.add((OGid, start, stop))
 
         # Load MSA, filter seqs, and re-order
-        msa1 = read_fasta(f'../insertion_trim/out/{OGid}.afa')
+        msa1 = read_fasta(f'../../ortho_MSA/insertion_trim/out/{OGid}.afa')
         msa1 = {re.search(spid_regex, header).group(1): seq for header, seq in msa1}
 
         spids = region2spids[(OGid, start, stop)]
@@ -387,7 +387,7 @@ for feature_label in rates.columns:
         regions.add((OGid, start, stop))
 
         # Load MSA, filter seqs, and re-order
-        msa1 = read_fasta(f'../insertion_trim/out/{OGid}.afa')
+        msa1 = read_fasta(f'../../ortho_MSA/insertion_trim/out/{OGid}.afa')
         msa1 = {re.search(spid_regex, header).group(1): seq for header, seq in msa1}
 
         spids = region2spids[(OGid, start, stop)]
@@ -463,6 +463,8 @@ for feature_label in roots.columns.intersection(rates.columns):
 
 """
 DEPENDENCIES
+../../ortho_MSA/insertion_trim/extract.py
+    ../../ortho_MSA/insertion_trim/out/*.afa
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
 ../../ortho_tree/consensus_LG/consensus_LG.py

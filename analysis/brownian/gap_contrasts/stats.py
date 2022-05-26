@@ -101,7 +101,7 @@ for label in ['norm1', 'norm2']:
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
         msa = []
-        for header, seq in read_fasta(f'../insertion_trim/out/{row.OGid}.afa'):
+        for header, seq in read_fasta(f'../../ortho_MSA/insertion_trim/out/{row.OGid}.afa'):
             ppid = re.search(ppid_regex, header).group(1)
             spid = re.search(spid_regex, header).group(1)
             if ppid in row.ppids:
@@ -113,10 +113,10 @@ for label in ['norm1', 'norm2']:
 
 """
 DEPENDENCIES
+../../ortho_MSA/insertion_trim/extract.py
+    ../../ortho_MSAinsertion_trim/out/*.afa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../insertion_trim/extract.py
-    ../insertion_trim/out/*.afa
 ../aucpred_filter/aucpred_filter.py
     ../aucpred_filter/out/regions_30.tsv
 ./gap_contrasts.py

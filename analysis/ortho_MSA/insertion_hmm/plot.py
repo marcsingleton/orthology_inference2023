@@ -35,7 +35,7 @@ tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 # Plot alignments
 for OGid, labels in OGid2labels.items():
     # Load MSA
-    msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/{OGid}.afa')
+    msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/mafft/{OGid}.afa')
     msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
 
     # Create emission sequence
@@ -98,10 +98,10 @@ for OGid, labels in OGid2labels.items():
 
 """
 DEPENDENCIES
-../../ortho_MSA/realign_hmmer/realign_hmmer.py
-    ../../ortho_MSA/realign_hmmer/out/*.afa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
+../realign_hmmer/realign_hmmer.py
+    ../realign_hmmer/out/mafft/*.afa
 ./labels.tsv
 ./fit.py
     ./out/model.json

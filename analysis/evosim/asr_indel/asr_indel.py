@@ -44,7 +44,7 @@ if not os.path.exists('out/'):
     os.mkdir('out/')
 
 for OGid in OGids:
-    msa = read_fasta(f'../../brownian/insertion_trim/out/{OGid}.afa')
+    msa = read_fasta(f'../../ortho_MSA/insertion_trim/out/{OGid}.afa')
     msa = [(re.search(ppid_regex, header).group(1), re.search(spid_regex, header).group(1), seq) for header, seq in msa]
 
     # Check regions (continuing only if alignment is fit by asr_aa.py)
@@ -131,8 +131,8 @@ DEPENDENCIES
     ../../brownian/aucpred_filter/out/regions_30.tsv
 ../../brownian/aucpred_regions/get_regions.py
     ../../brownian/aucpred_regions/out/regions.tsv
-../../brownian/insertion_trim/extract.py
-    ../../brownian/insertion_trim/out/*.afa
+../../ortho_MSA/insertion_trim/extract.py
+    ../../ortho_MSA/insertion_trim/out/*.afa
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 """

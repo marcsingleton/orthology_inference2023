@@ -45,7 +45,7 @@ ppid_regex = r'ppid=([A-Za-z0-9_]+)'
 records = []
 for OGid in [path for path in os.listdir('out/raw/') if os.path.isdir(f'out/raw/{path}')]:
     # Load MSA
-    msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
+    msa = read_fasta(f'../../ortho_MSA/insertion_trim/out/{OGid}.afa')
     msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
     # Map outputs to MSA columns
@@ -89,8 +89,8 @@ OUTPUT
 3423 has fewer predictions than sequences. Skipping segmentation.
 
 DEPENDENCIES
-../insertion_trim/extract.py
-    ../insertion_trim/out/*.afa
+../../ortho_MSA/insertion_trim/extract.py
+    ../../ortho_MSA/insertion_trim/out/*.afa
 ./run_aucpred.py
     ./out/raw/*/*.diso_noprof
 """

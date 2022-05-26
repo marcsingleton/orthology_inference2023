@@ -57,8 +57,8 @@ with open('../aucpred_regions/out/regions.tsv') as file:
 # Filter regions
 record_sets = {i: [] for i in range(10, 35, 5)}
 for OGid, regions in OGid2regions.items():
-    msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
-    posteriors = load_posteriors(f'../deletion_decode/out/{OGid}.tsv')
+    msa = read_fasta(f'../../ortho_MSA/insertion_trim/out/{OGid}.afa')
+    posteriors = load_posteriors(f'../../ortho_MSA/deletion_decode/out/{OGid}.tsv')
 
     for region in regions:
         # Get indices and length
@@ -106,10 +106,10 @@ for min_length, records in record_sets.items():
 
 """
 DEPENDENCIES
+../../ortho_MSA/deletion_decode/decode.py
+    ../../ortho_MSA/deletion_decode/out/*.tsv
+../../ortho_MSA/insertion_trim/extract.py
+    ../../ortho_MSA/insertion_trim/out/*.afa
 ../aucpred_regions/get_regions.py
     ../aucpred_regions/out/regions.tsv
-../deletion_decode/decode.py
-    ../deletion_decode/out/*.tsv
-../insertion_trim/extract.py
-    ../insertion_trim/out/*.afa
 """

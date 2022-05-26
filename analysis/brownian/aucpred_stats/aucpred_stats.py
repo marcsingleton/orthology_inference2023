@@ -33,7 +33,7 @@ for min_length in sorted(min_lengths):
             fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
             OGid, start, stop, disorder = fields['OGid'], int(fields['start']), int(fields['stop']), fields['disorder'] == 'True'
 
-            msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
+            msa = read_fasta(f'../../ortho_MSA/insertion_trim/out/{OGid}.afa')
             msa = {re.search(ppid_regex, header).group(1): seq for header, seq in msa}
 
             for ppid in fields['ppids'].split(','):
@@ -179,8 +179,8 @@ for min_length in min_lengths:
 
 """
 DEPENDENCIES
+../../ortho_MSA/insertion_trim/extract.py
+    ../../ortho_MSA/insertion_trim/out/*.afa
 ../aucpred_filter/aucpred_filter.py
     ../aucpred_filter/out/segments_*.tsv
-../insertion_trim/extract.py
-    ../insertion_trim/out/*.afa
 """
