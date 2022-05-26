@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import skbio
 from src.draw import plot_msa_data
-from src.brownian.trim import get_slices
+from src.ortho_MSA.trim import get_slices
 from src.utils import read_fasta
 
 posterior_high = 0.75

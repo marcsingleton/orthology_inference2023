@@ -8,7 +8,7 @@ from functools import reduce
 
 import numpy as np
 import skbio
-import src.brownian.hmm as hmm
+import src.ortho_MSA.hmm as hmm
 import utils
 from numpy import exp, log
 from src.utils import read_fasta

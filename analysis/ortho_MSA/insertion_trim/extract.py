@@ -3,7 +3,7 @@
 import os
 
 import numpy as np
-from src.brownian.trim import get_slices
+from src.ortho_MSA.trim import get_slices
 from src.utils import read_fasta
 
 posterior_high = 0.75

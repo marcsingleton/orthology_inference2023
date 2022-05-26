@@ -6,7 +6,7 @@ import os
 import re
 from functools import reduce
 
-import src.brownian.hmm as hmm
+import src.ortho_MSA.hmm as hmm
 from numpy import exp, log
 from src.utils import read_fasta
 
