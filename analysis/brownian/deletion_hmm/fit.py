@@ -5,49 +5,10 @@ import multiprocessing as mp
 import os
 import re
 from functools import reduce
-from itertools import accumulate, product
 
-import src.hmm as hmm
+import src.brownian.hmm as hmm
 from numpy import exp, log
 from src.utils import read_fasta
-
-
-# Probability classes and functions
-class modHMM(hmm.HMM):
-    def forward_backward1(self, emits, fs, ss_f, bs, ss_b):
-        """Posterior decoding of states."""
-        p = reduce(lambda x, y: x+y, map(log, ss_f))
-        ss_f = list(accumulate(map(log, ss_f)))
-        ss_b = list(accumulate(map(log, ss_b[::-1])))[::-1]
-
-        fbs = {state: [] for state in self.states}
-        for i in range(len(emits)):
-            for state, fb in fbs.items():
-                fbs[state].append(fs[state][i]*bs[state][i]*exp(ss_f[i]+ss_b[i]-p))
-
-        return fbs
-
-    def forward_backward2(self, emits, fs, ss_f, bs, ss_b):
-        """Posterior decoding of transitions."""
-        p = reduce(lambda x, y: x+y, map(log, ss_f))
-        ss_f = list(accumulate(map(log, ss_f)))
-        ss_b = list(accumulate(map(log, ss_b[::-1])))[::-1]
-
-        fbs = {p: [] for p in product(self.states, self.states)}
-        for i in range(len(emits)-1):
-            for s1, s2 in product(self.states, self.states):
-                fbs[(s1, s2)].append(fs[s1][i]*self.t_dists[s1][s2]*self.e_dists[s2].pmf(emits[i+1])*bs[s2][i+1]*exp(ss_f[i]+ss_b[i+1]-p))
-
-        return {p: sum(fb) for p, fb in fbs.items()}
-
-    def joint_likelihood(self, emits, states):
-        """Log-likelihood of emission and state sequence."""
-        states = [self._state2idx[state] for state in states]
-        p, state0 = log(self._e_dists_rv[states[0]].pmf(emits[0]) * self._start_dist_rv.pmf(states[0])), states[0]
-        for emit, state in zip(emits[1:], states[1:]):
-            p += log(self._e_dists_rv[state].pmf(emit) * self._t_dists_rv[state0].pmf(state))
-            state0 = state
-        return p
 
 
 class msaBernoulli:
@@ -79,27 +40,8 @@ def bernoulli_pmf_prime(x, p):
 
 
 # Utility functions
-def count_transitions(state_seq, state_set):
-    mijs, state0 = {p: 0 for p in product(state_set, state_set)}, state_seq[0]
-    for state in state_seq[1:]:
-        try:
-            mijs[(state0, state)] += 1
-        except KeyError:
-            mijs[(state0, state)] = 1
-        state0 = state
-    return mijs
-
-
-def count_states(state_seq, state_set):
-    mis = {state: [] for state in state_set}
-    for state in state_seq:
-        for s in state_set:
-            mis[s].append(1 if state == s else 0)
-    return mis
-
-
 def norm_params(t_dists, e_param):
-    """Convert parameters to their normalized values."""
+    """Return parameters to their normalized values."""
     t_dists_norm = {}
     for s1, t_dist in t_dists.items():
         z_sum = sum([exp(z) for z in t_dist.values()])
@@ -108,12 +50,13 @@ def norm_params(t_dists, e_param):
     return t_dists_norm, e_param_norm
 
 
-def get_expts(t_dists_norm, e_param_norm, start_dist, record):
+def get_expectations(t_dists_norm, e_param_norm, start_dist, record):
+    """Return record updated with expected values of states and transitions given model parameters."""
     # Instantiate model
     p_seq, state_seq, emit_seq = record['p_seq'], record['state_seq'], record['emit_seq']
-    model = modHMM(t_dists_norm,
-                   {'0': msaBernoulli(p_seq), '1': msaBernoulli([e_param_norm for _ in range(len(p_seq))])},
-                   start_dist)
+    model = hmm.HMM(t_dists_norm,
+                    {'0': msaBernoulli(p_seq), '1': msaBernoulli([e_param_norm for _ in range(len(p_seq))])},
+                    start_dist)
 
     # Get expectations
     fs, ss_f = model.forward(emit_seq)
@@ -183,8 +126,8 @@ if __name__ == '__main__':
                 e_count[0] += stop - start - count
 
         # Create count dictionaries
-        mis = count_states(state_seq, state_set)
-        mijs = count_transitions(state_seq, state_set)
+        mis = hmm.count_states(state_seq, state_set)
+        mijs = hmm.count_transitions(state_seq, state_set)
 
         records.append({'OGid': OGid, 'p_seq': p_seq, 'state_seq': state_seq, 'emit_seq': emit_seq,
                         'mis': mis, 'mijs': mijs,
@@ -219,7 +162,7 @@ if __name__ == '__main__':
         # Calculate expectations and likelihoods
         t_dists_norm, e_param_norm = norm_params(t_dists, e_param)
         with mp.Pool(processes=num_processes) as pool:
-            records = pool.starmap(get_expts, [(t_dists_norm, e_param_norm, start_dist, record) for record in records])
+            records = pool.starmap(get_expectations, [(t_dists_norm, e_param_norm, start_dist, record) for record in records])
 
         # Save and report updated parameters
         ll = sum([record['ll'] for record in records])
