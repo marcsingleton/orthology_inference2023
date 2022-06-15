@@ -403,7 +403,7 @@ def plot_msa(msa, figsize=(12, 6),
 def plot_tree(tree, tip_labels=True, support_labels=False,
               color=None, linewidth=None,
               tip_fontsize=None, tip_fontcolor=None, tip_offset=0,
-              support_fontsize=None, support_fontcolor=None,
+              support_format_spec=None, support_fontsize=None, support_fontcolor=None,
               support_ha='center', support_va='top',
               support_hoffset=0, support_voffset=0):
     """Draw tree using matplotlib.
@@ -415,14 +415,17 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
         Toggle drawing tip labels.
     support_labels: bool
         Toggle drawing support labels. Support labels are obtained from
-        support attribute. Use assign_supports to extract the numerical
-        values from the node labels.
+        support attribute. If the attribute is None, it is ignored. Use
+        assign_supports to extract the numerical values from the node labels.
     color: color (matplotlib)
     linewidth: float
     tip_fontsize: float or {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'}
     tip_fontcolor: color (matplotlib)
     tip_offset: float
         The offset of the tip label from the end of the branch tip.
+    support_format_spec: str
+        Format specification for supports using the format specification mini-
+        language.
     support_fontsize: float
     support_fontcolor: color (matplotlib)
     support_ha: {'left', 'right', 'center'}
@@ -492,8 +495,12 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
         if tip_labels and node.is_tip():  # Write tip names
             ax.text(x_pos[node] + tip_offset, y_pos[node], node.name, verticalalignment='center',
                     fontsize=tip_fontsize, color=tip_fontcolor)
-        if support_labels and not node.is_tip():  # Write support values
-            ax.text(get_x(node) + support_hoffset, y_pos[node] + support_voffset, node.support,
+        if support_labels and node.support is not None and not node.is_tip():  # Write support values if not None and not tip
+            if support_format_spec is None:
+                support_string = str(node.support)
+            else:
+                support_string = f'{node.support:{support_format_spec}}'
+            ax.text(get_x(node) + support_hoffset, y_pos[node] + support_voffset, support_string,
                     fontsize=support_fontsize, color=support_fontcolor,
                     horizontalalignment=support_ha, verticalalignment=support_va)
     lc_args = {key: value for key, value in zip(['segments', 'linewidth', 'color'], zip(*lines))}
