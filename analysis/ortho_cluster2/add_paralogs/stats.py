@@ -35,7 +35,7 @@ plt.savefig('out/scatter_ppidnum2-ppidnum1.png')
 plt.close()
 
 counts = (df['delta'] == 0).value_counts()
-labels = [('w/ in-paralogs' if idx else 'w/o in-paralogs') + f'\n({value:,})' for idx, value in zip(counts.index, counts.values)]
+labels = [('w/o in-paralogs' if idx else 'w/ in-paralogs') + f'\n({value:,})' for idx, value in zip(counts.index, counts.values)]
 plt.pie(counts.values, labels=labels, labeldistance=1.4, textprops={'ha': 'center'})
 plt.title('OGs w/ and w/o in-paralogs')
 plt.savefig('out/pie_paralog.png')
