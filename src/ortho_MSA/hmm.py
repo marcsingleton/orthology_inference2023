@@ -3,11 +3,11 @@
 from functools import reduce
 from itertools import accumulate, product
 
-import src.hmm as hmm
+import homomorph
 from numpy import exp, log
 
 
-class HMM(hmm.HMM):
+class HMM(homomorph.HMM):
     """A class that modifies the default HMM to accept pre-calculated intermediates.
 
     Discriminative training requires decoding of both states and transitions.

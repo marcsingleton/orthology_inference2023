@@ -3,10 +3,10 @@
 import json
 import re
 
+import homomorph
 import matplotlib.pyplot as plt
 import numpy as np
 import skbio
-import src.hmm as hmm
 import utils
 from src.draw import plot_msa_data
 from src.utils import read_fasta
@@ -65,7 +65,7 @@ for OGid, labels in OGid2labels.items():
     for state, (p, pi, q0, q1) in params['e_dists'].items():
         array = utils.get_tree_probability(tree, pi, q0, q1)
         e_dists_rv[state] = utils.BinomialArrayRV(p, array)
-    model = hmm.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
+    model = homomorph.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
 
     # Plot labels
     msa = [seq for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only

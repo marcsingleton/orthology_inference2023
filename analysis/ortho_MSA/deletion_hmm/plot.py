@@ -3,8 +3,8 @@
 import json
 import re
 
+import homomorph
 import matplotlib.pyplot as plt
-import src.hmm as hmm
 import src.draw as draw
 from src.utils import read_fasta
 
@@ -64,7 +64,7 @@ for OGid, ppid in records:
 
     # Instantiate model
     e_dists_rv = {'0': msaBernoulli(ps), '1': msaBernoulli([params['e_param'] for _ in range(len(ps))])}
-    model = hmm.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
+    model = homomorph.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
 
     # Decode states and plot
     fbs = model.forward_backward(emits)

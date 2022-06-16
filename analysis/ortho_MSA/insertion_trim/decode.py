@@ -4,8 +4,8 @@ import json
 import multiprocessing as mp
 import os
 
+import homomorph
 import scipy.stats as stats
-import src.hmm as hmm
 from src.utils import read_fasta
 
 
@@ -79,7 +79,7 @@ def decode(OGid, params):
 
     # Instantiate model
     e_dists_rv = {state: bernoulli_betabinom_frozen(p, len(msa)-1, a, b) for state, (p, a, b) in params['e_dists'].items()}
-    model = hmm.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
+    model = homomorph.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
 
     # Decode states and write
     fbs = model.forward_backward(emits)

@@ -5,7 +5,7 @@ import multiprocessing as mp
 import os
 import re
 
-import src.hmm as hmm
+import homomorph
 from src.utils import read_fasta
 
 
@@ -39,7 +39,7 @@ def decode(OGid, params):
 
     # Instantiate model
     e_dists_rv = {'0': msaBernoulli(ps), '1': msaBernoulli([params['e_param'] for _ in range(len(ps))])}
-    model = hmm.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
+    model = homomorph.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
 
     # Decode states
     records = []
