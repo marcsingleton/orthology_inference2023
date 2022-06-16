@@ -34,11 +34,11 @@ Nearly all code is written in Python and run with version 3.9.12. The remaining 
 
 |Library|Version|
 |---|---|
+|homomorph|0.2.0|
 |matplotlib|3.5.1|
 |NetworkX|2.7.1|
-|Numpy|1.22.3|
+|NumPy|1.22.3|
 |pandas|1.4.1|
 |SciPy|1.8.0|
-|scikit-bio|
-|scikit-learn|
+|scikit-bio|0.5.6|
 |TensorFlow|2.7.0|
