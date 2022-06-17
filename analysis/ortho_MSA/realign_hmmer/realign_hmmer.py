@@ -72,7 +72,7 @@ def hmm_align(record):
 
         # Align subsequences
         if len(subseqs) == 1:
-            output = subseqs
+            output = [(header, seq.upper()) for header, seq in subseqs]
         else:
             with open(f'out/mafft/{OGid}_temp.fa', 'w') as file:
                 for header, seq in subseqs:
