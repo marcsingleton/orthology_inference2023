@@ -168,11 +168,10 @@ if __name__ == '__main__':
         ll = sum([record['ll'] for record in records])
         models.append((ll, t_dists_norm, e_param_norm))
 
-        print('ITERATION', j)
-        print('ll:', ll)
-        print('t_dists_norm:', t_dists_norm)
-        print('e_param_norm:', e_param_norm)
-        print()
+        print(f'ITERATION {j} / {iter_num}')
+        print('\tll:', ll)
+        print('\tt_dists_norm:', t_dists_norm)
+        print('\te_param_norm:', e_param_norm)
 
         # Check convergence
         if ll0 is not None and abs(ll - ll0) < epsilon:
