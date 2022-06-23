@@ -15,6 +15,34 @@ from src.utils import read_fasta
 
 
 # Gradient functions
+def get_tip_prime(tree, ppid, param, pi, q0, q1):
+    if param == 'pi':
+        args = (q0, q1)
+        p_prime = get_tree_prime_pi
+    elif param == 'q0':
+        args = (pi, q0, q1)
+        p_prime = get_tree_prime_q0
+    elif param == 'q1':
+        args = (pi, q0, q1)
+        p_prime = get_tree_prime_q1
+    else:
+        raise ValueError("param is not 'pi', 'q0', or 'q1'")
+
+    tree1 = tree
+    tree2 = tree.copy()
+    for tip in tree2.tips():
+        if tip.ppid == ppid:
+            tip.conditional = 1 - tip.conditional  # Flip state of given tip
+
+    p1 = utils.get_tree_probability(tree1, pi, q0, q1)
+    p2 = utils.get_tree_probability(tree2, pi, q0, q1)
+    p1_prime = p_prime(tree1, *args)
+    p2_prime = p_prime(tree2, *args)
+    d = p1 + p2
+    d_prime = p1_prime + p2_prime
+    return (p1_prime * d - p1 * d_prime) / d ** 2  # Quotient rule applied to get_tip_posterior
+
+
 def get_tree_prime_pi(tree, q0, q1):
     """Return derivative of probability of tree relative to pi."""
     s, conditional = utils.get_conditional(tree, q0, q1)
@@ -142,18 +170,18 @@ def norm_params(t_dists, e_dists):
 def get_expectations(t_dists_norm, e_dists_norm, start_dist, record):
     """Return record updated with expected values of states and transitions given model parameters."""
     # Instantiate model
-    tree, state_seq, emit_seq = record['tree'], record['state_seq'], record['emit_seq']
-    tree_probabilities = {}
-    tree_primes_pi, tree_primes_q0, tree_primes_q1 = {}, {}, {}
+    tree, ppid, state_seq, emit_seq = record['tree'], record['ppid'], record['state_seq'], record['emit_seq']
+    tip_posteriors = {}
+    tip_primes_pi, tip_primes_q0, tip_primes_q1 = {}, {}, {}
     for state, (p, pi, q0, q1) in e_dists_norm.items():
-        tree_probabilities[state] = utils.get_tree_probability(tree, pi, q0, q1)
-        tree_primes_pi[state] = get_tree_prime_pi(tree, q0, q1)
-        tree_primes_q0[state] = get_tree_prime_q0(tree, pi, q0, q1)
-        tree_primes_q1[state] = get_tree_prime_q1(tree, pi, q0, q1)
-    record.update({'tree_probabilities': tree_probabilities,
-                   'tree_primes_pi': tree_primes_pi, 'tree_primes_q0': tree_primes_q0, 'tree_primes_q1': tree_primes_q1})
+        tip_posteriors[state] = utils.get_tip_posterior(tree, ppid, pi, q0, q1)
+        tip_primes_pi[state] = get_tip_prime(tree, ppid, 'pi', pi, q0, q1)
+        tip_primes_q0[state] = get_tip_prime(tree, ppid, 'q0', pi, q0, q1)
+        tip_primes_q1[state] = get_tip_prime(tree, ppid, 'q1', pi, q0, q1)
+    record.update({'tip_posteriors': tip_posteriors,
+                   'tip_primes_pi': tip_primes_pi, 'tip_primes_q0': tip_primes_q0, 'tip_primes_q1': tip_primes_q1})
     model = hmm.HMM(t_dists_norm,
-                    {state: utils.BinomialArrayRV(p, tree_probabilities[state]) for state, (p, _, _, _) in e_dists_norm.items()},
+                    {state: utils.BinomialArrayRV(p, tip_posteriors[state]) for state, (p, _, _, _) in e_dists_norm.items()},
                     start_dist)
 
     # Get expectations
@@ -174,63 +202,77 @@ eta = 1E-5  # Learning rate
 epsilon = 1E-2  # Convergence criterion
 iter_num = 200  # Max number of iterations
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
+ppid_regex = r'ppid=([A-Za-z0-9_]+)'
+spid_regex = r'spid=([a-z]+)'
 
 if __name__ == '__main__':
-    # Load regions
-    OGid2regions = {}
+    # Load labels
+    OGid2ppids = {}
+    ppid2labels = {}
     state_set = set()
     with open('labels.tsv') as file:
         field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
             fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
-            OGid, start, stop, state = fields['OGid'], int(fields['start']), int(fields['stop']), fields['state']
-            state_set.add(state)
+            OGid, ppid = fields['OGid'], fields['ppid']
             try:
-                OGid2regions[OGid].append((start, stop, state))
+                OGid2ppids[OGid].add(ppid)
             except KeyError:
-                OGid2regions[OGid] = [(start, stop, state)]
+                OGid2ppids[OGid] = {ppid}
+            start, stop, label = int(fields['start']), int(fields['stop']), fields['label']
+            state_set.add(label)
+            try:
+                ppid2labels[ppid].append((start, stop, label))
+            except KeyError:
+                ppid2labels[ppid] = [(start, stop, label)]
 
     # Convert MSAs to records containing state-emissions sequences and other data
     records = []
-    for OGid, regions in OGid2regions.items():
+    for OGid, ppids in OGid2ppids.items():
         # Load MSA
-        msa = read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa')
-        msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
+        msa = []
+        for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
+            spid = re.search(spid_regex, header).group(1)
+            ppid = re.search(ppid_regex, header).group(1)
+            msa.append({'ppid': ppid, 'spid': spid, 'seq': seq})
 
         # Create emission sequence
         col0 = []
         emit_seq = []
-        for j in range(len(msa[0][1])):
-            col = [1 if msa[i][1][j] in ['-', '.'] else 0 for i in range(len(msa))]
+        for j in range(len(msa[0]['seq'])):
+            col = [1 if msa[i]['seq'][j] in ['-', '.'] else 0 for i in range(len(msa))]
             emit0 = all([c0 == c for c0, c in zip(col0, col)])
             emit_seq.append((emit0, j))  # The tree probabilities are pre-calculated, so emission value is its index
             col0 = col
 
-        # Create state sequence
-        state_seq = []
-        for (start, stop, state) in regions:
-            state_seq.extend((stop - start) * [state])
-
         # Load tree and convert to vectors at tips
         tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
-        tree = tree.shear([spid for spid, _ in msa])
+        tree = tree.shear([record['spid'] for record in msa])
         tips = {tip.name: tip for tip in tree.tips()}
-        for spid, seq in msa:
-            tip = tips[spid]
+        for record in msa:
+            ppid, spid, seq = record['ppid'], record['spid'], record['seq']
             conditional = np.zeros((2, len(seq)))
             for j, sym in enumerate(seq):
                 if sym in ['-', '.']:
                     conditional[0, j] = 1
                 else:
                     conditional[1, j] = 1
+            tip = tips[spid]
             tip.conditional = conditional
+            tip.ppid = ppid
 
-        # Create count dictionaries
-        mis = hmm.count_states(state_seq, state_set)
-        mijs = hmm.count_transitions(state_seq, state_set)
+        for ppid in ppids:
+            # Create state sequences
+            state_seq = []
+            for start, stop, label in ppid2labels[ppid]:
+                state_seq.extend((stop - start) * [label])
 
-        records.append({'OGid': OGid, 'tree': tree, 'state_seq': state_seq, 'emit_seq': emit_seq,
-                        'mis': mis, 'mijs': mijs})
+            # Create count dictionaries
+            mis = hmm.count_states(state_seq, state_set)
+            mijs = hmm.count_transitions(state_seq, state_set)
+
+            records.append({'OGid': OGid, 'ppid': ppid, 'tree': tree, 'state_seq': state_seq, 'emit_seq': emit_seq,
+                            'mis': mis, 'mijs': mijs})
 
     # Initialize parameters
     t_dists = {'1A': {'1A': 0.997, '1B': 0.001, '2': 0.001, '3': 0.001},
@@ -275,8 +317,8 @@ if __name__ == '__main__':
             emit_seq = record['emit_seq']
             mis, mijs = record['mis'], record['mijs']
             nis, nijs = record['nis'], record['nijs']
-            tree_probabilities = record['tree_probabilities']
-            tree_primes_pi, tree_primes_q0, tree_primes_q1 = record['tree_primes_pi'], record['tree_primes_q0'], record['tree_primes_q1']
+            tip_posteriors = record['tip_posteriors']
+            tip_primes_pi, tip_primes_q0, tip_primes_q1 = record['tip_primes_pi'], record['tip_primes_q0'], record['tip_primes_q1']
 
             # Update t_dists
             for s1, t_dist in t_dists.items():
@@ -294,9 +336,9 @@ if __name__ == '__main__':
                     # Equations 2.15 and 2.16 (emission parameter phi only)
                     mn = mis[s][i] - nis[s][i]
                     dzp -= mn / bernoulli_pmf(emit[0], p) * bernoulli_pmf_prime(emit[0], p) * p / (1 + exp(zp))
-                    dzpi -= mn / tree_probabilities[s][emit[1]] * tree_primes_pi[s][emit[1]] * pi / (1 + exp(zpi))
-                    dzq0 -= mn / tree_probabilities[s][emit[1]] * tree_primes_q0[s][emit[1]] * q0
-                    dzq1 -= mn / tree_probabilities[s][emit[1]] * tree_primes_q1[s][emit[1]] * q1
+                    dzpi -= mn / tip_posteriors[s][emit[1]] * tip_primes_pi[s][emit[1]] * pi / (1 + exp(zpi))
+                    dzq0 -= mn / tip_posteriors[s][emit[1]] * tip_primes_q0[s][emit[1]] * q0
+                    dzq1 -= mn / tip_posteriors[s][emit[1]] * tip_primes_q1[s][emit[1]] * q1
                 e_dists[s] = (zp - eta * dzp, zpi - eta * dzpi, zq0 - eta * dzq0, zq1 - eta * dzq1)
 
         j += 1
