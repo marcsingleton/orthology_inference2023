@@ -11,90 +11,123 @@ import utils
 from src.draw import plot_msa_data
 from src.utils import read_fasta
 
+ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
+spid_regex = r'spid=([a-z]+)'
+
 # Load model parameters
 with open('out/model.json') as file:
     params = json.load(file)
 
-
-OGid2labels = {}
+# Load labels
+OGid2ppids = {}
+ppid2labels = {}
+state_set = set()
 with open('labels.tsv') as file:
-    file.readline()
+    field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
-        OGid, start, stop, state = line.rstrip('\n').split('\t')
-        if OGid in OGid2labels:
-            OGid2labels[OGid][state].append((int(start), int(stop)))
-        else:
-            labels = {'0': [], '1A': [], '1B': [], '2': [], '3': []}
-            labels[state].append((int(start), int(stop)))
-            OGid2labels[OGid] = labels
+        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+        OGid, ppid = fields['OGid'], fields['ppid']
+        try:
+            OGid2ppids[OGid].add(ppid)
+        except KeyError:
+            OGid2ppids[OGid] = {ppid}
+        start, stop, label = int(fields['start']), int(fields['stop']), fields['label']
+        state_set.add(label)
+        try:
+            ppid2labels[ppid].append((start, stop, label))
+        except KeyError:
+            ppid2labels[ppid] = [(start, stop, label)]
 
 # Load tree
 tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 
 # Plot alignments
-for OGid, labels in OGid2labels.items():
+for OGid, ppids in OGid2ppids.items():
     # Load MSA
-    msa = read_fasta(f'../../ortho_MSA/realign_hmmer/out/mafft/{OGid}.afa')
-    msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
+    msa = []
+    for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
+        spid = re.search(spid_regex, header).group(1)
+        ppid = re.search(ppid_regex, header).group(1)
+        msa.append({'ppid': ppid, 'spid': spid, 'seq': seq})
 
     # Create emission sequence
     col0 = []
     emit_seq = []
-    for j in range(len(msa[0][1])):
-        col = [1 if msa[i][1][j] in ['-', '.'] else 0 for i in range(len(msa))]
+    for j in range(len(msa[0]['seq'])):
+        col = [1 if msa[i]['seq'][j] in ['-', '.'] else 0 for i in range(len(msa))]
         emit0 = all([c0 == c for c0, c in zip(col0, col)])
         emit_seq.append((emit0, j))  # The tree probabilities are pre-calculated, so emission value is its index
         col0 = col
 
     # Load tree and convert to vectors at tips
-    tree = tree_template.deepcopy().shear([spid for spid, _ in msa])
+    tree = tree_template.deepcopy().shear([record['spid'] for record in msa])
     tips = {tip.name: tip for tip in tree.tips()}
-    for spid, seq in msa:
-        tip = tips[spid]
+    for record in msa:
+        ppid, spid, seq = record['ppid'], record['spid'], record['seq']
         conditional = np.zeros((2, len(seq)))
         for j, sym in enumerate(seq):
             if sym in ['-', '.']:
                 conditional[0, j] = 1
             else:
                 conditional[1, j] = 1
+        tip = tips[spid]
         tip.conditional = conditional
+        tip.ppid = ppid
 
-    # Instantiate model
-    e_dists_rv = {}
-    for state, (p, pi, q0, q1) in params['e_dists'].items():
-        array = utils.get_tree_probability(tree, pi, q0, q1)
-        e_dists_rv[state] = utils.BinomialArrayRV(p, array)
-    model = homomorph.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
+    for ppid in ppids:
+        # Instantiate model
+        e_dists_rv = {}
+        for state, (p, pi, q0, q1) in params['e_dists'].items():
+            array = utils.get_tip_posterior(tree, ppid, pi, q0, q1)
+            e_dists_rv[state] = utils.BinomialArrayRV(p, array)
+        model = homomorph.HMM(params['t_dists'], e_dists_rv, params['start_dist'])
 
-    # Plot labels
-    msa = [seq for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
+        msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
+        labels = ppid2labels[ppid]
+        msa_labels = [ppid if record['ppid'] == ppid else '' for record in msa]
+        data_labels = ['1A', '2', '3', '1B']
 
-    lines = {}
-    for state in ['1A', '1B', '2', '3']:
-        line = np.zeros(len(msa[0][1]))
-        for start, stop in labels[state]:
-            line[start:stop] = 1
-        lines[state] = line
+        kwargs_wide = {'msa_labels': msa_labels, 'msa_ticklength': 1, 'msa_tickwidth': 0.25, 'msa_tickpad': 1.1, 'msa_labelsize': 5,
+                       'height_ratio': 0.5, 'hspace': 0.2, 'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels,
+                       'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8,
+                                                             'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
+        adjust_wide = {'left': 0.04, 'bottom': 0.01, 'right': 0.94, 'top': 0.99}
+        kwargs_tall = {'msa_labels': msa_labels, 'msa_ticklength': 1, 'msa_tickwidth': 0.25, 'msa_tickpad': 1.1, 'msa_labelsize': 5,
+                       'height_ratio': 0.5, 'hspace': 0.2, 'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels,
+                       'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.90, 0.5), 'loc': 'center left', 'fontsize': 8,
+                                                             'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
+        adjust_tall = {'left': 0.075, 'bottom': 0.01, 'right': 0.89, 'top': 0.99}
 
-    plot_msa_data(msa, [lines['1A'], lines['2'], lines['3'], lines['1B']], figsize=(15, 6))
-    plt.savefig(f'out/{OGid}_wide_labels.png', bbox_inches='tight')
-    plt.close()
+        # Plot labels
+        lines = {state: np.zeros(len(msa[0]['seq'])) for state in state_set}
+        for start, stop, label in labels:
+            lines[label][start:stop] = 1
+        data = [lines[label] for label in data_labels]
 
-    plot_msa_data(msa, [lines['1A'], lines['2'], lines['3'], lines['1B']], figsize=(15, 6))
-    plt.savefig(f'out/{OGid}_tall_labels.png', bbox_inches='tight')
-    plt.close()
+        plot_msa_data([record['seq'] for record in msa], data, figsize=(15, 6), **kwargs_wide)
+        plt.subplots_adjust(**adjust_wide)
+        plt.savefig(f'out/{OGid}_wide_labels.png')
+        plt.close()
 
-    # Decode states and plot
-    fbs = model.forward_backward(emit_seq)
+        plot_msa_data([record['seq'] for record in msa], data, figsize=(8, 8), **kwargs_tall)
+        plt.subplots_adjust(**adjust_tall)
+        plt.savefig(f'out/{OGid}_tall_labels.png')
+        plt.close()
 
-    plot_msa_data(msa, [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(15, 6))
-    plt.savefig(f'out/{OGid}_wide.png', bbox_inches='tight')
-    plt.close()
+        # Decode states and plot
+        fbs = model.forward_backward(emit_seq)
+        data = [fbs[label] for label in data_labels]
 
-    plot_msa_data(msa, [fbs['1A'], fbs['2'], fbs['3'], fbs['1B']], figsize=(8, 8))
-    plt.savefig(f'out/{OGid}_tall.png', bbox_inches='tight')
-    plt.close()
+        plot_msa_data([record['seq'] for record in msa], data, figsize=(15, 6), **kwargs_wide)
+        plt.subplots_adjust(**adjust_wide)
+        plt.savefig(f'out/{OGid}_wide.png')
+        plt.close()
+
+        plot_msa_data([record['seq'] for record in msa], data, figsize=(8, 8), **kwargs_tall)
+        plt.subplots_adjust(**adjust_tall)
+        plt.savefig(f'out/{OGid}_tall.png')
+        plt.close()
 
 """
 DEPENDENCIES
