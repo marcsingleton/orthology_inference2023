@@ -173,10 +173,10 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     msa_legend: bool
         True if MSA legend is drawn.
     data_labels: list of strings
-        Labels for data series. If not None, will draw legend. Length does not
-        need to match the number of series in data.
+        Labels for data series. If not None, will draw legend. Length must
+        match the number of series in data.
     data_colors: list of colors
-        Colors for data series.
+        Colors for data series. Length must match number of series in data.
     legend_kwargs: dict
         Additional kwargs passed to fig.legend call.
     block_cols: int
@@ -206,8 +206,8 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     # Set options
     if msa_labels is None:
         msa_labels = ROWS * ['']
-    if len(msa_labels) != ROWS:
-        raise RuntimeError('len(msa_labels) does not match len(msa)')
+    elif len(msa_labels) != ROWS:
+        raise ValueError('len(msa_labels) does not match len(msa)')
     if legend_kwargs is None:
         legend_kwargs = {}
     if block_cols is None:
@@ -227,9 +227,13 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     if data_min == data_max:
         data_min -= 0.5
         data_max += 0.5
+    if data_labels is not None and len(data_labels) != len(data):
+        raise ValueError('len(data_labels) does not match len(data)')
     if data_colors is None:
         color_cycle = rcParams['axes.prop_cycle'].by_key()['color']
         data_colors = [color_cycle[i % len(color_cycle)] for i in range(len(data))]
+    elif len(data_colors) != len(data):
+        raise ValueError('len(data_colors) does not match len(data)')
     block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
     block_rows = len(msa)
 
@@ -356,8 +360,8 @@ def plot_msa(msa, figsize=(12, 6),
     # Set options
     if msa_labels is None:
         msa_labels = ROWS * ['']
-    if len(msa_labels) != ROWS:
-        raise RuntimeError('len(msa_labels) does not match len(msa)')
+    elif len(msa_labels) != ROWS:
+        raise ValueError('len(msa_labels) does not match len(msa)')
     if legend_kwargs is None:
         legend_kwargs = {}
     if block_cols is None:
