@@ -86,15 +86,16 @@ for OGid, ppids in OGid2ppids.items():
         msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
         labels = ppid2labels[ppid]
         msa_labels = [ppid if record['ppid'] == ppid else '' for record in msa]
-        data_labels = ['1A', '2', '3', '1B']
+        data_labels = ['1A', '1B', '2', '3']
+        data_colors = ['C0', 'C3', 'C1', 'C2']
 
         kwargs_wide = {'msa_labels': msa_labels, 'msa_ticklength': 1, 'msa_tickwidth': 0.25, 'msa_tickpad': 1.1, 'msa_labelsize': 5,
-                       'height_ratio': 0.5, 'hspace': 0.2, 'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels,
+                       'height_ratio': 0.5, 'hspace': 0.2, 'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels, 'data_colors': data_colors,
                        'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8,
                                                              'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
         adjust_wide = {'left': 0.04, 'bottom': 0.01, 'right': 0.94, 'top': 0.99}
         kwargs_tall = {'msa_labels': msa_labels, 'msa_ticklength': 1, 'msa_tickwidth': 0.25, 'msa_tickpad': 1.1, 'msa_labelsize': 5,
-                       'height_ratio': 0.5, 'hspace': 0.2, 'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels,
+                       'height_ratio': 0.5, 'hspace': 0.2, 'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels, 'data_colors': data_colors,
                        'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.90, 0.5), 'loc': 'center left', 'fontsize': 8,
                                                              'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
         adjust_tall = {'left': 0.075, 'bottom': 0.01, 'right': 0.89, 'top': 0.99}

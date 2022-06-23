@@ -128,7 +128,7 @@ def plot_msa_data(msa, data, figsize=(15, 6),
                   x_start=0, x_labelsize=6, y_labelsize=6,
                   height_ratio=1, hspace=0.5, sym_length=7, sym_height=7,
                   data_min=None, data_max=None,
-                  msa_legend=False, data_labels=None, legend_kwargs=None,
+                  msa_legend=False, data_labels=None, data_colors=None, legend_kwargs=None,
                   block_cols=None, sym2color=None, gap2color=None):
     """Plot MSA with associated positional data as matplotlib figure.
 
@@ -175,6 +175,8 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     data_labels: list of strings
         Labels for data series. If not None, will draw legend. Length does not
         need to match the number of series in data.
+    data_colors: list of colors
+        Colors for data series.
     legend_kwargs: dict
         Additional kwargs passed to fig.legend call.
     block_cols: int
@@ -225,6 +227,9 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     if data_min == data_max:
         data_min -= 0.5
         data_max += 0.5
+    if data_colors is None:
+        color_cycle = rcParams['axes.prop_cycle'].by_key()['color']
+        data_colors = [color_cycle[i % len(color_cycle)] for i in range(len(data))]
     block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
     block_rows = len(msa)
 
@@ -257,8 +262,8 @@ def plot_msa_data(msa, data, figsize=(15, 6),
         for spine in ['left', 'right', 'top', 'bottom']:
             msa_ax.spines[spine].set_visible(False)
 
-        for d in data:
-            data_ax.plot(range(x_left, x_right), d[i*block_cols:i*block_cols + block.shape[1]//sym_length])
+        for d, c in zip(data, data_colors):
+            data_ax.plot(range(x_left, x_right), d[i*block_cols:i*block_cols + block.shape[1]//sym_length], color=c)
         data_ax.set_ylim(data_min, data_max)
         data_ax.tick_params(axis='y', labelsize=y_labelsize)
         data_ax.tick_params(axis='x', labelsize=x_labelsize)
@@ -279,9 +284,8 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     if data_labels:
         if handles:  # Add spacer entry if MSA legend is also drawn
             handles.append(Line2D([], [], color='none'))
-        colors = rcParams['axes.prop_cycle'].by_key()['color']
-        for i, data_label in enumerate(data_labels):
-            handles.append(Line2D([], [], color=colors[i % len(colors)], label=data_label))
+        for data_label, data_color in zip(data_labels, data_colors):
+            handles.append(Line2D([], [], color=data_color, label=data_label))
     if handles:
         fig.legend(handles=handles, **legend_kwargs)
     return fig
