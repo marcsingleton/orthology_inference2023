@@ -15,7 +15,7 @@ from src.utils import read_fasta
 
 
 # Gradient functions
-def get_tip_prime(tree, ppid, param, pi, q0, q1):
+def get_tip_prime(tree, spid, param, pi, q0, q1):
     if param == 'pi':
         args = (q0, q1)
         p_prime = get_tree_prime_pi
@@ -28,16 +28,15 @@ def get_tip_prime(tree, ppid, param, pi, q0, q1):
     else:
         raise ValueError("param is not 'pi', 'q0', or 'q1'")
 
-    tree1 = tree
-    tree2 = tree.copy()
-    for tip in tree2.tips():
-        if tip.ppid == ppid:
-            tip.conditional = 1 - tip.conditional  # Flip state of given tip
+    p1 = utils.get_tree_probability(tree, pi, q0, q1)
+    p1_prime = p_prime(tree, *args)
 
-    p1 = utils.get_tree_probability(tree1, pi, q0, q1)
-    p2 = utils.get_tree_probability(tree2, pi, q0, q1)
-    p1_prime = p_prime(tree1, *args)
-    p2_prime = p_prime(tree2, *args)
+    tip = tree.tip_dict[spid]
+    tip.conditional = 1 - tip.conditional  # Flip state of given tip
+    p2 = utils.get_tree_probability(tree, pi, q0, q1)
+    p2_prime = p_prime(tree, *args)
+    tip.conditional = 1 - tip.conditional  # Flip state of given tip back
+
     d = p1 + p2
     d_prime = p1_prime + p2_prime
     return (p1_prime * d - p1 * d_prime) / d ** 2  # Quotient rule applied to get_tip_posterior
@@ -162,27 +161,55 @@ def norm_params(t_dists, e_dists):
         z_sum = sum([exp(z) for z in t_dist.values()])
         t_dists_norm[s1] = {s2: exp(z)/z_sum for s2, z in t_dist.items()}
     e_dists_norm = {}
-    for s, (zp, zpi, zq0, zq1) in e_dists.items():
-        e_dists_norm[s] = 1 / (1 + exp(-zp)), 1 / (1 + exp(-zpi)), exp(zq0), exp(zq1)
+    for s, params in e_dists.items():
+        if s == '4':
+            zp0, zp1 = params
+            e_dists_norm[s] = 1 / (1 + exp(-zp0)), 1 / (1 + exp(-zp1))
+        else:
+            zp, zpi, zq0, zq1 = params
+            e_dists_norm[s] = 1 / (1 + exp(-zp)), 1 / (1 + exp(-zpi)), exp(zq0), exp(zq1)
     return t_dists_norm, e_dists_norm
+
+
+def unnorm_params(t_dists_norm, e_dists_norm):
+    """Return parameters as their unnormalized values for gradient descent."""
+    t_dists = {s1: {s2: log(v) for s2, v in t_dist.items()} for s1, t_dist in t_dists_norm.items()}
+    e_dists = {}
+    for s, params in e_dists_norm.items():
+        if s == '4':
+            p0, p1 = params
+            e_dists[s] = -log(1 / p0 - 1), -log(1 / p1 - 1)
+        else:
+            p, pi, q0, q1 = params
+            e_dists[s] = -log(1 / p - 1), -log(1 / pi - 1), log(q0), log(q1)
+    return t_dists, e_dists
 
 
 def get_expectations(t_dists_norm, e_dists_norm, start_dist, record):
     """Return record updated with expected values of states and transitions given model parameters."""
     # Instantiate model
-    tree, ppid, state_seq, emit_seq = record['tree'], record['ppid'], record['state_seq'], record['emit_seq']
+    tree, spid, state_seq, emit_seq = record['tree'], record['spid'], record['state_seq'], record['emit_seq']
     tip_posteriors = {}
     tip_primes_pi, tip_primes_q0, tip_primes_q1 = {}, {}, {}
-    for state, (p, pi, q0, q1) in e_dists_norm.items():
-        tip_posteriors[state] = utils.get_tip_posterior(tree, ppid, pi, q0, q1)
-        tip_primes_pi[state] = get_tip_prime(tree, ppid, 'pi', pi, q0, q1)
-        tip_primes_q0[state] = get_tip_prime(tree, ppid, 'q0', pi, q0, q1)
-        tip_primes_q1[state] = get_tip_prime(tree, ppid, 'q1', pi, q0, q1)
+    for state, params in e_dists_norm.items():
+        if state != '4':
+            p, pi, q0, q1 = params
+            tip_posteriors[state] = utils.get_tip_posterior(tree, spid, pi, q0, q1)
+            tip_primes_pi[state] = get_tip_prime(tree, spid, 'pi', pi, q0, q1)
+            tip_primes_q0[state] = get_tip_prime(tree, spid, 'q0', pi, q0, q1)
+            tip_primes_q1[state] = get_tip_prime(tree, spid, 'q1', pi, q0, q1)
     record.update({'tip_posteriors': tip_posteriors,
                    'tip_primes_pi': tip_primes_pi, 'tip_primes_q0': tip_primes_q0, 'tip_primes_q1': tip_primes_q1})
-    model = hmm.HMM(t_dists_norm,
-                    {state: utils.BinomialArrayRV(p, tip_posteriors[state]) for state, (p, _, _, _) in e_dists_norm.items()},
-                    start_dist)
+
+    e_dists_rv = {}
+    for state, params in e_dists_norm.items():
+        if state == '4':
+            p0, p1 = params
+            e_dists_rv[state] = utils.BinomialArrayRV(p0, p1 * record['conditional'][0])
+        else:
+            p, _, _, _ = params
+            e_dists_rv[state] = utils.BinomialArrayRV(p, tip_posteriors[state])
+    model = hmm.HMM(t_dists_norm, e_dists_rv, start_dist)
 
     # Get expectations
     fs, ss_f = model.forward(emit_seq)
@@ -198,11 +225,11 @@ def get_expectations(t_dists_norm, e_dists_norm, start_dist, record):
     return record
 
 
-eta = 1E-5  # Learning rate
+eta = 5E-4  # Learning rate
 epsilon = 1E-2  # Convergence criterion
-iter_num = 200  # Max number of iterations
+iter_num = 50  # Max number of iterations
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
-ppid_regex = r'ppid=([A-Za-z0-9_]+)'
+ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
 
 if __name__ == '__main__':
@@ -229,12 +256,13 @@ if __name__ == '__main__':
     # Convert MSAs to records containing state-emissions sequences and other data
     records = []
     for OGid, ppids in OGid2ppids.items():
-        # Load MSA
+        # Load MSA and make mapping between PPID and SPID
         msa = []
         for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
             spid = re.search(spid_regex, header).group(1)
             ppid = re.search(ppid_regex, header).group(1)
             msa.append({'ppid': ppid, 'spid': spid, 'seq': seq})
+        ppid2spid = {record['ppid']: record['spid'] for record in msa}
 
         # Create emission sequence
         col0 = []
@@ -248,18 +276,17 @@ if __name__ == '__main__':
         # Load tree and convert to vectors at tips
         tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
         tree = tree.shear([record['spid'] for record in msa])
-        tips = {tip.name: tip for tip in tree.tips()}
+        tree.tip_dict = {tip.name: tip for tip in tree.tips()}
         for record in msa:
-            ppid, spid, seq = record['ppid'], record['spid'], record['seq']
+            spid, seq = record['spid'], record['seq']
             conditional = np.zeros((2, len(seq)))
             for j, sym in enumerate(seq):
                 if sym in ['-', '.']:
                     conditional[0, j] = 1
                 else:
                     conditional[1, j] = 1
-            tip = tips[spid]
+            tip = tree.tip_dict[spid]
             tip.conditional = conditional
-            tip.ppid = ppid
 
         for ppid in ppids:
             # Create state sequences
@@ -271,22 +298,33 @@ if __name__ == '__main__':
             mis = hmm.count_states(state_seq, state_set)
             mijs = hmm.count_transitions(state_seq, state_set)
 
-            records.append({'OGid': OGid, 'ppid': ppid, 'tree': tree, 'state_seq': state_seq, 'emit_seq': emit_seq,
-                            'mis': mis, 'mijs': mijs})
+            # Get conditional
+            spid = ppid2spid[ppid]
+            conditional = tree.tip_dict[spid].conditional
 
-    # Initialize parameters
-    t_dists = {'1A': {'1A': 0.997, '1B': 0.001, '2': 0.001, '3': 0.001},
-               '1B': {'1A': 0.001, '1B': 0.997, '2': 0.001, '3': 0.001},
-               '2': {'1A': 0.001, '1B': 0.001, '2': 0.997, '3': 0.001},
-               '3': {'1A': 0.001, '1B': 0.001, '2': 0.001, '3': 0.997}}
-    e_dists = {'1A': (0.95, 0.9, 4, 1),
-               '1B': (0.85, 0.75, 2, 1),
-               '2': (0.90, 0.5, 3, 3),
-               '3': (0.99, 0.01, 0.5, 10)}
-    start_dist = {'1A': 0.25, '1B': 0.20, '2': 0.30, '3': 0.25}
+            records.append({'OGid': OGid, 'spid': spid, 'tree': tree, 'state_seq': state_seq, 'emit_seq': emit_seq,
+                            'conditional': conditional, 'mis': mis, 'mijs': mijs})
 
-    t_dists = {s1: {s2: log(v) for s2, v in t_dist.items()} for s1, t_dist in t_dists.items()}
-    e_dists = {s: (-log(1/p-1), -log(1/pi-1), log(q0), log(q1)) for s, (p, pi, q0, q1) in e_dists.items()}
+    # Initialize t_dist and e_dist parameters
+    t_dists_norm = {'1A': {'1A': 0.996, '1B': 0.001, '2': 0.001, '3': 0.001, '4': 0.001},
+                    '1B': {'1A': 0.001, '1B': 0.996, '2': 0.001, '3': 0.001, '4': 0.001},
+                    '2': {'1A': 0.001, '1B': 0.001, '2': 0.996, '3': 0.001, '4': 0.001},
+                    '3': {'1A': 0.001, '1B': 0.001, '2': 0.001, '3': 0.996, '4': 0.001},
+                    '4': {'1A': 0.001, '1B': 0.001, '2': 0.001, '3': 0.001, '4': 0.996}}
+    e_dists_norm = {'1A': (0.95, 0.9, 4, 1),
+                    '1B': (0.85, 0.75, 2, 1),
+                    '2': (0.90, 0.5, 3, 3),
+                    '3': (0.99, 0.01, 0.5, 10),
+                    '4': (0.99, 0.01)}
+    t_dists, e_dists = unnorm_params(t_dists_norm, e_dists_norm)
+
+    # Calculate start_dist from background distribution of states
+    state_counts = {state: 0 for state in state_set}
+    for labels in ppid2labels.values():
+        for start, stop, label in labels:
+            state_counts[label] += stop - start
+    state_sum = sum(state_counts.values())
+    start_dist = {state: count / state_sum for state, count in state_counts.items()}
 
     # Gradient descent
     j, ll0 = 0, None
@@ -319,6 +357,7 @@ if __name__ == '__main__':
             nis, nijs = record['nis'], record['nijs']
             tip_posteriors = record['tip_posteriors']
             tip_primes_pi, tip_primes_q0, tip_primes_q1 = record['tip_primes_pi'], record['tip_primes_q0'], record['tip_primes_q1']
+            conditional = record['conditional']
 
             # Update t_dists
             for s1, t_dist in t_dists.items():
@@ -329,17 +368,28 @@ if __name__ == '__main__':
                     t_dist[s2] -= eta * d
 
             # Update e_dists
-            for s, (zp, zpi, zq0, zq1) in e_dists.items():
-                p, pi, q0, q1 = 1 / (1 + exp(-zp)), 1 / (1 + exp(-zpi)), exp(zq0), exp(zq1)
-                dzp, dzpi, dzq0, dzq1 = 0, 0, 0, 0
-                for i, emit in enumerate(emit_seq):
-                    # Equations 2.15 and 2.16 (emission parameter phi only)
-                    mn = mis[s][i] - nis[s][i]
-                    dzp -= mn / bernoulli_pmf(emit[0], p) * bernoulli_pmf_prime(emit[0], p) * p / (1 + exp(zp))
-                    dzpi -= mn / tip_posteriors[s][emit[1]] * tip_primes_pi[s][emit[1]] * pi / (1 + exp(zpi))
-                    dzq0 -= mn / tip_posteriors[s][emit[1]] * tip_primes_q0[s][emit[1]] * q0
-                    dzq1 -= mn / tip_posteriors[s][emit[1]] * tip_primes_q1[s][emit[1]] * q1
-                e_dists[s] = (zp - eta * dzp, zpi - eta * dzpi, zq0 - eta * dzq0, zq1 - eta * dzq1)
+            for s, params in e_dists.items():
+                if s == '4':
+                    zp0, zp1 = params
+                    p0, p1 = 1 / (1 + exp(-zp0)), 1 / (1 + exp(-zp1))
+                    dzp0, dzp1 = 0, 0
+                    for i, emit in enumerate(emit_seq):
+                        mn = mis[s][i] - nis[s][i]
+                        dzp0 -= mn / bernoulli_pmf(emit[0], p0) * bernoulli_pmf_prime(emit[0], p0) * p0 / (1 + exp(zp0))
+                        dzp1 -= mn / bernoulli_pmf(conditional[1, i], p1) * bernoulli_pmf_prime(conditional[1, i], p1) * p1 / (1 + exp(zp1))
+                    e_dists[s] = (zp0 - eta * dzp0, zp1 - eta * dzp1)
+                else:
+                    zp, zpi, zq0, zq1 = params
+                    p, pi, q0, q1 = 1 / (1 + exp(-zp)), 1 / (1 + exp(-zpi)), exp(zq0), exp(zq1)
+                    dzp, dzpi, dzq0, dzq1 = 0, 0, 0, 0
+                    for i, emit in enumerate(emit_seq):
+                        # Equations 2.15 and 2.16 (emission parameter phi only)
+                        mn = mis[s][i] - nis[s][i]
+                        dzp -= mn / bernoulli_pmf(emit[0], p) * bernoulli_pmf_prime(emit[0], p) * p / (1 + exp(zp))
+                        dzpi -= mn / tip_posteriors[s][emit[1]] * tip_primes_pi[s][emit[1]] * pi / (1 + exp(zpi))
+                        dzq0 -= mn / tip_posteriors[s][emit[1]] * tip_primes_q0[s][emit[1]] * q0
+                        dzq1 -= mn / tip_posteriors[s][emit[1]] * tip_primes_q1[s][emit[1]] * q1
+                    e_dists[s] = (zp - eta * dzp, zpi - eta * dzpi, zq0 - eta * dzq0, zq1 - eta * dzq1)
 
         j += 1
 

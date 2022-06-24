@@ -20,20 +20,19 @@ class BinomialArrayRV:
         p2 = self.array[x[1]]
         return p1 * p2
 
-    def rvs(self, size=None):
+    def rvs(self, random_state=None):
         pass
 
 
-def get_tip_posterior(tree, ppid, pi, q0, q1):
+def get_tip_posterior(tree, spid, pi, q0, q1):
     """Return probability of tip given tree."""
-    tree1 = tree
-    tree2 = tree.deepcopy()
-    for tip in tree2.tips():
-        if tip.ppid == ppid:
-            tip.conditional = 1 - tip.conditional  # Flip state of given tip
+    p1 = get_tree_probability(tree, pi, q0, q1)
 
-    p1 = get_tree_probability(tree1, pi, q0, q1)
-    p2 = get_tree_probability(tree2, pi, q0, q1)
+    tip = tree.tip_dict[spid]
+    tip.conditional = 1 - tip.conditional  # Flip state of given tip
+    p2 = get_tree_probability(tree, pi, q0, q1)
+    tip.conditional = 1 - tip.conditional  # Flip state of given tip back
+
     return p1 / (p1 + p2)
 
 
