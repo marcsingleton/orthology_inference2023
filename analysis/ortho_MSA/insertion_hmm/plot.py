@@ -83,7 +83,8 @@ for OGid, ppids in OGid2ppids.items():
             if state == '4':
                 p0, p1 = params
                 conditional = tree.tip_dict[spid].conditional
-                e_dists_rv[state] = utils.BinomialArrayRV(p0, conditional[1] * p1)
+                array = (1 - p1) * conditional[0] + p1 * conditional[1]
+                e_dists_rv[state] = utils.BinomialArrayRV(p0, array)
             else:
                 p, pi, q0, q1 = params
                 array = utils.get_tip_posterior(tree, spid, pi, q0, q1)

@@ -205,7 +205,9 @@ def get_expectations(t_dists_norm, e_dists_norm, start_dist, record):
     for state, params in e_dists_norm.items():
         if state == '4':
             p0, p1 = params
-            e_dists_rv[state] = utils.BinomialArrayRV(p0, p1 * record['conditional'][0])
+            conditional = record['conditional']
+            array = (1 - p1) * conditional[0] + p1 * conditional[1]
+            e_dists_rv[state] = utils.BinomialArrayRV(p0, array)
         else:
             p, _, _, _ = params
             e_dists_rv[state] = utils.BinomialArrayRV(p, tip_posteriors[state])
@@ -313,8 +315,8 @@ if __name__ == '__main__':
                     '4': {'1A': 0.001, '1B': 0.001, '2': 0.001, '3': 0.001, '4': 0.996}}
     e_dists_norm = {'1A': (0.95, 0.9, 4, 1),
                     '1B': (0.85, 0.75, 2, 1),
-                    '2': (0.90, 0.5, 3, 3),
-                    '3': (0.99, 0.01, 0.5, 10),
+                    '2': (0.5, 0.5, 3, 3),
+                    '3': (0.01, 0.01, 0.5, 10),
                     '4': (0.99, 0.01)}
     t_dists, e_dists = unnorm_params(t_dists_norm, e_dists_norm)
 
