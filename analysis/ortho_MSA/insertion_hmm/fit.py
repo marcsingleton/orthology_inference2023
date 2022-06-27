@@ -185,7 +185,7 @@ def get_expectations(t_dists_norm, e_dists_norm, start_dist, record):
     return record
 
 
-eta = 2E-5  # Learning rate
+eta = 8E-6  # Learning rate
 epsilon = 1E-2  # Convergence criterion
 iter_num = 50  # Max number of iterations
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
@@ -206,6 +206,7 @@ if __name__ == '__main__':
                 OGid2labels[OGid].append((start, stop, label))
             except KeyError:
                 OGid2labels[OGid] = [(start, stop, label)]
+    state_set = sorted(state_set)
 
     # Convert MSAs to records containing state-emissions sequences and other data
     records = []
@@ -273,8 +274,8 @@ if __name__ == '__main__':
 
     # Gradient descent
     j, ll0 = 0, None
-    models = []
-    while j < iter_num:
+    history = []
+    while j <= iter_num:
         # Calculate expectations and likelihoods
         t_dists_norm, e_dists_norm = norm_params(t_dists, e_dists)
         with mp.Pool(processes=num_processes) as pool:
@@ -282,7 +283,7 @@ if __name__ == '__main__':
 
         # Save and report updated parameters
         ll = sum([record['ll'] for record in records])
-        models.append((ll, t_dists_norm, e_dists_norm))
+        history.append({'iter_num': j, 'll': ll, 't_dists_norm': t_dists_norm, 'e_dists_norm': e_dists_norm})
 
         print(f'ITERATION {j} / {iter_num}')
         print('\tll:', ll)
@@ -327,13 +328,16 @@ if __name__ == '__main__':
 
         j += 1
 
-    # Save parameters
+    # Save history and best model parameters
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
+    with open('out/history.json', 'w') as file:
+        json.dump(history, file)
+
     with open('out/model.json', 'w') as file:
-        _, t_dists, e_dists = max(models)
-        json.dump({'t_dists': t_dists, 'e_dists': e_dists, 'start_dist': start_dist}, file)
+        model = max(history, key=lambda x: x['ll'])
+        json.dump({'t_dists': model['t_dists_norm'], 'e_dists': model['e_dists_norm'], 'start_dist': start_dist}, file)
 
 """
 NOTES
