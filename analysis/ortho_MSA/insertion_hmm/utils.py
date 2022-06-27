@@ -24,18 +24,6 @@ class BinomialArrayRV:
         pass
 
 
-def get_tip_posterior(tree, spid, pi, q0, q1):
-    """Return probability of tip given tree."""
-    p1 = get_tree_probability(tree, pi, q0, q1)
-
-    tip = tree.tip_dict[spid]
-    tip.conditional = 1 - tip.conditional  # Flip state of given tip
-    p2 = get_tree_probability(tree, pi, q0, q1)
-    tip.conditional = 1 - tip.conditional  # Flip state of given tip back
-
-    return p1 / (p1 + p2)
-
-
 def get_tree_probability(tree, pi, q0, q1):
     """Return probability of tree given tips."""
     s, conditional = get_conditional(tree, q0, q1)
