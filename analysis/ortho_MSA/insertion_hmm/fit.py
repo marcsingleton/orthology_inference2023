@@ -185,7 +185,7 @@ def get_expectations(t_dists_norm, e_dists_norm, start_dist, record):
     return record
 
 
-eta = 8E-6  # Learning rate
+eta = 1E-5  # Learning rate
 epsilon = 1E-2  # Convergence criterion
 iter_num = 50  # Max number of iterations
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
@@ -253,24 +253,35 @@ if __name__ == '__main__':
         records.append({'OGid': OGid, 'tree': tree, 'state_seq': state_seq, 'emit_seq': emit_seq,
                         'mis': mis, 'mijs': mijs})
 
-    # Initialize t_dist and e_dist parameters
-    t_dists_norm = {'1A': {'1A': 0.999997, '1B': 8E-7, '2': 1E-7, '3': 1E-7},
-                    '1B': {'1A': 8E-7, '1B': 0.99997, '2': 1E-7, '3': 1E-7},
-                    '2': {'1A': 1E-7, '1B': 1E-7, '2': 0.99997, '3': 8E-7},
-                    '3': {'1A': 1E-7, '1B': 1E-7, '2': 8E-7, '3': 0.99997}}
-    e_dists_norm = {'1A': (0.95, 0.9, 2.25, 1.8),
-                    '1B': (0.85, 0.75, 1.6, 1.8),
-                    '2': (0.5, 0.5, 2.4, 2.8),
-                    '3': (0.01, 0.01, 0.5, 11.7)}
-    t_dists, e_dists = unnorm_params(t_dists_norm, e_dists_norm)
-
     # Calculate start_dist from background distribution of states
-    state_counts = {state: 0 for state in state_set}
+    state_counts = {s: 0.1 for s in state_set}
     for labels in OGid2labels.values():
         for start, stop, label in labels:
             state_counts[label] += stop - start
     state_sum = sum(state_counts.values())
-    start_dist = {state: count / state_sum for state, count in state_counts.items()}
+    start_dist = {s: count / state_sum for s, count in state_counts.items()}
+
+    # Initialize t_dist from observed transitions
+    t_counts = {s1: {s2: 0.1 for s2 in state_set} for s1 in state_set}
+    for labels in OGid2labels.values():
+        start, stop, label0 = labels[0]
+        t_counts[label0][label0] += stop - start - 1
+        for start, stop, label1 in labels:
+            t_counts[label0][label1] += 1
+            t_counts[label1][label1] += stop - start - 1
+            label0 = label1
+    t_dists_norm = {}
+    for s1, t_count in t_counts.items():
+        t_sum = sum(t_count.values())
+        t_dists_norm[s1] = {s2: count / t_sum for s2, count in t_count.items()}
+
+    # Initialize e_dists
+    e_dists_norm = {'1A': (0.95, 0.95, 0.89, 0.49),
+                    '1B': (0.74, 0.54, 1.3, 0.45),
+                    '2': (0.84, 0.33, 1.49, 0.41),
+                    '3': (0.99, 0.01, 1.5, 0.01)}
+
+    t_dists, e_dists = unnorm_params(t_dists_norm, e_dists_norm)
 
     # Gradient descent
     j, ll0 = 0, None
