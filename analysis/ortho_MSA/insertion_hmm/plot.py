@@ -69,10 +69,10 @@ for OGid, labels in OGid2labels.items():
 
     # Instantiate model
     e_dists_rv = {}
-    for state, params in model_json['e_dists'].items():
+    for s, params in model_json['e_dists'].items():
         p, pi, q0, q1 = params
         array = utils.get_tree_probability(tree, pi, q0, q1)
-        e_dists_rv[state] = utils.BinomialArrayRV(p, array)
+        e_dists_rv[s] = utils.BinomialArrayRV(p, array)
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
     # Make plotting parameters
@@ -90,7 +90,7 @@ for OGid, labels in OGid2labels.items():
     adjust_tall = {'left': 0.025, 'bottom': 0.01, 'right': 0.89, 'top': 0.99}
 
     # Plot labels
-    lines = {state: np.zeros(len(msa[0]['seq'])) for state in state_set}
+    lines = {s: np.zeros(len(msa[0]['seq'])) for s in state_set}
     for start, stop, label in labels:
         lines[label][start:stop] = 1
     data = [lines[label] for label in data_labels]
