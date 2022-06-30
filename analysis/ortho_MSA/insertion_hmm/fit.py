@@ -23,51 +23,14 @@ def get_tree_prime_pi(tree, q0, q1):
     return d
 
 
-def get_tree_prime_q0(tree, pi, q0, q1):
-    """Return derivative of probability of tree relative to q0."""
-    derivative = get_conditional_prime_q0(tree, q0, q1)
+def get_tree_prime_q(tree, pi, q0, q1, name):
+    """Return derivative of probability of tree relative to q."""
+    derivative = get_conditional_prime_q(tree, q0, q1, name)
     d = (derivative * [[1-pi], [pi]]).sum(axis=0)  # Broadcasting magic
     return d
 
 
-def get_tree_prime_q1(tree, pi, q0, q1):
-    """Return derivative of probability of tree relative to q1."""
-    derivative = get_conditional_prime_q1(tree, q0, q1)
-    d = (derivative * [[1-pi], [pi]]).sum(axis=0)  # Broadcasting magic
-    return d
-
-
-def get_conditional_prime_q0(node, q0, q1):
-    """Return derivative of conditional probabilities relative to q0."""
-    child1, child2 = node.children
-
-    if child1.is_tip():
-        s1, conditional1 = 0, child1.conditional
-        derivative1 = np.zeros((2, conditional1.shape[1]))
-    else:
-        s1, conditional1 = utils.get_conditional(child1, q0, q1)
-        conditional1 = exp(s1) * conditional1  # Un-normalize
-        derivative1 = get_conditional_prime_q0(child1, q0, q1)
-    if child2.is_tip():
-        s2, conditional2 = 0, child2.conditional
-        derivative2 = np.zeros((2, conditional2.shape[1]))
-    else:
-        s2, conditional2 = utils.get_conditional(child2, q0, q1)
-        conditional2 = exp(s2) * conditional2  # Un-normalize
-        derivative2 = get_conditional_prime_q0(child2, q0, q1)
-
-    p1 = utils.get_transition_matrix(q0, q1, child1.length)
-    p2 = utils.get_transition_matrix(q0, q1, child2.length)
-    d1 = get_transition_matrix_prime_q0(q0, q1, child1.length)
-    d2 = get_transition_matrix_prime_q0(q0, q1, child2.length)
-    term1 = np.matmul(d1, conditional1) + np.matmul(p1, derivative1)
-    term2 = np.matmul(d2, conditional2) + np.matmul(p2, derivative2)
-    derivative = term1*np.matmul(p2, conditional2) + np.matmul(p1, conditional1)*term2
-
-    return derivative
-
-
-def get_conditional_prime_q1(node, q0, q1):
+def get_conditional_prime_q(node, q0, q1, name):
     """Return derivative of conditional probabilities relative to q1."""
     child1, child2 = node.children
 
@@ -77,19 +40,20 @@ def get_conditional_prime_q1(node, q0, q1):
     else:
         s1, conditional1 = utils.get_conditional(child1, q0, q1)
         conditional1 = exp(s1) * conditional1  # Un-normalize
-        derivative1 = get_conditional_prime_q1(child1, q0, q1)
+        derivative1 = get_conditional_prime_q(child1, q0, q1, name)
     if child2.is_tip():
         s2, conditional2 = 0, child2.conditional
         derivative2 = np.zeros((2, conditional2.shape[1]))
     else:
         s2, conditional2 = utils.get_conditional(child2, q0, q1)
         conditional2 = exp(s2) * conditional2  # Un-normalize
-        derivative2 = get_conditional_prime_q1(child2, q0, q1)
+        derivative2 = get_conditional_prime_q(child2, q0, q1, name)
 
     p1 = utils.get_transition_matrix(q0, q1, child1.length)
     p2 = utils.get_transition_matrix(q0, q1, child2.length)
-    d1 = get_transition_matrix_prime_q1(q0, q1, child1.length)
-    d2 = get_transition_matrix_prime_q1(q0, q1, child2.length)
+    d1 = get_transition_matrix_prime_q(q0, q1, child1.length, name)
+    d2 = get_transition_matrix_prime_q(q0, q1, child2.length, name)
+
     term1 = np.matmul(d1, conditional1) + np.matmul(p1, derivative1)
     term2 = np.matmul(d2, conditional2) + np.matmul(p2, derivative2)
     derivative = term1*np.matmul(p2, conditional2) + np.matmul(p1, conditional1)*term2
@@ -97,24 +61,23 @@ def get_conditional_prime_q1(node, q0, q1):
     return derivative
 
 
-def get_transition_matrix_prime_q0(q0, q1, t):
+def get_transition_matrix_prime_q(q0, q1, t, name):
     """Return derivative transition matrix for two-state CTMC relative to q0."""
     q = q0 + q1
-    d00 = -(q1 + (t*q0**2+t*q0*q1-q1)*exp(-q*t)) / q**2
-    d01 = -d00
-    d11 = q1*(1 - (q0*t+q1*t+1)*exp(-q*t)) / q**2
-    d10 = -d11
-    return np.array([[d00, d01], [d10, d11]])
-
-
-def get_transition_matrix_prime_q1(q0, q1, t):
-    """Return derivative transition matrix for two-state CTMC relative to q1."""
-    q = q0 + q1
-    d00 = q0*(1 - (t*q0+t*q1+1)*exp(-q*t)) / q**2
-    d01 = -d00
-    d11 = -(q0 + (t*q1**2+t*q0*q1-q0)*exp(-q*t)) / q**2
-    d10 = -d11
-    return np.array([[d00, d01], [d10, d11]])
+    if name == 'q0':
+        d00 = -(q1 + (t*q0**2+t*q0*q1-q1)*exp(-q*t)) / q**2
+        d01 = -d00
+        d11 = q1*(1 - (q0*t+q1*t+1)*exp(-q*t)) / q**2
+        d10 = -d11
+        return np.array([[d00, d01], [d10, d11]])
+    elif name == 'q1':
+        d00 = q0 * (1 - (t * q0 + t * q1 + 1) * exp(-q * t)) / q ** 2
+        d01 = -d00
+        d11 = -(q0 + (t * q1 ** 2 + t * q0 * q1 - q0) * exp(-q * t)) / q ** 2
+        d10 = -d11
+        return np.array([[d00, d01], [d10, d11]])
+    else:
+        raise ValueError('q is not "q0" or "q1"')
 
 
 def beta_prime(a, b):
@@ -176,8 +139,8 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, state_set, record):
         betabinom_primes_b[s] = get_betabinom_prime_b(emit_seq, n, a, b)
         tree_pmfs[s] = utils.get_tree_pmf(tree, pi, q0, q1)
         tree_primes_pi[s] = get_tree_prime_pi(tree, q0, q1)
-        tree_primes_q0[s] = get_tree_prime_q0(tree, pi, q0, q1)
-        tree_primes_q1[s] = get_tree_prime_q1(tree, pi, q0, q1)
+        tree_primes_q0[s] = get_tree_prime_q(tree, pi, q0, q1, 'q0')
+        tree_primes_q1[s] = get_tree_prime_q(tree, pi, q0, q1, 'q1')
         e_dists_rv[s] = utils.ArrayRV(betabinom_pmfs[s] * tree_pmfs[s])
 
     # Instantiate model and get expectations
@@ -221,7 +184,7 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, state_set, record):
 
 eta = 2E-5  # Learning rate
 epsilon = 1E-2  # Convergence criterion
-iter_num = 200  # Max number of iterations
+iter_num = 50  # Max number of iterations
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
