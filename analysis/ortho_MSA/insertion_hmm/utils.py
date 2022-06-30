@@ -36,23 +36,22 @@ def get_tree_pmf(tree, pi, q0, q1):
 
 def get_conditional(node, q0, q1):
     """Return conditional probabilities of tree given tips and node state."""
-    child1, child2 = node.children
+    ss, ps = [], []
+    for child in node.children:
+        if child.is_tip():
+            s, conditional = np.zeros(child.conditional.shape[1]), child.conditional
+        else:
+            s, conditional = get_conditional(child, q0, q1)
+        m = get_transition_matrix(q0, q1, child.length)
+        p = np.matmul(m, conditional)
 
-    if child1.is_tip():
-        s1, conditional1 = 0, child1.conditional
-    else:
-        s1, conditional1 = get_conditional(child1, q0, q1)
-    if child2.is_tip():
-        s2, conditional2 = 0, child2.conditional
-    else:
-        s2, conditional2 = get_conditional(child2, q0, q1)
+        ss.append(s)
+        ps.append(p)
 
-    p1 = get_transition_matrix(q0, q1, child1.length)
-    p2 = get_transition_matrix(q0, q1, child2.length)
-    conditional = np.matmul(p1, conditional1) * np.matmul(p2, conditional2)
+    conditional = np.product(np.stack(ps), axis=0)
     s = conditional.sum(axis=0)
     conditional = conditional / s  # Normalize to 1 to prevent underflow
-    s = log(s) + s1 + s2  # Pass forward scaling constant in log space
+    s = log(s) + np.sum(np.stack(ss), axis=0)  # Pass forward scaling constant in log space
 
     return s, conditional
 

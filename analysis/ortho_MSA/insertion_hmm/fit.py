@@ -32,31 +32,34 @@ def get_tree_prime_q(tree, pi, q0, q1, name):
 
 def get_conditional_prime_q(node, q0, q1, name):
     """Return derivative of conditional probabilities relative to q1."""
-    child1, child2 = node.children
+    # Collect product and derivative of product for each branch
+    ps = []
+    dps = []
+    for child in node.children:
+        if child.is_tip():
+            s, conditional = 0, child.conditional
+            derivative = np.zeros((2, conditional.shape[1]))
+        else:
+            s, conditional = utils.get_conditional(child, q0, q1)
+            conditional = exp(s) * conditional  # Un-normalize
+            derivative = get_conditional_prime_q(child, q0, q1, name)
 
-    if child1.is_tip():
-        s1, conditional1 = 0, child1.conditional
-        derivative1 = np.zeros((2, conditional1.shape[1]))
-    else:
-        s1, conditional1 = utils.get_conditional(child1, q0, q1)
-        conditional1 = exp(s1) * conditional1  # Un-normalize
-        derivative1 = get_conditional_prime_q(child1, q0, q1, name)
-    if child2.is_tip():
-        s2, conditional2 = 0, child2.conditional
-        derivative2 = np.zeros((2, conditional2.shape[1]))
-    else:
-        s2, conditional2 = utils.get_conditional(child2, q0, q1)
-        conditional2 = exp(s2) * conditional2  # Un-normalize
-        derivative2 = get_conditional_prime_q(child2, q0, q1, name)
+        m = utils.get_transition_matrix(q0, q1, child.length)
+        p = np.matmul(m, conditional)
 
-    p1 = utils.get_transition_matrix(q0, q1, child1.length)
-    p2 = utils.get_transition_matrix(q0, q1, child2.length)
-    d1 = get_transition_matrix_prime_q(q0, q1, child1.length, name)
-    d2 = get_transition_matrix_prime_q(q0, q1, child2.length, name)
+        dm = get_transition_matrix_prime_q(q0, q1, child.length, name)
+        dp = np.matmul(dm, conditional) + np.matmul(m, derivative)
 
-    term1 = np.matmul(d1, conditional1) + np.matmul(p1, derivative1)
-    term2 = np.matmul(d2, conditional2) + np.matmul(p2, derivative2)
-    derivative = term1*np.matmul(p2, conditional2) + np.matmul(p1, conditional1)*term2
+        ps.append(p)
+        dps.append(dp)
+
+    # Assemble products and derivatives into terms (chain rule) and then sum
+    terms = []
+    for i in range(len(node.children)):
+        term = [dps[j] if i == j else ps[j] for j in range(len(node.children))]
+        term = np.product(np.stack(term), axis=0)
+        terms.append(term)
+    derivative = np.sum(np.stack(terms), axis=0)
 
     return derivative
 
