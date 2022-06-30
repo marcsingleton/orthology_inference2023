@@ -71,9 +71,9 @@ for OGid, labels in OGid2labels.items():
     # Instantiate model
     e_dists_rv = {}
     for s, params in model_json['e_dists'].items():
-        a, b, pi, q0, q1 = params
+        a, b, pi, q0, q1, r = params
         array1 = utils.get_betabinom_pmf(emit_seq, len(msa), a, b)
-        array2 = utils.get_tree_pmf(tree, pi, q0, q1)
+        array2 = utils.get_tree_pmf(tree, pi, q0, q1, r)
         e_dists_rv[s] = utils.ArrayRV(array1 * array2)
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 

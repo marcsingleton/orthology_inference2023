@@ -16,38 +16,47 @@ from src.utils import read_fasta
 
 
 # Gradient functions
-def get_tree_prime_pi(tree, q0, q1):
+def get_tree_prime_pi(tree, q0, q1, r):
     """Return derivative of probability of tree relative to pi."""
-    s, conditional = utils.get_conditional(tree, q0, q1)
+    s, conditional = utils.get_conditional(tree, q0, q1, r)
     d = ((exp(s) * conditional) * [[-1], [1]]).sum(axis=0)  # Broadcasting magic
     return d
 
 
-def get_tree_prime_q(tree, pi, q0, q1, name):
+def get_tree_prime_q(tree, pi, q0, q1, r, name):
     """Return derivative of probability of tree relative to q."""
-    derivative = get_conditional_prime_q(tree, q0, q1, name)
+    derivative = get_conditional_prime_q(tree, q0, q1, r, name)
     d = (derivative * [[1-pi], [pi]]).sum(axis=0)  # Broadcasting magic
     return d
 
 
-def get_conditional_prime_q(node, q0, q1, name):
-    """Return derivative of conditional probabilities relative to q1."""
+def get_tree_prime_r(tree, pi, q0, q1, r):
+    """Return derivative of probability of tree relative to r."""
+    derivative = get_conditional_prime_r(tree, q0, q1, r)
+    d = (derivative * [[1-pi], [pi]]).sum(axis=0)  # Broadcasting magic
+    return d
+
+
+def get_conditional_prime_q(node, q0, q1, r, name):
+    """Return derivative of conditional probabilities relative to q."""
     # Collect product and derivative of product for each branch
     ps = []
     dps = []
     for child in node.children:
         if child.is_tip():
-            s, conditional = 0, child.conditional
+            conditional = child.conditional
+            r_branch = r
             derivative = np.zeros((2, conditional.shape[1]))
         else:
-            s, conditional = utils.get_conditional(child, q0, q1)
+            s, conditional = utils.get_conditional(child, q0, q1, r)
             conditional = exp(s) * conditional  # Un-normalize
-            derivative = get_conditional_prime_q(child, q0, q1, name)
+            r_branch = 1
+            derivative = get_conditional_prime_q(child, q0, q1, r, name)
 
-        m = utils.get_transition_matrix(q0, q1, child.length)
+        m = utils.get_transition_matrix(q0, q1, r_branch, child.length)
         p = np.matmul(m, conditional)
 
-        dm = get_transition_matrix_prime_q(q0, q1, child.length, name)
+        dm = get_transition_matrix_prime_q(q0, q1, r_branch, child.length, name)
         dp = np.matmul(dm, conditional) + np.matmul(m, derivative)
 
         ps.append(p)
@@ -64,13 +73,51 @@ def get_conditional_prime_q(node, q0, q1, name):
     return derivative
 
 
-def get_transition_matrix_prime_q(q0, q1, t, name):
-    """Return derivative transition matrix for two-state CTMC relative to q0."""
+def get_conditional_prime_r(node, q0, q1, r):
+    """Return derivative of conditional probabilities relative to r."""
+    # Collect product and derivative of product for each branch
+    ps = []
+    dps = []
+    for child in node.children:
+        if child.is_tip():
+            conditional = child.conditional
+            r_branch = r
+            derivative = np.zeros((2, conditional.shape[1]))
+            dm = get_transition_matrix_prime_r(q0, q1, r_branch, child.length)
+        else:
+            s, conditional = utils.get_conditional(child, q0, q1, r)
+            conditional = exp(s) * conditional  # Un-normalize
+            r_branch = 1
+            derivative = get_conditional_prime_r(child, q0, q1, r)
+            dm = np.array([[0, 0], [0, 0]])
+
+        m = utils.get_transition_matrix(q0, q1, r_branch, child.length)
+        p = np.matmul(m, conditional)
+
+        dp = np.matmul(dm, conditional) + np.matmul(m, derivative)
+
+        ps.append(p)
+        dps.append(dp)
+
+    # Assemble products and derivatives into terms (chain rule) and then sum
+    terms = []
+    for i in range(len(node.children)):
+        term = [dps[j] if i == j else ps[j] for j in range(len(node.children))]
+        term = np.product(np.stack(term), axis=0)
+        terms.append(term)
+    derivative = np.sum(np.stack(terms), axis=0)
+
+    return derivative
+
+
+def get_transition_matrix_prime_q(q0, q1, r, t, name):
+    """Return derivative transition matrix for two-state CTMC relative to q."""
     q = q0 + q1
+    t *= r
     if name == 'q0':
-        d00 = -(q1 + (t*q0**2+t*q0*q1-q1)*exp(-q*t)) / q**2
+        d00 = -(q1 + (t * q0 ** 2 + t * q0 * q1 - q1) * exp(-q * t)) / q ** 2
         d01 = -d00
-        d11 = q1*(1 - (q0*t+q1*t+1)*exp(-q*t)) / q**2
+        d11 = q1*(1 - (q0 * t + q1 * t + 1) * exp(-q * t)) / q ** 2
         d10 = -d11
         return np.array([[d00, d01], [d10, d11]])
     elif name == 'q1':
@@ -81,6 +128,16 @@ def get_transition_matrix_prime_q(q0, q1, t, name):
         return np.array([[d00, d01], [d10, d11]])
     else:
         raise ValueError('q is not "q0" or "q1"')
+
+
+def get_transition_matrix_prime_r(q0, q1, r, t):
+    """Return derivative transition matrix for two-state CTMC relative to r."""
+    q = q0 + q1
+    d00 = -q0 * t * exp(-q * r * t)
+    d01 = -d00
+    d11 = -q1 * t * exp(-q * r * t)
+    d10 = -d11
+    return np.array([[d00, d01], [d10, d11]])
 
 
 def beta_prime(a, b):
@@ -107,18 +164,20 @@ def norm_params(t_dists, e_dists):
         t_dists_norm[s1] = {s2: exp(z)/z_sum for s2, z in t_dist.items()}
     e_dists_norm = {}
     for s, params in e_dists.items():
-        za, zb, zpi, zq0, zq1 = params
-        e_dists_norm[s] = exp(za), exp(zb), 1 / (1 + exp(-zpi)), exp(zq0), exp(zq1)
+        za, zb, zpi, zq0, zq1, zr = params
+        e_dists_norm[s] = exp(za), exp(zb), 1 / (1 + exp(-zpi)), exp(zq0), exp(zq1), exp(zr)
     return t_dists_norm, e_dists_norm
 
 
 def unnorm_params(t_dists_norm, e_dists_norm):
     """Return parameters as their unnormalized values for gradient descent."""
-    t_dists = {s1: {s2: log(v) for s2, v in t_dist.items()} for s1, t_dist in t_dists_norm.items()}
+    t_dists = {}
+    for s1, t_dist in t_dists_norm.items():
+        t_dists[s1] = {s2: log(v) for s2, v in t_dist.items()}
     e_dists = {}
     for s, params in e_dists_norm.items():
-        a, b, pi, q0, q1 = params
-        e_dists[s] = log(a), log(b), log(pi / (1 - pi)), log(q0), log(q1)
+        a, b, pi, q0, q1, r = params
+        e_dists[s] = log(a), log(b), log(pi / (1 - pi)), log(q0), log(q1), log(r)
     return t_dists, e_dists
 
 
@@ -133,17 +192,18 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, state_set, record):
     betabinom_pmfs = {}
     betabinom_primes_a, betabinom_primes_b = {}, {}
     tree_pmfs = {}
-    tree_primes_pi, tree_primes_q0, tree_primes_q1 = {}, {}, {}
+    tree_primes_pi, tree_primes_q0, tree_primes_q1, tree_primes_r = {}, {}, {}, {}
     e_dists_rv = {}
     for s, params in e_dists_norm.items():
-        a, b, pi, q0, q1 = params
+        a, b, pi, q0, q1, r = params
         betabinom_pmfs[s] = utils.get_betabinom_pmf(emit_seq, n, a, b)
         betabinom_primes_a[s] = get_betabinom_prime_a(emit_seq, n, a, b)
         betabinom_primes_b[s] = get_betabinom_prime_b(emit_seq, n, a, b)
-        tree_pmfs[s] = utils.get_tree_pmf(tree, pi, q0, q1)
-        tree_primes_pi[s] = get_tree_prime_pi(tree, q0, q1)
-        tree_primes_q0[s] = get_tree_prime_q(tree, pi, q0, q1, 'q0')
-        tree_primes_q1[s] = get_tree_prime_q(tree, pi, q0, q1, 'q1')
+        tree_pmfs[s] = utils.get_tree_pmf(tree, pi, q0, q1, r)
+        tree_primes_pi[s] = get_tree_prime_pi(tree, q0, q1, r)
+        tree_primes_q0[s] = get_tree_prime_q(tree, pi, q0, q1, r, 'q0')
+        tree_primes_q1[s] = get_tree_prime_q(tree, pi, q0, q1, r, 'q1')
+        tree_primes_r[s] = get_tree_prime_r(tree, pi, q0, q1, r)
         e_dists_rv[s] = utils.ArrayRV(betabinom_pmfs[s] * tree_pmfs[s])
 
     # Instantiate model and get expectations
@@ -173,19 +233,20 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, state_set, record):
     for s, params in e_dists_norm.items():
         # Equations 2.15 and 2.16 (emission parameter phi only)
         e_grad = {}
-        a, b, pi, q0, q1 = params
+        a, b, pi, q0, q1, r = params
         mn = np.array([mi - ni for mi, ni in zip(mis[s], nis[s])])
         e_grad['za'] = (-mn / betabinom_pmfs[s] * betabinom_primes_a[s] * a).sum()
         e_grad['zb'] = (-mn / betabinom_pmfs[s] * betabinom_primes_b[s] * b).sum()
         e_grad['zpi'] = (-mn / tree_pmfs[s] * tree_primes_pi[s] * pi * (1 - pi)).sum()
         e_grad['zq0'] = (-mn / tree_pmfs[s] * tree_primes_q0[s] * q0).sum()
         e_grad['zq1'] = (-mn / tree_pmfs[s] * tree_primes_q1[s] * q1).sum()
+        e_grad['zr'] = (-mn / tree_pmfs[s] * tree_primes_r[s] * r).sum()
         e_grads[s] = e_grad
 
     return {'ll': ll, 't_grads': t_grads, 'e_grads': e_grads}
 
 
-eta = 2E-5  # Learning rate
+eta = 1E-5  # Learning rate
 epsilon = 1E-2  # Convergence criterion
 iter_num = 50  # Max number of iterations
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
@@ -277,10 +338,10 @@ if __name__ == '__main__':
         t_dists_norm[s1] = {s2: count / t_sum for s2, count in t_count.items()}
 
     # Initialize e_dists
-    e_dists_norm = {'1A': (1.15, 0.15, 0.95, 1.23, 0.29),
-                    '1B': (1.01, 0.17, 0.64, 1.02, 0.29),
-                    '2': (1.57, 0.1, 0.64, 1.16, 0.29),
-                    '3': (0.63, 0.5, 0.01, 0.8, 0.01)}
+    e_dists_norm = {'1A': (1, 1, 0.95, 0.1, 0.1, 1),
+                    '1B': (1, 1, 0.75, 1, 1, 1),
+                    '2': (1, 1, 0.5, 0.5, 0.5, 1),
+                    '3': (1, 1, 0.01, 0.1, 0.1, 1)}
 
     t_dists, e_dists = unnorm_params(t_dists_norm, e_dists_norm)
 
@@ -314,17 +375,19 @@ if __name__ == '__main__':
                 t_dist[s2] -= eta * d
 
         for s, params in e_dists.items():
-            za, zb, zpi, zq0, zq1 = params
+            za, zb, zpi, zq0, zq1, zr = params
             dza = sum([gradient['e_grads'][s]['za'] for gradient in gradients])
             dzb = sum([gradient['e_grads'][s]['zb'] for gradient in gradients])
             dzpi = sum([gradient['e_grads'][s]['zpi'] for gradient in gradients])
             dzq0 = sum([gradient['e_grads'][s]['zq0'] for gradient in gradients])
             dzq1 = sum([gradient['e_grads'][s]['zq1'] for gradient in gradients])
+            dzr = sum([gradient['e_grads'][s]['zr'] for gradient in gradients])
             e_dists[s] = (za - eta * dza,
                           zb - eta * dzb,
                           zpi - eta * dzpi,
                           zq0 - eta * dzq0,
-                          zq1 - eta * dzq1)
+                          zq1 - eta * dzq1,
+                          zr - eta * dzr)
 
         j += 1
 
