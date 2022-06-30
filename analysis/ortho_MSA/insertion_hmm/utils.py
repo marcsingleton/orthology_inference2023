@@ -2,29 +2,32 @@
 
 import numpy as np
 from numpy import exp, log
+from scipy.special import beta, comb
 
 
-class BinomialArrayRV:
+class ArrayRV:
     """Class that allows HMM class to interface with pre-computed probability array.
 
     The rvs method is only defined so the HMM recognizes it as a proper
     random variable. Since random variates are not needed in this script, the
     body of the method is left blank.
     """
-    def __init__(self, p, array):
-        self.p = p
+    def __init__(self, array):
         self.array = array
 
     def pmf(self, x):
-        p1 = self.p if x[0] else 1 - self.p
-        p2 = self.array[x[1]]
-        return p1 * p2
+        return self.array[x]
 
     def rvs(self, random_state=None):
         pass
 
 
-def get_tree_probability(tree, pi, q0, q1):
+def get_betabinom_pmf(x, n, a, b):
+    """Return pmf of beta-binomial distribution evaluated at x."""
+    return comb(n, x) * beta(x + a, n - x + b) / beta(a, b)
+
+
+def get_tree_pmf(tree, pi, q0, q1):
     """Return probability of tree given tips."""
     s, conditional = get_conditional(tree, q0, q1)
     l = ((exp(s) * conditional) * [[1-pi], [pi]]).sum(axis=0)

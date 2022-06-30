@@ -49,9 +49,10 @@ for OGid, labels in OGid2labels.items():
     emit_seq = []
     for j in range(len(msa[0]['seq'])):
         col = [1 if msa[i]['seq'][j] in ['-', '.'] else 0 for i in range(len(msa))]
-        emit0 = all([c0 == c for c0, c in zip(col0, col)])
-        emit_seq.append((emit0, j))  # The tree probabilities are pre-calculated, so emission value is its index
+        emit0 = sum([c0 == c for c0, c in zip(col0, col)])
+        emit_seq.append(emit0)  # The tree probabilities are pre-calculated, so emission value is its index
         col0 = col
+    emit_seq = np.array(emit_seq)
 
     # Load tree and convert to vectors at tips
     tree = tree_template.deepcopy().shear([record['spid'] for record in msa])
@@ -70,9 +71,10 @@ for OGid, labels in OGid2labels.items():
     # Instantiate model
     e_dists_rv = {}
     for s, params in model_json['e_dists'].items():
-        p, pi, q0, q1 = params
-        array = utils.get_tree_probability(tree, pi, q0, q1)
-        e_dists_rv[s] = utils.BinomialArrayRV(p, array)
+        a, b, pi, q0, q1 = params
+        array1 = utils.get_betabinom_pmf(emit_seq, len(msa), a, b)
+        array2 = utils.get_tree_pmf(tree, pi, q0, q1)
+        e_dists_rv[s] = utils.ArrayRV(array1 * array2)
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
     # Make plotting parameters
@@ -106,6 +108,7 @@ for OGid, labels in OGid2labels.items():
     plt.close()
 
     # Decode states and plot
+    emit_seq = list(range(len(emit_seq)))  # Everything is pre-calculated, so emit_seq is the emit index
     fbs = model.forward_backward(emit_seq)
     data = [fbs[label] for label in data_labels]
 
