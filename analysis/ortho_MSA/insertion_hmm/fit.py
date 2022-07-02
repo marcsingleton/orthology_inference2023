@@ -50,7 +50,7 @@ def get_conditional_prime_q(node, q0, q1, r, name):
         else:
             s, conditional = utils.get_conditional(child, q0, q1, r)
             conditional = exp(s) * conditional  # Un-normalize
-            r_branch = 1
+            r_branch = 0
             derivative = get_conditional_prime_q(child, q0, q1, r, name)
 
         m = utils.get_transition_matrix(q0, q1, r_branch, child.length)
@@ -87,7 +87,7 @@ def get_conditional_prime_r(node, q0, q1, r):
         else:
             s, conditional = utils.get_conditional(child, q0, q1, r)
             conditional = exp(s) * conditional  # Un-normalize
-            r_branch = 1
+            r_branch = 0
             derivative = get_conditional_prime_r(child, q0, q1, r)
             dm = np.array([[0, 0], [0, 0]])
 
@@ -113,7 +113,7 @@ def get_conditional_prime_r(node, q0, q1, r):
 def get_transition_matrix_prime_q(q0, q1, r, t, name):
     """Return derivative transition matrix for two-state CTMC relative to q."""
     q = q0 + q1
-    t *= r
+    t += r
     if name == 'q0':
         d00 = -(q1 + (t * q0 ** 2 + t * q0 * q1 - q1) * exp(-q * t)) / q ** 2
         d01 = -d00
@@ -133,9 +133,9 @@ def get_transition_matrix_prime_q(q0, q1, r, t, name):
 def get_transition_matrix_prime_r(q0, q1, r, t):
     """Return derivative transition matrix for two-state CTMC relative to r."""
     q = q0 + q1
-    d00 = -q0 * t * exp(-q * r * t)
+    d00 = -q0 * exp(-q * (t + r))
     d01 = -d00
-    d11 = -q1 * t * exp(-q * r * t)
+    d11 = -q1 * exp(-q * (t + r))
     d10 = -d11
     return np.array([[d00, d01], [d10, d11]])
 
@@ -338,10 +338,10 @@ if __name__ == '__main__':
         t_dists_norm[s1] = {s2: count / t_sum for s2, count in t_count.items()}
 
     # Initialize e_dists
-    e_dists_norm = {'1A': (1, 1, 0.95, 0.1, 0.1, 1),
-                    '1B': (1, 1, 0.75, 1, 1, 1),
-                    '2': (1, 1, 0.5, 0.5, 0.5, 1),
-                    '3': (1, 1, 0.01, 0.1, 0.1, 1)}
+    e_dists_norm = {'1A': (1, 1, 0.95, 0.1, 0.1, 0.001),
+                    '1B': (1, 1, 0.75, 1, 1, 0.001),
+                    '2': (1, 1, 0.5, 0.5, 0.5, 0.001),
+                    '3': (1, 1, 0.01, 0.1, 0.1, 0.001)}
 
     t_dists, e_dists = unnorm_params(t_dists_norm, e_dists_norm)
 

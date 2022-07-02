@@ -40,11 +40,11 @@ def get_conditional(node, q0, q1, r):
     for child in node.children:
         if child.is_tip():
             s, conditional = np.zeros(child.conditional.shape[1]), child.conditional
-            r_branch = r
+            r_child = r
         else:
             s, conditional = get_conditional(child, q0, q1, r)
-            r_branch = 1
-        m = get_transition_matrix(q0, q1, r_branch, child.length)
+            r_child = 0
+        m = get_transition_matrix(q0, q1, r_child, child.length)
         p = np.matmul(m, conditional)
 
         ss.append(s)
@@ -61,7 +61,7 @@ def get_conditional(node, q0, q1, r):
 def get_transition_matrix(q0, q1, r, t):
     """Return transition matrix for two-state CTMC."""
     q = q0 + q1
-    t *= r
+    t += r
     p00 = (q1 + q0 * exp(-q*t)) / q
     p01 = 1 - p00
     p11 = (q0 + q1 * exp(-q*t)) / q
