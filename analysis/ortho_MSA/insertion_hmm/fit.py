@@ -47,7 +47,7 @@ def get_conditional_prime_q(node, q0, q1, r, name):
         else:
             s, conditional = utils.get_conditional(child, q0, q1, r)
             conditional = exp(s) * conditional  # Un-normalize
-            r_branch = 0
+            r_branch = 1
             derivative = get_conditional_prime_q(child, q0, q1, r, name)
 
         m = utils.get_transition_matrix(q0, q1, r_branch, child.length)
@@ -84,7 +84,7 @@ def get_conditional_prime_r(node, q0, q1, r):
         else:
             s, conditional = utils.get_conditional(child, q0, q1, r)
             conditional = exp(s) * conditional  # Un-normalize
-            r_branch = 0
+            r_branch = 1
             derivative = get_conditional_prime_r(child, q0, q1, r)
             dm = np.array([[0, 0], [0, 0]])
 
@@ -110,7 +110,7 @@ def get_conditional_prime_r(node, q0, q1, r):
 def get_transition_matrix_prime_q(q0, q1, r, t, name):
     """Return derivative transition matrix for two-state CTMC relative to q."""
     q = q0 + q1
-    t += r
+    t *= r
     if name == 'q0':
         d00 = -(q1 + (t * q0 ** 2 + t * q0 * q1 - q1) * exp(-q * t)) / q ** 2
         d01 = -d00
@@ -130,9 +130,9 @@ def get_transition_matrix_prime_q(q0, q1, r, t, name):
 def get_transition_matrix_prime_r(q0, q1, r, t):
     """Return derivative transition matrix for two-state CTMC relative to r."""
     q = q0 + q1
-    d00 = -q0 * exp(-q * (t + r))
+    d00 = -q0 * t * exp(-q * r * t)
     d01 = -d00
-    d11 = -q1 * exp(-q * (t + r))
+    d11 = -q1 * t * exp(-q * r * t)
     d10 = -d11
     return np.array([[d00, d01], [d10, d11]])
 
@@ -257,10 +257,10 @@ num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
 
-e_dists_norm = {'1A': {'a': 1, 'b': 1, 'pi': 0.95, 'q0': 0.1, 'q1': 0.1, 'r': 0.001},
-                '1B': {'a': 1, 'b': 1, 'pi': 0.75, 'q0': 1, 'q1': 1, 'r': 0.001},
-                '2': {'a': 1, 'b': 1, 'pi': 0.5, 'q0': 0.5, 'q1': 0.5, 'r': 0.001},
-                '3': {'a': 1, 'b': 1, 'pi': 0.01, 'q0': 0.1, 'q1': 0.1, 'r': 0.001}}
+e_dists_norm = {'1A': {'a': 1, 'b': 1, 'pi': 0.95, 'q0': 0.1, 'q1': 0.1, 'r': 1},
+                '1B': {'a': 1, 'b': 1, 'pi': 0.75, 'q0': 1, 'q1': 1, 'r': 1},
+                '2': {'a': 1, 'b': 1, 'pi': 0.5, 'q0': 0.5, 'q1': 0.5, 'r': 1},
+                '3': {'a': 1, 'b': 1, 'pi': 0.01, 'q0': 0.1, 'q1': 0.1, 'r': 1}}
 
 if __name__ == '__main__':
     # Load labels
