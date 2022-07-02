@@ -1,5 +1,6 @@
 """Plot example alignments segmented via posterior decoding."""
 
+import os
 import json
 import re
 
@@ -8,15 +9,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 import skbio
 import utils
+from matplotlib.lines import Line2D
 from src.draw import plot_msa_data
 from src.utils import read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
+data_labels = ['1A', '1B', '2', '3']
+data_colors = ['C0', 'C3', 'C1', 'C2']
 
-# Load model parameters
+# Load model parameters and history
 with open('out/model.json') as file:
     model_json = json.load(file)
+with open('out/history.json') as file:
+    history = json.load(file)
 
 # Load labels
 OGid2labels = {}
@@ -32,11 +38,39 @@ with open('labels.tsv') as file:
         except KeyError:
             OGid2labels[OGid] = [(start, stop, label)]
 
+if set(data_labels) != state_set:
+    raise RuntimeError('data_labels is not equal to state_set')
+
 # Load tree
 tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 
+# Plot loss curve
+xs = [record['iter_num'] for record in history]
+ys = [record['ll'] for record in history]
+plt.plot(xs, ys)
+plt.xlabel('Iteration')
+plt.ylabel('Conditional log-likelihood')
+plt.savefig('out/line_ll-iter.png')
+plt.close()
+
+# Plot rate parameters
+fig, axs = plt.subplots(3, 1)
+for label, color in zip(data_labels, data_colors):
+    for ax, param in zip(axs, ['pi', 'q0', 'q1']):
+        xs = [record['iter_num'] for record in history]
+        ys = [record['e_dists_norm'][label][param] for record in history]
+        ax.plot(xs, ys, label=label, color=color)
+        ax.set_ylabel(param)
+axs[2].set_xlabel('Iteration')
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(data_labels, data_colors)]
+fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
+plt.savefig('out/line_param-iter.png')
+
 # Plot alignments
+if not os.path.exists('out/traces/'):
+    os.mkdir('out/traces/')
+
 for OGid, labels in OGid2labels.items():
     # Load MSA
     msa = []
@@ -71,7 +105,7 @@ for OGid, labels in OGid2labels.items():
     # Instantiate model
     e_dists_rv = {}
     for s, params in model_json['e_dists'].items():
-        a, b, pi, q0, q1, r = params
+        a, b, pi, q0, q1, r = [params[key] for key in ['a', 'b', 'pi', 'q0', 'q1', 'r']]
         array1 = utils.get_betabinom_pmf(emit_seq, len(msa), a, b)
         array2 = utils.get_tree_pmf(tree, pi, q0, q1, r)
         e_dists_rv[s] = utils.ArrayRV(array1 * array2)
@@ -79,47 +113,48 @@ for OGid, labels in OGid2labels.items():
 
     # Make plotting parameters
     msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
-    data_labels = ['1A', '1B', '2', '3']
-    data_colors = ['C0', 'C3', 'C1', 'C2']
 
-    kwargs_wide = {'height_ratio': 0.5, 'hspace': 0.2, 'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels, 'data_colors': data_colors,
+    kwargs_wide = {'figsize': (15, 6), 'height_ratio': 0.5, 'hspace': 0.2,
+                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels, 'data_colors': data_colors,
                    'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8,
                                                          'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
     adjust_wide = {'left': 0.015, 'bottom': 0.01, 'right': 0.94, 'top': 0.99}
-    kwargs_tall = {'height_ratio': 0.5, 'hspace': 0.2, 'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels, 'data_colors': data_colors,
+
+    kwargs_tall = {'figsize': (8, 8), 'height_ratio': 0.5, 'hspace': 0.2,
+                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels, 'data_colors': data_colors,
                    'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.90, 0.5), 'loc': 'center left', 'fontsize': 8,
                                                          'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
     adjust_tall = {'left': 0.025, 'bottom': 0.01, 'right': 0.89, 'top': 0.99}
 
     # Plot labels
-    lines = {s: np.zeros(len(msa[0]['seq'])) for s in state_set}
+    lines = {label: np.zeros(len(msa[0]['seq'])) for label in data_labels}
     for start, stop, label in labels:
         lines[label][start:stop] = 1
     data = [lines[label] for label in data_labels]
 
-    plot_msa_data([record['seq'] for record in msa], data, figsize=(15, 6), **kwargs_wide)
+    plot_msa_data([record['seq'] for record in msa], data, **kwargs_wide)
     plt.subplots_adjust(**adjust_wide)
-    plt.savefig(f'out/{OGid}_wide_labels.png')
+    plt.savefig(f'out/traces/{OGid}_wide_labels.png')
     plt.close()
 
-    plot_msa_data([record['seq'] for record in msa], data, figsize=(8, 8), **kwargs_tall)
+    plot_msa_data([record['seq'] for record in msa], data, **kwargs_tall)
     plt.subplots_adjust(**adjust_tall)
-    plt.savefig(f'out/{OGid}_tall_labels.png')
+    plt.savefig(f'out/traces/{OGid}_tall_labels.png')
     plt.close()
 
     # Decode states and plot
-    emit_seq = list(range(len(emit_seq)))  # Everything is pre-calculated, so emit_seq is the emit index
-    fbs = model.forward_backward(emit_seq)
+    idx_seq = list(range(len(emit_seq)))  # Everything is pre-calculated, so emit_seq is the emit index
+    fbs = model.forward_backward(idx_seq)
     data = [fbs[label] for label in data_labels]
 
-    plot_msa_data([record['seq'] for record in msa], data, figsize=(15, 6), **kwargs_wide)
+    plot_msa_data([record['seq'] for record in msa], data, **kwargs_wide)
     plt.subplots_adjust(**adjust_wide)
-    plt.savefig(f'out/{OGid}_wide.png')
+    plt.savefig(f'out/traces/{OGid}_wide.png')
     plt.close()
 
-    plot_msa_data([record['seq'] for record in msa], data, figsize=(8, 8), **kwargs_tall)
+    plot_msa_data([record['seq'] for record in msa], data, **kwargs_tall)
     plt.subplots_adjust(**adjust_tall)
-    plt.savefig(f'out/{OGid}_tall.png')
+    plt.savefig(f'out/traces/{OGid}_tall.png')
     plt.close()
 
 """
