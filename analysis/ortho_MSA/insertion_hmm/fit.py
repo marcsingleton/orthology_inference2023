@@ -62,7 +62,7 @@ def get_conditional_prime_q(node, q0, q1, r, name):
         ps.append(p)
         dps.append(dp)
 
-    # Assemble products and derivatives into terms (chain rule) and then sum
+    # Assemble products and derivatives into terms and then sum (product rule)
     terms = []
     for i in range(len(node.children)):
         term = [dps[j] if i == j else ps[j] for j in range(len(node.children))]
@@ -99,7 +99,7 @@ def get_conditional_prime_r(node, q0, q1, r):
         ps.append(p)
         dps.append(dp)
 
-    # Assemble products and derivatives into terms (chain rule) and then sum
+    # Assemble products and derivatives into terms and then sum (product rule)
     terms = []
     for i in range(len(node.children)):
         term = [dps[j] if i == j else ps[j] for j in range(len(node.children))]
