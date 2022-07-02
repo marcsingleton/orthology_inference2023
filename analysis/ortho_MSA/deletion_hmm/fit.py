@@ -22,7 +22,7 @@ class msaBernoulli:
         else:
             return 1 - p
 
-    def rvs(self, size=None):
+    def rvs(self, random_state=None):
         # Required for HMM since it has a simulate method
         # Simulations aren't used here, so it's an empty method
         pass

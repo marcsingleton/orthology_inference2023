@@ -37,8 +37,8 @@ class bernoulli_betabinom_frozen:
     def pmf(self, x):
         return self._dist.pmf(x, self.p, self.n, self.a, self.b)
 
-    def rvs(self, size=None):
-        return self._dist.rvs(self.p, self.n, self.a, self.b, size=size)
+    def rvs(self, size=None, random_state=None):
+        return self._dist.rvs(self.p, self.n, self.a, self.b, size=size, random_state=random_state)
 
 
 def decode(OGid, params):
