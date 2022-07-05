@@ -54,7 +54,7 @@ plt.ylabel('Conditional log-likelihood')
 plt.savefig('out/line_ll-iter.png')
 plt.close()
 
-# Plot rate parameters
+# Plot model parameters
 fig, axs = plt.subplots(3, 1)
 for label, color in zip(data_labels, data_colors):
     for ax, param in zip(axs, ['pi', 'q0', 'q1']):
@@ -65,7 +65,39 @@ for label, color in zip(data_labels, data_colors):
 axs[2].set_xlabel('Iteration')
 handles = [Line2D([], [], label=label, color=color) for label, color in zip(data_labels, data_colors)]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
-plt.savefig('out/line_param-iter.png')
+plt.subplots_adjust(right=0.875)
+plt.savefig('out/line_rate-iter.png')
+plt.close()
+
+fig, axs = plt.subplots(2, 1)
+for label, color in zip(data_labels, data_colors):
+    for ax, param in zip(axs, ['a', 'b']):
+        xs = [record['iter_num'] for record in history]
+        ys = [record['e_dists_norm'][label][param] for record in history]
+        ax.plot(xs, ys, label=label, color=color)
+        ax.set_ylabel(param)
+axs[1].set_xlabel('Iteration')
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(data_labels, data_colors)]
+fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
+plt.subplots_adjust(right=0.875)
+plt.savefig('out/line_betabinom-iter.png')
+plt.close()
+
+fig, axs = plt.subplots(4, 1, figsize=(6.4, 6.4))
+for label, color in zip(data_labels, data_colors):
+    for ax, param in zip(axs, data_labels):
+        if param == label:
+            continue
+        xs = [record['iter_num'] for record in history]
+        ys = [record['t_dists_norm'][label][param] for record in history]
+        ax.plot(xs, ys, label=label, color=color)
+        ax.set_ylabel(param)
+axs[3].set_xlabel('Iteration')
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(data_labels, data_colors)]
+fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
+plt.subplots_adjust(left=0.15, right=0.875)
+plt.savefig('out/line_jump-iter.png')
+plt.close()
 
 # Plot alignments
 if not os.path.exists('out/traces/'):
@@ -105,9 +137,9 @@ for OGid, labels in OGid2labels.items():
     # Instantiate model
     e_dists_rv = {}
     for s, params in model_json['e_dists'].items():
-        a, b, pi, q0, q1, r = [params[key] for key in ['a', 'b', 'pi', 'q0', 'q1', 'r']]
+        a, b, pi, q0, q1, p0, p1 = [params[key] for key in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
         array1 = utils.get_betabinom_pmf(emit_seq, len(msa), a, b)
-        array2 = utils.get_tree_pmf(tree, pi, q0, q1, r)
+        array2 = utils.get_tree_pmf(tree, pi, q0, q1, p0, p1)
         e_dists_rv[s] = utils.ArrayRV(array1 * array2)
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
