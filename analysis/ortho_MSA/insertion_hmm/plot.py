@@ -136,8 +136,8 @@ for OGid, labels in OGid2labels.items():
 
     # Instantiate model
     e_dists_rv = {}
-    for s, params in model_json['e_dists'].items():
-        a, b, pi, q0, q1, p0, p1 = [params[key] for key in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
+    for s, e_dist in model_json['e_dists'].items():
+        a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
         array1 = utils.get_betabinom_pmf(emit_seq, len(msa), a, b)
         array2 = utils.get_tree_pmf(tree, pi, q0, q1, p0, p1)
         e_dists_rv[s] = utils.ArrayRV(array1 * array2)
