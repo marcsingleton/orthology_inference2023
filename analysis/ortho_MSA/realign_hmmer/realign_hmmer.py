@@ -13,7 +13,7 @@ def hmm_align(record):
         path = f'../make_fastas1/out/{OGid}.fa'
     else:
         path = f'../make_fastas2/out/{OGid}.fa'
-    run(f'../../../bin/hmmbuild --hand --eset {eset_scalar*gnidnum} --wnone out/hmmer/{OGid}.hmm ../cnn_trim/out/{OGid}.sto > out/hmmer/{OGid}.txt', shell=True, check=True)
+    run(f'../../../bin/hmmbuild --hand --eset {eset_scalar*gnidnum} --wnone out/hmmer/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/hmmer/{OGid}.txt', shell=True, check=True)
     run(f'../../../bin/hmmalign --outformat afa out/hmmer/{OGid}.hmm {path} > out/hmmer/{OGid}_temp.afa', shell=True, check=True)
 
     # Remove excess gaps
@@ -211,8 +211,8 @@ Sequences which are not successfully re-aligned should remain lowercase, which w
 regions.
 
 DEPENDENCIES
-../cnn_trim/cnn_trim.py
-    ../cnn_trim/out/*.sto
+../realign_trim/realign_trim.py
+    ../realign_trim/out/*.sto
 ../make_fastas1/make_fastas1.py
     ../make_fastas1/out/*.fa
 ../make_fastas2/make_fastas2.py

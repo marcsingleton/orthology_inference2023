@@ -40,7 +40,7 @@ with open('../OG_filter/out/OG_filter.tsv') as file:
         fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
         OGids.append(fields['OGid'])
 
-model = tf.keras.models.load_model('../cnn_fit/out/model.h5')
+model = tf.keras.models.load_model('../realign_cnn/out/model.h5')
 
 if not os.path.exists('out/'):
     os.mkdir('out')
@@ -102,8 +102,8 @@ for OGid in OGids:
     ../align_fastas1/out/*.afa
 ../align_fastas2/align_fastas2.py
     ../align_fastas2/out/*.afa
-../cnn_fit/cnn_fit.py
-    ../cnn_fit/out/model.h5
+../realign_cnn/realign_cnn.py
+    ../realign_cnn/out/model.h5
 ../OG_filter/OG_filter.py
     ../OG_filter/out/OG_filter.tsv
 """
