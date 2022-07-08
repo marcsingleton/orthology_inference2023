@@ -9,7 +9,7 @@ from functools import reduce
 import numpy as np
 import skbio
 import src.ortho_MSA.hmm as hmm
-import utils
+from src.ortho_MSA import utils
 from numpy import exp, log
 from scipy.special import beta, comb, digamma
 from src.utils import read_fasta
@@ -173,7 +173,7 @@ def unnorm_params(t_dists_norm, e_dists_norm):
     return t_dists, e_dists
 
 
-def get_gradients(t_dists_norm, e_dists_norm, start_dist, state_set, record):
+def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     """Return record updated with expected values of states and transitions given model parameters."""
     # Unpack record fields
     n = record['n']
@@ -209,7 +209,7 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, state_set, record):
     t_grads = {}
     for s1, t_dist in t_dists_norm.items():
         t_grad = {}
-        mn_sum = sum([mijs[(s1, s2)] - nijs[(s1, s2)] for s2 in state_set])
+        mn_sum = sum([mijs[(s1, s2)] - nijs[(s1, s2)] for s2 in t_dist])
         for s2, p in t_dist.items():
             t_grad[s2] = -(mijs[(s1, s2)] - nijs[(s1, s2)] - p * mn_sum)  # Equation 2.20
         t_grads[s1] = t_grad
@@ -243,14 +243,16 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, state_set, record):
     return {'ll': ll, 't_grads': t_grads, 'e_grads': e_grads}
 
 
-eta = 0.15  # Learning rate
-gamma = 0.85  # Momentum
-epsilon = 1E-2  # Convergence criterion
-iter_num = 100  # Max number of iterations
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
-ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
 
+eta = 0.15  # Learning rate
+gamma = 0.85  # Momentum
+epsilon = 1E-1  # Convergence criterion
+iter_num = 100  # Max number of iterations
+
+t_pseudo = 0.1  # t_dist pseudocounts
+start_pseudo = 0.1  # start_dist pseudocounts
 e_dists_norm = {'1A': {'a': 1, 'b': 0.1, 'pi': 0.95, 'q0': 0.01, 'q1': 0.01, 'p0': 0.01, 'p1': 0.05},
                 '1B': {'a': 0.75, 'b': 0.5, 'pi': 0.5, 'q0': 0.15, 'q1': 0.15, 'p0': 0.01, 'p1': 0.01},
                 '2': {'a': 0.7, 'b': 0.2, 'pi': 0.75, 'q0': 0.05, 'q1': 0.05, 'p0': 0.2, 'p1': 0.5},
@@ -331,7 +333,7 @@ if __name__ == '__main__':
                         'mis': mis, 'mijs': mijs})
 
     # Calculate start_dist from background distribution of states
-    state_counts = {s: 0.1 for s in state_set}
+    state_counts = {s: start_pseudo for s in state_set}
     for labels in OGid2labels.values():
         for start, stop, label in labels:
             state_counts[label] += stop - start
@@ -339,7 +341,7 @@ if __name__ == '__main__':
     start_dist = {s: count / state_sum for s, count in state_counts.items()}
 
     # Initialize t_dist from observed transitions
-    t_counts = {s1: {s2: 0.1 for s2 in state_set} for s1 in state_set}
+    t_counts = {s1: {s2: t_pseudo for s2 in state_set} for s1 in state_set}
     for labels in OGid2labels.values():
         start, stop, label0 = labels[0]
         t_counts[label0][label0] += stop - start - 1
@@ -362,7 +364,7 @@ if __name__ == '__main__':
         # Calculate expectations and likelihoods
         t_dists_norm, e_dists_norm = norm_params(t_dists, e_dists)
         with mp.Pool(processes=num_processes) as pool:
-            gradients = pool.starmap(get_gradients, [(t_dists_norm, e_dists_norm, start_dist, state_set, record) for record in records])
+            gradients = pool.starmap(get_gradients, [(t_dists_norm, e_dists_norm, start_dist, record) for record in records])
 
         # Save and report parameters from previous update
         ll = sum([gradient['ll'] for gradient in gradients])
@@ -405,7 +407,6 @@ if __name__ == '__main__':
 
     with open('out/history.json', 'w') as file:
         json.dump(history, file, indent='\t')
-
     with open('out/model.json', 'w') as file:
         model = max(history, key=lambda x: x['ll'])
         json.dump({'t_dists': model['t_dists_norm'], 'e_dists': model['e_dists_norm'], 'start_dist': start_dist}, file, indent='\t')

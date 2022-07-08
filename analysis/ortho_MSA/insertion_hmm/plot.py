@@ -8,21 +8,17 @@ import homomorph
 import matplotlib.pyplot as plt
 import numpy as np
 import skbio
-import utils
+from src.ortho_MSA import utils
 from matplotlib.lines import Line2D
 from src.draw import plot_msa_data
 from src.utils import read_fasta
 
-ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
-data_labels = ['1A', '1B', '2', '3']
-data_colors = ['C0', 'C3', 'C1', 'C2']
+state_labels = ['1A', '1B', '2', '3']
+state_colors = ['C0', 'C3', 'C1', 'C2']
 
-# Load model parameters and history
-with open('out/model.json') as file:
-    model_json = json.load(file)
-with open('out/history.json') as file:
-    history = json.load(file)
+tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
+tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 
 # Load labels
 OGid2labels = {}
@@ -38,12 +34,14 @@ with open('labels.tsv') as file:
         except KeyError:
             OGid2labels[OGid] = [(start, stop, label)]
 
-if set(data_labels) != state_set:
-    raise RuntimeError('data_labels is not equal to state_set')
+if set(state_labels) != state_set:
+    raise RuntimeError('state_labels is not equal to state_set')
 
-# Load tree
-tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
-tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
+# Load history and model parameters
+with open('out/history.json') as file:
+    history = json.load(file)
+with open('out/model.json') as file:
+    model_json = json.load(file)
 
 # Plot loss curve
 xs = [record['iter_num'] for record in history]
@@ -56,36 +54,36 @@ plt.close()
 
 # Plot model parameters
 fig, axs = plt.subplots(3, 1)
-for label, color in zip(data_labels, data_colors):
+for label, color in zip(state_labels, state_colors):
     for ax, param in zip(axs, ['pi', 'q0', 'q1']):
         xs = [record['iter_num'] for record in history]
         ys = [record['e_dists_norm'][label][param] for record in history]
         ax.plot(xs, ys, label=label, color=color)
         ax.set_ylabel(param)
 axs[2].set_xlabel('Iteration')
-handles = [Line2D([], [], label=label, color=color) for label, color in zip(data_labels, data_colors)]
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels, state_colors)]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
 plt.subplots_adjust(right=0.875)
 plt.savefig('out/line_rate-iter.png')
 plt.close()
 
 fig, axs = plt.subplots(2, 1)
-for label, color in zip(data_labels, data_colors):
+for label, color in zip(state_labels, state_colors):
     for ax, param in zip(axs, ['a', 'b']):
         xs = [record['iter_num'] for record in history]
         ys = [record['e_dists_norm'][label][param] for record in history]
         ax.plot(xs, ys, label=label, color=color)
         ax.set_ylabel(param)
 axs[1].set_xlabel('Iteration')
-handles = [Line2D([], [], label=label, color=color) for label, color in zip(data_labels, data_colors)]
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels, state_colors)]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
 plt.subplots_adjust(right=0.875)
 plt.savefig('out/line_betabinom-iter.png')
 plt.close()
 
-fig, axs = plt.subplots(4, 1, figsize=(6.4, 6.4))
-for label, color in zip(data_labels, data_colors):
-    for ax, param in zip(axs, data_labels):
+fig, axs = plt.subplots(len(state_labels), 1, figsize=(6.4, 1.6 * len(state_labels)))
+for label, color in zip(state_labels, state_colors):
+    for ax, param in zip(axs, state_labels):
         if param == label:
             continue
         xs = [record['iter_num'] for record in history]
@@ -93,7 +91,7 @@ for label, color in zip(data_labels, data_colors):
         ax.plot(xs, ys, label=label, color=color)
         ax.set_ylabel(param)
 axs[3].set_xlabel('Iteration')
-handles = [Line2D([], [], label=label, color=color) for label, color in zip(data_labels, data_colors)]
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels, state_colors)]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
 plt.subplots_adjust(left=0.15, right=0.875)
 plt.savefig('out/line_jump-iter.png')
@@ -109,6 +107,7 @@ for OGid, labels in OGid2labels.items():
     for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
         spid = re.search(spid_regex, header).group(1)
         msa.append({'spid': spid, 'seq': seq})
+    msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
 
     # Create emission sequence
     col0 = []
@@ -121,7 +120,7 @@ for OGid, labels in OGid2labels.items():
     emit_seq = np.array(emit_seq)
 
     # Load tree and convert to vectors at tips
-    tree = tree_template.deepcopy().shear([record['spid'] for record in msa])
+    tree = tree_template.shear([record['spid'] for record in msa])
     tips = {tip.name: tip for tip in tree.tips()}
     for record in msa:
         spid, seq = record['spid'], record['seq']
@@ -144,25 +143,23 @@ for OGid, labels in OGid2labels.items():
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
     # Make plotting parameters
-    msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
-
     kwargs_wide = {'figsize': (15, 6), 'height_ratio': 0.5, 'hspace': 0.2,
-                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels, 'data_colors': data_colors,
+                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': state_labels, 'data_colors': state_colors,
                    'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8,
                                                          'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
     adjust_wide = {'left': 0.015, 'bottom': 0.01, 'right': 0.94, 'top': 0.99}
 
     kwargs_tall = {'figsize': (8, 8), 'height_ratio': 0.5, 'hspace': 0.2,
-                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': data_labels, 'data_colors': data_colors,
+                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': state_labels, 'data_colors': state_colors,
                    'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.90, 0.5), 'loc': 'center left', 'fontsize': 8,
                                                          'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
     adjust_tall = {'left': 0.025, 'bottom': 0.01, 'right': 0.89, 'top': 0.99}
 
     # Plot labels
-    lines = {label: np.zeros(len(msa[0]['seq'])) for label in data_labels}
+    lines = {label: np.zeros(len(msa[0]['seq'])) for label in state_labels}
     for start, stop, label in labels:
         lines[label][start:stop] = 1
-    data = [lines[label] for label in data_labels]
+    data = [lines[label] for label in state_labels]
 
     plot_msa_data([record['seq'] for record in msa], data, **kwargs_wide)
     plt.subplots_adjust(**adjust_wide)
@@ -177,7 +174,7 @@ for OGid, labels in OGid2labels.items():
     # Decode states and plot
     idx_seq = list(range(len(emit_seq)))  # Everything is pre-calculated, so emit_seq is the emit index
     fbs = model.forward_backward(idx_seq)
-    data = [fbs[label] for label in data_labels]
+    data = [fbs[label] for label in state_labels]
 
     plot_msa_data([record['seq'] for record in msa], data, **kwargs_wide)
     plt.subplots_adjust(**adjust_wide)
