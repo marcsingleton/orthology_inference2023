@@ -136,7 +136,7 @@ def beta_prime(a, b):
 def get_betabinom_prime(x, n, a, b, name):
     """Return derivative of beta-binomial pmf relative to a given parameter."""
     if name == 'a':
-        return comb(n, x) * (beta_prime(x + a, n - x + b) * beta(a, b) - beta(x + a, n - x + b) * beta_prime(a, b)) / (beta(a, b))**2
+        return comb(n, x) * (beta_prime(x + a, n - x + b) * beta(a, b) - beta(x + a, n - x + b) * beta_prime(a, b)) / (beta(a, b)) ** 2
     elif name == 'b':
         return comb(n, x) * (beta_prime(n - x + b, x + a) * beta(a, b) - beta(x + a, n - x + b) * beta_prime(b, a)) / (beta(a, b)) ** 2
     else:
@@ -251,28 +251,34 @@ gamma = 0.85  # Momentum
 epsilon = 1E-1  # Convergence criterion
 iter_num = 100  # Max number of iterations
 
+state_set = {'1A', '1B', '2', '3'}
+start_set = {'1A', '1B', '2', '3'}
+t_sets = {s1: {s2 for s2 in state_set} for s1 in state_set}
+
 t_pseudo = 0.1  # t_dist pseudocounts
 start_pseudo = 0.1  # start_dist pseudocounts
-e_dists_norm = {'1A': {'a': 1, 'b': 0.1, 'pi': 0.95, 'q0': 0.01, 'q1': 0.01, 'p0': 0.01, 'p1': 0.05},
-                '1B': {'a': 0.75, 'b': 0.5, 'pi': 0.5, 'q0': 0.15, 'q1': 0.15, 'p0': 0.01, 'p1': 0.01},
-                '2': {'a': 0.7, 'b': 0.2, 'pi': 0.75, 'q0': 0.05, 'q1': 0.05, 'p0': 0.2, 'p1': 0.5},
-                '3': {'a': 1.5, 'b': 0.5, 'pi': 0.01, 'q0': 0.01, 'q1': 0.01, 'p0': 0.05, 'p1': 0.01}}
+e_dists_initial = {'1A': {'a': 1, 'b': 0.1, 'pi': 0.95, 'q0': 0.01, 'q1': 0.01, 'p0': 0.01, 'p1': 0.05},
+                   '1B': {'a': 0.75, 'b': 0.5, 'pi': 0.5, 'q0': 0.15, 'q1': 0.15, 'p0': 0.01, 'p1': 0.01},
+                   '2': {'a': 0.7, 'b': 0.2, 'pi': 0.75, 'q0': 0.05, 'q1': 0.05, 'p0': 0.2, 'p1': 0.5},
+                   '3': {'a': 1.5, 'b': 0.5, 'pi': 0.01, 'q0': 0.01, 'q1': 0.01, 'p0': 0.05, 'p1': 0.01}}
 
 if __name__ == '__main__':
     # Load labels
     OGid2labels = {}
-    state_set = set()
+    state_labels = set()
     with open('labels.tsv') as file:
         field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
             fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
             OGid, start, stop, label = fields['OGid'], int(fields['start']), int(fields['stop']), fields['label']
-            state_set.add(label)
+            state_labels.add(label)
             try:
                 OGid2labels[OGid].append((start, stop, label))
             except KeyError:
                 OGid2labels[OGid] = [(start, stop, label)]
-    state_set = sorted(state_set)
+
+    if state_set != state_labels:
+        raise RuntimeError('state_labels is not equal to state_set')
 
     # Check label validity
     for OGid, labels in OGid2labels.items():
@@ -327,13 +333,13 @@ if __name__ == '__main__':
 
         # Create count dictionaries
         mis = hmm.count_states(state_seq, state_set)
-        mijs = hmm.count_transitions(state_seq, state_set)
+        mijs = hmm.count_transitions(state_seq, t_sets)
 
         records.append({'OGid': OGid, 'n': len(msa), 'tree': tree, 'state_seq': state_seq, 'emit_seq': emit_seq,
                         'mis': mis, 'mijs': mijs})
 
     # Calculate start_dist from background distribution of states
-    state_counts = {s: start_pseudo for s in state_set}
+    state_counts = {s: start_pseudo for s in start_set}
     for labels in OGid2labels.values():
         for start, stop, label in labels:
             state_counts[label] += stop - start
@@ -341,7 +347,7 @@ if __name__ == '__main__':
     start_dist = {s: count / state_sum for s, count in state_counts.items()}
 
     # Initialize t_dist from observed transitions
-    t_counts = {s1: {s2: t_pseudo for s2 in state_set} for s1 in state_set}
+    t_counts = {s1: {s2: t_pseudo for s2 in t_set} for s1, t_set in t_sets.items()}
     for labels in OGid2labels.values():
         start, stop, label0 = labels[0]
         t_counts[label0][label0] += stop - start - 1
@@ -353,6 +359,9 @@ if __name__ == '__main__':
     for s1, t_count in t_counts.items():
         t_sum = sum(t_count.values())
         t_dists_norm[s1] = {s2: count / t_sum for s2, count in t_count.items()}
+
+    # Initialize e_dists from initial values
+    e_dists_norm = e_dists_initial.copy()
 
     # Gradient descent
     t_dists, e_dists = unnorm_params(t_dists_norm, e_dists_norm)

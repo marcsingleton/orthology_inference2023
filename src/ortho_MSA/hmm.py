@@ -53,14 +53,11 @@ class HMM(homomorph.HMM):
         return p
 
 
-def count_transitions(state_seq, state_set):
+def count_transitions(state_seq, t_sets):
     """Return counts of transitions between states."""
-    mijs, state0 = {p: 0 for p in product(state_set, state_set)}, state_seq[0]
+    mijs, state0 = {(s1, s2): 0 for s1, t_set in t_sets.items() for s2 in t_set}, state_seq[0]
     for state in state_seq[1:]:
-        try:
-            mijs[(state0, state)] += 1
-        except KeyError:
-            mijs[(state0, state)] = 1
+        mijs[(state0, state)] += 1
         state0 = state
     return mijs
 
