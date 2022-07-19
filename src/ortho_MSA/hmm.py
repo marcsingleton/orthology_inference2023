@@ -1,7 +1,7 @@
 """Classes and functions for discriminative HMM training."""
 
 from functools import reduce
-from itertools import accumulate, product
+from itertools import accumulate
 
 import homomorph
 from numpy import exp, log
@@ -36,29 +36,31 @@ class HMM(homomorph.HMM):
         ss_f = list(accumulate(map(log, ss_f)))
         ss_b = list(accumulate(map(log, ss_b[::-1])))[::-1]
 
-        fbs = {p: [] for p in product(self.states, self.states)}
+        pairs = [(state0, state1) for state0, t_dist in self.t_dists.items() for state1 in t_dist]
+        fbs = {pair: [] for pair in pairs}
         for i in range(len(emits)-1):
-            for s1, s2 in product(self.states, self.states):
-                fbs[(s1, s2)].append(fs[s1][i]*self.t_dists[s1][s2]*self.e_dists[s2].pmf(emits[i+1])*bs[s2][i+1]*exp(ss_f[i]+ss_b[i+1]-p))
+            for (state0, state1), fb in fbs.items():
+                fb.append(fs[state0][i]*self.t_dists[state0][state1]*self.e_dists[state1].pmf(emits[i+1])*bs[state1][i+1]*exp(ss_f[i]+ss_b[i+1]-p))
 
-        return {p: sum(fb) for p, fb in fbs.items()}
+        return {pair: sum(fb) for pair, fb in fbs.items()}
 
     def joint_likelihood(self, emits, states):
         """Log-likelihood of emission and state sequence."""
         states = [self._state2idx[state] for state in states]
         p, state0 = log(self._e_dists_rv[states[0]].pmf(emits[0]) * self._start_dist_rv.pmf(states[0])), states[0]
-        for emit, state in zip(emits[1:], states[1:]):
-            p += log(self._e_dists_rv[state].pmf(emit) * self._t_dists_rv[state0].pmf(state))
-            state0 = state
+        for emit, state1 in zip(emits[1:], states[1:]):
+            p += log(self._e_dists_rv[state1].pmf(emit) * self._t_dists_rv[state0].pmf(state1))
+            state0 = state1
         return p
 
 
 def count_transitions(state_seq, t_sets):
     """Return counts of transitions between states."""
-    mijs, state0 = {(s1, s2): 0 for s1, t_set in t_sets.items() for s2 in t_set}, state_seq[0]
-    for state in state_seq[1:]:
-        mijs[(state0, state)] += 1
-        state0 = state
+    mijs = {(state0, state1): 0 for state0, t_set in t_sets.items() for state1 in t_set}
+    state0 = state_seq[0]
+    for state1 in state_seq[1:]:
+        mijs[(state0, state1)] += 1
+        state0 = state1
     return mijs
 
 
