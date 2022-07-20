@@ -166,7 +166,7 @@ def trim_terminals(msa):
 
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
-eset_scalar = 2  # Effective sequence number scalar; multiplies the gnidnum by this value to add weight to observed sequences
+eset_scalar = 3  # Effective sequence number scalar; multiplies the gnidnum by this value to add weight to observed sequences
 
 records = []
 with open('../OG_filter/out/OG_filter.tsv') as file:
