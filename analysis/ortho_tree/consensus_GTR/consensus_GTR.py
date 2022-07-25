@@ -36,7 +36,7 @@ for label in [path for path in os.listdir('../iqtree_GTR/out/') if os.path.isdir
             node.support = None  # Clear supports of 1 to simplify plot
     fig, ax = plot_tree(consensus_tree, tip_fontsize=8.5, support_labels=True,
                         support_format_spec='.2f', support_fontsize=8.5,
-                        support_ha='right', support_hoffset=-0.005, support_voffset=0.25)
+                        support_ha='right', support_hoffset=-0.005, support_voffset=-0.005)
     ax.yaxis.set_visible(False)
     ax.spines['left'].set_visible(False)
     ax.set_xlabel('')

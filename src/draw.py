@@ -430,7 +430,8 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
     tip_fontsize: float or {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'}
     tip_fontcolor: color (matplotlib)
     tip_offset: float
-        The offset of the tip label from the end of the branch tip.
+        The offset of the tip label from the end of the branch tip in axes
+        coordinates.
     support_format_spec: str
         Format specification for supports using the format specification mini-
         language.
@@ -441,9 +442,11 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
     support_va: {'center', 'top', 'bottom', 'baseline', 'center_baseline'}
         The vertical alignment of the support label relative to the branch.
     support_voffset: float
-        The vertical offset of the support label relative to its alignment.
+        The vertical offset of the support label relative to its alignment in
+        axes coordinates.
     support_hoffset: float
-        The horizontal offset of the support label relative to its alignment.
+        The horizontal offset of the support label relative to its alignment in
+        axes coordinates.
 
     Returns
     -------
@@ -488,9 +491,18 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
         if node.children:
             y_pos[node] = (y_pos[node.children[0]] + y_pos[node.children[-1]]) / 2
 
+    fig, ax = plt.subplots()
+
+    # Adjust axes and add labels
+    x_max = max(x_pos.values())
+    y_max = max(y_pos.values())
+    ax.set_xlim(-0.05 * x_max, 1.25 * x_max)  # Add margins around the tree to prevent overlapping the axes
+    ax.set_ylim(y_max + 0.8, 0.2)  # Also invert the y-axis (origin at the top)
+    ax.set_xlabel('branch length')
+
     # Plot lines and text
     lines = []
-    fig, ax = plt.subplots()
+    transform = ax.transLimits.inverted()  # Axes to data coordinates
     for node in tree.traverse():
         if node.parent:  # Horizontal line of node
             x0, x1 = x_pos[node.parent], x_pos[node]
@@ -501,25 +513,20 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
             y0, y1 = y_pos[node.children[-1]], y_pos[node.children[0]]
             lines.append(([(x, y0), (x, y1)], linewidth, color))
         if tip_labels and node.is_tip():  # Write tip names
-            ax.text(x_pos[node] + tip_offset, y_pos[node], node.name, verticalalignment='center',
+            dx, _ = transform.transform((tip_offset, 0)) - transform.transform((0, 0))
+            ax.text(x_pos[node] + dx, y_pos[node], node.name, verticalalignment='center',
                     fontsize=tip_fontsize, color=tip_fontcolor)
         if support_labels and node.support is not None and not node.is_tip():  # Write support values if not None and not tip
             if support_format_spec is None:
                 support_string = str(node.support)
             else:
                 support_string = f'{node.support:{support_format_spec}}'
-            ax.text(get_x(node) + support_hoffset, y_pos[node] + support_voffset, support_string,
+            dx, dy = transform.transform((support_hoffset, support_voffset)) - transform.transform((0, 0))
+            ax.text(get_x(node) + dx, y_pos[node] + dy, support_string,
                     fontsize=support_fontsize, color=support_fontcolor,
                     horizontalalignment=support_ha, verticalalignment=support_va)
     lc_args = {key: value for key, value in zip(['segments', 'linewidth', 'color'], zip(*lines))}
     ax.add_collection(LineCollection(**lc_args))
-
-    # Adjust axes and add labels
-    x_max = max(x_pos.values())
-    y_max = max(y_pos.values())
-    ax.set_xlim(-0.05 * x_max, 1.25 * x_max)  # Add margins around the tree to prevent overlapping the axes
-    ax.set_ylim(y_max + 0.8, 0.2)  # Also invert the y-axis (origin at the top)
-    ax.set_xlabel('branch length')
 
     return fig, ax
 
