@@ -17,7 +17,7 @@ for label in [path for path in os.listdir('../iqtree_GTR2/out/') if os.path.isdi
         outgroup = tree.find('sleb').ancestors()[0]
         tree = tree.root_at(outgroup)
         trees.append(tree)
-    consensus_tree = majority_consensus(trees)
+    consensus_tree = majority_consensus(trees, cutoff=0)  # Use greedy consensus since no majority consensus
     for node in consensus_tree.traverse():
         node.children = sorted(node.children, key=lambda x: (len(list(x.tips())), x.name))
     skbio.write(consensus_tree, 'newick', f'out/{label}.nwk')
