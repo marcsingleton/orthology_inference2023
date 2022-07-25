@@ -246,10 +246,10 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 spid_regex = r'spid=([a-z]+)'
 
-eta = 0.15  # Learning rate
-gamma = 0.85  # Momentum
+eta = 0.05  # Learning rate
+gamma = 0.9  # Momentum
 epsilon = 1E-1  # Convergence criterion
-iter_num = 100  # Max number of iterations
+iter_num = 200  # Max number of iterations
 
 state_set = {'1A', '1B', '2', '3'}
 start_set = {'1A', '1B', '2', '3'}
@@ -302,13 +302,13 @@ if __name__ == '__main__':
             msa.append({'spid': spid, 'seq': seq})
 
         # Create emission sequence
-        col0 = []
+        column0 = []
         emit_seq = []
         for j in range(len(msa[0]['seq'])):
-            col = [1 if msa[i]['seq'][j] in ['-', '.'] else 0 for i in range(len(msa))]
-            emit0 = sum([c0 == c for c0, c in zip(col0, col)])
+            column = [1 if msa[i]['seq'][j] in ['-', '.'] else 0 for i in range(len(msa))]
+            emit0 = sum([c0 == c for c0, c in zip(column0, column)])
             emit_seq.append(emit0)  # The tree probabilities are pre-calculated, so emission value is its index
-            col0 = col
+            column0 = column
         emit_seq = np.array(emit_seq)
 
         # Load tree and convert to vectors at tips

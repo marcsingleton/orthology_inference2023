@@ -110,13 +110,13 @@ for OGid, labels in OGid2labels.items():
     msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
 
     # Create emission sequence
-    col0 = []
+    column0 = []
     emit_seq = []
     for j in range(len(msa[0]['seq'])):
-        col = [1 if msa[i]['seq'][j] in ['-', '.'] else 0 for i in range(len(msa))]
-        emit0 = sum([c0 == c for c0, c in zip(col0, col)])
+        column = [1 if msa[i]['seq'][j] in ['-', '.'] else 0 for i in range(len(msa))]
+        emit0 = sum([c0 == c for c0, c in zip(column0, column)])
         emit_seq.append(emit0)  # The tree probabilities are pre-calculated, so emission value is its index
-        col0 = col
+        column0 = column
     emit_seq = np.array(emit_seq)
 
     # Load tree and convert to vectors at tips
