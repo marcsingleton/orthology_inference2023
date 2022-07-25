@@ -3,7 +3,7 @@
 import os
 import re
 
-import numpy.random
+import numpy as np
 from src.utils import read_fasta
 
 
@@ -25,7 +25,7 @@ def is_invariant(column):
     return True
 
 
-rng = numpy.random.default_rng(seed=930715)
+rng = np.random.default_rng(seed=930715)
 num_samples = 100
 num_columns = 10000
 spid_regex = r'spid=([a-z]+)'

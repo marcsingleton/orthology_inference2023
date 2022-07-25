@@ -3,7 +3,7 @@
 import os
 import re
 
-import numpy.random
+import numpy as np
 from src.utils import read_fasta
 
 
@@ -15,7 +15,7 @@ def is_redundant(column, cutoff):
     return count <= (1 - cutoff) * len(column)
 
 
-rng = numpy.random.default_rng(seed=930715)
+rng = np.random.default_rng(seed=930715)
 num_columns = int(1E5)  # Scientific notation defaults to float
 spid_regex = r'spid=([a-z]+)'
 
