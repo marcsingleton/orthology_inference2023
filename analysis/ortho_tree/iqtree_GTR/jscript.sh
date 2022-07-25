@@ -22,7 +22,7 @@ for folder in $(ls ../make_meta_NT/out/); do
   if [[ ! -d ../make_meta_NT/out/${folder}/ ]]; then
     continue
   fi
-  if [[ $folder == *_NI ]]; then
+  if [[ $folder == *NI ]]; then
     invariant=""
   else
     invariant="+I"
