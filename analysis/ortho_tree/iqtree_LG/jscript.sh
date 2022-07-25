@@ -18,8 +18,8 @@
 # Command(s) to run:
 module load gnu-parallel
 
-for folder in $(ls ../make_metaAA/out/); do
-  if [[ ! -d ../make_metaAA/out/${folder}/ ]]; then
+for folder in $(ls ../make_meta_AA/out/); do
+  if [[ ! -d ../make_meta_AA/out/${folder}/ ]]; then
     continue
   fi
   if [[ $folder == *_NI ]]; then
@@ -27,7 +27,7 @@ for folder in $(ls ../make_metaAA/out/); do
   else
     invariant="+I"
   fi
-  for file in $(ls ../make_metaAA/out/${folder}/); do
+  for file in $(ls ../make_meta_AA/out/${folder}/); do
     if [[ $file == *.afa ]]; then
       echo $folder $(basename $file .afa) $invariant
     fi
