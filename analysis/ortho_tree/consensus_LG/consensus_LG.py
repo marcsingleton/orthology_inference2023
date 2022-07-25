@@ -19,7 +19,7 @@ for label in [path for path in os.listdir('../iqtree_LG/out/') if os.path.isdir(
         trees.append(tree)
     consensus_tree = majority_consensus(trees)
     for node in consensus_tree.traverse():
-        node.children = sorted(node.children, key=lambda x: len(list(x.tips())))
+        node.children = sorted(node.children, key=lambda x: (len(list(x.tips())), x.name))
     skbio.write(consensus_tree, 'newick', f'out/{label}.nwk')
 
     # Save image as PNG
