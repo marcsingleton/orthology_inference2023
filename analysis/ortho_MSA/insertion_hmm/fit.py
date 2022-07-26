@@ -257,10 +257,10 @@ t_sets = {s1: {s2 for s2 in state_set} for s1 in state_set}
 
 t_pseudo = 0.1  # t_dist pseudocounts
 start_pseudo = 0.1  # start_dist pseudocounts
-e_dists_initial = {'1A': {'a': 1, 'b': 0.1, 'pi': 0.95, 'q0': 0.01, 'q1': 0.01, 'p0': 0.01, 'p1': 0.05},
-                   '1B': {'a': 0.75, 'b': 0.5, 'pi': 0.5, 'q0': 0.15, 'q1': 0.15, 'p0': 0.01, 'p1': 0.01},
-                   '2': {'a': 0.7, 'b': 0.2, 'pi': 0.75, 'q0': 0.05, 'q1': 0.05, 'p0': 0.2, 'p1': 0.5},
-                   '3': {'a': 1.5, 'b': 0.5, 'pi': 0.01, 'q0': 0.01, 'q1': 0.01, 'p0': 0.05, 'p1': 0.01}}
+e_dists_initial = {'1A': {'a': 0.9, 'b': 0.1, 'pi': 0.95, 'q0': 0.01, 'q1': 0.01, 'p0': 0.01, 'p1': 0.05},
+                   '1B': {'a': 1, 'b': 0.4, 'pi': 0.5, 'q0': 0.2, 'q1': 0.25, 'p0': 0.015, 'p1': 0.05},
+                   '2': {'a': 0.7, 'b': 0.15, 'pi': 0.75, 'q0': 0.05, 'q1': 0.075, 'p0': 0.1, 'p1': 0.4},
+                   '3': {'a': 1.6, 'b': 0.35, 'pi': 0.01, 'q0': 0.01, 'q1': 0.01, 'p0': 0.025, 'p1': 0.01}}
 
 if __name__ == '__main__':
     # Load labels
@@ -290,6 +290,8 @@ if __name__ == '__main__':
                 print(f'State for interval ({OGid}, {start}, {stop}) equals previous state')
             if stop0 != start:
                 print(f'Start for interval ({OGid}, {start}, {stop}) does not equal previous stop')
+            if start >= stop:
+                print(f'Start for interval ({OGid}, {start}, {stop}) is greater than stop')
             stop0, label0 = stop, label
 
     # Convert MSAs to records containing state-emissions sequences and other data
