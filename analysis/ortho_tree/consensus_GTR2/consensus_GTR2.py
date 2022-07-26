@@ -18,8 +18,12 @@ for label in [path for path in os.listdir('../iqtree_GTR2/out/') if os.path.isdi
         tree = tree.root_at(outgroup)
         trees.append(tree)
     consensus_tree = majority_consensus(trees, cutoff=0)  # Use greedy consensus since no majority consensus
-    for node in consensus_tree.traverse():
-        node.children = sorted(node.children, key=lambda x: (len(list(x.tips())), x.name))
+    for node in consensus_tree.postorder():
+        if node.is_tip():
+            node.sort_name = node.name
+        else:
+            node.children = sorted(node.children, key=lambda x: (len(list(x.tips())), x.sort_name))
+            node.sort_name = ''.join([child.sort_name for child in node.children])
     skbio.write(consensus_tree, 'newick', f'out/{label}.nwk')
 
     # Save image as PNG
