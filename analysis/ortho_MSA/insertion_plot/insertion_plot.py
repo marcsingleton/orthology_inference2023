@@ -23,8 +23,9 @@ posterior_low = 0.5
 gradient_high = 0.02
 gradient_low = 0.001
 
-tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
-tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
+tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
+tree_order = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
+tip_order = {tip.name: i for i, tip in enumerate(tree_order.tips())}
 
 df = pd.read_table('../gap_contrasts/out/total_sums.tsv')
 df['norm1'] = df['total'] / df['gnidnum']
@@ -125,6 +126,8 @@ for label in ['norm1', 'norm2']:
 
 """
 DEPENDENCIES
+../../ortho_tree/consensus_GTR2/consensus_GTR2.py
+    ../../ortho_tree/consensus_GTR2/out/NI.nwk
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../gap_contrasts/gap_contrasts.py
