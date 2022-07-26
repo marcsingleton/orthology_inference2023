@@ -61,11 +61,25 @@ for label, color in zip(state_set, state_colors):
         ys = [record['e_dists_norm'][label][param] for record in history]
         ax.plot(xs, ys, label=label, color=color)
         ax.set_ylabel(param)
-axs[2].set_xlabel('Iteration')
+axs[-1].set_xlabel('Iteration')
 handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_set, state_colors)]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
 plt.subplots_adjust(right=0.875)
 plt.savefig('out/line_rate-iter.png')
+plt.close()
+
+fig, axs = plt.subplots(2, 1)
+for label, color in zip(state_set, state_colors):
+    for ax, param in zip(axs, ['p0', 'p1']):
+        xs = [record['iter_num'] for record in history]
+        ys = [record['e_dists_norm'][label][param] for record in history]
+        ax.plot(xs, ys, label=label, color=color)
+        ax.set_ylabel(param)
+axs[-1].set_xlabel('Iteration')
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_set, state_colors)]
+fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
+plt.subplots_adjust(right=0.875)
+plt.savefig('out/line_jump-iter.png')
 plt.close()
 
 fig, axs = plt.subplots(2, 1)
@@ -75,7 +89,7 @@ for label, color in zip(state_set, state_colors):
         ys = [record['e_dists_norm'][label][param] for record in history]
         ax.plot(xs, ys, label=label, color=color)
         ax.set_ylabel(param)
-axs[1].set_xlabel('Iteration')
+axs[-1].set_xlabel('Iteration')
 handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_set, state_colors)]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
 plt.subplots_adjust(right=0.875)
@@ -91,11 +105,13 @@ for label, color in zip(state_set, state_colors):
         ys = [record['t_dists_norm'][label][param] for record in history]
         ax.plot(xs, ys, label=label, color=color)
         ax.set_ylabel(param)
-axs[3].set_xlabel('Iteration')
+for ax in axs:
+    ax.set_yscale('log')
+axs[-1].set_xlabel('Iteration')
 handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_set, state_colors)]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
 plt.subplots_adjust(left=0.15, right=0.875)
-plt.savefig('out/line_jump-iter.png')
+plt.savefig('out/line_transition-iter.png')
 plt.close()
 
 # Plot alignments
