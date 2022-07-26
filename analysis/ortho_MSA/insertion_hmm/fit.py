@@ -312,7 +312,7 @@ if __name__ == '__main__':
         emit_seq = np.array(emit_seq)
 
         # Load tree and convert to vectors at tips
-        tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
+        tree = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
         tree = tree.shear([record['spid'] for record in msa])
         tips = {tip.name: tip for tip in tree.tips()}
         for record in msa:
@@ -430,8 +430,8 @@ The gradients are calculated using the formulas in:
 Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 
 DEPENDENCIES
-../../ortho_tree/consensus_LG/consensus_LG.py
-    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
+../../ortho_tree/consensus_GTR2/consensus_GTR2.py
+    ../../ortho_tree/consensus_GTR2/out/NI.nwk
 ../insertion_hmm/fit.py
     ../insertion_hmm/out/model.json
 ../realign_hmmer/realign_hmmer.py

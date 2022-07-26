@@ -17,8 +17,9 @@ spid_regex = r'spid=([a-z]+)'
 state_set = ['1A', '1B', '2', '3']
 state_colors = ['C0', 'C3', 'C1', 'C2']
 
-tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
-tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
+tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
+tree_order = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
+tip_order = {tip.name: i for i, tip in enumerate(tree_order.tips())}
 
 # Load labels
 OGid2labels = {}
@@ -188,6 +189,8 @@ for OGid, labels in OGid2labels.items():
 
 """
 DEPENDENCIES
+../../ortho_tree/consensus_GTR2/consensus_GTR2.py
+    ../../ortho_tree/consensus_GTR2/out/NI.nwk
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../realign_hmmer/realign_hmmer.py
