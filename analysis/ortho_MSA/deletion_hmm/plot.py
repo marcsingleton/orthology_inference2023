@@ -15,7 +15,7 @@ from src.utils import read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
-state_set = ['1', '2']
+state_labels = ['1', '2']
 state_colors = ['C0', 'C1']
 
 tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
@@ -24,20 +24,20 @@ tip_order = {tip.name: i for i, tip in enumerate(tree_order.tips())}
 
 # Load labels
 OGid2labels = {}
-state_labels = set()
+label_set = set()
 with open('labels.tsv') as file:
     field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
         fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
         OGid, ppid, start, stop, label = fields['OGid'], fields['ppid'], int(fields['start']), int(fields['stop']), fields['label']
-        state_labels.add(label)
+        label_set.add(label)
         try:
             OGid2labels[(OGid, ppid)].append((start, stop, label))
         except KeyError:
             OGid2labels[(OGid, ppid)] = [(start, stop, label)]
 
-if set(state_set) != state_labels:
-    raise RuntimeError('state_labels is not equal to state_set')
+if set(state_labels) != label_set:
+    raise RuntimeError('state_labels is not equal to set of state_labels')
 
 # Load history and model parameters
 with open('out/history.json') as file:
@@ -57,14 +57,14 @@ plt.close()
 # Plot model parameters
 params = ['pi', 'q0', 'q1']
 fig, axs = plt.subplots(len(params), 1)
-label, color = state_set[0], state_colors[0]
+label, color = state_labels[0], state_colors[0]
 for ax, param in zip(axs, params):
     xs = [record['iter_num'] for record in history]
     ys = [record['e_dists_norm'][label][param] for record in history]
     ax.plot(xs, ys, label=label, color=color)
     ax.set_ylabel(param)
 axs[-1].set_xlabel('Iteration')
-handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_set[:1], state_colors[:1])]
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels[:1], state_colors[:1])]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
 plt.subplots_adjust(right=0.875)
 plt.savefig('out/line_rate-iter.png')
@@ -72,21 +72,21 @@ plt.close()
 
 param = 'p'
 fig, ax = plt.subplots()
-label, color = state_set[1], state_colors[1]
+label, color = state_labels[1], state_colors[1]
 xs = [record['iter_num'] for record in history]
 ys = [record['e_dists_norm'][label][param] for record in history]
 ax.plot(xs, ys, label=label, color=color)
 ax.set_ylabel(param)
 ax.set_xlabel('Iteration')
-handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_set[1:], state_colors[1:])]
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels[1:], state_colors[1:])]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
 plt.subplots_adjust(right=0.875)
 plt.savefig('out/line_p-iter.png')
 plt.close()
 
-fig, axs = plt.subplots(len(state_set), 1)
-for label, color in zip(state_set, state_colors):
-    for ax, param in zip(axs, state_set):
+fig, axs = plt.subplots(len(state_labels), 1)
+for label, color in zip(state_labels, state_colors):
+    for ax, param in zip(axs, state_labels):
         if param == label:
             continue
         xs = [record['iter_num'] for record in history]
@@ -96,7 +96,7 @@ for label, color in zip(state_set, state_colors):
 for ax in axs:
     ax.set_yscale('log')
 axs[-1].set_xlabel('Iteration')
-handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_set, state_colors)]
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels, state_colors)]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
 plt.subplots_adjust(left=0.15, right=0.875)
 plt.savefig('out/line_transition-iter.png')
@@ -150,23 +150,23 @@ for (OGid, ppid), labels in OGid2labels.items():
 
     kwargs_wide = {'figsize': (15, 6), 'height_ratio': 0.5, 'hspace': 0.2,
                    'msa_labels': msa_labels, 'msa_labelsize': 4,
-                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': state_set, 'data_colors': state_colors,
+                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': state_labels, 'data_colors': state_colors,
                    'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8,
                                                          'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
     adjust_wide = {'left': 0.04, 'bottom': 0.01, 'right': 0.94, 'top': 0.99}
 
     kwargs_tall = {'figsize': (8, 8), 'height_ratio': 0.5, 'hspace': 0.2,
                    'msa_labels': msa_labels, 'msa_labelsize': 4,
-                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': state_set, 'data_colors': state_colors,
+                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': state_labels, 'data_colors': state_colors,
                    'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.90, 0.5), 'loc': 'center left', 'fontsize': 8,
                                                          'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
     adjust_tall = {'left': 0.06, 'bottom': 0.01, 'right': 0.89, 'top': 0.99}
 
     # Plot labels
-    lines = {label: np.zeros(len(msa[0]['seq'])) for label in state_set}
+    lines = {label: np.zeros(len(msa[0]['seq'])) for label in state_labels}
     for start, stop, label in labels:
         lines[label][start:stop] = 1
-    data = [lines[label] for label in state_set]
+    data = [lines[label] for label in state_labels]
 
     plot_msa_data([record['seq'] for record in msa], data, **kwargs_wide)
     plt.subplots_adjust(**adjust_wide)
@@ -181,7 +181,7 @@ for (OGid, ppid), labels in OGid2labels.items():
     # Decode states and plot
     idx_seq = list(range(len(msa[0]['seq'])))  # Everything is pre-calculated, so emit_seq is the emit index
     fbs = model.forward_backward(idx_seq)
-    data = [fbs[label] for label in state_set]
+    data = [fbs[label] for label in state_labels]
 
     plot_msa_data([record['seq'] for record in msa], data, **kwargs_wide)
     plt.subplots_adjust(**adjust_wide)

@@ -146,19 +146,19 @@ e_dists_initial = {'1': {'pi': 0.5, 'q0': 0.25, 'q1': 0.25},
 if __name__ == '__main__':
     # Load labels
     OGid2labels = {}
-    state_labels = set()
+    label_set = set()
     with open('labels.tsv') as file:
         field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
             fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
             OGid, ppid, start, stop, label = fields['OGid'], fields['ppid'], int(fields['start']), int(fields['stop']), fields['label']
-            state_labels.add(label)
+            label_set.add(label)
             try:
                 OGid2labels[(OGid, ppid)].append((start, stop, label))
             except KeyError:
                 OGid2labels[(OGid, ppid)] = [(start, stop, label)]
 
-    if state_set != state_labels:
+    if state_set != label_set:
         raise RuntimeError('state_labels is not equal to state_set')
 
     # Check label validity
