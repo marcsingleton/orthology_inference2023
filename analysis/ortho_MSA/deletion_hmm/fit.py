@@ -6,210 +6,294 @@ import os
 import re
 from functools import reduce
 
+import numpy as np
+import skbio
 import src.ortho_MSA.hmm as hmm
+from src.ortho_MSA import utils
 from numpy import exp, log
 from src.utils import read_fasta
 
 
-class msaBernoulli:
-    def __init__(self, ps):
-        self.ps = ps
-
-    def pmf(self, x):
-        p = self.ps[x[0]]
-        if x[1] == 1:
-            return p
-        else:
-            return 1 - p
-
-    def rvs(self, random_state=None):
-        # Required for HMM since it has a simulate method
-        # Simulations aren't used here, so it's an empty method
-        pass
-
-
-# Gradient functions
-def bernoulli_pmf(x, p):
-    """Return pmf of Bernoulli distribution evaluated at x."""
-    return p**x * (1 - p)**(1 - x)
-
-
-def bernoulli_pmf_prime(x, p):
-    """Return derivative of Bernoulli pmf evaluated at x."""
-    return bernoulli_pmf(x, p) * (x/p - (1-x)/(1-p))
-
-
-# Utility functions
-def norm_params(t_dists, e_param):
-    """Return parameters to their normalized values."""
+def norm_params(t_dists, e_dists):
+    """Return parameters as their normalized values."""
     t_dists_norm = {}
     for s1, t_dist in t_dists.items():
         z_sum = sum([exp(z) for z in t_dist.values()])
         t_dists_norm[s1] = {s2: exp(z)/z_sum for s2, z in t_dist.items()}
-    e_param_norm = 1 / (1 + exp(-e_param))
-    return t_dists_norm, e_param_norm
+    e_dists_norm = {}
+    for s, e_dist in e_dists.items():
+        if s == '1':
+            zpi, zq0, zq1 = [e_dist[param] for param in ['pi', 'q0', 'q1']]
+            e_dists_norm[s] = {'pi': 1 / (1 + exp(-zpi)), 'q0': exp(zq0), 'q1': exp(zq1)}
+        elif s == '2':
+            zp = e_dist['p']
+            e_dists_norm[s] = {'p': 1 / (1 + exp(-zp))}
+    return t_dists_norm, e_dists_norm
 
 
-def get_expectations(t_dists_norm, e_param_norm, start_dist, record):
+def unnorm_params(t_dists_norm, e_dists_norm):
+    """Return parameters as their unnormalized values for gradient descent."""
+    t_dists = {}
+    for s1, t_dist in t_dists_norm.items():
+        t_dists[s1] = {s2: log(v) for s2, v in t_dist.items()}
+    e_dists = {}
+    for s, e_dist in e_dists_norm.items():
+        if s == '1':
+            pi, q0, q1 = [e_dist[param] for param in ['pi', 'q0', 'q1']]
+            e_dists[s] = {'pi': log(pi / (1 - pi)), 'q0': log(q0), 'q1': log(q1)}
+        elif s == '2':
+            p = e_dist['p']
+            e_dists[s] = {'p': log(p / (1 - p))}
+    return t_dists, e_dists
+
+
+def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     """Return record updated with expected values of states and transitions given model parameters."""
-    # Instantiate model
-    p_seq, state_seq, emit_seq = record['p_seq'], record['state_seq'], record['emit_seq']
-    model = hmm.HMM(t_dists_norm,
-                    {'0': msaBernoulli(p_seq), '1': msaBernoulli([e_param_norm for _ in range(len(p_seq))])},
-                    start_dist)
+    # Unpack record fields
+    spid = record['spid']
+    tree, state_seq = record['tree'], record['state_seq']
+    mis, mijs = record['mis'], record['mijs']
 
-    # Get expectations
-    fs, ss_f = model.forward(emit_seq)
-    bs, ss_b = model.backward(emit_seq)
-    record['nis'] = model.forward_backward1(emit_seq, fs, ss_f, bs, ss_b)
-    record['nijs'] = model.forward_backward2(emit_seq, fs, ss_f, bs, ss_b)
+    # Pre-calculate probabilities for each state as array
+    tip_pmfs = {}
+    e_dists_rv = {}
+    for s, e_dist in e_dists_norm.items():
+        if s == '1':
+            pi, q0, q1 = [e_dist[param] for param in ['pi', 'q0', 'q1']]
+            tip_pmf = utils.get_tip_pmf(tree, spid, pi, q0, q1, 0, 0)
+            tip_pmfs[s] = tip_pmf
+            e_dists_rv[s] = utils.ArrayRV(tip_pmf)
+        elif s == '2':
+            p = e_dist['p']
+            conditional = tree.tip_dict[spid].conditional[1]  # Second row is gaps=0, non-gaps=1
+            tip_pmf = utils.get_bernoulli_pmf(conditional, p)
+            tip_pmfs[s] = tip_pmf
+            e_dists_rv[s] = utils.ArrayRV(tip_pmf)
+
+    # Instantiate model and get expectations
+    model = hmm.HMM(t_dists_norm, e_dists_rv, start_dist)
+    idx_seq = list(range(len(state_seq)))  # Everything is pre-calculated, so emit_seq is the emit index
+    fs, ss_f = model.forward(idx_seq)
+    bs, ss_b = model.backward(idx_seq)
+    nis = model.forward_backward1(idx_seq, fs, ss_f, bs, ss_b)
+    nijs = model.forward_backward2(idx_seq, fs, ss_f, bs, ss_b)
 
     # Calculate likelihood
     px = reduce(lambda x, y: x + y, map(log, ss_f))
-    pxy = model.joint_likelihood(emit_seq, state_seq)
-    record['ll'] = pxy - px
+    pxy = model.joint_likelihood(idx_seq, state_seq)
+    ll = pxy - px
 
-    return record
+    # Get t_dists gradients
+    t_grads = {}
+    for s1, t_dist in t_dists_norm.items():
+        t_grad = {}
+        mn_sum = sum([mijs[(s1, s2)] - nijs[(s1, s2)] for s2 in t_dist])
+        for s2, p in t_dist.items():
+            t_grad[s2] = -(mijs[(s1, s2)] - nijs[(s1, s2)] - p * mn_sum)  # Equation 2.20
+        t_grads[s1] = t_grad
+
+    # Get e_dists gradients
+    e_grads = {}
+    for s, e_dist in e_dists_norm.items():
+        if s == '1':
+            pi, q0, q1 = [e_dist[param] for param in ['pi', 'q0', 'q1']]
+            tip_pmf = tip_pmfs[s]
+            tip_prime_pi = utils.get_tip_prime(tree, spid, pi, q0, q1, 0, 0, 'pi')
+            tip_prime_q0 = utils.get_tip_prime(tree, spid, pi, q0, q1, 0, 0, 'q0')
+            tip_prime_q1 = utils.get_tip_prime(tree, spid, pi, q0, q1, 0, 0, 'q1')
+
+            # Equations 2.15 and 2.16 (emission parameter phi only)
+            e_grad = {}
+            mn = np.array([mi - ni for mi, ni in zip(mis[s], nis[s])])
+            e_grad['pi'] = -mn / tip_pmf * tip_prime_pi * pi * (1 - pi)
+            e_grad['q0'] = -mn / tip_pmf * tip_prime_q0 * q0
+            e_grad['q1'] = -mn / tip_pmf * tip_prime_q1 * q1
+            e_grads[s] = e_grad
+        elif s == '2':
+            p = e_dist['p']
+            conditional = tree.tip_dict[spid].conditional[1]  # Second row is gaps=0, non-gaps=1
+            tip_pmf = tip_pmfs[s]
+            tip_prime_p = utils.get_bernoulli_prime(conditional, p)
+
+            # Equations 2.15 and 2.16 (emission parameter phi only)
+            e_grad = {}
+            mn = np.array([mi - ni for mi, ni in zip(mis[s], nis[s])])
+            e_grad['p'] = -mn / tip_pmf * tip_prime_p * p * (1 - p)
+            e_grads[s] = e_grad
+
+    return {'ll': ll, 't_grads': t_grads, 'e_grads': e_grads}
 
 
-eta = 1E-2
-epsilon = 1E-2
-iter_num = 200
-ppid_regex = r'ppid=([A-Za-z0-9_]+)'
-num_processes = 2
+num_processes = 4
+ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
+spid_regex = r'spid=([a-z]+)'
+
+eta = 0.05  # Learning rate
+gamma = 0.9  # Momentum
+epsilon = 1E-1  # Convergence criterion
+iter_num = 200  # Max number of iterations
+
+state_set = {'1', '2'}
+start_set = {'1', '2'}
+t_sets = {s1: {s2 for s2 in state_set} for s1 in state_set}
+tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
+
+t_pseudo = 0.1  # t_dist pseudocounts
+start_pseudo = 0.1  # start_dist pseudocounts
+e_dists_initial = {'1': {'pi': 0.5, 'q0': 0.25, 'q1': 0.25},
+                   '2': {'p': 0.01}}
 
 if __name__ == '__main__':
-    # Load regions
-    OGid2regions = {}
-    state_set = set()
+    # Load labels
+    OGid2labels = {}
+    state_labels = set()
     with open('labels.tsv') as file:
         field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
             fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
-            OGid, ppid, start, stop, state = fields['OGid'], fields['ppid'], int(fields['start']), int(fields['stop']), fields['state']
-            state_set.add(state)
+            OGid, ppid, start, stop, label = fields['OGid'], fields['ppid'], int(fields['start']), int(fields['stop']), fields['label']
+            state_labels.add(label)
             try:
-                OGid2regions[(OGid, ppid)].append((start, stop, state))
+                OGid2labels[(OGid, ppid)].append((start, stop, label))
             except KeyError:
-                OGid2regions[(OGid, ppid)] = [(start, stop, state)]
+                OGid2labels[(OGid, ppid)] = [(start, stop, label)]
+
+    if state_set != state_labels:
+        raise RuntimeError('state_labels is not equal to state_set')
+
+    # Check label validity
+    for (OGid, ppid), labels in OGid2labels.items():
+        start0, stop0, label0 = labels[0]
+        if start0 != 0:
+            print(f'First interval for ({OGid}, {ppid}) does not begin at 0')
+        for start, stop, label in labels[1:]:
+            if label0 == label:
+                print(f'State for interval ({OGid}, {ppid}, {start}, {stop}) equals previous state')
+            if stop0 != start:
+                print(f'Start for interval ({OGid}, {ppid}, {start}, {stop}) does not equal previous stop')
+            if start >= stop:
+                print(f'Start for interval ({OGid}, {ppid}, {start}, {stop}) is greater than stop')
+            stop0, label0 = stop, label
 
     # Convert MSAs to records containing state-emissions sequences and other data
     records = []
-    for (OGid, ppid), regions in OGid2regions.items():
-        # Load MSA and extract seq
-        msa = read_fasta(f'../insertion_trim/out/{OGid}.afa')
-        seq = [seq for header, seq in msa if re.search(ppid_regex, header).group(1) == ppid][0]
+    for (OGid, ppid), labels in OGid2labels.items():
+        # Load MSA
+        msa, ppid2spid = [], {}
+        for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
+            msa_ppid = re.search(ppid_regex, header).group(1)
+            msa_spid = re.search(spid_regex, header).group(1)
+            msa.append({'ppid': msa_ppid, 'spid': msa_spid, 'seq': seq})
+            ppid2spid[msa_ppid] = msa_spid
 
-        # Create Bernoulli sequence
-        p_seq = []
-        for j in range(len(msa[0][1])):
-            col = [1 if msa[i][1][j] in ['-', '.'] else 0 for i in range(len(msa))]
-            p = sum(col) / len(col)
-            p_seq.append(p)
+        # Load tree and convert to vectors at tips
+        tree = tree_template.shear([record['spid'] for record in msa])
+        tips = {tip.name: tip for tip in tree.tips()}
+        tree.tip_dict = tips
+        for record in msa:
+            spid, seq = record['spid'], record['seq']
+            conditional = np.zeros((2, len(seq)))
+            for j, sym in enumerate(seq):
+                if sym in ['-', '.']:
+                    conditional[0, j] = 1
+                else:
+                    conditional[1, j] = 1
+            tip = tips[spid]
+            tip.conditional = conditional
 
-        # Create emission sequence
-        emit_seq = []
-        for j, sym in enumerate(seq):
-            if sym in ['-', '.']:
-                emit_seq.append((j, 1))
-            else:
-                emit_seq.append((j, 0))
-
-        # Create state sequence and counts for initializing parameters
+        # Create state sequence
         state_seq = []
-        e_count = {0: 0, 1: 0}
-        for (start, stop, state) in regions:
-            state_seq.extend((stop - start) * [state])
-            if state == '1':
-                count = len([sym for sym in seq[start:stop] if sym in ['-', '.']])
-                e_count[1] += count
-                e_count[0] += stop - start - count
+        for start, stop, label in labels:
+            state_seq.extend((stop - start) * [label])
 
         # Create count dictionaries
         mis = hmm.count_states(state_seq, state_set)
-        mijs = hmm.count_transitions(state_seq, state_set)
+        mijs = hmm.count_transitions(state_seq, t_sets)
 
-        records.append({'OGid': OGid, 'p_seq': p_seq, 'state_seq': state_seq, 'emit_seq': emit_seq,
-                        'mis': mis, 'mijs': mijs,
-                        'start_state': regions[0][2], 'e_count': e_count})
+        records.append({'OGid': OGid, 'spid': ppid2spid[ppid], 'tree': tree, 'state_seq': state_seq,
+                        'mis': mis, 'mijs': mijs})
 
-    # Initialize parameters (compiling counts from individual records plus pseudocounts)
-    t_counts = {state: {s: 1 for s in state_set} for state in state_set}
-    e_count = {0: 1, 1: 1}
-    start_count = {'0': 1, '1': 1}
-    for record in records:
-        for (state0, state), count in record['mijs'].items():
-            t_counts[state0][state] += count
-        for s, count in record['e_count'].items():
-            e_count[s] += count
-        start_count[record['start_state']] += 1
+    # Calculate start_dist from background distribution of states
+    state_counts = {s: start_pseudo for s in start_set}
+    for labels in OGid2labels.values():
+        for start, stop, label in labels:
+            state_counts[label] += stop - start
+    state_sum = sum(state_counts.values())
+    start_dist = {s: count / state_sum for s, count in state_counts.items()}
 
-    t_dists = {}
-    for state, t_count in t_counts.items():
-        total = sum(t_count.values())
-        t_dists[state] = {s: count / total for s, count in t_count.items()}
-    e_param = e_count[1] / sum(e_count.values())
-    total = sum(start_count.values())
-    start_dist = {state: count / total for state, count in start_count.items()}
+    # Initialize t_dist from observed transitions
+    t_counts = {s1: {s2: t_pseudo for s2 in t_set} for s1, t_set in t_sets.items()}
+    for labels in OGid2labels.values():
+        start, stop, label0 = labels[0]
+        t_counts[label0][label0] += stop - start - 1
+        for start, stop, label1 in labels:
+            t_counts[label0][label1] += 1
+            t_counts[label1][label1] += stop - start - 1
+            label0 = label1
+    t_dists_norm = {}
+    for s1, t_count in t_counts.items():
+        t_sum = sum(t_count.values())
+        t_dists_norm[s1] = {s2: count / t_sum for s2, count in t_count.items()}
 
-    t_dists = {s1: {s2: log(v) for s2, v in t_dist.items()} for s1, t_dist in t_dists.items()}
-    e_param = -log(1/e_param-1)
+    # Initialize e_dists from initial values
+    e_dists_norm = e_dists_initial.copy()
 
     # Gradient descent
-    j, ll0 = 0, None
-    models = []
-    while j < iter_num:
+    t_dists, e_dists = unnorm_params(t_dists_norm, e_dists_norm)
+    t_momenta = {s1: {s2: None for s2 in t_dist} for s1, t_dist in t_dists.items()}
+    e_momenta = {s: {param: None for param in e_dist} for s, e_dist in e_dists.items()}
+    ll0 = None
+    history = []
+    for i in range(1, iter_num + 1):
         # Calculate expectations and likelihoods
-        t_dists_norm, e_param_norm = norm_params(t_dists, e_param)
+        t_dists_norm, e_dists_norm = norm_params(t_dists, e_dists)
         with mp.Pool(processes=num_processes) as pool:
-            records = pool.starmap(get_expectations, [(t_dists_norm, e_param_norm, start_dist, record) for record in records])
+            gradients = pool.starmap(get_gradients, [(t_dists_norm, e_dists_norm, start_dist, record) for record in records])
 
-        # Save and report updated parameters
-        ll = sum([record['ll'] for record in records])
-        models.append((ll, t_dists_norm, e_param_norm))
+        # Save and report parameters from previous update
+        ll = sum([gradient['ll'] for gradient in gradients])
+        history.append({'iter_num': i, 'll': ll, 't_dists_norm': t_dists_norm, 'e_dists_norm': e_dists_norm})
 
-        print(f'ITERATION {j} / {iter_num}')
+        print(f'ITERATION {i} / {iter_num}')
         print('\tll:', ll)
         print('\tt_dists_norm:', t_dists_norm)
-        print('\te_param_norm:', e_param_norm)
+        print('\te_dists_norm:', e_dists_norm)
 
         # Check convergence
-        if ll0 is not None and abs(ll - ll0) < epsilon:
+        if i > 1 and abs(ll - ll0) < epsilon:
             break
         ll0 = ll
 
-        # Update parameters
-        for record in records:
-            # Unpack variables
-            emit_seq = record['emit_seq']
-            mis, mijs = record['mis'], record['mijs']
-            nis, nijs = record['nis'], record['nijs']
+        # Accumulate and apply gradients
+        for s1, t_dist in t_dists.items():
+            for s2 in t_dist:
+                grad_stack = np.hstack([gradient['t_grads'][s1][s2] for gradient in gradients])
+                if i > 1:
+                    dz = gamma * t_momenta[s1][s2] + eta * grad_stack.sum() / len(grad_stack)
+                else:
+                    dz = eta * grad_stack.sum() / len(grad_stack)
+                t_dist[s2] -= dz
+                t_momenta[s1][s2] = dz
 
-            # Update t_dists
-            for s1, t_dist in t_dists.items():
-                mn_sum = sum([mijs[(s1, s2)] - nijs[(s1, s2)] for s2 in state_set])
-                z_sum = sum([exp(z) for z in t_dist.values()])
-                for s2, z in t_dist.items():
-                    d = -(mijs[(s1, s2)] - nijs[(s1, s2)] - exp(z)/z_sum * mn_sum)
-                    t_dist[s2] -= eta * d
+        for s, e_dist in e_dists.items():
+            for param in e_dist:
+                grad_stack = np.hstack([gradient['e_grads'][s][param] for gradient in gradients])
+                if i > 1:
+                    dz = gamma * e_momenta[s][param] + eta * grad_stack.sum() / len(grad_stack)
+                else:
+                    dz = eta * grad_stack.sum() / len(grad_stack)
+                e_dists[s][param] -= dz
+                e_momenta[s][param] = dz
 
-            # Update e_dists
-            zp = e_param
-            p, dzp = 1 / (1 + exp(-zp)), 0
-            for i, emit in enumerate(emit_seq):
-                mn = mis['1'][i] - nis['1'][i]
-                dzp -= mn / bernoulli_pmf(emit[1], p) * bernoulli_pmf_prime(emit[1], p) * p / (1 + exp(zp))
-            e_param = zp - eta * dzp
-
-        j += 1
-
-    # Save parameters
+    # Save history and best model parameters
     if not os.path.exists('out/'):
         os.mkdir('out/')
 
+    with open('out/history.json', 'w') as file:
+        json.dump(history, file, indent='\t')
     with open('out/model.json', 'w') as file:
-        _, t_dists, e_param = max(models)
-        json.dump({'t_dists': t_dists, 'e_param': e_param, 'start_dist': start_dist}, file)
+        model = max(history, key=lambda x: x['ll'])
+        json.dump({'t_dists': model['t_dists_norm'], 'e_dists': model['e_dists_norm'], 'start_dist': start_dist}, file, indent='\t')
 
 """
 NOTES

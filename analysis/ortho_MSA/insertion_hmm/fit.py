@@ -11,139 +11,9 @@ import skbio
 import src.ortho_MSA.hmm as hmm
 from src.ortho_MSA import utils
 from numpy import exp, log
-from scipy.special import beta, comb, digamma
 from src.utils import read_fasta
 
 
-# Gradient functions
-def get_tree_prime(tree, pi, q0, q1, p0, p1, name):
-    """Return derivative of probability of tree relative to a given parameter."""
-    if name == 'pi':
-        s, conditional = utils.get_conditional(tree, q0, q1, p0, p1)
-        d = ((exp(s) * conditional) * [[-1], [1]]).sum(axis=0)  # Broadcasting magic
-        return d
-    elif name in ['q0', 'q1']:
-        derivative = get_conditional_prime_q(tree, q0, q1, p0, p1, name)
-        d = (derivative * [[1 - pi], [pi]]).sum(axis=0)  # Broadcasting magic
-        return d
-    elif name in ['p0', 'p1']:
-        derivative = get_conditional_prime_p(tree, q0, q1, p0, p1, name)
-        d = (derivative * [[1 - pi], [pi]]).sum(axis=0)  # Broadcasting magic
-        return d
-    else:
-        raise ValueError('"name" is not "pi", "q0", "q1", "p0", or "p1"')
-
-
-def get_conditional_prime_q(node, q0, q1, p0, p1, name):
-    """Return derivative of conditional probabilities relative to q."""
-    # Collect product and derivative of product for each branch
-    ps = []
-    dps = []
-    for child in node.children:
-        if child.is_tip():
-            conditional = child.conditional
-            conditional = np.matmul([[1-p0, p0], [p1, 1-p1]], conditional)
-            derivative = np.zeros((2, conditional.shape[1]))
-        else:
-            s, conditional = utils.get_conditional(child, q0, q1, p0, p1)
-            conditional = exp(s) * conditional  # Un-normalize
-            derivative = get_conditional_prime_q(child, q0, q1, p0, p1, name)
-
-        m = utils.get_transition_matrix(q0, q1, child.length)
-        p = np.matmul(m, conditional)
-
-        dm = get_transition_matrix_prime_q(q0, q1, child.length, name)
-        dp = np.matmul(dm, conditional) + np.matmul(m, derivative)
-
-        ps.append(p)
-        dps.append(dp)
-
-    # Assemble products and derivatives into terms and then sum (product rule)
-    terms = []
-    for i in range(len(node.children)):
-        term = [dps[j] if i == j else ps[j] for j in range(len(node.children))]
-        term = np.product(np.stack(term), axis=0)
-        terms.append(term)
-    derivative = np.sum(np.stack(terms), axis=0)
-
-    return derivative
-
-
-def get_conditional_prime_p(node, q0, q1, p0, p1, name):
-    """Return derivative of conditional probabilities relative to p."""
-    # Collect product and derivative of product for each branch
-    ps = []
-    dps = []
-    for child in node.children:
-        if child.is_tip():
-            conditional = child.conditional
-            conditional = np.matmul([[1 - p0, p0], [p1, 1 - p1]], conditional)
-            if name == 'p0':
-                dm = [[-1, 1], [0, 0]]
-            elif name == 'p1':
-                dm = [[0, 0], [1, -1]]
-            else:
-                raise ValueError('"name" is not "p0" or "p1"')
-            derivative = np.matmul(dm, child.conditional)  # Use original conditional
-        else:
-            s, conditional = utils.get_conditional(child, q0, q1, p0, p1)
-            conditional = exp(s) * conditional  # Un-normalize
-            derivative = get_conditional_prime_p(child, q0, q1, p0, p1, name)
-
-        m = utils.get_transition_matrix(q0, q1, child.length)
-        p = np.matmul(m, conditional)
-
-        dp = np.matmul(m, derivative)
-
-        ps.append(p)
-        dps.append(dp)
-
-    # Assemble products and derivatives into terms and then sum (product rule)
-    terms = []
-    for i in range(len(node.children)):
-        term = [dps[j] if i == j else ps[j] for j in range(len(node.children))]
-        term = np.product(np.stack(term), axis=0)
-        terms.append(term)
-    derivative = np.sum(np.stack(terms), axis=0)
-
-    return derivative
-
-
-def get_transition_matrix_prime_q(q0, q1, t, name):
-    """Return derivative transition matrix for two-state CTMC relative to q."""
-    q = q0 + q1
-    if name == 'q0':
-        d00 = -(q1 + (t * q0 ** 2 + t * q0 * q1 - q1) * exp(-q * t)) / q ** 2
-        d01 = -d00
-        d11 = q1*(1 - (q0 * t + q1 * t + 1) * exp(-q * t)) / q ** 2
-        d10 = -d11
-        return np.array([[d00, d01], [d10, d11]])
-    elif name == 'q1':
-        d00 = q0 * (1 - (t * q0 + t * q1 + 1) * exp(-q * t)) / q ** 2
-        d01 = -d00
-        d11 = -(q0 + (t * q1 ** 2 + t * q0 * q1 - q0) * exp(-q * t)) / q ** 2
-        d10 = -d11
-        return np.array([[d00, d01], [d10, d11]])
-    else:
-        raise ValueError('"name" is not "q0" or "q1"')
-
-
-def beta_prime(a, b):
-    """Return derivative of beta function relative to its first parameter, a."""
-    return beta(a, b) * (digamma(a) - digamma(a + b))
-
-
-def get_betabinom_prime(x, n, a, b, name):
-    """Return derivative of beta-binomial pmf relative to a given parameter."""
-    if name == 'a':
-        return comb(n, x) * (beta_prime(x + a, n - x + b) * beta(a, b) - beta(x + a, n - x + b) * beta_prime(a, b)) / (beta(a, b)) ** 2
-    elif name == 'b':
-        return comb(n, x) * (beta_prime(n - x + b, x + a) * beta(a, b) - beta(x + a, n - x + b) * beta_prime(b, a)) / (beta(a, b)) ** 2
-    else:
-        raise ValueError('"name" is not "a" or "b"')
-
-
-# Utility functions
 def norm_params(t_dists, e_dists):
     """Return parameters as their normalized values."""
     t_dists_norm = {}
@@ -219,14 +89,14 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     for s, e_dist in e_dists_norm.items():
         a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
         betabinom_pmf = betabinom_pmfs[s]
-        betabinom_prime_a = get_betabinom_prime(emit_seq, n, a, b, 'a')
-        betabinom_prime_b = get_betabinom_prime(emit_seq, n, a, b, 'b')
+        betabinom_prime_a = utils.get_betabinom_prime(emit_seq, n, a, b, 'a')
+        betabinom_prime_b = utils.get_betabinom_prime(emit_seq, n, a, b, 'b')
         tree_pmf = tree_pmfs[s]
-        tree_prime_pi = get_tree_prime(tree, pi, q0, q1, p0, p1, 'pi')
-        tree_prime_q0 = get_tree_prime(tree, pi, q0, q1, p0, p1, 'q0')
-        tree_prime_q1 = get_tree_prime(tree, pi, q0, q1, p0, p1, 'q1')
-        tree_prime_p0 = get_tree_prime(tree, pi, q0, q1, p0, p1, 'p0')
-        tree_prime_p1 = get_tree_prime(tree, pi, q0, q1, p0, p1, 'p1')
+        tree_prime_pi = utils.get_tree_prime(tree, pi, q0, q1, p0, p1, 'pi')
+        tree_prime_q0 = utils.get_tree_prime(tree, pi, q0, q1, p0, p1, 'q0')
+        tree_prime_q1 = utils.get_tree_prime(tree, pi, q0, q1, p0, p1, 'q1')
+        tree_prime_p0 = utils.get_tree_prime(tree, pi, q0, q1, p0, p1, 'p0')
+        tree_prime_p1 = utils.get_tree_prime(tree, pi, q0, q1, p0, p1, 'p1')
 
         # Equations 2.15 and 2.16 (emission parameter phi only)
         e_grad = {}
