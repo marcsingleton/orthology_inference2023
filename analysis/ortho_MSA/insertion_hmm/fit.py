@@ -194,7 +194,7 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
 
     # Instantiate model and get expectations
     model = hmm.HMM(t_dists_norm, e_dists_rv, start_dist)
-    idx_seq = list(range(len(emit_seq)))  # Everything is pre-calculated, so emit_seq is the emit index
+    idx_seq = list(range(len(state_seq)))  # Everything is pre-calculated, so emit_seq is the emit index
     fs, ss_f = model.forward(idx_seq)
     bs, ss_b = model.backward(idx_seq)
     nis = model.forward_backward1(idx_seq, fs, ss_f, bs, ss_b)
@@ -254,6 +254,7 @@ iter_num = 200  # Max number of iterations
 state_set = {'1A', '1B', '2', '3'}
 start_set = {'1A', '1B', '2', '3'}
 t_sets = {s1: {s2 for s2 in state_set} for s1 in state_set}
+tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
 
 t_pseudo = 0.1  # t_dist pseudocounts
 start_pseudo = 0.1  # start_dist pseudocounts
@@ -314,8 +315,7 @@ if __name__ == '__main__':
         emit_seq = np.array(emit_seq)
 
         # Load tree and convert to vectors at tips
-        tree = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
-        tree = tree.shear([record['spid'] for record in msa])
+        tree = tree_template.shear([record['spid'] for record in msa])
         tips = {tip.name: tip for tip in tree.tips()}
         for record in msa:
             spid, seq = record['spid'], record['seq']
@@ -328,7 +328,7 @@ if __name__ == '__main__':
             tip = tips[spid]
             tip.conditional = conditional
 
-        # Create state sequences
+        # Create state sequence
         state_seq = []
         for start, stop, label in labels:
             state_seq.extend((stop - start) * [label])

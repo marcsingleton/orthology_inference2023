@@ -189,7 +189,7 @@ for OGid, labels in OGid2labels.items():
     plt.close()
 
     # Decode states and plot
-    idx_seq = list(range(len(emit_seq)))  # Everything is pre-calculated, so emit_seq is the emit index
+    idx_seq = list(range(len(msa[0]['seq'])))  # Everything is pre-calculated, so emit_seq is the emit index
     fbs = model.forward_backward(idx_seq)
     data = [fbs[label] for label in state_set]
 

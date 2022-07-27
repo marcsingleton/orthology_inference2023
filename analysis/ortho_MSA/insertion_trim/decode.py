@@ -66,9 +66,9 @@ def decode(OGid, model_json, tree_template):
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 spid_regex = r'spid=([a-z]+)'
 
-if __name__ == '__main__':
-    tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
+tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
 
+if __name__ == '__main__':
     # Load OGids
     OGids = []
     with open('../realign_hmmer/out/errors.tsv') as file:
