@@ -1,4 +1,4 @@
-"""Decode segments into posterior state probabilities."""
+"""Decode regions into posterior probabilities."""
 
 import json
 import multiprocessing as mp
@@ -8,8 +8,8 @@ import re
 import homomorph
 import numpy as np
 import skbio
-from src.utils import read_fasta
 from src.ortho_MSA import utils
+from src.utils import read_fasta
 
 
 def decode(OGid, model_json, tree_template):
@@ -47,13 +47,13 @@ def decode(OGid, model_json, tree_template):
     e_dists_rv = {}
     for s, e_dist in model_json['e_dists'].items():
         a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
-        array1 = utils.get_betabinom_pmf(emit_seq, len(msa), a, b)
-        array2 = utils.get_tree_pmf(tree, pi, q0, q1, p0, p1)
-        e_dists_rv[s] = utils.ArrayRV(array1 * array2)
+        pmf1 = utils.get_betabinom_pmf(emit_seq, len(msa), a, b)
+        pmf2 = utils.get_tree_pmf(tree, pi, q0, q1, p0, p1)
+        e_dists_rv[s] = utils.ArrayRV(pmf1 * pmf2)
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
     # Decode states and write
-    idx_seq = list(range(len(emit_seq)))  # Everything is pre-calculated, so emit_seq is the emit index
+    idx_seq = list(range(len(msa[0]['seq'])))  # Everything is pre-calculated, so emit_seq is the emit index
     fbs = model.forward_backward(idx_seq)
 
     state_set = sorted(model_json['t_dists'])
@@ -90,8 +90,8 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../../ortho_tree/consensus_LG/consensus_LG.py
-    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
+../../ortho_tree/consensus_GTR2/consensus_GTR2.py
+    ../../ortho_tree/consensus_GTR2/out/NI.nwk
 ../insertion_hmm/fit.py
     ../insertion_hmm/out/model.json
 ../realign_hmmer/realign_hmmer.py

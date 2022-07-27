@@ -8,8 +8,8 @@ import homomorph
 import matplotlib.pyplot as plt
 import numpy as np
 import skbio
-from src.ortho_MSA import utils
 from matplotlib.lines import Line2D
+from src.ortho_MSA import utils
 from src.draw import plot_msa_data
 from src.utils import read_fasta
 
@@ -54,9 +54,10 @@ plt.savefig('out/line_ll-iter.png')
 plt.close()
 
 # Plot model parameters
-fig, axs = plt.subplots(3, 1)
+params = ['pi', 'q0', 'q1']
+fig, axs = plt.subplots(len(params), 1)
 for label, color in zip(state_set, state_colors):
-    for ax, param in zip(axs, ['pi', 'q0', 'q1']):
+    for ax, param in zip(axs, params):
         xs = [record['iter_num'] for record in history]
         ys = [record['e_dists_norm'][label][param] for record in history]
         ax.plot(xs, ys, label=label, color=color)
@@ -68,9 +69,10 @@ plt.subplots_adjust(right=0.875)
 plt.savefig('out/line_rate-iter.png')
 plt.close()
 
-fig, axs = plt.subplots(2, 1)
+params = ['p0', 'p1']
+fig, axs = plt.subplots(len(params), 1)
 for label, color in zip(state_set, state_colors):
-    for ax, param in zip(axs, ['p0', 'p1']):
+    for ax, param in zip(axs, params):
         xs = [record['iter_num'] for record in history]
         ys = [record['e_dists_norm'][label][param] for record in history]
         ax.plot(xs, ys, label=label, color=color)
@@ -82,9 +84,10 @@ plt.subplots_adjust(right=0.875)
 plt.savefig('out/line_jump-iter.png')
 plt.close()
 
-fig, axs = plt.subplots(2, 1)
+params = ['a', 'b']
+fig, axs = plt.subplots(len(params), 1)
 for label, color in zip(state_set, state_colors):
-    for ax, param in zip(axs, ['a', 'b']):
+    for ax, param in zip(axs, params):
         xs = [record['iter_num'] for record in history]
         ys = [record['e_dists_norm'][label][param] for record in history]
         ax.plot(xs, ys, label=label, color=color)
@@ -96,7 +99,7 @@ plt.subplots_adjust(right=0.875)
 plt.savefig('out/line_betabinom-iter.png')
 plt.close()
 
-fig, axs = plt.subplots(len(state_set), 1, figsize=(6.4, 1.6 * len(state_set)))
+fig, axs = plt.subplots(len(state_set), 1, figsize=(6.4, 6.4))
 for label, color in zip(state_set, state_colors):
     for ax, param in zip(axs, state_set):
         if param == label:
@@ -154,9 +157,9 @@ for OGid, labels in OGid2labels.items():
     e_dists_rv = {}
     for s, e_dist in model_json['e_dists'].items():
         a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
-        array1 = utils.get_betabinom_pmf(emit_seq, len(msa), a, b)
-        array2 = utils.get_tree_pmf(tree, pi, q0, q1, p0, p1)
-        e_dists_rv[s] = utils.ArrayRV(array1 * array2)
+        pmf1 = utils.get_betabinom_pmf(emit_seq, len(msa), a, b)
+        pmf2 = utils.get_tree_pmf(tree, pi, q0, q1, p0, p1)
+        e_dists_rv[s] = utils.ArrayRV(pmf1 * pmf2)
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
     # Make plotting parameters
@@ -211,7 +214,7 @@ DEPENDENCIES
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../realign_hmmer/realign_hmmer.py
     ../realign_hmmer/out/mafft/*.afa
-./labels.tsv
 ./fit.py
     ./out/model.json
+./labels.tsv
 """

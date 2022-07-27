@@ -75,9 +75,9 @@ for label in ['norm1', 'norm2']:
         e_dists_rv = {}
         for s, e_dist in model_json['e_dists'].items():
             a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
-            array1 = utils.get_betabinom_pmf(emit_seq, len(msa), a, b)
-            array2 = utils.get_tree_pmf(tree, pi, q0, q1, p0, p1)
-            e_dists_rv[s] = utils.ArrayRV(array1 * array2)
+            pmf1 = utils.get_betabinom_pmf(emit_seq, len(msa), a, b)
+            pmf2 = utils.get_tree_pmf(tree, pi, q0, q1, p0, p1)
+            e_dists_rv[s] = utils.ArrayRV(pmf1 * pmf2)
         model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
         # Make plotting parameters
@@ -89,7 +89,7 @@ for label in ['norm1', 'norm2']:
         adjust = {'left': 0.015, 'bottom': 0.01, 'right': 0.94, 'top': 0.99}
 
         # Decode states and plot
-        idx_seq = list(range(len(emit_seq)))  # Everything is pre-calculated, so emit_seq is the emit index
+        idx_seq = list(range(len(msa[0]['seq'])))  # Everything is pre-calculated, so emit_seq is the emit index
         fbs = model.forward_backward(idx_seq)
         data = [fbs[label] for label in state_labels]
 
