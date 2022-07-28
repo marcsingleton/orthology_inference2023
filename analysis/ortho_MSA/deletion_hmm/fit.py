@@ -301,6 +301,8 @@ The gradients are calculated using the formulas in:
 Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 
 DEPENDENCIES
+../../ortho_tree/consensus_GTR2/consensus_GTR2.py
+    ../../ortho_tree/consensus_GTR2/out/NI.nwk
 ../insertion_trim/extract.py
     ../insertion_trim/out/*.afa
 ./labels.tsv

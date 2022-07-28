@@ -304,8 +304,6 @@ Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 DEPENDENCIES
 ../../ortho_tree/consensus_GTR2/consensus_GTR2.py
     ../../ortho_tree/consensus_GTR2/out/NI.nwk
-../insertion_hmm/fit.py
-    ../insertion_hmm/out/model.json
 ../realign_hmmer/realign_hmmer.py
     ../realign_hmmer/out/mafft/*.afa
 ./labels.tsv
