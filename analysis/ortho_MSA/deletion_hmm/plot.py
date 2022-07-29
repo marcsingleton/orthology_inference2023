@@ -23,7 +23,7 @@ tree_order = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick
 tip_order = {tip.name: i for i, tip in enumerate(tree_order.tips())}
 
 # Load labels
-OGid2labels = {}
+ids2labels = {}
 label_set = set()
 with open('labels.tsv') as file:
     field_names = file.readline().rstrip('\n').split('\t')
@@ -32,9 +32,9 @@ with open('labels.tsv') as file:
         OGid, ppid, start, stop, label = fields['OGid'], fields['ppid'], int(fields['start']), int(fields['stop']), fields['label']
         label_set.add(label)
         try:
-            OGid2labels[(OGid, ppid)].append((start, stop, label))
+            ids2labels[(OGid, ppid)].append((start, stop, label))
         except KeyError:
-            OGid2labels[(OGid, ppid)] = [(start, stop, label)]
+            ids2labels[(OGid, ppid)] = [(start, stop, label)]
 
 if set(state_labels) != label_set:
     raise RuntimeError('state_labels is not equal to set of state_labels')
@@ -47,7 +47,7 @@ with open('out/model.json') as file:
 
 # Plot state distribution
 counts = {label: 0 for label in state_labels}
-for labels in OGid2labels.values():
+for labels in ids2labels.values():
     for start, stop, label in labels:
         counts[label] += stop - start
 values = [counts[label] for label in state_labels]
@@ -59,7 +59,7 @@ plt.close()
 
 # Write some metrics to file
 output = f"""\
-Number of sequences: {len(OGid2labels)}
+Number of sequences: {len(ids2labels)}
 Number of labelled positions: {sum(counts.values()):,}
 """
 with open('out/output.txt', 'w') as file:
@@ -126,7 +126,7 @@ plt.close()
 if not os.path.exists('out/traces/'):
     os.mkdir('out/traces/')
 
-for (OGid, ppid), labels in OGid2labels.items():
+for (OGid, ppid), labels in ids2labels.items():
     # Load MSA
     msa, ppid2spid = [], {}
     for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
