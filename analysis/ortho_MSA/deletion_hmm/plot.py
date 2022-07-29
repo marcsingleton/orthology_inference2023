@@ -45,6 +45,26 @@ with open('out/history.json') as file:
 with open('out/model.json') as file:
     model_json = json.load(file)
 
+# Plot state distribution
+counts = {label: 0 for label in state_labels}
+for labels in OGid2labels.values():
+    for start, stop, label in labels:
+        counts[label] += stop - start
+values = [counts[label] for label in state_labels]
+labels = [f'{label}\n{value:,}' for label, value in zip(state_labels, values)]
+plt.pie(values, colors=state_colors, labels=labels, labeldistance=1.15, textprops={'ha': 'center'})
+plt.title('Distribution of position labels across states')
+plt.savefig('out/pie_labels.png')
+plt.close()
+
+# Write some metrics to file
+output = f"""\
+Number of sequences: {len(OGid2labels)}
+Number of labelled positions: {sum(counts.values()):,}
+"""
+with open('out/output.txt', 'w') as file:
+    file.write(output)
+
 # Plot loss curve
 xs = [record['iter_num'] for record in history]
 ys = [record['ll'] for record in history]
