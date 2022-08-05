@@ -408,7 +408,7 @@ def plot_msa(msa, figsize=(12, 6),
     return fig
 
 
-def plot_tree(tree, tip_labels=True, support_labels=False,
+def plot_tree(tree, ax=None, tip_labels=True, support_labels=False,
               color=None, linewidth=None,
               tip_fontsize=None, tip_fontcolor=None, tip_offset=0,
               support_format_spec=None, support_fontsize=None, support_fontcolor=None,
@@ -419,6 +419,8 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
     Parameters
     ----------
     tree: TreeNode (skbio)
+    ax: Axes (matplotlib)
+        Axes used to draw tree. If None, a new Figure and Axes are created.
     tip_labels: bool
         Toggle drawing tip labels.
     support_labels: bool
@@ -454,6 +456,10 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
     ax: Axes (matplotlib)
     """
     # Set options
+    if ax is None:
+        fig, ax = plt.subplots()
+    else:
+        fig = ax.get_figure()
     if color is None:
         color = 'black'
     if linewidth is None:
@@ -490,8 +496,6 @@ def plot_tree(tree, tip_labels=True, support_labels=False,
     for node in tree.postorder():  # Return nodes on the way out
         if node.children:
             y_pos[node] = (y_pos[node.children[0]] + y_pos[node.children[-1]]) / 2
-
-    fig, ax = plt.subplots()
 
     # Adjust axes and add labels
     x_max = max(x_pos.values())
