@@ -117,9 +117,9 @@ num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 spid_regex = r'spid=([a-z]+)'
 
 eta = 0.05  # Learning rate
-gamma = 0.9  # Momentum
+gamma = 0.85  # Momentum
 epsilon = 1E-1  # Convergence criterion
-iter_num = 200  # Max number of iterations
+iter_num = 300  # Max number of iterations
 
 state_set = {'1A', '1B', '2', '3'}
 start_set = {'1A', '1B', '2', '3'}
