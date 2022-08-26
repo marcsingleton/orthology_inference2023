@@ -154,6 +154,28 @@ df = pd.DataFrame(history.history)
 df.to_csv('out/history.tsv', sep='\t', index=False)
 model.save('out/model.h5')
 
+# Count residue labels
+residue_counts = {}
+for label, records in [('train', train_records), ('validation', validation_records)]:
+    positive, negative = 0, 0
+    for record in records:
+        labels, weights = record[4], record[5]
+        positive += labels.sum()
+        negative += weights.sum() - labels.sum()
+    residue_counts[label] = {'positive': positive, 'negative': negative}
+
+# Write some metrics to file
+output = f"""\
+Number of train examples: {len(train_records)}
+Number of validation examples: {len(validation_records)}
+Number of positive train residues: {residue_counts['train']['positive']}
+Number of negative train residues: {residue_counts['train']['negative']}
+Number of positive validation residues: {residue_counts['validation']['positive']}
+Number of negative validation residues: {residue_counts['validation']['negative']}
+"""
+with open('out/output.txt', 'w') as file:
+    file.write(output)
+
 # Plot data set metrics
 plt.bar([0, 1], [len(train_records), len(validation_records)], tick_label=['train', 'validation'], width=0.35)
 plt.xlim((-0.5, 1.5))
@@ -162,20 +184,11 @@ plt.ylabel('Number of examples')
 plt.savefig('out/bar_examples-data.png')
 plt.close()
 
-bottoms = [0, 0]
+tick_labels = ['train', 'validation']
+bottoms = [0 for _ in tick_labels]
 for label in ['negative', 'positive']:
-    ys = []
-    for records in [train_records, validation_records]:
-        y = 0
-        for record in records:
-            labels, weights = record[4], record[5]
-            if label == 'positive':
-                y += labels.sum()
-            else:
-                y += weights.sum() - labels.sum()
-        ys.append(y)
-
-    plt.bar([0, 1], ys, bottom=bottoms, tick_label=['train', 'validation'], label=label, width=0.35)
+    ys = [residue_counts[tick_label][label] for tick_label in tick_labels]
+    plt.bar([0, 1], ys, bottom=bottoms, tick_label=tick_labels, label=label, width=0.35)
     bottoms = [b + y for b, y in zip(bottoms, ys)]
 plt.xlim((-0.5, 1.5))
 plt.xlabel('Data set')
