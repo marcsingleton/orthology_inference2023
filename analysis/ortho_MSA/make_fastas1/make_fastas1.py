@@ -41,22 +41,20 @@ with open('../../ortho_cluster2/add_paralogs/out/clusters.tsv') as file:
         fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
         ppids = {node for edge in fields['edges'].split(',') for node in edge.split(':')}
         OGs[fields['OGid']] = ppids
-OG_data = pd.read_table('../OG_data/out/OG_data.tsv')
 
 # Write sequences
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = OG_data.loc[OG_data['ppidnum'] == OG_data['gnidnum'], 'OGid']
-for OGid in OGids:
+for OGid, OG in OGs.items():
     records = []
-    for ppid in OGs[OGid]:
+    for ppid in OG:
         gnid, spid = ppid2data[ppid]
         seq = ppid2seq[ppid]
         seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
         records.append((ppid, gnid, spid, seqstring))
     with open(f'out/{OGid}.fa', 'w') as file:
-        for ppid, gnid, spid, seqstring in sorted(records, key=lambda x: x[2]):
+        for ppid, gnid, spid, seqstring in sorted(records, key=lambda x: (x[2], x[1], x[0])):
             file.write(f'>ppid={ppid}|gnid={gnid}|spid={spid}\n{seqstring}\n')
 
 """
@@ -68,6 +66,4 @@ DEPENDENCIES
     ../../ortho_cluster2/add_paralogs/out/clusters.tsv
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../OG_data/OG_data.py
-    ../OG_data/out/OG_data.tsv
 """
