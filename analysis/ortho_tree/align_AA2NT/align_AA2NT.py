@@ -29,7 +29,7 @@ def get_codons(nt_seq, aa_seq, file_id):
                 print('File:', file_id)
                 print('PPID:', ppid)
                 print('Warning: Non-standard start codon detected. '
-                      f'Translated residue M{i+1} converted to observed residue {aa}.')
+                      f'Translated residue {tr}1 converted to observed residue M.')
                 print()
             elif tr == 'X':  # Correct unknown amino acid
                 codons.append(codon)
