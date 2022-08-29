@@ -87,13 +87,17 @@ for label in ['norm1', 'norm2']:
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
         if row.ppidnum == row.gnidnum:
-            msa = read_fasta(f'../align_fastas1/out/{row.OGid}.afa')
+            path = f'../align_fastas1/out/{row.OGid}.afa'
         else:
-            msa = read_fasta(f'../align_fastas2/out/{row.OGid}.afa')
-        msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
+            path = f'../align_fastas2/out/{row.OGid}.afa'
 
-        msa = [seq for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
-        im = draw_msa(msa)
+        msa = []
+        for header, seq in read_fasta(path):
+            spid = re.search(r'spid=([a-z]+)', header).group(1)
+            msa.append({'spid': spid, 'seq': seq})
+        msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
+
+        im = draw_msa([record['seq'] for record in msa])
         plt.imsave(f'out/{label}/{i:03}_{row.OGid}.png', im)
 
 """

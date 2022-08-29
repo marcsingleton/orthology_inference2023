@@ -9,6 +9,8 @@ import skbio
 from src.draw import draw_msa
 from src.utils import read_fasta
 
+spid_regex = r'spid=([a-z]+)'
+
 tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 spids = {tip.name for tip in tree.tips() if tip.name != 'sleb'}
@@ -24,11 +26,13 @@ for label in ['norm1', 'norm2']:
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
         for alignment in ['hmmer', 'mafft']:
-            msa = read_fasta(f'../realign_hmmer/out/{alignment}/{row.OGid}.afa')
-            msa = [(re.search(r'spid=([a-z]+)', header).group(1), seq) for header, seq in msa]
+            msa = []
+            for header, seq in read_fasta(f'../realign_hmmer/out/{alignment}/{row.OGid}.afa'):
+                spid = re.search(spid_regex, header).group(1)
+                msa.append({'spid': spid, 'seq': seq})
+            msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
 
-            msa = [seq.upper() for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
-            im = draw_msa(msa)
+            im = draw_msa([record['seq'].upper() for record in msa])
             plt.imsave(f'out/{label}/{i:03}_{row.OGid}_{alignment}.png', im)
 
 """

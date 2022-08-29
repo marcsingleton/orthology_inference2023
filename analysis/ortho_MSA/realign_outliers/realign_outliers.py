@@ -23,12 +23,16 @@ tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
 records = []
 for OGid in [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/out/mafft/') if path.endswith('.afa')]:
-    msa = [(re.search(spid_regex, header).group(1), seq.upper()) for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa')]
+    msa = []
+    for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
+        spid = re.search(spid_regex, header).group(1)
+        msa.append({'spid': spid, 'seq': seq.upper()})
+    msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
 
     # Count gaps
     gaps = []
-    for j in range(len(msa[0][1])):
-        gap = sum([1 if msa[i][1][j] in ['-', '.'] else 0 for i in range(len(msa))])
+    for j in range(len(msa[0]['seq'])):
+        gap = sum([1 if msa[i]['seq'][j] in ['-', '.'] else 0 for i in range(len(msa))])
         gaps.append(gap)
 
     # Threshold, merge, and size filter to get regions
@@ -36,21 +40,23 @@ for OGid in [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/
     regions = [region for region, in ndimage.find_objects(ndimage.label(binary)[0]) if (region.stop-region.start) >= min_length]
 
     # Calculate total scores for each sequence over all regions
-    scores = {header: 0 for header, _ in msa}
+    scores = {record['spid']: 0 for record in msa}
     for region in regions:
         for i in range(region.start, region.stop):
             # Build model
             model = {aa: 2*count for aa, count in prior.items()}  # Start with weighted prior "counts"
-            for _, seq in msa:
+            for record in msa:
+                seq = record['seq']
                 sym = '-' if seq[i] == '.' else seq[i]  # Convert . to - for counting gaps
                 model[sym] = model.get(sym, 0) + 1  # Provide default of 0 for non-standard symbols and gaps
             total = sum(model.values())
             model = {aa: np.log(count/total) for aa, count in model.items()}  # Re-normalize and convert to log space
 
             # Apply model
-            for header, seq in msa:
+            for record in msa:
+                spid, seq = record['spid'], record['seq']
                 sym = '-' if seq[i] == '.' else seq[i]  # Convert . to - for counting gaps
-                scores[header] += model[sym]
+                scores[spid] += model[sym]
 
     # Record statistics for each sequence
     values = list(scores.values())
@@ -96,11 +102,10 @@ for record in outliers:
     OGids.add(OGid)
 
     # Plot MSA with regions
-    msa = [seq for _, seq in sorted(msa, key=lambda x: tip_order[x[0]])]  # Re-order sequences and extract seq only
-    line = np.zeros(len(msa[0]))
+    line = np.zeros(len(msa[0]['seq']))
     for region in regions:
         line[region] = 1
-    plot_msa_data(msa, line, figsize=(15, 6),
+    plot_msa_data([record['seq'] for record in msa], line, figsize=(15, 6),
                   height_ratio=0.5, hspace=0.2, data_max=1.1, data_min=-0.1, data_labels=['region'],
                   msa_legend=True, legend_kwargs={'bbox_to_anchor': (0.925, 0.5), 'loc': 'center left', 'fontsize': 8, 'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1})
     plt.subplots_adjust(left=0.05, bottom=0.01, right=0.925, top=0.99)

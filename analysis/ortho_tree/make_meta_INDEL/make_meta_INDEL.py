@@ -33,10 +33,14 @@ column_pools = [('all', lambda x: True, []),
                 ('NI', lambda x: not is_invariant(x), [])]
 paths = sorted([path for path in os.listdir('../align_fastas/out/') if path.endswith('.afa')])  # Sort to ensure consistent order
 for path in paths:
-    msa = [(re.search(spid_regex, header).group(1), seq) for header, seq in read_fasta(f'../align_fastas/out/{path}')]
-    msa = sorted(msa, key=lambda x: spid2idx[x[0]])
-    for i in range(len(msa[0][1])):
-        column = ['0' if seq[i] == '-' else '1' for _, seq in msa]
+    msa = []
+    for header, seq in read_fasta(f'../align_fastas/out/{path}'):
+        spid = re.search(spid_regex, header).group(1)
+        msa.append({'spid': spid, 'seq': seq})
+    msa = sorted(msa, key=lambda x: spid2idx[x['spid']])
+
+    for j in range(len(msa[0]['seq'])):
+        column = [record['seq'][j] for record in msa]
         for _, condition, column_pool in column_pools:
             if condition(column):
                 column_pool.append(column)
