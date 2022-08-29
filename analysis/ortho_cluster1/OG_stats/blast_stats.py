@@ -307,6 +307,6 @@ DEPENDENCIES
 ../../ortho_search/hsps2hits/hsps2hits.py
     ../../ortho_search/hsps2hits/out/*/*.tsv
 ../config/genomes.tsv
-../cluster4+_graph/cluster.py
+../cluster4+_graph/cluster4+_graph.py
     ../cluster4+_graph/out/4clique/clusters.tsv
 """

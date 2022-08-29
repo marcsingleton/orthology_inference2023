@@ -102,7 +102,7 @@ plt.close()
 DEPENDENCIES
 ../../ortho_search/sequence_data/sequence_data.py
     ../../ortho_search/sequence_data/out/sequence_data.tsv
-../cluster4+_graph/cluster.py
+../cluster4+_graph/cluster4+_graph.py
     ../cluster4+_graph/out/4clique/clusters.tsv
 ./connect_OG_graph.py
     ./out/components.tsv

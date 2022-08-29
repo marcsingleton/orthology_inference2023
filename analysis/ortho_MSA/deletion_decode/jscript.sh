@@ -9,8 +9,8 @@
 #SBATCH --nodes=1
 #
 # Reporting parameters
-#SBATCH --job-name=decode
-#SBATCH --output=decode.out
+#SBATCH --job-name=deletion_decode
+#SBATCH --output=deletion_decode.out
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
@@ -26,4 +26,4 @@ fi
 
 source /global/home/users/singleton/.bashrc
 conda activate IDREvoDevo
-python decode.py
+python deletion_decode.py

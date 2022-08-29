@@ -35,6 +35,6 @@ for data, data_label, color in [(disorder, 'disorder', 'C0'), (order, 'order', '
 
 """
 DEPENDENCIES
-./fit.py
+./fit_logits.py
     ./out/models.tsv
 """

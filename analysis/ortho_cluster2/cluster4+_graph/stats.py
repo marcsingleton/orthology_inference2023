@@ -88,6 +88,6 @@ for k in os.listdir('out/'):
 DEPENDENCIES
 ../connect_hit_graph/connect_hit_graph.py
     ../connect_hit_graph/out/components.tsv
-./cluster.py
+./cluster4+_graph.py
     ./out/*/clusters.tsv
 """

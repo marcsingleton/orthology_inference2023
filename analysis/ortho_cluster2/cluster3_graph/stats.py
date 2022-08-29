@@ -86,6 +86,6 @@ plt.close()
 DEPENDENCIES
 ../connect_hit_graph/connect_hit_graph.py
     ../connect_hit_graph/out/components.tsv
-./cluster.py
+./cluster3_graph.py
     ./out/clusters.tsv
 """

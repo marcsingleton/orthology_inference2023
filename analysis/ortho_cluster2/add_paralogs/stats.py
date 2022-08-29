@@ -52,7 +52,7 @@ plt.close()
 
 """
 DEPENDENCIES
-../cluster4+_graph/cluster.py
+../cluster4+_graph/cluster4+_graph.py
     ../cluster4+_graph/out/4clique/clusters.tsv
 ./add_paralogs.py
     ../out/clusters.tsv
