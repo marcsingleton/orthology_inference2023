@@ -39,10 +39,7 @@ OG_filter = pd.read_table('../OG_filter/out/OG_filter.tsv')
 # Calculate contrasts
 total_records, sum_records = [], []
 for row in OG_filter.itertuples():
-    if row.ppidnum == row.gnidnum:
-        msa = read_fasta(f'../align_fastas1/out/{row.OGid}.afa')
-    else:
-        msa = read_fasta(f'../align_fastas2/out/{row.OGid}.afa')
+    msa = read_fasta(f'../get_repseqs/out/{row.OGid}.afa')
     msa = {re.search(r'spid=([a-z]+)', header).group(1): seq for header, seq in msa}
 
     tree = tree_template.deepcopy().shear(msa.keys())
@@ -77,10 +74,8 @@ with open('out/row_sums.tsv', 'w') as file:
 DEPENDENCIES
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../align_fastas1/align_fastas1.py
-    ../align_fastas1/out/*.afa
-../align_fastas2/align_fastas2.py
-    ../align_fastas2/out/*.afa
+../get_repseqs/get_repseqs.py
+    ../get_repseqs/out/*.afa
 ../OG_filter/OG_filter.py
     ../OG_filter/out/OG_filter.tsv
 """

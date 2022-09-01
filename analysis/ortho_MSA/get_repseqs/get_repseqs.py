@@ -66,10 +66,10 @@ tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-OGids = [path.removesuffix('.afa') for path in os.listdir('../align_fastas1/out/') if path.endswith('.afa')]
+OGids = [path.removesuffix('.afa') for path in os.listdir('../align_fastas/out/') if path.endswith('.afa')]
 for OGid in OGids:
     input_msa = []
-    for header, seq in read_fasta(f'../align_fastas1/out/{OGid}.afa'):
+    for header, seq in read_fasta(f'../align_fastas/out/{OGid}.afa'):
         gnid = re.search(gnid_regex, header).group(1)
         spid = re.search(spid_regex, header).group(1)
         input_msa.append({'header': header, 'gnid': gnid, 'spid': spid, 'seq': seq})
@@ -148,6 +148,6 @@ prior.)
 DEPENDENCIES
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../align_fastas1/align_fastas1.py
-    ../align_fastas1/out/*.afa
+../align_fastas/align_fastas.py
+    ../align_fastas/out/*.afa
 """

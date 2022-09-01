@@ -91,10 +91,7 @@ with open('labels.tsv') as file:
 # Create records
 records = []
 for OGid, ppids in OGid2ppids.items():
-    try:
-        msa1 = read_fasta(f'../align_fastas1/out/{OGid}.afa')
-    except FileNotFoundError:
-        msa1 = read_fasta(f'../align_fastas2/out/{OGid}.afa')
+    msa1 = read_fasta(f'../get_repseqs/out/{OGid}.afa')
 
     # Convert alignment to indices and make profile
     ppid2idx, msa2 = {}, []
@@ -260,10 +257,7 @@ for label, records in [('train', train_records), ('validation', validation_recor
         OGid, ppid, profile, seq, labels, weights = record
         output = tf.squeeze(model([np.expand_dims(profile, 0), np.expand_dims(seq, 0)]))  # Expand and contract dims
 
-        try:
-            msa = read_fasta(f'../align_fastas1/out/{OGid}.afa')
-        except FileNotFoundError:
-            msa = read_fasta(f'../align_fastas2/out/{OGid}.afa')
+        msa = read_fasta(f'../get_repseqs/out/{OGid}.afa')
         msa = [(re.search(ppid_regex, header).group(1), seq) for header, seq in msa]
 
         data = [output, labels, weights]
@@ -278,9 +272,7 @@ for label, records in [('train', train_records), ('validation', validation_recor
 
 """
 DEPENDENCIES
-../align_fastas1/align_fastas1.py
-    ../align_fastas1/out/*.afa
-../align_fastas2/align_fastas2.py
-    ../align_fastas2/out/*.afa
+../get_repseqs/get_repseqs.py
+    ../get_repseqs/out/*.afa
 ./labels.tsv
 """

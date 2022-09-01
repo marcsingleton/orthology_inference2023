@@ -3,7 +3,6 @@
 import os
 import re
 
-import pandas as pd
 from src.utils import read_fasta
 
 ppid_regex = {'FlyBase': r'(FBpp[0-9]+)',
@@ -51,10 +50,11 @@ for OGid, OG in OGs.items():
     for ppid in OG:
         gnid, spid = ppid2data[ppid]
         seq = ppid2seq[ppid]
-        seqstring = '\n'.join([seq[i:i+80] for i in range(0, len(seq), 80)])
-        records.append((ppid, gnid, spid, seqstring))
+        records.append({'ppid': ppid, 'gnid': gnid, 'spid': spid, 'seq': seq})
     with open(f'out/{OGid}.fa', 'w') as file:
-        for ppid, gnid, spid, seqstring in sorted(records, key=lambda x: (x[2], x[1], x[0])):
+        for record in sorted(records, key=lambda x: (x['spid'], x['gnid'], x['ppid'])):
+            ppid, gnid, spid, seq = record['ppid'], record['gnid'], record['spid'], record['seq']
+            seqstring = '\n'.join([seq[i:i + 80] for i in range(0, len(seq), 80)])
             file.write(f'>ppid={ppid}|gnid={gnid}|spid={spid}\n{seqstring}\n')
 
 """

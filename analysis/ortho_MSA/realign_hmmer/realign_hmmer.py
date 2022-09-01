@@ -8,12 +8,9 @@ from src.utils import read_fasta
 
 
 def hmm_align(record):
-    OGid, ppidnum, gnidnum = record
-    if ppidnum == gnidnum:
-        path = f'../make_fastas1/out/{OGid}.fa'
-    else:
-        path = f'../make_fastas2/out/{OGid}.fa'
-    run(f'../../../bin/hmmbuild --hand --eset {eset_scalar*gnidnum} --wnone out/hmmer/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/hmmer/{OGid}.txt', shell=True, check=True)
+    OGid, ppidnum = record
+    path = f'../make_fastas/out/{OGid}.fa'
+    run(f'../../../bin/hmmbuild --hand --eset {eset_scalar*ppidnum} --wnone out/hmmer/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/hmmer/{OGid}.txt', shell=True, check=True)
     run(f'../../../bin/hmmalign --outformat afa out/hmmer/{OGid}.hmm {path} > out/hmmer/{OGid}_temp.afa', shell=True, check=True)
 
     # Remove excess gaps
@@ -173,8 +170,8 @@ with open('../OG_filter/out/OG_filter.tsv') as file:
     field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
         fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
-        OGid, ppidnum, gnidnum = fields['OGid'], int(fields['ppidnum']), int(fields['gnidnum'])
-        records.append((OGid, ppidnum, gnidnum))
+        OGid, ppidnum = fields['OGid'], int(fields['ppidnum'])
+        records.append((OGid, ppidnum))
 
 if __name__ == '__main__':
     if not os.path.exists('out/hmmer/'):
@@ -213,8 +210,6 @@ regions.
 DEPENDENCIES
 ../realign_trim/realign_trim.py
     ../realign_trim/out/*.sto
-../make_fastas1/make_fastas1.py
-    ../make_fastas1/out/*.fa
-../make_fastas2/make_fastas2.py
-    ../make_fastas2/out/*.fa
+../make_fastas/make_fastas.py
+    ../make_fastas/out/*.fa
 """

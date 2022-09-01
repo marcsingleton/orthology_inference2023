@@ -46,10 +46,7 @@ if not os.path.exists('out/'):
     os.mkdir('out')
 
 for OGid in OGids:
-    try:
-        msa1 = read_fasta(f'../align_fastas1/out/{OGid}.afa')
-    except FileNotFoundError:
-        msa1 = read_fasta(f'../align_fastas2/out/{OGid}.afa')
+    msa1 = read_fasta(f'../get_repseqs/out/{OGid}.afa')
 
     # Convert alignment to indices and make profile
     msa2 = []
@@ -98,10 +95,8 @@ for OGid in OGids:
     msa3.write(f'out/{OGid}.sto', 'stockholm')
 
 """
-../align_fastas1/align_fastas1.py
-    ../align_fastas1/out/*.afa
-../align_fastas2/align_fastas2.py
-    ../align_fastas2/out/*.afa
+../get_repseqs/get_repseqs.py
+    ../get_repseqs/out/*.afa
 ../realign_cnn/realign_cnn.py
     ../realign_cnn/out/model.h5
 ../OG_filter/OG_filter.py

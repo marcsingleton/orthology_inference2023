@@ -1,4 +1,4 @@
-"""Align FASTAs of remaining OGs using trees."""
+"""Align FASTAs of OGs with one unique sequence per gene."""
 
 import multiprocessing as mp
 import os
@@ -9,7 +9,7 @@ from time import time_ns
 def run_cmd(file_id):
     cmd = (f'../../../bin/mafft --globalpair --maxiterate 1000 '
            f'--thread 1 --anysymbol --allowshift --unalignlevel 0.4 --leavegappyregion '
-           f'../make_fastas2/out/{file_id}.fa '
+           f'../make_fastas/out/{file_id}.fa '
            f'1> out/{file_id}.afa 2> out/{file_id}.err')
     try:
         t0 = time_ns()
@@ -27,7 +27,7 @@ if __name__ == '__main__':
         os.mkdir('out/')
 
     with mp.Pool(processes=num_processes) as pool:
-        file_ids = [path.removesuffix('.fa') for path in os.listdir('../make_fastas2/out/') if path.endswith('.fa')]
+        file_ids = [path.removesuffix('.fa') for path in os.listdir('../make_fastas/out/') if path.endswith('.fa')]
         rows = pool.map(run_cmd, file_ids)
 
     with open('out/times.tsv', 'w') as file:
@@ -37,6 +37,6 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
-../make_fastas2/make_fastas2.py
-    ../make_fastas2/out/*.fa
+../make_fastas/make_fastas.py
+    ../make_fastas/out/*.fa
 """

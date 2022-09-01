@@ -86,13 +86,8 @@ for label in ['norm1', 'norm2']:
 
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
-        if row.ppidnum == row.gnidnum:
-            path = f'../align_fastas1/out/{row.OGid}.afa'
-        else:
-            path = f'../align_fastas2/out/{row.OGid}.afa'
-
         msa = []
-        for header, seq in read_fasta(path):
+        for header, seq in read_fasta(f'../get_repseqs/out/{row.OGid}.afa'):
             spid = re.search(r'spid=([a-z]+)', header).group(1)
             msa.append({'spid': spid, 'seq': seq})
         msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
@@ -103,10 +98,8 @@ for label in ['norm1', 'norm2']:
 """
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../align_fastas1/align_fastas1.py
-    ../align_fastas1/out/*.afa
-../align_fastas2/align_fastas2.py
-    ../align_fastas2/out/*.afa
+../get_repseqs/get_repseqs.py
+    ../get_repseqs/out/*.afa
 ../OG_filter/OG_filter.py
     ../OG_filter/out/OG_filter.tsv
 ./gap_contrasts.py
