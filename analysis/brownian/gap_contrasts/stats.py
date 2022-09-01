@@ -106,7 +106,7 @@ for label in ['norm1', 'norm2']:
             spid = re.search(spid_regex, header).group(1)
             if ppid in row.ppids:
                 msa.append({'spid': spid, 'seq': seq[row.start:row.stop]})
-        msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
+        msa = sorted(msa, key=lambda x: tip_order[x['spid']])
 
         im = draw_msa([record['seq'] for record in msa])
         plt.imsave(f'out/{label}/{i:03}_{row.OGid}-{row.start}-{row.stop}.png', im)

@@ -30,7 +30,7 @@ for label in ['norm1', 'norm2']:
             for header, seq in read_fasta(f'../realign_hmmer/out/{alignment}/{row.OGid}.afa'):
                 spid = re.search(spid_regex, header).group(1)
                 msa.append({'spid': spid, 'seq': seq})
-            msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
+            msa = sorted(msa, key=lambda x: tip_order[x['spid']])
 
             im = draw_msa([record['seq'].upper() for record in msa])
             plt.imsave(f'out/{label}/{i:03}_{row.OGid}_{alignment}.png', im)

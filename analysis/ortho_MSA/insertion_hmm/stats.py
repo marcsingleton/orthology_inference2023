@@ -147,7 +147,7 @@ for OGid, labels in OGid2labels.items():
     for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
         spid = re.search(spid_regex, header).group(1)
         msa.append({'spid': spid, 'seq': seq})
-    msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
+    msa = sorted(msa, key=lambda x: tip_order[x['spid']])
 
     # Create emission sequence
     column0 = []

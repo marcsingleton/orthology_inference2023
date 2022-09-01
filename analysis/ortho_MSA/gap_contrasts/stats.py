@@ -90,7 +90,7 @@ for label in ['norm1', 'norm2']:
         for header, seq in read_fasta(f'../get_repseqs/out/{row.OGid}.afa'):
             spid = re.search(r'spid=([a-z]+)', header).group(1)
             msa.append({'spid': spid, 'seq': seq})
-        msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
+        msa = sorted(msa, key=lambda x: tip_order[x['spid']])
 
         im = draw_msa([record['seq'] for record in msa])
         plt.imsave(f'out/{label}/{i:03}_{row.OGid}.png', im)

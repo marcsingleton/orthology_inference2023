@@ -134,7 +134,7 @@ for (OGid, ppid), labels in ids2labels.items():
         msa_spid = re.search(spid_regex, header).group(1)
         msa.append({'ppid': msa_ppid, 'spid': msa_spid, 'seq': seq})
         ppid2spid[msa_ppid] = msa_spid
-    msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
+    msa = sorted(msa, key=lambda x: tip_order[x['spid']])
 
     # Load tree and convert to vectors at tips
     tree = tree_template.shear([record['spid'] for record in msa])
