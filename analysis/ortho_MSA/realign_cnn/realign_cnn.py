@@ -3,11 +3,12 @@
 import os
 import random
 import re
-from math import ceil, floor
+from math import floor
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import skbio
 import tensorflow as tf
 from matplotlib.gridspec import GridSpec
 from src.draw import plot_msa_data, default_sym2color
@@ -59,12 +60,16 @@ class BatchGenerator(tf.keras.utils.Sequence):
 alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'X', '-']
 sym2idx = {sym: i for i, sym in enumerate(alphabet)}
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
+spid_regex = r'spid=([a-z]+)'
 epochs = 300
 batch_size = 30
 validation_split = 0.1
 embedding_dim = 2
-regularizer = tf.keras.regularizers.L2(0.0035)
+regularizer = tf.keras.regularizers.L2(0.0075)
 tf.keras.utils.set_random_seed(930715)  # Make validation split and all TensorFlow operations consistent
+
+tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
+tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
 # Load labels
 OGid2ppids = {}
@@ -114,19 +119,15 @@ for OGid, ppids in OGid2ppids.items():
 
 # Split data
 random.shuffle(records)
-split_idx = ceil(len(records) * (1 - validation_split))
-train_records = records[:split_idx]
-validation_records = records[split_idx:]
 
 # Batch data
-train_batches = BatchGenerator(train_records, batch_size)
-validation_batches = BatchGenerator(validation_records, len(validation_records))
+batches = BatchGenerator(records, batch_size)
 
 # Build model
 embedding = tf.keras.layers.Dense(embedding_dim, activation='linear', use_bias=False, name='embedding1')
-conv1_1 = tf.keras.layers.Conv1D(2, 60, dilation_rate=3, padding='same', kernel_regularizer=regularizer, activation='tanh', name='conv1-1')
-conv1_2 = tf.keras.layers.Conv1D(2, 10, dilation_rate=1, padding='same', kernel_regularizer=regularizer, activation='tanh', name='conv1-2')
-conv2_1 = tf.keras.layers.Conv1D(2, 10, dilation_rate=1, kernel_regularizer=regularizer, padding='same', activation='tanh', name='conv2-1')
+conv1_1 = tf.keras.layers.Conv1D(2, 60, dilation_rate=3, padding='same', kernel_regularizer=regularizer, activation='tanh', name='conv1_1')
+conv1_2 = tf.keras.layers.Conv1D(2, 10, dilation_rate=1, padding='same', kernel_regularizer=regularizer, activation='tanh', name='conv1_2')
+conv2_1 = tf.keras.layers.Conv1D(2, 10, dilation_rate=1, kernel_regularizer=regularizer, padding='same', activation='tanh', name='conv2_1')
 
 input1 = tf.keras.layers.Input(shape=(None, len(alphabet)), name='input1')
 input2 = tf.keras.layers.Input(shape=(None, len(alphabet)), name='input2')
@@ -141,7 +142,7 @@ model.compile(loss='binary_crossentropy', optimizer='adam',
 model.summary()
 
 # Train model
-history = model.fit(train_batches, epochs=epochs, validation_data=validation_batches)
+history = model.fit(batches, epochs=epochs)
 
 # Save model and history
 if not os.path.exists('out/'):
@@ -152,45 +153,26 @@ df.to_csv('out/history.tsv', sep='\t', index=False)
 model.save('out/model.h5')
 
 # Count residue labels
-residue_counts = {}
-for label, records in [('train', train_records), ('validation', validation_records)]:
-    positive, negative = 0, 0
-    for record in records:
-        labels, weights = record[4], record[5]
-        positive += labels.sum()
-        negative += weights.sum() - labels.sum()
-    residue_counts[label] = {'positive': positive, 'negative': negative}
+positive, negative = 0, 0
+for record in records:
+    labels, weights = record[4], record[5]
+    positive += labels.sum()
+    negative += weights.sum() - labels.sum()
 
 # Write some metrics to file
 output = f"""\
-Number of train examples: {len(train_records)}
-Number of validation examples: {len(validation_records)}
-Number of positive train residues: {residue_counts['train']['positive']}
-Number of negative train residues: {residue_counts['train']['negative']}
-Number of positive validation residues: {residue_counts['validation']['positive']}
-Number of negative validation residues: {residue_counts['validation']['negative']}
+Number of train examples: {len(records)}
+Number of positive train residues: {positive}
+Number of negative train residues: {negative}
 """
 with open('out/output.txt', 'w') as file:
     file.write(output)
 
-# Plot data set metrics
-plt.bar([0, 1], [len(train_records), len(validation_records)], tick_label=['train', 'validation'], width=0.35)
-plt.xlim((-0.5, 1.5))
-plt.xlabel('Data set')
-plt.ylabel('Number of examples')
-plt.savefig('out/bar_examples-data.png')
-plt.close()
 
-tick_labels = ['train', 'validation']
-bottoms = [0 for _ in tick_labels]
-for label in ['negative', 'positive']:
-    ys = [residue_counts[tick_label][label] for tick_label in tick_labels]
-    plt.bar([0, 1], ys, bottom=bottoms, tick_label=tick_labels, label=label, width=0.35)
-    bottoms = [b + y for b, y in zip(bottoms, ys)]
-plt.xlim((-0.5, 1.5))
-plt.xlabel('Data set')
-plt.ylabel('Number of residues')
-plt.legend()
+values = [negative, positive]
+labels = [f'{label}\n{value:,g}' for label, value in zip(['negative', 'positive'], values)]
+plt.pie(values, labels=labels, labeldistance=1.25, textprops={'ha': 'center'})
+plt.title('Distribution of position labels across states')
 plt.savefig('out/bar_residues-data.png')
 plt.close()
 
@@ -210,14 +192,14 @@ plt.close()
 # Plot weights
 fig = plt.figure(layout='tight')
 gs = GridSpec(4, 2, figure=fig)
-positions = {'conv1-1-0': gs[0, :],
-             'conv1-1-1': gs[1, :],
-             'conv1-2-0': gs[2, 0], 'conv2-1-0': gs[2, 1],
-             'conv1-2-1': gs[3, 0], 'conv2-1-1': gs[3, 1]}
+positions = {'conv1_1_0': gs[0, :],
+             'conv1_1_1': gs[1, :],
+             'conv1_2_0': gs[2, 0], 'conv2_1_0': gs[2, 1],
+             'conv1_2_1': gs[3, 0], 'conv2_1_1': gs[3, 1]}
 for layer in [conv1_1, conv1_2, conv2_1]:
     weights = layer.get_weights()[0]
     for i in range(weights.shape[2]):
-        ax = fig.add_subplot(positions[f'{layer.name}-{i}'])
+        ax = fig.add_subplot(positions[f'{layer.name}_{i}'])
         ax.imshow(weights[..., i].transpose())
         ax.set_title(f'{layer.name}-{i}')
         ax.set_xticks([])
@@ -229,7 +211,6 @@ plt.close()
 
 # Plot curves
 plt.plot(df['loss'], label='train')
-plt.plot(df['val_loss'], label='validation')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.legend()
@@ -239,9 +220,6 @@ plt.close()
 plt.plot(df['binary_accuracy'], label='accuracy')
 plt.plot(df['recall'], label='recall')
 plt.plot(df['precision'], label='precision')
-plt.plot(df['val_binary_accuracy'], label='validation accuracy')
-plt.plot(df['val_recall'], label='validation recall')
-plt.plot(df['val_precision'], label='validation precision')
 plt.xlabel('Epoch')
 plt.ylabel('Value')
 plt.legend()
@@ -249,29 +227,34 @@ plt.savefig('out/line_metrics-epoch.png')
 plt.close()
 
 # Show decoding curves with MSA
-for label, records in [('train', train_records), ('validation', validation_records)]:
-    if not os.path.exists(f'out/{label}/'):
-        os.mkdir(f'out/{label}/')
+if not os.path.exists(f'out/traces/'):
+    os.mkdir(f'out/traces/')
 
-    for record in records:
-        OGid, ppid, profile, seq, labels, weights = record
-        output = tf.squeeze(model([np.expand_dims(profile, 0), np.expand_dims(seq, 0)]))  # Expand and contract dims
+for record in records:
+    OGid, ppid, profile, seq, labels, weights = record
+    output = tf.squeeze(model([np.expand_dims(profile, 0), np.expand_dims(seq, 0)]))  # Expand and contract dims
 
-        msa = read_fasta(f'../get_repseqs/out/{OGid}.afa')
-        msa = [(re.search(ppid_regex, header).group(1), seq) for header, seq in msa]
+    msa = []
+    for header, seq in read_fasta(f'../get_repseqs/out/{OGid}.afa'):
+        msa_ppid = re.search(ppid_regex, header).group(1)
+        msa_spid = re.search(spid_regex, header).group(1)
+        msa.append({'ppid': msa_ppid, 'spid': msa_spid, 'seq': seq})
+    msa = sorted(msa, key=lambda x: tip_order[x['spid']])
 
-        data = [output, labels, weights]
-        msa_labels = [header if header == ppid else '' for header, _ in msa]
-        plot_msa_data([seq for _, seq in msa], data, figsize=(15, 6),
-                      msa_labels=msa_labels, msa_ticklength=1, msa_tickwidth=0.25, msa_tickpad=1.1, msa_labelsize=5,
-                      height_ratio=0.5, hspace=0.2, data_max=1.1, data_min=-0.1, data_labels=['output', 'label', 'weight'],
-                      msa_legend=True, legend_kwargs={'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8, 'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1})
-        plt.subplots_adjust(left=0.04, bottom=0.01, right=0.94, top=0.99)
-        plt.savefig(f'out/{label}/{OGid}_{ppid}.png', dpi=500)
-        plt.close()
+    data = [output, labels, weights]
+    msa_labels = [msa_record['ppid'] if msa_record['ppid'] == ppid else '' for msa_record in msa]
+    plot_msa_data([msa_record['seq'] for msa_record in msa], data, figsize=(15, 6),
+                  msa_labels=msa_labels, msa_ticklength=1, msa_tickwidth=0.25, msa_tickpad=1.1, msa_labelsize=5,
+                  height_ratio=0.5, hspace=0.2, data_max=1.1, data_min=-0.1, data_labels=['output', 'label', 'weight'],
+                  msa_legend=True, legend_kwargs={'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8, 'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1})
+    plt.subplots_adjust(left=0.04, bottom=0.01, right=0.94, top=0.99)
+    plt.savefig(f'out/traces/{OGid}_{ppid}.png', dpi=500)
+    plt.close()
 
 """
 DEPENDENCIES
+../../ortho_tree/consensus_LG/consensus_LG.py
+    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../get_repseqs/get_repseqs.py
     ../get_repseqs/out/*.afa
 ./labels.tsv
