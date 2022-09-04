@@ -30,7 +30,7 @@ sym2idx = {sym: i for i, sym in enumerate(alphabet)}
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 
 posterior_high = 0.75
-posterior_low = 0.01
+posterior_low = 0.05
 sym_min = 5  # Minimum number of symbols in consensus column
 
 OGids = []
