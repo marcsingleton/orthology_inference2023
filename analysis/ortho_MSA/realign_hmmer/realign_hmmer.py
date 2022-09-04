@@ -9,8 +9,16 @@ from src.utils import read_fasta
 
 def hmm_align(record):
     OGid, ppidnum = record
+
+    # Build profile and align sequences stripped of gaps
+    with open(f'out/{OGid}_temp.fa', 'w') as file:
+        for header, seq1 in read_fasta(f'../get_repseqs/out/{OGid}.afa'):
+            seq2 = seq1.replace('-', '')
+            seqstring = '\n'.join([seq2[i:i+80] for i in range(0, len(seq2), 80)])
+            file.write(f'{header}\n{seqstring}\n')
     run(f'../../../bin/hmmbuild --hand --eset {eset_scalar*ppidnum} --wnone out/hmmer/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/hmmer/{OGid}.txt', shell=True, check=True)
-    run(f'../../../bin/hmmalign --outformat afa out/hmmer/{OGid}.hmm ../get_repseqs/out/{OGid}.afa > out/hmmer/{OGid}_temp.afa', shell=True, check=True)
+    run(f'../../../bin/hmmalign --outformat afa out/hmmer/{OGid}.hmm out/{OGid}_temp.fa > out/hmmer/{OGid}_temp.afa', shell=True, check=True)
+    os.remove(f'out/{OGid}_temp.fa')
 
     # Remove excess gaps
     msa = read_fasta(f'out/hmmer/{OGid}_temp.afa')
