@@ -9,9 +9,8 @@ from src.utils import read_fasta
 
 def hmm_align(record):
     OGid, ppidnum = record
-    path = f'../make_fastas/out/{OGid}.fa'
     run(f'../../../bin/hmmbuild --hand --eset {eset_scalar*ppidnum} --wnone out/hmmer/{OGid}.hmm ../realign_trim/out/{OGid}.sto > out/hmmer/{OGid}.txt', shell=True, check=True)
-    run(f'../../../bin/hmmalign --outformat afa out/hmmer/{OGid}.hmm {path} > out/hmmer/{OGid}_temp.afa', shell=True, check=True)
+    run(f'../../../bin/hmmalign --outformat afa out/hmmer/{OGid}.hmm ../get_repseqs/out/{OGid}.afa > out/hmmer/{OGid}_temp.afa', shell=True, check=True)
 
     # Remove excess gaps
     msa = read_fasta(f'out/hmmer/{OGid}_temp.afa')
@@ -208,6 +207,8 @@ Sequences which are not successfully re-aligned should remain lowercase, which w
 regions.
 
 DEPENDENCIES
+../OG_filter/OG_filter.py
+    ../OG_filter/out/OG_filter.tsv
 ../realign_trim/realign_trim.py
     ../realign_trim/out/*.sto
 ../make_fastas/make_fastas.py
