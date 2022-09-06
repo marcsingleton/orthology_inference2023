@@ -2,6 +2,7 @@
 
 import os
 import re
+from itertools import product
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,24 +11,79 @@ import skbio
 from src.draw import plot_msa_data
 from src.utils import read_fasta
 
-# LG background frequencies
-prior = {'A': 0.079066, 'R': 0.055941, 'N': 0.041977, 'D': 0.053052, 'C': 0.012937,
-         'Q': 0.040767, 'E': 0.071586, 'G': 0.057337, 'H': 0.022355, 'I': 0.062157,
-         'L': 0.099081, 'K': 0.064600, 'M': 0.022951, 'F': 0.042302, 'P': 0.044040,
-         'S': 0.061197, 'T': 0.053287, 'W': 0.012066, 'Y': 0.034155, 'V': 0.069147}
+
+def get_weights(tree):
+    spids = [tip.name for tip in tree.tips()]
+    spid2idx = {spid: i for i, spid in enumerate(spids)}
+    idx2spid = {i: spid for i, spid in enumerate(spids)}
+
+    # Accumulate tip names up to root
+    for node in tree.postorder():
+        if node.is_tip():
+            node.spids = {node.name}
+        else:
+            node.spids = set.union(*[child.spids for child in node.children])
+
+    # Fill in covariance matrix from root to tips
+    tree.root_length = 0
+    cov = np.zeros((len(spids), len(spids)))
+    for node in tree.traverse(include_self=True):
+        for child in node.children:
+            child.root_length = node.root_length + child.length
+        if not node.is_tip():
+            child1, child2 = node.children
+            idxs1, idxs2 = [spid2idx[spid] for spid in child1.spids], [spid2idx[spid] for spid in child2.spids]
+            for idx1, idx2 in product(idxs1, idxs2):
+                cov[idx1, idx2] = node.root_length
+                cov[idx2, idx1] = node.root_length
+        else:
+            idx = spid2idx[node.name]
+            cov[idx, idx] = node.root_length
+
+    # Compute weights
+    # The formula below is from the appendix of J. Mol. Biol. (1989) 207. 647-653.
+    # It assumes continuous traits evolve by a Brownian motion model
+    # The MLE for the root value is then a weighted average of the observed tip values with the weights given below
+    inv = np.linalg.inv(cov)
+    row_sum = inv.sum(axis=1)
+    total_sum = inv.sum()
+    ws = row_sum / total_sum
+    return {idx2spid[idx]: w for idx, w in enumerate(ws)}
+
+
 a = 1E-3  # Coefficient of outlier curve
+max_gaps = 1  # Maximum number of gaps in region
 min_length = 30  # Minimum length of region
+ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
-tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
-tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
+
+tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
+tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 
 records = []
-for OGid in [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/out/mafft/') if path.endswith('.afa')]:
+OGids = [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/out/mafft/') if path.endswith('.afa')]
+for OGid in OGids:
     msa = []
     for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
+        ppid = re.search(ppid_regex, header).group(1)
         spid = re.search(spid_regex, header).group(1)
-        msa.append({'spid': spid, 'seq': seq.upper()})
-    msa = sorted(msa, key=lambda x: tip_order[x['spid']])  # Re-order sequences
+        msa.append({'ppid': ppid, 'spid': spid, 'seq': seq.upper()})
+    msa = sorted(msa, key=lambda x: tip_order[x['spid']])
+
+    ppids = set([record['ppid'] for record in msa])
+    spids = set([record['spid'] for record in msa])
+    spid2ppids = {spid: [] for spid in spids}
+    for record in msa:
+        ppid, spid = record['ppid'], record['spid']
+        spid2ppids[spid].append(ppid)
+
+    tree = tree_template.shear(spids)
+    spid_weights = get_weights(tree)
+    ppid_weights = {}
+    for spid, ppids in spid2ppids.items():
+        weight = spid_weights[spid] / len(ppids)  # Species weight is distributed evenly over all associated genes
+        for ppid in ppids:
+            ppid_weights[ppid] = weight
 
     # Count gaps
     gaps = []
@@ -36,27 +92,28 @@ for OGid in [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/
         gaps.append(gap)
 
     # Threshold, merge, and size filter to get regions
-    binary = ndimage.binary_closing(np.array(gaps) < 1, structure=[1, 1, 1])
+    binary = ndimage.binary_closing(np.array(gaps) < max_gaps, structure=[1, 1, 1])
     regions = [region for region, in ndimage.find_objects(ndimage.label(binary)[0]) if (region.stop-region.start) >= min_length]
 
     # Calculate total scores for each sequence over all regions
-    scores = {record['spid']: 0 for record in msa}
+    scores = {record['ppid']: 0 for record in msa}
     for region in regions:
         for i in range(region.start, region.stop):
             # Build model
-            model = {aa: 2*count for aa, count in prior.items()}  # Start with weighted prior "counts"
+            counts = {}
             for record in msa:
-                seq = record['seq']
+                ppid, seq = record['ppid'], record['seq']
+                weight = ppid_weights[ppid]
                 sym = '-' if seq[i] == '.' else seq[i]  # Convert . to - for counting gaps
-                model[sym] = model.get(sym, 0) + 1  # Provide default of 0 for non-standard symbols and gaps
-            total = sum(model.values())
-            model = {aa: np.log(count/total) for aa, count in model.items()}  # Re-normalize and convert to log space
+                counts[sym] = counts.get(sym, 0) + weight
+            total = sum(counts.values())
+            model = {sym: np.log(count/total) for sym, count in counts.items()}  # Re-normalize and convert to log space
 
             # Apply model
             for record in msa:
-                spid, seq = record['spid'], record['seq']
+                ppid, seq = record['ppid'], record['seq']
                 sym = '-' if seq[i] == '.' else seq[i]  # Convert . to - for counting gaps
-                scores[spid] += model[sym]
+                scores[ppid] += model[sym]
 
     # Record statistics for each sequence
     values = list(scores.values())
