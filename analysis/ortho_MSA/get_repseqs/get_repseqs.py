@@ -60,7 +60,7 @@ gnid_regex = r'gnid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
 pseudocount = 0.01
 
-tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
+tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 
 if not os.path.exists('out/'):
@@ -78,11 +78,11 @@ for OGid in OGids:
     gnids = set([record['gnid'] for record in input_msa])
     spids = set([record['spid'] for record in input_msa])
     gnid2records = {gnid: [] for gnid in gnids}
-    spid2gnids = {spid: [] for spid in spids}
+    spid2gnids = {spid: set() for spid in spids}
     for record in input_msa:
         gnid, spid = record['gnid'], record['spid']
         gnid2records[gnid].append(record)
-        spid2gnids[spid].append(gnid)
+        spid2gnids[spid].add(gnid)
 
     tree = tree_template.shear(spids)
     spid_weights = get_weights(tree)
@@ -146,8 +146,8 @@ weight of the data. (The pseudocount is split evenly across gap and non-gap outc
 prior.)
 
 DEPENDENCIES
-../../ortho_tree/consensus_LG/consensus_LG.py
-    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
+../../ortho_tree/consensus_GTR2/consensus_GTR.py
+    ../../ortho_tree/consensus_GTR2/out/NI.nwk
 ../align_fastas/align_fastas.py
     ../align_fastas/out/*.afa
 """
