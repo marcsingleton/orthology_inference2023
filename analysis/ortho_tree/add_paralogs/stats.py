@@ -28,22 +28,23 @@ for OGid, OG1 in OGs1.items():
 df = pd.DataFrame(rows)
 
 # Make plots
-plt.scatter(df['ppidnum1'], df['ppidnum2'], s=5, alpha=0.2)
-plt.xlabel('Number of proteins in OG w/o in-paralogs')
-plt.ylabel('Number of proteins in OG w/ in-paralogs')
-plt.savefig('out/scatter_ppidnum2-ppidnum1.png')
-plt.close()
-
 counts = (df['delta'] == 0).value_counts()
-labels = [('w/ in-paralogs' if idx else 'w/o in-paralogs') + f'\n({value:,})' for idx, value in zip(counts.index, counts.values)]
+labels = [('w/o in-paralogs' if idx else 'w/ in-paralogs') + f'\n({value:,})' for idx, value in zip(counts.index, counts.values)]
 plt.pie(counts.values, labels=labels, labeldistance=1.4, textprops={'ha': 'center'})
 plt.title('OGs w/ and w/o in-paralogs')
 plt.savefig('out/pie_paralog.png')
 plt.close()
 
+plt.hexbin(df['ppidnum1'], df['ppidnum2'], bins='log', gridsize=25, mincnt=1, linewidth=0)
+plt.xlabel('Number of proteins in OG w/o in-paralogs')
+plt.ylabel('Number of proteins in OG w/ in-paralogs')
+plt.colorbar()
+plt.savefig('out/hexbin_ppidnum2-ppidnum1.png')
+plt.close()
+
 counts = df.loc[df['delta'] != 0, 'delta'].value_counts()
 plt.bar(counts.index, counts.values, width=1)
-plt.xlabel('Number of in-paralogs')
+plt.xlabel('Number of in-paralogs in OG')
 plt.ylabel('Number of OGs')
 plt.savefig('out/bar_OGnum-paralognum.png')
 plt.yscale('log')
