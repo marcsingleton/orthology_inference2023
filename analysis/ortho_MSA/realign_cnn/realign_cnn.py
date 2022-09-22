@@ -5,13 +5,9 @@ import random
 import re
 from math import floor
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import skbio
 import tensorflow as tf
-from matplotlib.gridspec import GridSpec
-from src.draw import plot_msa_data, default_sym2color
 from src.utils import read_fasta
 
 
@@ -61,15 +57,13 @@ alphabet = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F'
 sym2idx = {sym: i for i, sym in enumerate(alphabet)}
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
+
 epochs = 300
 batch_size = 30
 validation_split = 0.1
 embedding_dim = 2
 regularizer = tf.keras.regularizers.L2(0.0075)
 tf.keras.utils.set_random_seed(930715)  # Make validation split and all TensorFlow operations consistent
-
-tree = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
-tip_order = {tip.name: i for i, tip in enumerate(tree.tips())}
 
 # Load labels
 OGid2ppids = {}
@@ -152,109 +146,8 @@ df = pd.DataFrame(history.history)
 df.to_csv('out/history.tsv', sep='\t', index=False)
 model.save('out/model.h5')
 
-# Count residue labels
-positive, negative = 0, 0
-for record in records:
-    labels, weights = record[4], record[5]
-    positive += labels.sum()
-    negative += weights.sum() - labels.sum()
-
-# Write some metrics to file
-output = f"""\
-Number of train examples: {len(records)}
-Number of positive train residues: {positive}
-Number of negative train residues: {negative}
-"""
-with open('out/output.txt', 'w') as file:
-    file.write(output)
-
-
-values = [negative, positive]
-labels = [f'{label}\n{value:,g}' for label, value in zip(['negative', 'positive'], values)]
-plt.pie(values, labels=labels, labeldistance=1.25, textprops={'ha': 'center'})
-plt.title('Distribution of position labels across states')
-plt.savefig('out/bar_residues-data.png')
-plt.close()
-
-# Plot embedding
-fig, ax = plt.subplots()
-weights = embedding.get_weights()[0]
-ax.scatter(weights[:, 0], weights[:, 1], s=75,
-           c=[f'#{default_sym2color[sym]}' for sym in alphabet],
-           edgecolors=['black' if sym == '-' else 'none' for sym in alphabet])
-for sym, weight in zip(alphabet, weights):
-    ax.annotate(sym, xy=weight, va='center', ha='center', size=5, fontweight='bold', fontfamily='monospace')
-ax.set_xlabel('Embedding axis 1')
-ax.set_ylabel('Embedding axis 2')
-plt.savefig('out/scatter_embedding.png')
-plt.close()
-
-# Plot weights
-fig = plt.figure(layout='tight')
-gs = GridSpec(4, 2, figure=fig)
-positions = {'conv1_1_0': gs[0, :],
-             'conv1_1_1': gs[1, :],
-             'conv1_2_0': gs[2, 0], 'conv2_1_0': gs[2, 1],
-             'conv1_2_1': gs[3, 0], 'conv2_1_1': gs[3, 1]}
-for layer in [conv1_1, conv1_2, conv2_1]:
-    weights = layer.get_weights()[0]
-    for i in range(weights.shape[2]):
-        ax = fig.add_subplot(positions[f'{layer.name}_{i}'])
-        ax.imshow(weights[..., i].transpose())
-        ax.set_title(f'{layer.name}-{i}')
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.spines['left'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
-fig.savefig('out/weights.png')
-plt.close()
-
-# Plot curves
-plt.plot(df['loss'], label='train')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend()
-plt.savefig('out/line_loss-epoch.png')
-plt.close()
-
-plt.plot(df['binary_accuracy'], label='accuracy')
-plt.plot(df['recall'], label='recall')
-plt.plot(df['precision'], label='precision')
-plt.xlabel('Epoch')
-plt.ylabel('Value')
-plt.legend()
-plt.savefig('out/line_metrics-epoch.png')
-plt.close()
-
-# Show decoding curves with MSA
-if not os.path.exists(f'out/traces/'):
-    os.mkdir(f'out/traces/')
-
-for record in records:
-    OGid, ppid, profile, seq, labels, weights = record
-    output = tf.squeeze(model([np.expand_dims(profile, 0), np.expand_dims(seq, 0)]))  # Expand and contract dims
-
-    msa = []
-    for header, seq in read_fasta(f'../get_repseqs/out/{OGid}.afa'):
-        msa_ppid = re.search(ppid_regex, header).group(1)
-        msa_spid = re.search(spid_regex, header).group(1)
-        msa.append({'ppid': msa_ppid, 'spid': msa_spid, 'seq': seq})
-    msa = sorted(msa, key=lambda x: tip_order[x['spid']])
-
-    data = [output, labels, weights]
-    msa_labels = [msa_record['ppid'] if msa_record['ppid'] == ppid else '' for msa_record in msa]
-    plot_msa_data([msa_record['seq'] for msa_record in msa], data, figsize=(15, 6),
-                  msa_labels=msa_labels, msa_ticklength=1, msa_tickwidth=0.25, msa_tickpad=1.1, msa_labelsize=5,
-                  height_ratio=0.5, hspace=0.2, data_max=1.1, data_min=-0.1, data_labels=['output', 'label', 'weight'],
-                  msa_legend=True, legend_kwargs={'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8, 'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1})
-    plt.subplots_adjust(left=0.04, bottom=0.01, right=0.94, top=0.99)
-    plt.savefig(f'out/traces/{OGid}_{ppid}.png', dpi=500)
-    plt.close()
-
 """
 DEPENDENCIES
-../../ortho_tree/consensus_LG/consensus_LG.py
-    ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../get_repseqs/get_repseqs.py
     ../get_repseqs/out/*.afa
 ./labels.tsv
