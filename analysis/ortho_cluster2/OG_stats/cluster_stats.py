@@ -103,7 +103,7 @@ plt.close()
 
 # 1.4 Correlation of number of proteins and associated OGs
 fig, ax = plt.subplots()
-ax.scatter(counts_OGid, counts_ppid, s=6)
+ax.scatter(counts_OGid, counts_ppid, s=10)
 ax.set_xlabel('Number of associated OGs')
 ax.set_ylabel('Number of proteins')
 ax.set_title('Correlation of numbers of\nproteins and associated OGs for each species')
@@ -113,7 +113,7 @@ plt.close()
 
 # 1.5 Correlation of number of genes and associated OGs
 fig, ax = plt.subplots()
-ax.scatter(counts_OGid, counts_gnid, s=6)
+ax.scatter(counts_OGid, counts_gnid, s=10)
 ax.set_xlabel('Number of associated OGs')
 ax.set_ylabel('Number of genes')
 ax.set_title('Correlation of numbers of\ngenes and associated OGs for each species')
