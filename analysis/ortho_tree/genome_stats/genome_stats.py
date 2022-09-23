@@ -293,10 +293,11 @@ plt.savefig('out/bar_Xgnid-species.png')
 plt.close()
 
 # 4.5 Correlation of number with length of largest segment
-plt.scatter(dfX['Xnum'], dfX['Xmax'], alpha=0.5, s=10, edgecolors='none')
+plt.hexbin(dfX['Xnum'], dfX['Xmax'], bins='log', gridsize=25, mincnt=1, linewidth=0)
 plt.xlabel('Number of unknown amino acids')
 plt.ylabel('Length of largest segment of unknown amino acids')
-plt.savefig('out/scatter_Xmax-Xnum.png')
+plt.colorbar()
+plt.savefig('out/hexbin_Xmax-Xnum.png')
 plt.close()
 
 # 4.6 Counts
