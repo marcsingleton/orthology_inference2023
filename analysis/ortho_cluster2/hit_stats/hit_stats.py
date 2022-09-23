@@ -15,7 +15,7 @@ def load_hsp(qspid, sspid):
     df = pd.read_table(f'../../ortho_search/blast2hsps/out/hsps/{qspid}/{sspid}.tsv',
                        usecols=hsp_dtypes.keys(), dtype=hsp_dtypes, memory_map=True)
 
-    return df[df['disjoint']]
+    return df
 
 
 def load_hit(qspid, sspid):
@@ -88,7 +88,7 @@ def bar(counts, file_label):
 
 hsp_dtypes = {'qppid': 'string', 'qgnid': 'string',
               'sppid': 'string', 'sgnid': 'string',
-              'bitscore': float,
+              'evalue': float,
               'disjoint': bool}
 hit_dtypes = {'qppid': 'string', 'qgnid': 'string',
               'sppid': 'string', 'sgnid': 'string',
@@ -96,7 +96,7 @@ hit_dtypes = {'qppid': 'string', 'qgnid': 'string',
               'qlen': int, 'nqa': int, 'cnqa': int,
               'slen': int, 'nsa': int, 'cnsa': int,
               'bitscore': float}
-num_processes = 2
+num_processes = 6
 
 if __name__ == '__main__':
     # Load genomes
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     # Load data
     with mp.Pool(processes=num_processes) as pool:
         hsps0 = pd.concat(pool.starmap(load_hsp, permutations(spids, 2)))
-        hsps1 = hsps0[hsps0['bitscore'] >= 50]
+        hsps1 = hsps0[hsps0['evalue'] <= 1E-10]
 
         hits0 = pd.concat(pool.starmap(load_hit, permutations(spids, 2)))
         hits0['fqa'] = hits0['nqa'] / hits0['qlen']
@@ -124,8 +124,8 @@ if __name__ == '__main__':
         hits3 = hits2[hits2['reciprocal']]
         hits = [hits0, hits1, hits2, hits3]
 
-    file_labels = ['bitscore50', 'best', 'cfqa50', 'reciprocal']
-    labels = ['bitscore ≥ 50', 'best', 'cFQA ≥ 0.5', 'reciprocal']
+    file_labels = ['evalue10', 'best', 'cfqa50', 'reciprocal']
+    labels = ['$\mathregular{log_{10}}$(E-value) ≤ -10', 'best', 'cFQA ≥ 0.5', 'reciprocal']
     colors = ['C1', 'C2', 'C3', 'C4']
 
     # 1 BLAST METRICS
@@ -206,6 +206,8 @@ if __name__ == '__main__':
     # 1.3.10 FQA-FSA scatters
     for hit, file_label, label in zip(hits, file_labels, labels):
         plt.hist2d(hit['fqa'], hit['fsa'], bins=50, norm=mpl_colors.LogNorm())
+        plt.xlim(0, 1)
+        plt.ylim(0, 1)
         plt.xlabel('Fraction of query aligned')
         plt.ylabel('Fraction of subject aligned')
         plt.title(label)
@@ -242,10 +244,11 @@ if __name__ == '__main__':
     gnid_ppidnum = pd.read_table('../genome_stats/out/gnidnums.tsv', index_col='gnid', dtype={'gnid': 'string'})
     corr = sgnid_hitnum.join(gnid_ppidnum)
 
-    plt.scatter(corr['ppidnum'], corr['sgnid_hitnum'], alpha=0.5, s=10, edgecolors='none')
+    plt.hexbin(corr['ppidnum'], corr['sgnid_hitnum'], bins='log', gridsize=50, mincnt=1, linewidth=0)
     plt.xlabel('Number of proteins associated with gene')
     plt.ylabel('Number of reciprocal hits to gene')
-    plt.savefig('out/hits/scatter_hitnum-ppidnum.png')
+    plt.colorbar()
+    plt.savefig('out/hits/hexbin_hitnum-ppidnum.png')
     plt.close()
 
     # 2.3.2 Histograms of proteins by number of hits
