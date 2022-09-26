@@ -83,7 +83,7 @@ if __name__ == '__main__':
         model_json = json.load(file)
 
     if not os.path.exists('out/'):
-        os.mkdir('out/')
+        os.makedirs('out/posteriors/')
 
     with mp.Pool(processes=num_processes) as pool:
         pool.starmap(decode, [(OGid, model_json, tree_template) for OGid in OGids])
