@@ -110,5 +110,18 @@ def get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient
         else:
             s = region
         slices.append(s)
+    slices = sorted(slices, key=lambda x: x.start)
+
+    # Merge slices
+    if slices:
+        merged = []
+        start0, stop0 = slices[0].start, slices[0].stop
+        for s in slices[1:]:
+            if s.start > stop0:
+                merged.append(slice(start0, stop0))
+                start0, stop0 = s.start, s.stop
+            elif s.stop > stop0:
+                stop0 = s.stop
+        merged.append((slice(start0, stop0)))  # Append final slice
 
     return slices
