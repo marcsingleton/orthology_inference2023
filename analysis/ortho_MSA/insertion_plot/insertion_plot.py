@@ -18,8 +18,8 @@ spid_regex = r'spid=([a-z]+)'
 state_labels = ['1A', '1B', '2', '3']
 state_colors = ['C0', 'C3', 'C1', 'C2']
 
-posterior_high = 0.75
-posterior_low = 0.5
+posterior_high = 0.9
+posterior_low = 0.05
 gradient_high = 0.02
 gradient_low = 0.001
 
@@ -93,7 +93,7 @@ for label in ['norm1', 'norm2']:
         fbs = model.forward_backward(idx_seq)
         data = [fbs[label] for label in state_labels]
 
-        plot_msa_data([record['seq'] for record in msa], data,
+        plot_msa_data([record['seq'].upper() for record in msa], data,
                       figsize=(15, 6), height_ratio=0.5, hspace=0.2,
                       data_max=1.1, data_min=-0.1, data_labels=state_labels, data_colors=state_colors,
                       msa_legend=True,
@@ -114,7 +114,7 @@ for label in ['norm1', 'norm2']:
         for s in slices:
             trims[s] = 1
 
-        plot_msa_data([record['seq'] for record in msa], [posterior, trims],
+        plot_msa_data([record['seq'].upper() for record in msa], [posterior, trims],
                       figsize=(15, 6), height_ratio=0.5, hspace=0.2,
                       data_max=1.1, data_min=-0.1, data_labels=['2+3', 'trim'], data_colors=['C1', 'C0'],
                       msa_legend=True,
