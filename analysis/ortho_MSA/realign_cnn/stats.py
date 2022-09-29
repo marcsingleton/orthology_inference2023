@@ -80,9 +80,11 @@ for record in records:
 
 # Write some metrics to file
 output = f"""\
-Number of train examples: {len(records)}
-Number of positive train residues: {positive}
-Number of negative train residues: {negative}
+Number of alignments: {len(OGid2ppids)}
+Number of examples: {len(records)}
+Number of residues: {positive + negative}
+Number of positive residues: {positive}
+Number of negative residues: {negative}
 """
 with open('out/output.txt', 'w') as file:
     file.write(output)

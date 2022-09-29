@@ -59,7 +59,7 @@ plt.close()
 # Write some metrics to file
 output = f"""\
 Number of alignments: {len(OGid2labels)}
-Number of labelled columns: {sum(counts.values()):,}
+Number of labeled columns: {sum(counts.values()):,}
 """
 with open('out/output.txt', 'w') as file:
     file.write(output)
