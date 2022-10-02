@@ -15,8 +15,8 @@ from src.utils import read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
-state_labels = ['1', '2']
-state_colors = ['C0', 'C1']
+state_labels = ['1', '2A', '2B']
+state_colors = ['C0', 'C1', 'C2']
 
 tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
 tree_order = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
@@ -28,6 +28,8 @@ label_set = set()
 with open('labels.tsv') as file:
     field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
+        if line.startswith('#'):
+            continue
         fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
         OGid, ppid, start, stop, label = fields['OGid'], fields['ppid'], int(fields['start']), int(fields['stop']), fields['label']
         label_set.add(label)
@@ -60,7 +62,7 @@ plt.close()
 # Write some metrics to file
 output = f"""\
 Number of sequences: {len(ids2labels)}
-Number of labelled positions: {sum(counts.values()):,}
+Number of labeled positions: {sum(counts.values()):,}
 """
 with open('out/output.txt', 'w') as file:
     file.write(output)
@@ -129,7 +131,7 @@ if not os.path.exists('out/traces/'):
 for (OGid, ppid), labels in ids2labels.items():
     # Load MSA
     msa, ppid2spid = [], {}
-    for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
+    for header, seq in read_fasta(f'../insertion_trim/out/trims/{OGid}.afa'):
         msa_ppid = re.search(ppid_regex, header).group(1)
         msa_spid = re.search(spid_regex, header).group(1)
         msa.append({'ppid': msa_ppid, 'spid': msa_spid, 'seq': seq})
@@ -158,7 +160,7 @@ for (OGid, ppid), labels in ids2labels.items():
             pi, q0, q1 = [e_dist[param] for param in ['pi', 'q0', 'q1']]
             pmf = utils.get_tip_pmf(tree, ppid2spid[ppid], pi, q0, q1, 0, 0)
             e_dists_rv[s] = utils.ArrayRV(pmf)
-        elif s == '2':
+        elif s in ['2A', '2B']:
             p = e_dist['p']
             conditional = tree.tip_dict[ppid2spid[ppid]].conditional[1]  # Second row is gaps=0, non-gaps=1
             pmf = utils.get_bernoulli_pmf(conditional, p)
@@ -220,7 +222,7 @@ DEPENDENCIES
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../insertion_trim/trim.py
-    ../trim_extract/out/*.afa
+    ../insertion_trim/out/trims/*.afa
 ./fit.py
     ./out/model.json
 ./labels.tsv

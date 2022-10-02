@@ -25,7 +25,7 @@ def norm_params(t_dists, e_dists):
         if s == '1':
             zpi, zq0, zq1 = [e_dist[param] for param in ['pi', 'q0', 'q1']]
             e_dists_norm[s] = {'pi': 1 / (1 + exp(-zpi)), 'q0': exp(zq0), 'q1': exp(zq1)}
-        elif s == '2':
+        elif s in ['2A', '2B']:
             zp = e_dist['p']
             e_dists_norm[s] = {'p': 1 / (1 + exp(-zp))}
     return t_dists_norm, e_dists_norm
@@ -41,7 +41,7 @@ def unnorm_params(t_dists_norm, e_dists_norm):
         if s == '1':
             pi, q0, q1 = [e_dist[param] for param in ['pi', 'q0', 'q1']]
             e_dists[s] = {'pi': log(pi / (1 - pi)), 'q0': log(q0), 'q1': log(q1)}
-        elif s == '2':
+        elif s in ['2A', '2B']:
             p = e_dist['p']
             e_dists[s] = {'p': log(p / (1 - p))}
     return t_dists, e_dists
@@ -63,7 +63,7 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
             tip_pmf = utils.get_tip_pmf(tree, spid, pi, q0, q1, 0, 0)
             tip_pmfs[s] = tip_pmf
             e_dists_rv[s] = utils.ArrayRV(tip_pmf)
-        elif s == '2':
+        elif s in ['2A', '2B']:
             p = e_dist['p']
             conditional = tree.tip_dict[spid].conditional[1]  # Second row is gaps=0, non-gaps=1
             tip_pmf = utils.get_bernoulli_pmf(conditional, p)
@@ -109,7 +109,7 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
             e_grad['q0'] = -mn / tip_pmf * tip_prime_q0 * q0
             e_grad['q1'] = -mn / tip_pmf * tip_prime_q1 * q1
             e_grads[s] = e_grad
-        elif s == '2':
+        elif s in ['2A', '2B']:
             p = e_dist['p']
             conditional = tree.tip_dict[spid].conditional[1]  # Second row is gaps=0, non-gaps=1
             tip_pmf = tip_pmfs[s]
@@ -124,24 +124,25 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     return {'ll': ll, 't_grads': t_grads, 'e_grads': e_grads}
 
 
-num_processes = 4
+num_processes = 6
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
 
 eta = 0.05  # Learning rate
-gamma = 0.9  # Momentum
+gamma = 0.85  # Momentum
 epsilon = 1E-1  # Convergence criterion
 iter_num = 200  # Max number of iterations
 
-state_set = {'1', '2'}
-start_set = {'1', '2'}
+state_set = {'1', '2A', '2B'}
+start_set = {'1', '2A', '2B'}
 t_sets = {s1: {s2 for s2 in state_set} for s1 in state_set}
 tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
 
 t_pseudo = 0.1  # t_dist pseudocounts
 start_pseudo = 0.1  # start_dist pseudocounts
 e_dists_initial = {'1': {'pi': 0.5, 'q0': 0.25, 'q1': 0.25},
-                   '2': {'p': 0.01}}
+                   '2A': {'p': 0.01},
+                   '2B': {'p': 0.99}}
 
 if __name__ == '__main__':
     # Load labels
@@ -150,6 +151,8 @@ if __name__ == '__main__':
     with open('labels.tsv') as file:
         field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
+            if line.startswith('#'):
+                continue
             fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
             OGid, ppid, start, stop, label = fields['OGid'], fields['ppid'], int(fields['start']), int(fields['stop']), fields['label']
             label_set.add(label)
@@ -180,7 +183,7 @@ if __name__ == '__main__':
     for (OGid, ppid), labels in OGid2labels.items():
         # Load MSA
         msa, ppid2spid = [], {}
-        for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
+        for header, seq in read_fasta(f'../insertion_trim/out/trims/{OGid}.afa'):
             msa_ppid = re.search(ppid_regex, header).group(1)
             msa_spid = re.search(spid_regex, header).group(1)
             msa.append({'ppid': msa_ppid, 'spid': msa_spid, 'seq': seq})
@@ -304,6 +307,6 @@ DEPENDENCIES
 ../../ortho_tree/consensus_GTR2/consensus_GTR2.py
     ../../ortho_tree/consensus_GTR2/out/NI.nwk
 ../insertion_trim/extract.py
-    ../insertion_trim/out/*.afa
+    ../insertion_trim/out/trims/*.afa
 ./labels.tsv
 """
