@@ -129,23 +129,25 @@ for OGid in OGids:
 if not os.path.exists('out/'):
     os.mkdir('out/')
 
-plt.scatter([record[0] for record in records], [record[1] for record in records], s=10, alpha=0.25, edgecolors='none')
+plt.hexbin([record[0] for record in records], [record[1] for record in records], bins='log', gridsize=75, mincnt=1, linewidth=0)
 plt.xlabel('(score - alignment mean) of sequence')
 plt.ylabel('Standard deviation of scores in alignment')
-plt.savefig('out/scatter_std-score.png')
+plt.colorbar()
+plt.savefig('out/hexbin_std-score.png')
 plt.close()
 
-plt.scatter([record[0] for record in records], [record[2] for record in records], s=10, alpha=0.25, edgecolors='none')
+plt.hexbin([record[0] for record in records], [record[2] for record in records], bins='log', gridsize=75, mincnt=1, linewidth=0)
 plt.xlabel('(score - alignment mean) of sequence')
 plt.ylabel('IQR of scores in alignment')
-plt.savefig('out/scatter_iqr-score1.png')
+plt.colorbar()
+plt.savefig('out/hexbin_iqr-score1.png')
 
 ymax = max([record[2] for record in records])
 xmin = -(ymax/a)**0.5
 xs = np.linspace(xmin, 0, 100)
 ys = a*xs**2
 plt.plot(xs, ys, color='C1')
-plt.savefig('out/scatter_iqr-score2.png')
+plt.savefig('out/hexbin_iqr-score2.png')
 plt.close()
 
 # Plot unique MSAs with largest deviations
