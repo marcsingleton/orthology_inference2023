@@ -15,8 +15,8 @@ from src.utils import read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
-state_labels = ['1', '2A', '2B']
-state_colors = ['C0', 'C1', 'C2']
+state_labels = ['1A', '1B', '2']
+state_colors = ['C0', 'C3', 'C1']
 
 tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
 tree_order = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
@@ -54,7 +54,7 @@ for labels in ids2labels.values():
         counts[label] += stop - start
 values = [counts[label] for label in state_labels]
 labels = [f'{label}\n{value:,}' for label, value in zip(state_labels, values)]
-plt.pie(values, colors=state_colors, labels=labels, labeldistance=1.15, textprops={'ha': 'center'})
+plt.pie(values, colors=state_colors, labels=labels, labeldistance=1.2, textprops={'ha': 'center'})
 plt.title('Distribution of position labels across states')
 plt.savefig('out/pie_labels.png')
 plt.close()
@@ -79,28 +79,43 @@ plt.close()
 # Plot model parameters
 params = ['pi', 'q0', 'q1']
 fig, axs = plt.subplots(len(params), 1)
-label, color = state_labels[0], state_colors[0]
-for ax, param in zip(axs, params):
-    xs = [record['iter_num'] for record in history]
-    ys = [record['e_dists_norm'][label][param] for record in history]
-    ax.plot(xs, ys, label=label, color=color)
-    ax.set_ylabel(param)
+for label, color in zip(state_labels[:2], state_colors[:2]):
+    for ax, param in zip(axs, params):
+        xs = [record['iter_num'] for record in history]
+        ys = [record['e_dists_norm'][label][param] for record in history]
+        ax.plot(xs, ys, label=label, color=color)
+        ax.set_ylabel(param)
 axs[-1].set_xlabel('Iteration')
-handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels[:1], state_colors[:1])]
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels[:2], state_colors[:2])]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
 plt.subplots_adjust(right=0.875)
 plt.savefig('out/line_rate-iter.png')
 plt.close()
 
+params = ['p0', 'p1']
+fig, axs = plt.subplots(len(params), 1)
+for label, color in zip(state_labels[:2], state_colors[:2]):
+    for ax, param in zip(axs, params):
+        xs = [record['iter_num'] for record in history]
+        ys = [record['e_dists_norm'][label][param] for record in history]
+        ax.plot(xs, ys, label=label, color=color)
+        ax.set_ylabel(param)
+axs[-1].set_xlabel('Iteration')
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels[:2], state_colors[:2])]
+fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
+plt.subplots_adjust(right=0.875)
+plt.savefig('out/line_jump-iter.png')
+plt.close()
+
 param = 'p'
 fig, ax = plt.subplots()
-label, color = state_labels[1], state_colors[1]
+label, color = state_labels[2], state_colors[2]
 xs = [record['iter_num'] for record in history]
 ys = [record['e_dists_norm'][label][param] for record in history]
 ax.plot(xs, ys, label=label, color=color)
 ax.set_ylabel(param)
 ax.set_xlabel('Iteration')
-handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels[1:], state_colors[1:])]
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels[2:], state_colors[2:])]
 fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
 plt.subplots_adjust(right=0.875)
 plt.savefig('out/line_p-iter.png')
@@ -156,11 +171,11 @@ for (OGid, ppid), labels in ids2labels.items():
     # Instantiate model
     e_dists_rv = {}
     for s, e_dist in model_json['e_dists'].items():
-        if s == '1':
-            pi, q0, q1 = [e_dist[param] for param in ['pi', 'q0', 'q1']]
-            pmf = utils.get_tip_pmf(tree, ppid2spid[ppid], pi, q0, q1, 0, 0)
+        if s in ['1A', '1B']:
+            pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
+            pmf = utils.get_tip_pmf(tree, ppid2spid[ppid], pi, q0, q1, p0, p1)
             e_dists_rv[s] = utils.ArrayRV(pmf)
-        elif s in ['2A', '2B']:
+        elif s == '2':
             p = e_dist['p']
             conditional = tree.tip_dict[ppid2spid[ppid]].conditional[1]  # Second row is gaps=0, non-gaps=1
             pmf = utils.get_bernoulli_pmf(conditional, p)
@@ -168,6 +183,12 @@ for (OGid, ppid), labels in ids2labels.items():
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
     # Make plotting parameters
+    msa_seqs = []
+    for record in msa:
+        if record['ppid'] == ppid:
+            msa_seqs.append(['.' if sym == '-' else sym for sym in record['seq']])  # Switch gaps to . to highlight them in plots
+        else:
+            msa_seqs.append(record['seq'])
     msa_labels = [record['ppid'] if record['ppid'] == ppid else '' for record in msa]
 
     kwargs_wide = {'figsize': (15, 6), 'height_ratio': 0.5, 'hspace': 0.2,
@@ -190,12 +211,12 @@ for (OGid, ppid), labels in ids2labels.items():
         lines[label][start:stop] = 1
     data = [lines[label] for label in state_labels]
 
-    plot_msa_data([record['seq'] for record in msa], data, **kwargs_wide)
+    plot_msa_data(msa_seqs, data, **kwargs_wide)
     plt.subplots_adjust(**adjust_wide)
     plt.savefig(f'out/traces/{OGid}-{ppid}_wide_labels.png')
     plt.close()
 
-    plot_msa_data([record['seq'] for record in msa], data, **kwargs_tall)
+    plot_msa_data(msa_seqs, data, **kwargs_tall)
     plt.subplots_adjust(**adjust_tall)
     plt.savefig(f'out/traces/{OGid}-{ppid}_tall_labels.png')
     plt.close()
@@ -205,12 +226,12 @@ for (OGid, ppid), labels in ids2labels.items():
     fbs = model.forward_backward(idx_seq)
     data = [fbs[label] for label in state_labels]
 
-    plot_msa_data([record['seq'] for record in msa], data, **kwargs_wide)
+    plot_msa_data(msa_seqs, data, **kwargs_wide)
     plt.subplots_adjust(**adjust_wide)
     plt.savefig(f'out/traces/{OGid}-{ppid}_wide.png')
     plt.close()
 
-    plot_msa_data([record['seq'] for record in msa], data, **kwargs_tall)
+    plot_msa_data(msa_seqs, data, **kwargs_tall)
     plt.subplots_adjust(**adjust_tall)
     plt.savefig(f'out/traces/{OGid}-{ppid}_tall.png')
     plt.close()
