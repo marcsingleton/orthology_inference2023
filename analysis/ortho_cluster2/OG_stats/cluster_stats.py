@@ -3,7 +3,9 @@
 import os
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+from sklearn.decomposition import PCA
 
 # Load genomes
 spids = set()
@@ -121,26 +123,51 @@ ax.set_title('Correlation of numbers of\ngenes and associated OGs for each speci
 fig.savefig('out/cluster/scatter_gnidnum-OGidnum.png')
 plt.close()
 
-# 2 NUMBER OF EXCLUSIONS
-for i in range(len(spids)-10, len(spids)):
-    exclusions = {spid: 0 for spid in spids}
-    for _, group in groups:
-        included_spids = set(group['spid'])
-        if len(included_spids) == i:
-            for spid in (spids - included_spids):
-                exclusions[spid] += 1
-    labels, height = zip(*sorted(exclusions.items()))
-    x = list(range(len(labels)))
-    fig, ax = plt.subplots()
-    ax.bar(x, height)
-    ax.set_xticks(xs, labels, rotation=60, fontsize=8)
-    ax.set_xlabel('Species')
-    ax.set_ylabel('Number of exclusions')
-    ax.set_title(f'Number of exclusions in OGs with {i} species')
+# 2 OG MEMBERSHIP PLOTS
+# 2.1 Number of exclusions
+exclusions = {spid: 0 for spid in spids}
+for _, group in groups:
+    included_spids = set(group['spid'])
+    if len(included_spids) == len(spids) - 1:
+        for spid in (spids - included_spids):
+            exclusions[spid] += 1
+labels, height = zip(*sorted(exclusions.items()))
+x = list(range(len(labels)))
+fig, ax = plt.subplots()
+ax.bar(x, height)
+ax.set_xticks(xs, labels, rotation=60, fontsize=8)
+ax.set_xlabel('Species')
+ax.set_ylabel('Number of exclusions')
 
-    fig.tight_layout()
-    fig.savefig(f'out/cluster/bar_exclusion-species_{i}.png')
-    plt.close()
+fig.tight_layout()
+fig.savefig(f'out/cluster/bar_exclusion-species.png')
+plt.close()
+
+# 2.2 PCA of OG membership
+spid2idx = {spid: i for i, spid in enumerate(spids)}
+X = np.zeros((len(spids), len(groups)))
+for i, (_, group) in enumerate(groups):
+    for spid in group['spid']:
+        X[spid2idx[spid], i] = 1
+pca = PCA().fit(X)
+Y = pca.transform(X)
+
+clusters = [('dinn', 'dgri', 'dnov', 'dvir', 'dhyd', 'dmoj', 'dnav'),
+            ('dwil',),
+            ('dper', 'dpse', 'dobs', 'dgua', 'dsob'),
+            ('dana', 'dbip', 'dkik', 'dser'),
+            ('dfic', 'dele', 'drho', 'dtak', 'dbia', 'dspu', 'dsuz', 'deug'),
+            ('dere', 'dtei', 'dsan', 'dyak', 'dmel', 'dmau', 'dsec', 'dsim')]
+fig, ax = plt.subplots()
+for cluster in clusters:
+    idxs = [spid2idx[spid] for spid in cluster]
+    ax.scatter(Y[idxs, 0], Y[idxs, 1], label='\n'.join(cluster), alpha=0.9, edgecolors='none')
+ax.set_xlabel('PC1')
+ax.set_ylabel('PC2')
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=8)
+fig.subplots_adjust(right=0.85)
+fig.savefig('out/cluster/scatter_membership.png')
+plt.close()
 
 # 3 DISTRIBUTIONS OF OGS
 # 3.1 Distribution of OGs across number of species
