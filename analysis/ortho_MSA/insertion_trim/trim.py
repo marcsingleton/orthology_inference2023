@@ -59,6 +59,8 @@ for OGid in OGids:
 
 # Plot stats
 df = pd.DataFrame(rows)
+df.to_csv('out/trim_stats.tsv', sep='\t', index=False)
+
 df['length'] = df['stop'] - df['start']
 df['length_ratio'] = df['length'] / df['colnum']
 df['norm2'] = df['posterior2'] / df['length']
@@ -114,9 +116,29 @@ plt.close()
 # Distribution of length ratio of total trims
 fig, ax = plt.subplots()
 ax.hist(groups['length_ratio'].sum(), bins=100)
-ax.set_xlabel('Length ratios of trims in OG')
+ax.set_xlabel('Total length ratio of trims in OG')
 ax.set_ylabel('Number of OGs')
 fig.savefig('out/hist_OGnum-ratio.png')
+plt.close()
+
+# Hexbin of length ratios vs number of trims
+fig = plt.figure(figsize=(6, 6), layout='constrained')
+gs = fig.add_gridspec(4, 2, height_ratios=(1, 2, 0.15, 0.1), width_ratios=(4, 1))
+ax = fig.add_subplot(gs[1, 0])
+ax_histx = fig.add_subplot(gs[0, 0], sharex=ax)
+ax_histy = fig.add_subplot(gs[1, 1], sharey=ax)
+
+hb = ax.hexbin(groups.size(), groups['length_ratio'].sum(), bins='log', gridsize=50, mincnt=1, linewidth=0)
+cax = fig.add_subplot(gs[3, 0])
+fig.colorbar(hb, cax=cax, orientation='horizontal')
+
+counts = groups.size().value_counts()
+ax_histx.bar(counts.index, counts.values, width=1)
+ax_histy.hist(groups['length_ratio'].sum(), bins=100, orientation='horizontal')
+
+ax.set_xlabel('Number of trims in OG')
+ax.set_ylabel('Total length ratio of trims in OG')
+fig.savefig('out/hexbin_ratio-trimnum.png')
 plt.close()
 
 # Hexbin of posterior2 vs posterior3
