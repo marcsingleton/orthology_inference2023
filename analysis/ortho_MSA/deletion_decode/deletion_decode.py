@@ -15,7 +15,7 @@ from src.utils import read_fasta
 def decode(OGid, model_json, tree_template):
     # Load MSA
     msa = []
-    for header, seq in read_fasta(f'../insertion_trim/out/{OGid}.afa'):
+    for header, seq in read_fasta(f'../insertion_trim/out/trims/{OGid}.afa'):
         msa_ppid = re.search(ppid_regex, header).group(1)
         msa_spid = re.search(spid_regex, header).group(1)
         msa.append({'ppid': msa_ppid, 'spid': msa_spid, 'seq': seq})
@@ -42,15 +42,9 @@ def decode(OGid, model_json, tree_template):
         # Instantiate model
         e_dists_rv = {}
         for s, e_dist in model_json['e_dists'].items():
-            if s == '1':
-                pi, q0, q1 = [e_dist[param] for param in ['pi', 'q0', 'q1']]
-                pmf = utils.get_tip_pmf(tree, spid, pi, q0, q1, 0, 0)
-                e_dists_rv[s] = utils.ArrayRV(pmf)
-            elif s == '2':
-                p = e_dist['p']
-                conditional = tree.tip_dict[spid].conditional[1]  # Second row is gaps=0, non-gaps=1
-                pmf = utils.get_bernoulli_pmf(conditional, p)
-                e_dists_rv[s] = utils.ArrayRV(pmf)
+            pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
+            pmf = utils.get_tip_pmf(tree, spid, pi, q0, q1, p0, p1)
+            e_dists_rv[s] = utils.ArrayRV(pmf)
         model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
         # Decode states and write
@@ -75,9 +69,9 @@ tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick
 if __name__ == '__main__':
     # Load OGids
     OGids = []
-    for path in os.listdir('../insertion_trim/out'):
+    for path in os.listdir('../insertion_trim/out/trims/'):
         if path.endswith('.afa'):
-            OGids.append(path)
+            OGids.append(path.removesuffix('.afa'))
 
     with open('../deletion_hmm/out/model.json') as file:
         model_json = json.load(file)
