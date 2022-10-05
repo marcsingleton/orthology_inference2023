@@ -61,6 +61,7 @@ plt.close()
 
 # Write some metrics to file
 output = f"""\
+Numer of alignments: {len({OGid for OGid, _ in ids2labels})}
 Number of sequences: {len(ids2labels)}
 Number of labeled positions: {sum(counts.values()):,}
 """
