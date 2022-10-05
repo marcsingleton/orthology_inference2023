@@ -22,12 +22,8 @@ def norm_params(t_dists, e_dists):
         t_dists_norm[s1] = {s2: exp(z)/z_sum for s2, z in t_dist.items()}
     e_dists_norm = {}
     for s, e_dist in e_dists.items():
-        if s == '1':
-            zpi, zq0, zq1, zp0, zp1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
-            e_dists_norm[s] = {'pi': 1 / (1 + exp(-zpi)), 'q0': exp(zq0), 'q1': exp(zq1), 'p0': 1 / (1 + exp(-zp0)), 'p1': 1 / (1 + exp(-zp1))}
-        elif s == '2':
-            zp = e_dist['p']
-            e_dists_norm[s] = {'p': 1 / (1 + exp(-zp))}
+        zpi, zq0, zq1, zp0, zp1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
+        e_dists_norm[s] = {'pi': 1 / (1 + exp(-zpi)), 'q0': exp(zq0), 'q1': exp(zq1), 'p0': 1 / (1 + exp(-zp0)), 'p1': 1 / (1 + exp(-zp1))}
     return t_dists_norm, e_dists_norm
 
 
@@ -38,12 +34,8 @@ def unnorm_params(t_dists_norm, e_dists_norm):
         t_dists[s1] = {s2: log(v) for s2, v in t_dist.items()}
     e_dists = {}
     for s, e_dist in e_dists_norm.items():
-        if s == '1':
-            pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
-            e_dists[s] = {'pi': log(pi / (1 - pi)), 'q0': log(q0), 'q1': log(q1), 'p0': log(p0 / (1 - p0)), 'p1': log(p1 / (1 - p1))}
-        elif s == '2':
-            p = e_dist['p']
-            e_dists[s] = {'p': log(p / (1 - p))}
+        pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
+        e_dists[s] = {'pi': log(pi / (1 - pi)), 'q0': log(q0), 'q1': log(q1), 'p0': log(p0 / (1 - p0)), 'p1': log(p1 / (1 - p1))}
     return t_dists, e_dists
 
 
@@ -58,16 +50,9 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     tip_pmfs = {}
     e_dists_rv = {}
     for s, e_dist in e_dists_norm.items():
-        if s == '1':
-            pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
-            tip_pmf = utils.get_tip_pmf(tree, spid, pi, q0, q1, p0, p1)
-            tip_pmfs[s] = tip_pmf
-        elif s == '2':
-            p = e_dist['p']
-            conditional = tree.tip_dict[spid].conditional[1]  # Second row is gaps=0, non-gaps=1
-            tip_pmf = utils.get_bernoulli_pmf(conditional, p)
-            tip_pmfs[s] = tip_pmf
-            e_dists_rv[s] = utils.ArrayRV(tip_pmf)
+        pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
+        tip_pmf = utils.get_tip_pmf(tree, spid, pi, q0, q1, p0, p1)
+        tip_pmfs[s] = tip_pmf
         e_dists_rv[s] = utils.ArrayRV(tip_pmf)
 
     # Instantiate model and get expectations
@@ -95,35 +80,23 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     # Get e_dists gradients
     e_grads = {}
     for s, e_dist in e_dists_norm.items():
-        if s == '1':
-            pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
-            tip_pmf = tip_pmfs[s]
-            tip_prime_pi = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'pi')
-            tip_prime_q0 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'q0')
-            tip_prime_q1 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'q1')
-            tip_prime_p0 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'p0')
-            tip_prime_p1 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'p1')
+        pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
+        tip_pmf = tip_pmfs[s]
+        tip_prime_pi = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'pi')
+        tip_prime_q0 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'q0')
+        tip_prime_q1 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'q1')
+        tip_prime_p0 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'p0')
+        tip_prime_p1 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'p1')
 
-            # Equations 2.15 and 2.16 (emission parameter phi only)
-            e_grad = {}
-            mn = np.array([mi - ni for mi, ni in zip(mis[s], nis[s])])
-            e_grad['pi'] = -mn / tip_pmf * tip_prime_pi * pi * (1 - pi)
-            e_grad['q0'] = -mn / tip_pmf * tip_prime_q0 * q0
-            e_grad['q1'] = -mn / tip_pmf * tip_prime_q1 * q1
-            e_grad['p0'] = -mn / tip_pmf * tip_prime_p0 * p0 * (1 - p0)
-            e_grad['p1'] = -mn / tip_pmf * tip_prime_p1 * p1 * (1 - p1)
-            e_grads[s] = e_grad
-        elif s == '2':
-            p = e_dist['p']
-            conditional = tree.tip_dict[spid].conditional[1]  # Second row is gaps=0, non-gaps=1
-            tip_pmf = tip_pmfs[s]
-            tip_prime_p = utils.get_bernoulli_prime(conditional, p)
-
-            # Equations 2.15 and 2.16 (emission parameter phi only)
-            e_grad = {}
-            mn = np.array([mi - ni for mi, ni in zip(mis[s], nis[s])])
-            e_grad['p'] = -mn / tip_pmf * tip_prime_p * p * (1 - p)
-            e_grads[s] = e_grad
+        # Equations 2.15 and 2.16 (emission parameter phi only)
+        e_grad = {}
+        mn = np.array([mi - ni for mi, ni in zip(mis[s], nis[s])])
+        e_grad['pi'] = -mn / tip_pmf * tip_prime_pi * pi * (1 - pi)
+        e_grad['q0'] = -mn / tip_pmf * tip_prime_q0 * q0
+        e_grad['q1'] = -mn / tip_pmf * tip_prime_q1 * q1
+        e_grad['p0'] = -mn / tip_pmf * tip_prime_p0 * p0 * (1 - p0)
+        e_grad['p1'] = -mn / tip_pmf * tip_prime_p1 * p1 * (1 - p1)
+        e_grads[s] = e_grad
 
     return {'ll': ll, 't_grads': t_grads, 'e_grads': e_grads}
 
@@ -145,7 +118,7 @@ tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick
 t_pseudo = 0.1  # t_dist pseudocounts
 start_pseudo = 0.1  # start_dist pseudocounts
 e_dists_initial = {'1': {'pi': 0.5, 'q0': 5, 'q1': 20, 'p0': 0.005, 'p1': 0.005},
-                   '2': {'p': 0.01}}
+                   '2': {'pi': 0.5, 'q0': 0.9, 'q1': 1.1, 'p0': 0.005, 'p1': 0.99}}
 
 if __name__ == '__main__':
     # Load labels
