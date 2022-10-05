@@ -137,7 +137,7 @@ def get_tip_prime(tree, tip_name, pi, q0, q1, p0, p1, param):
 
     d = pmf0 + pmf1
     d_prime = pmf0_prime + pmf1_prime
-    return (pmf0_prime * d - pmf0 * d_prime) / d ** 2  # Quotient rule applied to get_tip_posterior
+    return (pmf0_prime * d - pmf0 * d_prime) / d ** 2  # Quotient rule applied to get_tip_pmf
 
 
 def get_conditional_prime_q(node, q0, q1, p0, p1, param):
