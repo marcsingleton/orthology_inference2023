@@ -53,7 +53,7 @@ def decode(OGid, model_json, tree_template):
         records.append((ppid, fbs))
 
     state_set = sorted(model_json['t_dists'])
-    with open(f'out/{OGid}.tsv', 'w') as file:
+    with open(f'out/posteriors/{OGid}.tsv', 'w') as file:
         file.write('ppid\t' + '\t'.join(state_set) + '\n')
         for ppid, fbs in records:
             for fb in zip(*[fbs[state] for state in state_set]):
@@ -69,15 +69,19 @@ tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick
 if __name__ == '__main__':
     # Load OGids
     OGids = []
-    for path in os.listdir('../insertion_trim/out/trims/'):
-        if path.endswith('.afa'):
-            OGids.append(path.removesuffix('.afa'))
+    with open('../realign_hmmer/out/errors.tsv') as file:
+        field_names = file.readline().rstrip('\n').split('\t')
+        for line in file:
+            fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+            OGid, error_flag = fields['OGid'], fields['error_flag']
+            if error_flag == 'False':
+                OGids.append(OGid)
 
     with open('../deletion_hmm/out/model.json') as file:
         model_json = json.load(file)
 
-    if not os.path.exists('out/'):
-        os.mkdir('out/')
+    if not os.path.exists('out/posteriors/'):
+        os.makedirs('out/posteriors/')
 
     with mp.Pool(processes=num_processes) as pool:
         pool.starmap(decode, [(OGid, model_json, tree_template) for OGid in OGids])
@@ -90,4 +94,6 @@ DEPENDENCIES
     ../insertion_trim/out/*.afa
 ../deletion_hmm/fit.py
     ../deletion_hmm/out/model.json
+../realign_hmmer/realign_hmmer.py
+    ../realign_hmmer/out/errors.tsv
 """
