@@ -1,4 +1,4 @@
-"""Trim state 1 segments to yield trimmed alignments."""
+"""Trim state 2 and 3 regions to yield trimmed alignments."""
 
 import os
 
