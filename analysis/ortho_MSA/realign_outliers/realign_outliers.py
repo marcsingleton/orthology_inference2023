@@ -93,12 +93,12 @@ for OGid in OGids:
 
     # Threshold, merge, and size filter to get regions
     binary = ndimage.binary_closing(np.array(gaps) < max_gaps, structure=[1, 1, 1])
-    regions = [region for region, in ndimage.find_objects(ndimage.label(binary)[0]) if (region.stop-region.start) >= min_length]
+    slices = [s for s, in ndimage.find_objects(ndimage.label(binary)[0]) if (s.stop-s.start) >= min_length]
 
     # Calculate total scores for each sequence over all regions
     scores = {record['ppid']: 0 for record in msa}
-    for region in regions:
-        for i in range(region.start, region.stop):
+    for s in slices:
+        for i in range(s.start, s.stop):
             # Build model
             counts = {}
             for record in msa:
@@ -123,7 +123,7 @@ for OGid in OGids:
 
     for header, score in scores.items():
         x = score - mean
-        records.append((x, std, iqr, OGid, msa, regions))
+        records.append((x, std, iqr, OGid, msa, slices))
 
 # Plot outputs
 if not os.path.exists('out/'):

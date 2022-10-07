@@ -82,33 +82,33 @@ def get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient
         Threshold for expanding margin outward based on gradient.
     """
     slices = []
-    for region, in ndimage.find_objects(ndimage.label(posterior >= posterior_high)[0]):
-        lstart = region.start  # start of left margin
+    for s0, in ndimage.find_objects(ndimage.label(posterior >= posterior_high)[0]):
+        lstart = s0.start  # start of left margin
         while lstart-1 >= 0 and (posterior[lstart-1] >= posterior_low or gradient[lstart - 1] >= gradient_low):
             lstart -= 1
-        lstop = region.start  # stop of left margin
+        lstop = s0.start  # stop of left margin
         while lstop+1 < len(posterior) and gradient[lstop+1] >= gradient_high:
             lstop += 1
         if lstart < lstop:
             start = get_bound(msa, gradient, lstart, lstop, 1)
         else:
-            start = region.start
+            start = s0.start
 
-        rstart = region.stop - 1  # start of right margin
+        rstart = s0.stop - 1  # start of right margin
         while rstart-1 >= 0 and gradient[rstart-1] <= -gradient_high:
             rstart -= 1
-        rstop = region.stop - 1  # stop of right margin
+        rstop = s0.stop - 1  # stop of right margin
         while rstop+1 < len(posterior) and (posterior[rstop+1] >= posterior_low or gradient[rstop + 1] <= -gradient_low):
             rstop += 1
-        if rstop > region.stop:
+        if rstop > s0.stop:
             stop = get_bound(msa, gradient, rstart, rstop, -1)
         else:
-            stop = region.stop
+            stop = s0.stop
 
         if start < stop:
             s = slice(start, stop)
         else:
-            s = region
+            s = s0
         slices.append(s)
     slices = sorted(slices, key=lambda x: x.start)
 

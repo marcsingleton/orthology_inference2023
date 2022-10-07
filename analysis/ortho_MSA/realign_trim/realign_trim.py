@@ -11,12 +11,12 @@ from src.utils import read_fasta
 
 def get_slices(posterior, posterior_high, posterior_low):
     slices = []
-    for region, in ndimage.find_objects(ndimage.label(posterior >= posterior_high)[0]):
-        start = region.start  # start of left margin
+    for s, in ndimage.find_objects(ndimage.label(posterior >= posterior_high)[0]):
+        start = s.start  # start of left margin
         while start-1 >= 0 and posterior[start-1] >= posterior_low:
             start -= 1
 
-        stop = region.stop - 1  # stop of right margin
+        stop = s.stop - 1  # stop of right margin
         while stop+1 < len(posterior) and posterior[stop+1] >= posterior_low:
             stop += 1
 

@@ -58,8 +58,8 @@ for OGid in OGids:
     ids2characters = {}
     for ppid, spid, seq in msa:
         binary = [1 if sym in ['-', '.'] else 0 for sym in seq]
-        slices = ndimage.find_objects(ndimage.label(binary)[0])
-        ids2characters[(ppid, spid)] = [(s.start, s.stop) for s, in slices]
+        slices = [(s.start, s.stop) for s, in ndimage.find_objects(ndimage.label(binary)[0])]
+        ids2characters[(ppid, spid)] = slices
     character_set = set().union(*ids2characters.values())
     character_set = sorted(character_set, key=lambda x: (x[0], -x[1]))  # Fix order of characters
 
