@@ -68,7 +68,7 @@ df['norm3'] = df['posterior3'] / df['length']
 groups = df.groupby('OGid')
 
 # Pie chart by presence of trims
-values = [len(set(OGids) - set(df['OGid'])), len(set(df['OGid']))]
+values = [len(set(OGids)) - df['OGid'].nunique(), df['OGid'].nunique()]
 labels = [f'{label}\n{value:,}' for label, value in zip(['w/o trims', 'w/ trims'], values)]
 fig, ax = plt.subplots()
 ax.pie(values, labels=labels, labeldistance=1.15)
