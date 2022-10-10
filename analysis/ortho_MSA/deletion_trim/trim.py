@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import scipy.ndimage as ndimage
 
-posterior_high = 0.99
+posterior_high = 0.95
 
 # Load OGids
 OGids = []
