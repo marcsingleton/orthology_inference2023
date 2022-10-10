@@ -77,7 +77,7 @@ if __name__ == '__main__':
             if error_flag == 'False':
                 OGids.append(OGid)
 
-    with open('../deletion_hmm/out/model.json') as file:
+    with open('../missing/out/model.json') as file:
         model_json = json.load(file)
 
     if not os.path.exists('out/posteriors/'):
@@ -92,8 +92,8 @@ DEPENDENCIES
     ../../ortho_tree/consensus_GTR2/out/NI.nwk
 ../insertion_trim/trim.py
     ../insertion_trim/out/*.afa
-../deletion_hmm/fit.py
-    ../deletion_hmm/out/model.json
+../missing_hmm/fit.py
+    ../missing_hmm/out/model.json
 ../realign_hmmer/realign_hmmer.py
     ../realign_hmmer/out/errors.tsv
 """
