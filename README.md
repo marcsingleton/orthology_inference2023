@@ -34,11 +34,13 @@ Nearly all code is written in Python and run with version 3.9.12. The remaining 
 
 |Library|Version|
 |---|---|
-|homomorph|0.2.0|
+|homomorph|0.3.0|
 |matplotlib|3.5.1|
 |NetworkX|2.7.1|
 |NumPy|1.22.3|
 |pandas|1.4.1|
 |SciPy|1.9.1|
-|scikit-bio|0.5.6|
+|scikit-bio|0.5.7|
 |TensorFlow|2.7.0|
+
+Scikit-Bio attempts to import some deprecated warnings from scipy.stats during import, so these lines were commented out to ensure compatibility.
