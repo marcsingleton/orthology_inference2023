@@ -17,7 +17,7 @@
 #
 # Command(s) to run:
 source /global/home/users/singleton/.bashrc
-conda activate IDREvoDevo
+conda activate orthology_inference
 module load gnu-parallel
 
 for file in $(ls ../make_meta/out/); do

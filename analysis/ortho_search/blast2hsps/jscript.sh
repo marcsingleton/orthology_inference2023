@@ -18,7 +18,7 @@
 #
 # Command(s) to run:
 if [ ! -d out ]; then
-  out_dir=/global/scratch/users/singleton/IDREvoDevo/analysis/ortho_cluster2/blast2hsps/out/
+  out_dir=/global/scratch/users/singleton/orthology_inference/analysis/ortho_cluster2/blast2hsps/out/
   if [ ! -d ${out_dir} ]; then
     mkdir -p ${out_dir}  # -p makes intermediate directory if they do not exist
   fi
@@ -26,5 +26,5 @@ if [ ! -d out ]; then
 fi
 
 source /global/home/users/singleton/.bashrc
-conda activate IDREvoDevo
+conda activate orthology_inference
 python blast2hsps.py

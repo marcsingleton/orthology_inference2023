@@ -18,5 +18,5 @@
 #
 # Command(s) to run:
 source /global/home/users/singleton/.bashrc
-conda activate IDREvoDevo
+conda activate orthology_inference
 python align_fastas.py
