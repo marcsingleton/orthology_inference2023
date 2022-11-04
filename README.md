@@ -18,7 +18,6 @@ orthology_inference/
 Only `analysis/` and `src/`, which together contain all code written for this project, are explicitly tracked by Git. `bin/` contains third-party programs or code used in this project. Though this directory is not tracked by Git, scripts may reference it by path, so it is included here for completeness. Similarly, `data/`, which contains all the raw data used in this project, is not tracked by Git.
 
 `analysis/` contains only directories, which serve to group related analyses. Some directories are "orphaned" and no longer contribute to any recent or ongoing analyses, but are included here for completeness. Currently, it contains the following entries:
-- `aligner_evaluation/`: Evaluation of common aligners on BAliBase benchmarks
 - `brownian/`: Application of Brownian motion model to orthologs from NCBI annotations, among other phylogenetic analyses
 - `evosim/`: Simulations of evolution of alignments from reconstructed ancestors
 - `GOpred/`: Prediction of GO terms associated with proteins using rates of feature evolution
