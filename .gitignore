@@ -5,7 +5,3 @@
 # All directories
 docs/
 out/
-
-# Special cases
-.gitignore
-/src/utilities/
