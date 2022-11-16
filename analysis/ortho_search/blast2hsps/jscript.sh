@@ -18,7 +18,7 @@
 #
 # Command(s) to run:
 if [ ! -d out ]; then
-  out_dir=/global/scratch/users/singleton/orthology_inference/analysis/ortho_cluster2/blast2hsps/out/
+  out_dir=/global/scratch/users/singleton/orthology_inference/analysis/ortho_search/blast2hsps/out/
   if [ ! -d ${out_dir} ]; then
     mkdir -p ${out_dir}  # -p makes intermediate directory if they do not exist
   fi
