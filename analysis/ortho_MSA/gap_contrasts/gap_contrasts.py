@@ -9,24 +9,24 @@ import skbio
 from src.utils import read_fasta
 
 
-def get_contrasts(node):
-    child1, child2 = node.children
-    if child1.is_tip():
-        contrasts1, val1, bl1 = [], child1.value, child1.length
-    else:
-        contrasts1, val1, bl1 = get_contrasts(child1)
-    if child2.is_tip():
-        contrasts2, val2, bl2 = [], child2.value, child2.length
-    else:
-        contrasts2, val2, bl2 = get_contrasts(child2)
+def get_contrasts(tree):
+    tree = tree.copy()  # Make copy so computations do not change original tree
 
-    bl_sum = bl1 + bl2
-    value = (val1 * bl2 + val2 * bl1) / bl_sum
-    branch_length = node.length + bl1 * bl2 / bl_sum
-    contrasts = contrasts1 + contrasts2
-    contrasts.append((val1 - val2) / bl_sum)
+    contrasts = []
+    for node in tree.postorder():
+        if node.is_tip():
+            continue
 
-    return contrasts, value, branch_length
+        child1, child2 = node.children
+        length1, length2 = child1.length, child2.length
+        value1, value2 = child1.value, child2.value
+
+        length_sum = length1 + length2
+        node.value = (value1 * length2 + value2 * length1) / length_sum
+        node.length += length1 * length2 / length_sum
+        contrasts.append((value1 - value2) / length_sum)
+
+    return contrasts, tree.value
 
 
 # Load tree
@@ -48,7 +48,7 @@ for row in OG_filter.itertuples():
         tip.value = gap_vector
     tree.length = 0  # Set root length to 0 for convenience
 
-    contrasts, _, _ = get_contrasts(tree)
+    contrasts, _ = get_contrasts(tree)
     gap_matrix = np.asarray([[0 if sym == '-' else 1 for sym in seq] for seq in msa.values()])
     len1 = gap_matrix.shape[1]  # Total length of alignment
     len2 = (gap_matrix / len(msa)).sum()  # Adjusted length of alignment
