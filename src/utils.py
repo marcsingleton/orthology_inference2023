@@ -75,7 +75,7 @@ def read_fasta(path):
     Returns
     -------
     fasta: list of tuples of (header, seq)
-        The first element is the header line without the >, and the second
+        The first element is the header line with the >, and the second
         element is the corresponding sequence.
     """
     fasta = []
