@@ -2,11 +2,10 @@
 
 import os
 import re
-from itertools import product
 
 import numpy as np
 import skbio
-from src.utils import read_fasta
+from src.utils import get_brownian_weights, read_fasta
 
 
 def get_score(msa_model, seq):
@@ -15,45 +14,6 @@ def get_score(msa_model, seq):
         sym = 1 if sym != '-' else 0
         score += column_model[sym]
     return score
-
-
-def get_weights(tree):
-    spids = [tip.name for tip in tree.tips()]
-    spid2idx = {spid: i for i, spid in enumerate(spids)}
-    idx2spid = {i: spid for i, spid in enumerate(spids)}
-
-    # Accumulate tip names up to root
-    for node in tree.postorder():
-        if node.is_tip():
-            node.spids = {node.name}
-        else:
-            node.spids = set.union(*[child.spids for child in node.children])
-
-    # Fill in covariance matrix from root to tips
-    tree.root_length = 0
-    cov = np.zeros((len(spids), len(spids)))
-    for node in tree.traverse(include_self=True):
-        for child in node.children:
-            child.root_length = node.root_length + child.length
-        if not node.is_tip():
-            child1, child2 = node.children
-            idxs1, idxs2 = [spid2idx[spid] for spid in child1.spids], [spid2idx[spid] for spid in child2.spids]
-            for idx1, idx2 in product(idxs1, idxs2):
-                cov[idx1, idx2] = node.root_length
-                cov[idx2, idx1] = node.root_length
-        else:
-            idx = spid2idx[node.name]
-            cov[idx, idx] = node.root_length
-
-    # Compute weights
-    # The formula below is from the appendix of J. Mol. Biol. (1989) 207. 647-653.
-    # It assumes continuous traits evolve by a Brownian motion model
-    # The MLE for the root value is then a weighted average of the observed tip values with the weights given below
-    inv = np.linalg.inv(cov)
-    row_sum = inv.sum(axis=1)
-    total_sum = inv.sum()
-    ws = row_sum / total_sum
-    return {idx2spid[idx]: w for idx, w in enumerate(ws)}
 
 
 gnid_regex = r'gnid=([A-Za-z0-9_.]+)'
@@ -85,7 +45,7 @@ for OGid in OGids:
         spid2gnids[spid].add(gnid)
 
     tree = tree_template.shear(spids)
-    spid_weights = get_weights(tree)
+    spid_weights = {tip.name: weight for tip, weight in get_brownian_weights(tree)}
     gnid_weights = {}
     for spid, gnids in spid2gnids.items():
         weight = spid_weights[spid] / len(gnids)  # Species weight is distributed evenly over all associated genes
