@@ -172,15 +172,15 @@ def trim_terminals(msa):
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 eset_scalar = 3  # Effective sequence number scalar; multiplies the gnidnum by this value to add weight to observed sequences
 
-records = []
-with open('../OG_filter/out/OG_filter.tsv') as file:
-    field_names = file.readline().rstrip('\n').split('\t')
-    for line in file:
-        fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
-        OGid, ppidnum = fields['OGid'], int(fields['ppidnum'])
-        records.append((OGid, ppidnum))
-
 if __name__ == '__main__':
+    records = []
+    with open('../OG_filter/out/OG_filter.tsv') as file:
+        field_names = file.readline().rstrip('\n').split('\t')
+        for line in file:
+            fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
+            OGid, ppidnum = fields['OGid'], int(fields['ppidnum'])
+            records.append((OGid, ppidnum))
+
     if not os.path.exists('out/hmmer/'):
         os.makedirs('out/hmmer/')
     if not os.path.exists('out/mafft/'):
