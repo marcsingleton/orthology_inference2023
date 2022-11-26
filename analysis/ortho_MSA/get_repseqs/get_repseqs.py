@@ -21,7 +21,6 @@ spid_regex = r'spid=([a-z]+)'
 pseudocount = 0.01
 
 tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
-tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 
 if not os.path.exists('out/'):
     os.mkdir('out/')
@@ -33,7 +32,6 @@ for OGid in OGids:
         gnid = re.search(gnid_regex, header).group(1)
         spid = re.search(spid_regex, header).group(1)
         input_msa.append({'header': header, 'gnid': gnid, 'spid': spid, 'seq': seq})
-    input_msa = sorted(input_msa, key=lambda x: tip_order[x['spid']])
 
     gnids = set([record['gnid'] for record in input_msa])
     spids = set([record['spid'] for record in input_msa])
