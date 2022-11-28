@@ -17,6 +17,7 @@
 #SBATCH --mail-user=marcsingleton@berkeley.edu
 #
 # Command(s) to run:
+# Link to output in scratch
 if [ ! -d out ]; then
   out_dir=/global/scratch/users/singleton/orthology_inference/analysis/ortho_search/blast2hsps/out/
   if [ ! -d ${out_dir} ]; then
