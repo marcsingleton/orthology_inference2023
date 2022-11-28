@@ -178,6 +178,10 @@ if __name__ == '__main__':
 
 """
 DEPENDENCIES
+../../ortho_tree/consensus_GTR2/consensus_GTR.py
+    ../../ortho_tree/consensus_GTR2/out/NI.nwk
 ../make_fastas/make_fastas.py
     ../make_fastas/out/*.fa
+../OG_filter/OG_filter.py
+    ../OG_filter/out/OG_filter.tsv
 """
