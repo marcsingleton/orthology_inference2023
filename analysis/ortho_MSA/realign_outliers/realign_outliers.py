@@ -10,11 +10,12 @@ import skbio
 from src.draw import plot_msa_data
 from src.utils import read_fasta, get_brownian_weights
 
+ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
+spid_regex = r'spid=([a-z]+)'
+
 a = 1E-3  # Coefficient of outlier curve
 max_gaps = 1  # Maximum number of gaps in region
 min_length = 30  # Minimum length of region
-ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
-spid_regex = r'spid=([a-z]+)'
 
 tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
 tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
@@ -22,6 +23,7 @@ tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 records = []
 OGids = [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/out/mafft/') if path.endswith('.afa')]
 for OGid in OGids:
+    # Load MSA
     msa = []
     for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
         ppid = re.search(ppid_regex, header).group(1)
@@ -29,18 +31,18 @@ for OGid in OGids:
         msa.append({'ppid': ppid, 'spid': spid, 'seq': seq.upper()})
     msa = sorted(msa, key=lambda x: tip_order[x['spid']])
 
-    ppids = set([record['ppid'] for record in msa])
-    spids = set([record['spid'] for record in msa])
-    spid2ppids = {spid: [] for spid in spids}
+    # Calculate weights
+    spid_set = set([record['spid'] for record in msa])
+    spid2ppids = {spid: [] for spid in spid_set}
     for record in msa:
         ppid, spid = record['ppid'], record['spid']
         spid2ppids[spid].append(ppid)
 
-    tree = tree_template.shear(spids)
+    tree = tree_template.shear(spid_set)
     spid_weights = {tip.name: weight for tip, weight in get_brownian_weights(tree)}
     ppid_weights = {}
     for spid, ppids in spid2ppids.items():
-        weight = spid_weights[spid] / len(ppids)  # Species weight is distributed evenly over all associated genes
+        weight = spid_weights[spid] / len(ppids)  # Species weight is distributed evenly over all associated proteins
         for ppid in ppids:
             ppid_weights[ppid] = weight
 

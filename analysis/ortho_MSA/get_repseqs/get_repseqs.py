@@ -27,22 +27,24 @@ if not os.path.exists('out/'):
 
 OGids = [path.removesuffix('.afa') for path in os.listdir('../align_fastas/out/') if path.endswith('.afa')]
 for OGid in OGids:
+    # Load MSA
     input_msa = []
     for header, seq in read_fasta(f'../align_fastas/out/{OGid}.afa'):
         gnid = re.search(gnid_regex, header).group(1)
         spid = re.search(spid_regex, header).group(1)
         input_msa.append({'header': header, 'gnid': gnid, 'spid': spid, 'seq': seq})
 
-    gnids = set([record['gnid'] for record in input_msa])
-    spids = set([record['spid'] for record in input_msa])
-    gnid2records = {gnid: [] for gnid in gnids}
-    spid2gnids = {spid: set() for spid in spids}
+    # Calculate weights
+    gnid_set = set([record['gnid'] for record in input_msa])
+    spid_set = set([record['spid'] for record in input_msa])
+    gnid2records = {gnid: [] for gnid in gnid_set}
+    spid2gnids = {spid: set() for spid in spid_set}
     for record in input_msa:
         gnid, spid = record['gnid'], record['spid']
         gnid2records[gnid].append(record)
         spid2gnids[spid].add(gnid)
 
-    tree = tree_template.shear(spids)
+    tree = tree_template.shear(spid_set)
     spid_weights = {tip.name: weight for tip, weight in get_brownian_weights(tree)}
     gnid_weights = {}
     for spid, gnids in spid2gnids.items():
@@ -50,6 +52,7 @@ for OGid in OGids:
         for gnid in gnids:
             gnid_weights[gnid] = weight
 
+    # Create model
     msa_model = []
     for j in range(len(input_msa[0]['seq'])):
         counts = {0: pseudocount/2, 1: pseudocount/2}
@@ -64,11 +67,12 @@ for OGid in OGids:
         column_model = {sym: np.log(count / total) for sym, count in counts.items()}  # Re-normalize and convert to log space
         msa_model.append(column_model)
 
+    # Select representative sequences
     output_msa = []
     for records in gnid2records.values():
         record = max(records, key=lambda x: get_score(msa_model, x['seq']))
         output_msa.append(record)
-    output_msa = sorted(output_msa, key=lambda x: x['spid'])
+    output_msa = sorted(output_msa, key=lambda x: (x['spid'], x['gnid']))
 
     # Remove excess gaps
     slices, idx = [], None
