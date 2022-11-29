@@ -4,7 +4,7 @@ import scipy.ndimage as ndimage
 
 
 def get_bound(msa, gradient, start, stop, sign):
-    """Return column index with largest weighted change in number of gaps in the range from start to stop.
+    """Return column index with the largest weighted change in number of gaps in the range from start to stop.
 
     To select the column where the number of gaps changes most rapidly, the
     gradient data is multiplied by the raw gap deltas. This weighting should
@@ -25,7 +25,7 @@ def get_bound(msa, gradient, start, stop, sign):
     start: int
         Start of interval to test.
     stop: int
-        Stop of interval to test.
+        Stop of interval to test, inclusive.
     sign: +1 or -1
         +1 for left bounds and -1 for right bounds.
 
@@ -84,7 +84,7 @@ def get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient
     slices = []
     for s0, in ndimage.find_objects(ndimage.label(posterior >= posterior_high)[0]):
         lstart = s0.start  # start of left margin
-        while lstart-1 >= 0 and (posterior[lstart-1] >= posterior_low or gradient[lstart - 1] >= gradient_low):
+        while lstart-1 >= 0 and (posterior[lstart-1] >= posterior_low or gradient[lstart-1] >= gradient_low):
             lstart -= 1
         lstop = s0.start  # stop of left margin
         while lstop+1 < len(posterior) and gradient[lstop+1] >= gradient_high:
@@ -98,7 +98,7 @@ def get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient
         while rstart-1 >= 0 and gradient[rstart-1] <= -gradient_high:
             rstart -= 1
         rstop = s0.stop - 1  # stop of right margin
-        while rstop+1 < len(posterior) and (posterior[rstop+1] >= posterior_low or gradient[rstop + 1] <= -gradient_low):
+        while rstop+1 < len(posterior) and (posterior[rstop+1] >= posterior_low or gradient[rstop+1] <= -gradient_low):
             rstop += 1
         if rstop > s0.stop:
             stop = get_bound(msa, gradient, rstart, rstop, -1)
