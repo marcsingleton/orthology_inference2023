@@ -1,13 +1,17 @@
 """Segment state 2 posterior decodings into contiguous intervals."""
 
 import os
+import re
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.ndimage as ndimage
+from src.utils import read_fasta
 
+ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 posterior_high = 0.95
+posterior_low = 0.5
 
 # Load OGids
 OGids = []
@@ -24,6 +28,11 @@ if not os.path.exists('out/trims/'):
 
 rows = []
 for OGid in OGids:
+    msa = {}
+    for header, seq in read_fasta(f'../insertion_trim/out/trims/{OGid}.afa'):
+        ppid = re.search(ppid_regex, header).group(1)
+        msa[ppid] = seq
+
     posteriors = []
     with open(f'out/posteriors/{OGid}.tsv') as file:
         field_names = file.readline().rstrip('\n').split('\t')
@@ -44,7 +53,16 @@ for OGid in OGids:
     for ppid, posterior in posteriors:
         slices = []
         for s, in ndimage.find_objects(ndimage.label(posterior >= posterior_high)[0]):
-            slices.append((s.start, s.stop))
+            seq = msa[ppid]
+
+            start = s.start
+            while (start-1 >= 0) and (posterior[start-1] >= posterior_low) and (seq[start-1] not in ['-', '.']):
+                start -= 1
+            stop = s.stop
+            while (stop+1 < len(seq)) and (posterior[stop+1] >= posterior_low) and (seq[stop+1] not in ['-', '.']):
+                stop += 1
+
+            slices.append((start, stop+1))
         trims.append((ppid, slices))
 
     with open(f'out/trims/{OGid}.tsv', 'w') as file:
