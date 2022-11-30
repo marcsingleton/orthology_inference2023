@@ -42,7 +42,7 @@ for label in ['norm1', 'norm2']:
     for i, row in enumerate(head.itertuples()):
         # Load MSA
         msa = []
-        for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{row.OGid}.afa'):
+        for header, seq in read_fasta(f'../realign_fastas/out/{row.OGid}.afa'):
             spid = re.search(spid_regex, header).group(1)
             msa.append({'spid': spid, 'seq': seq})
         msa = sorted(msa, key=lambda x: tip_order[x['spid']])
@@ -134,6 +134,6 @@ DEPENDENCIES
     ../gap_contrasts/out/total_sums.tsv
 ../insertion_trim/decode.py
     ./insertion_trim/out/*.tsv
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/mafft/*.afa
+../realign_fastas/realign_fastas.py
+    ../realign_fastas/out/*.afa
 """

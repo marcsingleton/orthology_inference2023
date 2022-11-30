@@ -170,7 +170,7 @@ if __name__ == '__main__':
     for OGid, labels in OGid2labels.items():
         # Load MSA
         msa = []
-        for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
+        for header, seq in read_fasta(f'../realign_fastas/out/{OGid}.afa'):
             spid = re.search(spid_regex, header).group(1)
             msa.append({'spid': spid, 'seq': seq})
 
@@ -209,6 +209,7 @@ if __name__ == '__main__':
 
         records.append({'OGid': OGid, 'n': len(msa), 'tree': tree, 'state_seq': state_seq, 'emit_seq': emit_seq,
                         'mis': mis, 'mijs': mijs})
+    records = sorted(records, key=lambda x: len(x['state_seq']), reverse=True)  # Process the longest alignments first
 
     # Calculate start_dist from background distribution of states
     state_counts = {s: start_pseudo for s in start_set}
@@ -304,7 +305,7 @@ Krogh A, Riis SK. Hidden Neural Networks. Neural Computation. 11, 541-563. 1999.
 DEPENDENCIES
 ../../ortho_tree/consensus_GTR2/consensus_GTR2.py
     ../../ortho_tree/consensus_GTR2/out/NI.nwk
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/mafft/*.afa
+../realign_fastas/realign_fastas.py
+    ../realign_fastas/out/*.afa
 ./labels.tsv
 """

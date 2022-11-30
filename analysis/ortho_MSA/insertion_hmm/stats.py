@@ -144,7 +144,7 @@ if not os.path.exists('out/traces/'):
 for OGid, labels in OGid2labels.items():
     # Load MSA
     msa = []
-    for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
+    for header, seq in read_fasta(f'../realign_fastas/out/{OGid}.afa'):
         spid = re.search(spid_regex, header).group(1)
         msa.append({'spid': spid, 'seq': seq})
     msa = sorted(msa, key=lambda x: tip_order[x['spid']])
@@ -232,8 +232,8 @@ DEPENDENCIES
     ../../ortho_tree/consensus_GTR2/out/NI.nwk
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/mafft/*.afa
+../realign_fastas/realign_fastas.py
+    ../realign_fastas/out/*.afa
 ./fit.py
     ./out/model.json
 ./labels.tsv

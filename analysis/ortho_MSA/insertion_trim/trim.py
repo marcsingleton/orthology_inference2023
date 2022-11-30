@@ -15,12 +15,12 @@ gradient_low = 0.001
 
 # Load OGids
 OGids = []
-with open('../realign_hmmer/out/errors.tsv') as file:
+with open('../realign_fastas/out/errors.tsv') as file:
     field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
         fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
-        OGid, error_flag = fields['OGid'], fields['error_flag']
-        if error_flag == 'False':
+        OGid, error_flag1, error_flag2 = fields['OGid'], fields['error_flag1'], fields['error_flag2']
+        if error_flag1 == 'False' and error_flag2 == 'False':
             OGids.append(OGid)
 
 if not os.path.exists('out/trims/'):
@@ -28,7 +28,7 @@ if not os.path.exists('out/trims/'):
 
 rows = []
 for OGid in OGids:
-    msa = read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa')
+    msa = read_fasta(f'../realign_fastas/out/{OGid}.afa')
 
     # Load decoded states and calculate derivative
     df = pd.read_table(f'out/posteriors/{OGid}.tsv')
@@ -152,9 +152,9 @@ plt.close()
 
 """
 DEPENDENCIES
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/errors.tsv
-    ../realign_hmmer/out/mafft/*.afa
+../realign_fastas/realign_fastas.py
+    ../realign_fastas/out/errors.tsv
+    ../realign_fastas/out/*.afa
 ./decode.py
     ./out/posteriors/*.tsv
 """
