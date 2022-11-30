@@ -25,15 +25,14 @@ for label in ['norm1', 'norm2']:
 
     head = df.sort_values(by=label, ascending=False).head(150)
     for i, row in enumerate(head.itertuples()):
-        for alignment in ['hmmer', 'mafft']:
-            msa = []
-            for header, seq in read_fasta(f'../realign_hmmer/out/{alignment}/{row.OGid}.afa'):
-                spid = re.search(spid_regex, header).group(1)
-                msa.append({'spid': spid, 'seq': seq})
-            msa = sorted(msa, key=lambda x: tip_order[x['spid']])
+        msa = []
+        for header, seq in read_fasta(f'../realign_fastas/out/{row.OGid}.afa'):
+            spid = re.search(spid_regex, header).group(1)
+            msa.append({'spid': spid, 'seq': seq})
+        msa = sorted(msa, key=lambda x: tip_order[x['spid']])
 
-            im = draw_msa([record['seq'].upper() for record in msa])
-            plt.imsave(f'out/{label}/{i:03}_{row.OGid}_{alignment}.png', im)
+        im = draw_msa([record['seq'].upper() for record in msa])
+        plt.imsave(f'out/{label}/{i:03}_{row.OGid}.png', im)
 
 """
 DEPENDENCIES
@@ -41,7 +40,6 @@ DEPENDENCIES
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
 ../gap_contrasts/gap_contrasts.py
     ../gap_contrasts/out/total_sums.tsv
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/hmmer/*.afa
-    ../realign_hmmer/out/mafft/*.afa
+../realign_fastas/realign_fastas.py
+    ../realign_fastas/out/*.afa
 """

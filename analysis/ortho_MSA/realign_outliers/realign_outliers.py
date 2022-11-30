@@ -21,11 +21,11 @@ tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'new
 tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 
 records = []
-OGids = [path.removesuffix('.afa') for path in os.listdir('../realign_hmmer/out/mafft/') if path.endswith('.afa')]
+OGids = [path.removesuffix('.afa') for path in os.listdir('../realign_fastas/out/') if path.endswith('.afa')]
 for OGid in OGids:
     # Load MSA
     msa = []
-    for header, seq in read_fasta(f'../realign_hmmer/out/mafft/{OGid}.afa'):
+    for header, seq in read_fasta(f'../realign_fastas/out/{OGid}.afa'):
         ppid = re.search(ppid_regex, header).group(1)
         spid = re.search(spid_regex, header).group(1)
         msa.append({'ppid': ppid, 'spid': spid, 'seq': seq.upper()})
@@ -136,6 +136,6 @@ for record in outliers:
 DEPENDENCIES
 ../../ortho_tree/consensus_LG/consensus_LG.py
     ../../ortho_tree/consensus_LG/out/100R_NI.nwk
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/mafft/*.afa
+../realign_fastas/realign_fastas.py
+    ../realign_fastas/out/*.afa
 """
