@@ -69,12 +69,12 @@ tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick
 if __name__ == '__main__':
     # Load OGids
     OGids = []
-    with open('../realign_hmmer/out/errors.tsv') as file:
+    with open('../realign_fastas/out/errors.tsv') as file:
         field_names = file.readline().rstrip('\n').split('\t')
         for line in file:
             fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
-            OGid, error_flag = fields['OGid'], fields['error_flag']
-            if error_flag == 'False':
+            OGid, error_flag1, error_flag2 = fields['OGid'], fields['error_flag1'], fields['error_flag2']
+            if error_flag1 == 'False' and error_flag2 == 'False':
                 OGids.append(OGid)
 
     with open('../missing/out/model.json') as file:
@@ -94,6 +94,6 @@ DEPENDENCIES
     ../insertion_trim/out/*.afa
 ../missing_hmm/fit.py
     ../missing_hmm/out/model.json
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/errors.tsv
+../realign_fastas/realign_fastas.py
+    ../realign_fastas/out/errors.tsv
 """

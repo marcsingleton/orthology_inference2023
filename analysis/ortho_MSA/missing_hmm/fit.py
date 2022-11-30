@@ -191,6 +191,7 @@ if __name__ == '__main__':
 
         records.append({'OGid': OGid, 'spid': ppid2spid[ppid], 'tree': tree, 'state_seq': state_seq,
                         'mis': mis, 'mijs': mijs})
+    records = sorted(records, key=lambda x: len(x['state_seq']), reverse=True)  # Process the longest alignments first
 
     # Calculate start_dist from background distribution of states
     state_counts = {s: start_pseudo for s in start_set}

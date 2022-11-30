@@ -15,12 +15,12 @@ posterior_low = 0.5
 
 # Load OGids
 OGids = []
-with open('../realign_hmmer/out/errors.tsv') as file:
+with open('../realign_fastas/out/errors.tsv') as file:
     field_names = file.readline().rstrip('\n').split('\t')
     for line in file:
         fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
-        OGid, error_flag = fields['OGid'], fields['error_flag']
-        if error_flag == 'False':
+        OGid, error_flag1, error_flag2 = fields['OGid'], fields['error_flag1'], fields['error_flag2']
+        if error_flag1 == 'False' and error_flag2 == 'False':
             OGids.append(OGid)
 
 if not os.path.exists('out/trims/'):
@@ -135,8 +135,8 @@ While unlikely, it is possible for a protein to be in multiple OGids at this poi
 proteins were in multiple gene groups.
 
 DEPENDENCIES
-../realign_hmmer/realign_hmmer.py
-    ../realign_hmmer/out/errors.tsv
+../realign_fastas/realign_fastas.py
+    ../realign_fastas/out/errors.tsv
 ./decode.py/
     ./out/posteriors/*.tsv
 """
