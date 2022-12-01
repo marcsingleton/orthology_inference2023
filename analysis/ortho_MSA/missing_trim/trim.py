@@ -56,10 +56,10 @@ for OGid in OGids:
             seq = msa[ppid]
 
             start = s.start
-            while (start-1 >= 0) and (posterior[start-1] >= posterior_low) and (seq[start-1] not in ['-', '.']):
+            while start-1 >= 0 and posterior[start-1] >= posterior_low and seq[start-1] not in ['-', '.']:
                 start -= 1
             stop = s.stop
-            while (stop+1 < len(seq)) and (posterior[stop+1] >= posterior_low) and (seq[stop+1] not in ['-', '.']):
+            while stop+1 < len(seq) and posterior[stop+1] >= posterior_low and seq[stop+1] not in ['-', '.']:
                 stop += 1
 
             slices.append((start, stop+1))
