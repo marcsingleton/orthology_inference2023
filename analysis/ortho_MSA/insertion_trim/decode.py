@@ -57,7 +57,7 @@ def decode(OGid, model_json, tree_template):
     fbs = model.forward_backward(idx_seq)
 
     state_set = sorted(model_json['t_dists'])
-    with open(f'out/{OGid}.tsv', 'w') as file:
+    with open(f'out/posteriors/{OGid}.tsv', 'w') as file:
         file.write('\t'.join(state_set) + '\n')
         for fb in zip(*[fbs[state] for state in state_set]):
             file.write('\t'.join([str(v) for v in fb]) + '\n')
