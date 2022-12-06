@@ -1,17 +1,36 @@
 """Trim state 2 and 3 regions to yield trimmed alignments."""
 
 import os
+import re
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from src.ortho_MSA.trim import get_slices
-from src.utils import read_fasta
+import skbio
+from src.ortho_MSA.trim import get_hull_slices, get_trim_slices
+from src.utils import get_brownian_weights, read_fasta
 
-posterior_high = 0.9
-posterior_low = 0.05
-gradient_high = 0.02
+ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
+spid_regex = r'spid=([a-z]+)'
+
+# Thresholds for state 3 trims
+posterior_high1 = 0.95
+posterior_low1 = 0.01
+
+# Thresholds for state 2+3 trims
+posterior_high2 = 0.9
+posterior_low2 = 0.01
+
+# Common gradients
+gradient_high = 0.001
 gradient_low = 0.001
+
+alpha = 0.01
+mean_min = 2
+mean_trim = 5  # Number of "outliers" to remove before calculating mean
+
+tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
+tip_order = {tip.name: i for i, tip in enumerate(tree_template.tips())}
 
 # Load OGids
 OGids = []
@@ -26,39 +45,124 @@ with open('../realign_fastas/out/errors.tsv') as file:
 if not os.path.exists('out/trims/'):
     os.mkdir('out/trims/')
 
-rows = []
+rows1, rows2 = [], []
 for OGid in OGids:
-    msa = read_fasta(f'../realign_fastas/out/{OGid}.afa')
+    # Load MSA
+    input_msa = []
+    for header, seq in read_fasta(f'../realign_fastas/out/{OGid}.afa'):
+        ppid = re.search(ppid_regex, header).group(1)
+        spid = re.search(spid_regex, header).group(1)
+        input_msa.append({'header': header, 'ppid': ppid, 'spid': spid, 'seq': seq.upper()})
 
-    # Load decoded states and calculate derivative
     df = pd.read_table(f'out/posteriors/{OGid}.tsv')
-    posterior = (df['2'] + df['3']).to_numpy()
+
+    # Calculate weights
+    spid_set = set([record['spid'] for record in input_msa])
+    spid2ppids = {spid: [] for spid in spid_set}
+    for record in input_msa:
+        ppid, spid = record['ppid'], record['spid']
+        spid2ppids[spid].append(ppid)
+
+    tree = tree_template.shear(spid_set)
+    spid_weights = {tip.name: weight for tip, weight in get_brownian_weights(tree)}
+    ppid_weights = {}
+    for spid, ppids in spid2ppids.items():
+        weight = spid_weights[spid] / len(ppids)  # Species weight is distributed evenly over all associated proteins
+        for ppid in ppids:
+            ppid_weights[ppid] = weight
+
+    # Calculate profile
+    weight_msa = np.zeros((len(input_msa), len(input_msa[0]['seq'])))
+    for i, record in enumerate(input_msa):
+        ppid, seq = record['ppid'], record['seq']
+        weight = ppid_weights[ppid]
+        for j, sym in enumerate(seq):
+            if sym in ['-', '.']:
+                weight_msa[i, j] = weight
+    profile = weight_msa.sum(axis=0)
+
+    # Identify state 3 trims
+    posterior = df['3'].to_numpy()
     gradient = np.gradient(posterior)
+    slices = get_trim_slices(profile, posterior, gradient, posterior_high1, posterior_low1, gradient_high, gradient_low)
 
-    # Find trimmed regions
-    slices = get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient_high, gradient_low)
-
-    # Invert slices
-    inverts, stop = [], 0
+    seq_slices = {record['ppid']: [] for record in input_msa}
     for s in slices:
-        inverts.append(slice(stop, s.start))
-        stop = s.stop
-    inverts.append(slice(stop, len(msa[0][1])))
+        count_records = []
+        for record in input_msa:
+            ppid, seq = record['ppid'], record['seq']
+            subseq = seq[s]
+            count = len(subseq) - subseq.count('-') - subseq.count('.')
+            count_records.append((ppid, count))
+        count_records = sorted(count_records, key=lambda x: x[1])
 
-    # Write trimmed MSA
+        count_sum = sum([ppid_weights[ppid] * count for ppid, count in count_records[:-mean_trim]])
+        weight_sum = sum([ppid_weights[ppid] for ppid, _ in count_records[:-mean_trim]])
+        mean = max(count_sum / weight_sum, mean_min)
+        p = 1 / (mean + 1)  # Geometric distribution on support 0, 1, ...
+        k = np.log(alpha) / np.log(1 - p) - 1  # Expression for minimum k to achieve alpha significance
+
+        for ppid, count in count_records:
+            if count >= k:
+                seq_slices[ppid].append(s)
+                rows1.append({'OGid': OGid, 'ppid': ppid, 'start': s.start, 'stop': s.stop, 'count': count})
+
+    # Identify state 2+3 trims
+    posterior = df['3'].to_numpy(copy=True)
+    slices = get_hull_slices(posterior, gradient, posterior_high1, posterior_low1, gradient_low)
+    for s in slices:
+        posterior[s] = 0
+    posterior += df['2'].to_numpy()
+    gradient = np.gradient(posterior)
+    slices = get_trim_slices(profile, posterior, gradient, posterior_high2, posterior_low2, gradient_high, gradient_low)
+    for s in slices:
+        rows2.append({'OGid': OGid, 'colnum': len(input_msa[0][1]), 'start': s.start, 'stop': s.stop,
+                      'posterior2': df.loc[s, '2'].sum(), 'posterior3': df.loc[s, '3'].sum()})
+
+    # Invert slices to get untrimmed regions
+    region_slices, stop = [], 0
+    for s in slices:
+        region_slices.append(slice(stop, s.start))
+        stop = s.stop
+    region_slices.append(slice(stop, len(input_msa[0]['seq'])))
+
+    # Create trimmed MSA from two sets of slices
+    trimmed_msa = []
+    for record in input_msa:
+        header, ppid = record['header'], record['ppid'],
+        seq1 = list(record['seq'])
+        for s in seq_slices[ppid]:
+            seq1[s] = (s.stop - s.start) * ['.']
+        seq2 = []
+        for s in region_slices:
+            seq2.extend(seq1[s])
+        trimmed_msa.append({'header': header, 'seq': ''.join(seq2)})
+
+    # Remove excess gaps
+    slices, idx = [], None
+    for j in range(len(trimmed_msa[0]['seq'])):
+        for i in range(len(trimmed_msa)):
+            sym = trimmed_msa[i]['seq'][j]
+            if sym not in ['-', '.']:
+                if idx is None:  # Store position only if new slice is not started
+                    idx = j
+                break
+        else:
+            if idx is not None:
+                slices.append(slice(idx, j))
+                idx = None
+    if idx is not None:  # Add final slice to end
+        slices.append(slice(idx, len(trimmed_msa[0]['seq'])))
+
     with open(f'out/trims/{OGid}.afa', 'w') as file:
-        for header, seq1 in msa:
-            seq2 = ''.join([seq1[s] for s in inverts])
+        for record in trimmed_msa:
+            header, seq1 = record['header'], record['seq']
+            seq2 = ''.join([seq1[s] for s in slices])  # Remove gap only columns
             seqstring = '\n'.join([seq2[i:i+80] for i in range(0, len(seq2), 80)])
             file.write(f'{header}\n{seqstring}\n')
 
-    # Store data about trims and OGs
-    for s in slices:
-        rows.append({'OGid': OGid, 'colnum': len(msa[0][1]), 'start': s.start, 'stop': s.stop,
-                     'posterior2': df.loc[s, '2'].sum(), 'posterior3': df.loc[s, '3'].sum()})
-
 # Plot stats
-df = pd.DataFrame(rows)
+df = pd.DataFrame(rows1)
 df.to_csv('out/trim_stats.tsv', sep='\t', index=False)
 
 df['length'] = df['stop'] - df['start']

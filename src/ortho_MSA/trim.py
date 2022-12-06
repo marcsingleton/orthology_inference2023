@@ -3,7 +3,7 @@
 import scipy.ndimage as ndimage
 
 
-def get_bound(msa, gradient, start, stop, sign):
+def get_bound(profile, gradient, start, stop, sign):
     """Return column index with the largest weighted change in number of gaps in the range from start to stop.
 
     To select the column where the number of gaps changes most rapidly, the
@@ -18,37 +18,29 @@ def get_bound(msa, gradient, start, stop, sign):
 
     Parameters
     ----------
-    msa: list of (header, seq)
-    gradient: 1-dimenionsal ndarray
+    profile: 1-dimensional ndarray
+        Weighted counts of gap symbols in MSA.
+    gradient: 1-dimensional ndarray
         Gradient of posterior decoding. Weights the raw changes in gap number
         to choose the column with the sharpest inflection point.
     start: int
         Start of interval to test.
     stop: int
-        Stop of interval to test, inclusive.
+        Stop of interval to test, non-inclusive.
     sign: +1 or -1
-        +1 for left bounds and -1 for right bounds.
+        -1 for left bounds and +1 for right bounds.
 
     Returns
     -------
     j: int
     """
-    gaps = []
-    for j in range(start, stop+1):
-        count = 0
-        for _, seq in msa:
-            if seq[j] in ['-', '.']:
-                count += 1
-        gaps.append((j, count))
-
-    deltas, count0 = [], gaps[0][1]
-    for j, count in gaps[1:]:
-        deltas.append((j, abs(gradient[j])*(count - count0)))
-        count0 = count
-    return max(deltas, key=lambda x: (sign*x[1], -sign*x[0]))[0]
+    deltas = []
+    for i in range(start+1, stop):
+        deltas.append((i, abs(gradient[i]*(profile[i] - profile[i-1]))))
+    return max(deltas, key=lambda x: (x[1], sign*x[0]))[0]
 
 
-def get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient_high, gradient_low):
+def get_trim_slices(profile, posterior, gradient, posterior_high, posterior_low, gradient_high, gradient_low):
     """Return slices corresponding to trimmed regions.
 
     This algorithm is designed to cleanly trim alignments at points where the
@@ -67,10 +59,11 @@ def get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient
 
     Parameters
     ----------
-    msa: list of (header, seq)
-    posterior: 1-dimenionsal ndarray
+    profile: 1-dimensional ndarray
+        Weighted counts of gap symbols in MSA.
+    posterior: 1-dimensional ndarray
         Posterior decoding.
-    gradient: 1-dimenionsal ndarray
+    gradient: 1-dimensional ndarray
         Gradient of posterior decoding.
     posterior_high: float
         Threshold for core region.
@@ -90,7 +83,7 @@ def get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient
         while lstop+1 < len(posterior) and gradient[lstop+1] >= gradient_high:
             lstop += 1
         if lstart < lstop:
-            start = get_bound(msa, gradient, lstart, lstop, 1)
+            start = get_bound(profile, gradient, lstart, lstop+1, -1)
         else:
             start = s0.start
 
@@ -101,7 +94,7 @@ def get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient
         while rstop+1 < len(posterior) and (posterior[rstop+1] >= posterior_low or gradient[rstop+1] <= -gradient_low):
             rstop += 1
         if rstop > s0.stop:
-            stop = get_bound(msa, gradient, rstart, rstop, -1)
+            stop = get_bound(profile, gradient, rstart, rstop+1, 1)
         else:
             stop = s0.stop
 
@@ -124,4 +117,32 @@ def get_slices(msa, posterior, gradient, posterior_high, posterior_low, gradient
                 stop0 = s.stop
         merged.append((slice(start0, stop0)))  # Append final slice
 
+    return slices
+
+
+def get_hull_slices(posterior, gradient, posterior_high, posterior_low, gradient_low):
+    """Return slices corresponding to the hull that cover the initial region found in get_trim_slices.
+
+    Parameters
+    ----------
+    posterior: 1-dimensional ndarray
+        Posterior decoding.
+    gradient: 1-dimensional ndarray
+        Gradient of posterior decoding.
+    posterior_high: float
+        Threshold for core region.
+    posterior_low: float
+        Threshold for expanding margin outward based on posterior.
+    gradient_low: float
+        Threshold for expanding margin outward based on gradient.
+    """
+    slices = []
+    for s0, in ndimage.find_objects(ndimage.label(posterior >= posterior_high)[0]):
+        start = s0.start  # start of left margin
+        while start-1 >= 0 and (posterior[start-1] >= posterior_low or gradient[start-1] >= gradient_low):
+            start -= 1
+        stop = s0.stop - 1  # stop of right margin
+        while stop+1 < len(posterior) and (posterior[stop+1] >= posterior_low or gradient[stop+1] <= -gradient_low):
+            stop += 1
+        slices.append(slice(start, stop+1))
     return slices
