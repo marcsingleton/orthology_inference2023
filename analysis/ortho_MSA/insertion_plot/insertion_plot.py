@@ -94,12 +94,12 @@ for label in ['norm1', 'norm2']:
         model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
         # Make plotting parameters
-        kwargs = {'figsize': (15, 6), 'height_ratio': 0.5, 'hspace': 0.2,
-                  'data_max': 1.1, 'data_min': -0.1, 'data_labels': state_labels, 'data_colors': state_colors,
+        kwargs = {'figsize': (15, 6),
+                  'height_ratio': 0.5, 'hspace': 0.45, 'left': 0.015, 'right': 0.94, 'top': 0.99, 'bottom': 0.03,
+                  'data_max': 1.05, 'data_min': -0.05,
                   'msa_legend': True,
                   'legend_kwargs': {'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8,
                                     'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
-        adjust = {'left': 0.015, 'bottom': 0.01, 'right': 0.94, 'top': 0.99}
 
         # Decode states and plot
         idx_seq = list(range(len(input_msa[0]['seq'])))  # Everything is pre-calculated, so emit_seq is the emit index
@@ -107,12 +107,7 @@ for label in ['norm1', 'norm2']:
         data = [fbs[label] for label in state_labels]
 
         plot_msa_data([record['seq'].upper() for record in input_msa], data,
-                      figsize=(15, 6), height_ratio=0.5, hspace=0.2,
-                      data_max=1.1, data_min=-0.1, data_labels=state_labels, data_colors=state_colors,
-                      msa_legend=True,
-                      legend_kwargs={'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8,
-                                     'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1})
-        plt.subplots_adjust(left=0.015, bottom=0.01, right=0.94, top=0.99)
+                      data_labels=state_labels, data_colors=state_colors, **kwargs)
         plt.savefig(f'out/{label}/{rank:03}_{row.OGid}.png')
         plt.close()
 
@@ -189,12 +184,7 @@ for label in ['norm1', 'norm2']:
             trims[s] = 1
 
         plot_msa_data([record['seq'].upper() for record in trimmed_msa], [posterior, trims],
-                      figsize=(15, 6), height_ratio=0.5, hspace=0.2,
-                      data_max=1.1, data_min=-0.1, data_labels=['2+3', 'trim'], data_colors=['C1', 'C0'],
-                      msa_legend=True,
-                      legend_kwargs={'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8,
-                                     'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1})
-        plt.subplots_adjust(left=0.015, bottom=0.01, right=0.94, top=0.99)
+                      data_labels=['2+3', 'trim'], data_colors=['C1', 'C0'], **kwargs)
         plt.savefig(f'out/{label}/{rank:03}_{row.OGid}_trim.png')
         plt.close()
 

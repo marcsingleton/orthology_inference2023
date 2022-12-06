@@ -13,7 +13,8 @@ from src.utils import read_fasta, get_brownian_weights
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
 
-a = 1E-3  # Coefficient of outlier curve
+a = 2E-3  # Coefficient of outlier curve
+b = -1  # Intercept of outlier curve
 max_gaps = 1  # Maximum number of gaps in region
 min_length = 30  # Minimum length of region
 
@@ -106,14 +107,14 @@ plt.savefig('out/hexbin_iqr-score1.png')
 ymax = max([record[2] for record in records])
 xmin = -(ymax/a)**0.5
 xs = np.linspace(xmin, 0, 100)
-ys = a*xs**2
+ys = a*xs**2 + b
 plt.plot(xs, ys, color='C1')
 plt.savefig('out/hexbin_iqr-score2.png')
 plt.close()
 
 # Plot unique MSAs with largest deviations
 OGids = set()
-outliers = sorted([record for record in records if record[0] < -1 and record[2] < a*record[0]**2])  # Use -1 to exclude near-zero floating point rounding errors
+outliers = sorted([record for record in records if record[0] < 0 and record[2] < a*record[0]**2 + b])
 for record in outliers:
     # Unpack variables
     OGid, msa, regions = record[3], record[4], record[5]
@@ -125,11 +126,13 @@ for record in outliers:
     line = np.zeros(len(msa[0]['seq']))
     for region in regions:
         line[region] = 1
-    plot_msa_data([record['seq'] for record in msa], line, figsize=(15, 6),
-                  height_ratio=0.5, hspace=0.2, data_max=1.1, data_min=-0.1, data_labels=['region'],
-                  msa_legend=True, legend_kwargs={'bbox_to_anchor': (0.925, 0.5), 'loc': 'center left', 'fontsize': 8, 'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1})
-    plt.subplots_adjust(left=0.05, bottom=0.01, right=0.925, top=0.99)
-    plt.savefig(f'out/{(len(OGids)-1):03}_{OGid}.png', bbox_inches='tight', dpi=500)
+    plot_msa_data([record['seq'] for record in msa], line,
+                  figsize=(15, 6),
+                  height_ratio=0.5, hspace=0.45, left=0.015, right=0.94, top=0.99, bottom=0.03,
+                  data_max=1.05, data_min=-0.05, data_labels=['region'],
+                  msa_legend=True, legend_kwargs={'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8,
+                                                  'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1})
+    plt.savefig(f'out/{(len(OGids)-1):03}_{OGid}.png')
     plt.close()
 
 """
