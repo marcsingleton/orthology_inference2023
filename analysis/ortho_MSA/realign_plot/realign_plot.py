@@ -24,7 +24,7 @@ for label in ['norm1', 'norm2']:
         os.makedirs(f'out/{label}/')
 
     head = df.sort_values(by=label, ascending=False).head(150)
-    for i, row in enumerate(head.itertuples()):
+    for rank, row in enumerate(head.itertuples()):
         msa = []
         for header, seq in read_fasta(f'../realign_fastas/out/{row.OGid}.afa'):
             spid = re.search(spid_regex, header).group(1)
@@ -32,7 +32,7 @@ for label in ['norm1', 'norm2']:
         msa = sorted(msa, key=lambda x: tip_order[x['spid']])
 
         im = draw_msa([record['seq'].upper() for record in msa])
-        plt.imsave(f'out/{label}/{i:03}_{row.OGid}.png', im)
+        plt.imsave(f'out/{label}/{rank:03}_{row.OGid}.png', im)
 
 """
 DEPENDENCIES
