@@ -10,20 +10,20 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.lines import Line2D
 
 
-def _get_aspect(block_cols, ROWS, COLS, get_dims):
-    length, height = get_dims(block_cols, ROWS, COLS)
+def _get_aspect(block_columns, get_dimensions):
+    length, height = get_dimensions(block_columns)
     return length / height
 
 
-def _get_block_cols(ROWS, COLS, ASPECT, get_dims):
-    # Use binary search to find interval containing optimal block_cols
+def _get_block_columns(msa_columns, aspect, get_dimensions):
+    # Use binary search to find interval containing optimal block_columns
     # If an interval endpoint exactly equals the ratio, choose that endpoint
     # Otherwise choose the interval where the deviation changes sign between the two endpoints
-    interval = (1, COLS)
+    interval = (1, msa_columns)
     while interval[1] - interval[0] > 1:
         i0, i2 = interval
         i1 = (i0 + i2) // 2
-        deltas = [_get_aspect(i, ROWS, COLS, get_dims) - ASPECT for i in (i0, i1, i2)]
+        deltas = [_get_aspect(i, get_dimensions) - aspect for i in (i0, i1, i2)]
 
         if any([delta == 0 for delta in deltas]):
             _, i = min(zip(deltas, (i0, i1, i2)), key=lambda x: abs(x[0]))
@@ -36,18 +36,18 @@ def _get_block_cols(ROWS, COLS, ASPECT, get_dims):
         else:
             interval = (i0, i2)
             break
-    block_cols = min(range(interval[0], interval[1] + 1), key=lambda x: abs(_get_aspect(x, ROWS, COLS, get_dims) - ASPECT))  # Choose value that minimizes difference
+    block_columns = min(range(interval[0], interval[1] + 1), key=lambda x: abs(_get_aspect(x, get_dimensions) - aspect))  # Choose value that minimizes difference
 
-    # Ensure last block is at least 50% of block_cols
-    if COLS % block_cols < 0.5 * block_cols:  # Guarantees at least two blocks
-        blocks_im = COLS // block_cols  # Total blocks minus 1
-        block_cols += ceil((COLS % block_cols) / blocks_im)  # Distribute excess to other blocks
-    return block_cols
+    # Ensure last block is at least 50% of block_columns
+    if msa_columns % block_columns < 0.5 * block_columns:  # Guarantees at least two blocks
+        blocks_im = msa_columns // block_columns  # Total blocks minus 1
+        block_columns += ceil((msa_columns % block_columns) / blocks_im)  # Distribute excess to other blocks
+    return block_columns
 
 
 def draw_msa(msa,
              aspect=2.5, hspace=25, sym_length=7, sym_height=7,
-             block_cols=None, sym2color=None, gap2color=None):
+             block_columns=None, sym2color=None, gap2color=None):
     """Draw alignment as PNG.
 
     Parameters
@@ -63,8 +63,8 @@ def draw_msa(msa,
         Number of pixels in length of symbol rectangle.
     sym_height: int
         Number of pixels in height of symbol rectangle.
-    block_cols: int
-        Number of columns in each block. Will override ratio if is not None.
+    block_columns: int
+        Number of columns in each block. Will override aspect if is not None.
     sym2color: dict
         Mapping of symbols to color hex codes.
     gap2color: dict
@@ -77,32 +77,31 @@ def draw_msa(msa,
             3 channel array with dimensions (height, length, channels)
     """
     # Define functions and globals
-    ROWS, COLS = len(msa), len(msa[0])
-    ASPECT = aspect
+    msa_rows, msa_columns = len(msa), len(msa[0])
 
-    def get_dims(block_cols, ROWS, COLS):
-        im_length = sym_length * block_cols  # Length of final image
-        block_num = COLS // block_cols - (1 if COLS % block_cols == 0 else 0)  # Number of blocks in addition to the first
-        im_height = (sym_height * ROWS + hspace) * block_num + sym_height * ROWS  # Height of final image
+    def get_dimensions(block_columns):
+        im_length = sym_length * block_columns  # Length of final image
+        block_number = msa_columns // block_columns - (1 if msa_columns % block_columns == 0 else 0)  # Number of blocks in addition to the first
+        im_height = (sym_height * msa_rows + hspace) * block_number + sym_height * msa_rows  # Height of final image
         return im_length, im_height
 
     # Set options
-    if block_cols is None:
-        block_cols = _get_block_cols(ROWS, COLS, ASPECT, get_dims)
+    if block_columns is None:
+        block_columns = _get_block_columns(msa_columns, aspect, get_dimensions)
     if sym2color is None:
         sym2color = default_sym2color
     if gap2color is None:
         gap2color = default_gap2color
 
     # Instantiate array and fill with values
-    im_length, im_height = get_dims(block_cols, ROWS, COLS)
+    im_length, im_height = get_dimensions(block_columns)
     im = np.full((im_height, im_length, 3), 255, dtype='uint8')
     for i, seq in enumerate(msa):
         for j, sym in enumerate(seq):
             # Position of symbol rectangle
-            block = j // block_cols
-            y = (sym_height * ROWS + hspace) * block + sym_height * i
-            x = j % block_cols * sym_length
+            block = j // block_columns
+            y = (sym_height * msa_rows + hspace) * block + sym_height * i
+            x = j % block_columns * sym_length
 
             # Create RGB tuple
             try:
@@ -126,10 +125,12 @@ def draw_msa(msa,
 def plot_msa_data(msa, data, figsize=(15, 6),
                   msa_labels=None, msa_labelsize=6, msa_ticklength=0, msa_tickwidth=0.5, msa_tickpad=1,
                   x_start=0, x_labelsize=6, y_labelsize=6,
-                  height_ratio=1, hspace=0.5, sym_length=7, sym_height=7,
+                  height_ratio=1, hspace=0.25, sym_length=7, sym_height=7,
+                  left=0.05, right=0.95, top=0.95, bottom=0.05,
                   data_min=None, data_max=None,
-                  msa_legend=False, data_labels=None, data_colors=None, legend_kwargs=None,
-                  block_cols=None, sym2color=None, gap2color=None):
+                  data_labels=None, data_colors=None, data_alphas=None,
+                  msa_legend=False, legend_kwargs=None,
+                  block_columns=None, sym2color=None, gap2color=None):
     """Plot MSA with associated positional data as matplotlib figure.
 
     Parameters
@@ -161,7 +162,9 @@ def plot_msa_data(msa, data, figsize=(15, 6),
         Height of data axes as fraction of height of block.
     hspace: float
         Padding between each data axes and subsequent block of MSA as fraction
-        of height of block.
+        of average height of blocks and data axes.
+    left, right, top, bottom: float
+        Extent of the subplots as a fraction of figure width or height.
     sym_length: int
         Number of pixels in length of the rectangles for each symbol.
     sym_height: int
@@ -170,16 +173,18 @@ def plot_msa_data(msa, data, figsize=(15, 6),
         Minimum of y-axis across all data axes.
     data_max: float
         Maximum of y-axis across all data axes.
-    msa_legend: bool
-        True if MSA legend is drawn.
     data_labels: list of strings
         Labels for data series. If not None, will draw legend. Length must
         match the number of series in data.
     data_colors: list of colors
         Colors for data series. Length must match number of series in data.
+    data_alphas: list of float
+        Alphas for data series. Length must match number of series in data.
+    msa_legend: bool
+        True if MSA legend is drawn.
     legend_kwargs: dict
         Additional kwargs passed to fig.legend call.
-    block_cols: int
+    block_columns: int
         The number of columns in each block. Overrides determination of optimal
         number if not None.
     sym2color: dict
@@ -194,24 +199,24 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     fig: Figure (matplotlib)
     """
     # Define functions and globals
-    ROWS, COLS = len(msa), len(msa[0])
-    ASPECT = figsize[0] / figsize[1]
+    msa_rows, msa_columns = len(msa), len(msa[0])
+    aspect = (figsize[0] * (right - left)) / (figsize[1] * (top - bottom))
 
-    def get_dims(block_cols, ROWS, COLS):
-        plot_length = block_cols  # Length of final plot
-        block_num = COLS // block_cols - (1 if COLS % block_cols == 0 else 0)  # Number of blocks in addition to the first
-        plot_height = (1 + height_ratio + 2*hspace) * ROWS * block_num + (1 + height_ratio + hspace) * ROWS  # Height of final image
+    def get_dimensions(block_columns):
+        plot_length = block_columns  # Length of final plot
+        block_number = msa_columns // block_columns - (1 if msa_columns % block_columns == 0 else 0)  # Number of blocks in addition to the first
+        plot_height = (1 + height_ratio + 2*hspace) * msa_rows * block_number + (1 + height_ratio + hspace) * msa_rows  # Height of final image
         return plot_length, plot_height
 
     # Set options
     if msa_labels is None:
-        msa_labels = ROWS * ['']
-    elif len(msa_labels) != ROWS:
+        msa_labels = msa_rows * ['']
+    elif len(msa_labels) != msa_rows:
         raise ValueError('len(msa_labels) does not match len(msa)')
     if legend_kwargs is None:
         legend_kwargs = {}
-    if block_cols is None:
-        block_cols = _get_block_cols(ROWS, COLS, ASPECT, get_dims)
+    if block_columns is None:
+        block_columns = _get_block_columns(msa_columns, aspect, get_dimensions)
     if sym2color is None:
         sym2color = default_sym2color
     if gap2color is None:
@@ -234,40 +239,44 @@ def plot_msa_data(msa, data, figsize=(15, 6),
         data_colors = [color_cycle[i % len(color_cycle)] for i in range(len(data))]
     elif len(data_colors) != len(data):
         raise ValueError('len(data_colors) does not match len(data)')
-    block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
+    if data_alphas is None:
+        data_alphas = [1 for _ in range(len(data))]
+    elif len(data_alphas) != len(data):
+        raise ValueError('len(data_alphas) does not match len(data)')
+    block_number = msa_columns // block_columns + (1 if msa_columns % block_columns > 0 else 0)  # Number of blocks
     block_rows = len(msa)
 
     # Draw axes
     height_ratios = []
-    for i in range(3*block_num):
-        r = i % 3
+    for i in range(2*block_number):
+        r = i % 2
         if r == 0:
             h = 1
-        elif r == 1:
-            h = height_ratio
         else:
-            h = hspace
+            h = height_ratio
         height_ratios.append(h)
 
-    im = draw_msa(msa, block_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
+    im = draw_msa(msa, block_columns=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
-    gs = GridSpec(3*block_num, 1, figure=fig, height_ratios=height_ratios)
-    for i in range(block_num):
-        msa_ax = fig.add_subplot(gs[3*i, :])
-        data_ax = fig.add_subplot(gs[3*i+1, :], sharex=msa_ax, aspect=block_rows*height_ratio/(data_max - data_min))
+    gs = GridSpec(2*block_number, 1, figure=fig, left=left, right=right, top=top, bottom=bottom,
+                  hspace=hspace, height_ratios=height_ratios)
+    for i in range(block_number):
+        msa_ax = fig.add_subplot(gs[2*i, :])
+        data_ax = fig.add_subplot(gs[2*i+1, :], sharex=msa_ax, aspect=block_rows*height_ratio/(data_max - data_min))
 
-        block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
-        x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
+        block = im[:, i * sym_length * block_columns:(i + 1) * sym_length * block_columns]
+        x_left, x_right = x_start + i * block_columns, x_start + i * block_columns + block.shape[1] // sym_length
         msa_ax.imshow(block, extent=[x_left, x_right, block_rows, 0])
-        msa_ax.set_yticks([y+0.5 for y, msa_label in zip(range(ROWS), msa_labels) if msa_label != ''])
+        msa_ax.set_yticks([y+0.5 for y, msa_label in zip(range(msa_rows), msa_labels) if msa_label != ''])
         msa_ax.set_yticklabels([msa_label for msa_label in msa_labels if msa_label != ''])
         msa_ax.tick_params(axis='y', length=msa_ticklength, width=msa_tickwidth, pad=msa_tickpad, labelsize=msa_labelsize)
         msa_ax.xaxis.set_visible(False)
         for spine in ['left', 'right', 'top', 'bottom']:
             msa_ax.spines[spine].set_visible(False)
 
-        for d, c in zip(data, data_colors):
-            data_ax.plot(range(x_left, x_right), d[i*block_cols:i*block_cols + block.shape[1]//sym_length], color=c)
+        for series, color, alpha in zip(data, data_colors, data_alphas):
+            data_ax.plot(range(x_left, x_right), series[i * block_columns:i * block_columns + block.shape[1] // sym_length],
+                         color=color, alpha=alpha)
         data_ax.set_ylim(data_min, data_max)
         data_ax.tick_params(axis='y', labelsize=y_labelsize)
         data_ax.tick_params(axis='x', labelsize=x_labelsize)
@@ -298,9 +307,10 @@ def plot_msa_data(msa, data, figsize=(15, 6),
 def plot_msa(msa, figsize=(12, 6),
              msa_labels=None, msa_labelsize=6, msa_length=0, msa_width=0.5, msa_pad=1,
              x_start=0, x_labelsize=6,
-             hspace=0.5, sym_length=7, sym_height=7,
+             hspace=0.25, sym_length=7, sym_height=7,
+             left=0.05, right=0.95, top=0.95, bottom=0.05,
              msa_legend=False, legend_kwargs=None,
-             block_cols=None, sym2color=None, gap2color=None):
+             block_columns=None, sym2color=None, gap2color=None):
     """Plot MSA as matplotlib figure.
 
     Parameters
@@ -324,7 +334,9 @@ def plot_msa(msa, figsize=(12, 6),
     x_labelsize: float
         Font size of x-axis labels.
     hspace: float
-        Padding between blocks of MSA as fraction of height of block.
+        Padding between blocks of MSA as fraction of height of blocks.
+    left, right, top, bottom: float
+        Extent of the subplots as a fraction of figure width or height.
     sym_length: int
         Number of pixels in length of the rectangles for each symbol.
     sym_height: int
@@ -333,7 +345,7 @@ def plot_msa(msa, figsize=(12, 6),
         True if legend is drawn.
     legend_kwargs: dict
         Additional kwargs passed to fig.legend call.
-    block_cols: int
+    block_columns: int
         The number of columns in each block. Overrides determination of optimal
         number if not None.
     sym2color: dict
@@ -348,42 +360,42 @@ def plot_msa(msa, figsize=(12, 6),
     fig: Figure (matplotlib)
     """
     # Define functions and globals
-    ROWS, COLS = len(msa), len(msa[0])
-    ASPECT = figsize[0] / figsize[1]
+    msa_rows, msa_columns = len(msa), len(msa[0])
+    aspect = (figsize[0] * (right - left)) / (figsize[1] * (top - bottom))
 
-    def get_dims(block_cols, ROWS, COLS):
-        plot_length = block_cols  # Length of final plot
-        block_num = COLS // block_cols - (1 if COLS % block_cols == 0 else 0)  # Number of blocks in addition to the first
-        plot_height = (1 + hspace) * ROWS * block_num + ROWS  # Height of final image
+    def get_dimensions(block_columns):
+        plot_length = block_columns  # Length of final plot
+        block_number = msa_columns // block_columns - (1 if msa_columns % block_columns == 0 else 0)  # Number of blocks in addition to the first
+        plot_height = (1 + hspace) * msa_rows * block_number + msa_rows  # Height of final image
         return plot_length, plot_height
 
     # Set options
     if msa_labels is None:
-        msa_labels = ROWS * ['']
-    elif len(msa_labels) != ROWS:
+        msa_labels = msa_rows * ['']
+    elif len(msa_labels) != msa_rows:
         raise ValueError('len(msa_labels) does not match len(msa)')
     if legend_kwargs is None:
         legend_kwargs = {}
-    if block_cols is None:
-        block_cols = _get_block_cols(ROWS, COLS, ASPECT, get_dims)
+    if block_columns is None:
+        block_columns = _get_block_columns(msa_columns, aspect, get_dimensions)
     if sym2color is None:
         sym2color = default_sym2color
     if gap2color is None:
         gap2color = default_gap2color
-    block_num = COLS // block_cols + (1 if COLS % block_cols > 0 else 0)  # Number of blocks
+    block_number = msa_columns // block_columns + (1 if msa_columns % block_columns > 0 else 0)  # Number of blocks
     block_rows = len(msa)
 
     # Draw axes
-    im = draw_msa(msa, block_cols=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
+    im = draw_msa(msa, block_columns=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
     fig = plt.figure(figsize=figsize)
-    gs = GridSpec(block_num, 1, figure=fig, hspace=hspace)
-    for i in range(block_num):
+    gs = GridSpec(block_number, 1, figure=fig, left=left, right=right, top=top, bottom=bottom, hspace=hspace)
+    for i in range(block_number):
         msa_ax = fig.add_subplot(gs[i, :])
 
-        block = im[:, i*sym_length*block_cols:(i+1)*sym_length*block_cols]
-        x_left, x_right = x_start + i * block_cols, x_start + i * block_cols + block.shape[1] // sym_length
+        block = im[:, i * sym_length * block_columns:(i + 1) * sym_length * block_columns]
+        x_left, x_right = x_start + i * block_columns, x_start + i * block_columns + block.shape[1] // sym_length
         msa_ax.imshow(block, extent=[x_left, x_right, block_rows, 0])
-        msa_ax.set_yticks([y+0.5 for y, msa_label in zip(range(ROWS), msa_labels) if msa_label != ''])
+        msa_ax.set_yticks([y + 0.5 for y, msa_label in zip(range(msa_rows), msa_labels) if msa_label != ''])
         msa_ax.set_yticklabels([msa_label for msa_label in msa_labels if msa_label != ''])
         msa_ax.tick_params(axis='y', length=msa_length, width=msa_width, pad=msa_pad, labelsize=msa_labelsize)
         msa_ax.tick_params(axis='x', labelsize=x_labelsize)
