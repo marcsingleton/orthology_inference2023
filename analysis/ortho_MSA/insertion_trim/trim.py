@@ -13,15 +13,16 @@ from src.utils import get_brownian_weights, read_fasta
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
 
-# Thresholds for state 3 trims
-posterior_high1 = 0.95
+# Cutoffs for state 3 trims
+posterior_high1 = 0.75
 posterior_low1 = 0.01
+profile_low1 = 0.1
 
-# Thresholds for state 2+3 trims
+# Cutoffs for state 2+3 trims
 posterior_high2 = 0.9
 posterior_low2 = 0.01
 
-# Common gradients
+# Common cutoffs for gradients
 gradient_high = 0.001
 gradient_low = 0.001
 
@@ -83,6 +84,7 @@ for OGid in OGids:
 
     # Identify state 3 trims
     posterior = df['3'].to_numpy()
+    posterior[profile <= profile_low1] = 0
     gradient = np.gradient(posterior)
     slices = get_trim_slices(profile, posterior, gradient, posterior_high1, posterior_low1, gradient_high, gradient_low)
 
