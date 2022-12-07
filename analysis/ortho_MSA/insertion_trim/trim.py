@@ -118,7 +118,7 @@ for OGid in OGids:
     gradient = np.gradient(posterior)
     slices = get_trim_slices(profile, posterior, gradient, posterior_high2, posterior_low2, gradient_high, gradient_low)
     for s in slices:
-        rows2.append({'OGid': OGid, 'colnum': len(input_msa[0][1]), 'start': s.start, 'stop': s.stop,
+        rows2.append({'OGid': OGid, 'colnum': len(input_msa[0]['seq']), 'start': s.start, 'stop': s.stop,
                       'posterior2': df.loc[s, '2'].sum(), 'posterior3': df.loc[s, '3'].sum()})
 
     # Invert slices to get untrimmed regions
@@ -164,67 +164,121 @@ for OGid in OGids:
             file.write(f'{header}\n{seqstring}\n')
 
 # Plot stats
-df = pd.DataFrame(rows1)
-df.to_csv('out/trim_stats.tsv', sep='\t', index=False)
+df1 = pd.DataFrame(rows1)
+df1.to_csv('out/seq_stats.tsv', sep='\t', index=False)
 
-df['length'] = df['stop'] - df['start']
-df['length_ratio'] = df['length'] / df['colnum']
-df['norm2'] = df['posterior2'] / df['length']
-df['norm3'] = df['posterior3'] / df['length']
-groups = df.groupby('OGid')
+df2 = pd.DataFrame(rows2)
+df2.to_csv('out/region_stats.tsv', sep='\t', index=False)
+
+df2['length'] = df2['stop'] - df2['start']
+df2['length_ratio'] = df2['length'] / df2['colnum']
+df2['norm2'] = df2['posterior2'] / df2['length']
+df2['norm3'] = df2['posterior3'] / df2['length']
+
+groups1 = df1.groupby('OGid')
+groups2 = df2.groupby('OGid')
 
 # Pie chart by presence of trims
-values = [len(set(OGids)) - df['OGid'].nunique(), df['OGid'].nunique()]
-labels = [f'{label}\n{value:,}' for label, value in zip(['w/o trims', 'w/ trims'], values)]
-fig, ax = plt.subplots()
-ax.pie(values, labels=labels, labeldistance=1.15)
-ax.set_title('OGs w/ and w/o trims')
+union = set(df1['OGid']) | set(df2['OGid'])
+intersection = set(df1['OGid']) & set(df2['OGid'])
+OGids1 = set(df1['OGid']) - intersection
+OGids2 = set(df2['OGid']) - intersection
+
+values = [len(set(OGids)) - len(union), len(OGids1), len(OGids2), len(intersection)]
+labels = [f'{label}\n({value:,})' for label, value in zip(['no trims', 'sequence trims only', 'region trims only', 'sequence and region trims'], values)]
+colors = ['C0', 'C2', 'C1', 'C3']
+fig, ax = plt.subplots(gridspec_kw={'bottom': 0.2})
+ax.pie(values, labels=labels, labeldistance=None, colors=colors)
+ax.legend(loc='upper center', bbox_to_anchor=(0.5, 0), ncol=2)
+ax.set_title('OGs by type of trims')
 fig.savefig('out/pie_trims.png')
 plt.close()
 
-# Distribution of number of trims
-counts = groups.size().value_counts()
+# Distribution of number of sequence trims in OGs
+counts = groups1.size().value_counts()
 fig, ax = plt.subplots()
 ax.bar(counts.index, counts.values, width=1)
-ax.set_xlabel('Number of trims in OG')
+ax.set_xlabel('Number of sequence trims in OG')
 ax.set_ylabel('Number of OGs')
-fig.savefig('out/hist_OGnum-trimnum.png')
+fig.savefig('out/hist_OGnum-seqtrimnum.png')
+plt.close()
+
+# Distribution of number of sequences with trims in OGs
+counts = groups1['ppid'].nunique().value_counts()
+fig, ax = plt.subplots()
+ax.bar(counts.index, counts.values, width=1)
+ax.set_xlabel('Number of sequences with trims in OG')
+ax.set_ylabel('Number of OGs')
+fig.savefig('out/hist_OGnum-seqnum.png')
+plt.close()
+
+# Distribution of number of sequence trims by sequence
+counts = df1.groupby(['OGid', 'ppid']).size().value_counts()
+fig, ax = plt.subplots()
+ax.bar(counts.index, counts.values, width=1)
+ax.set_xlabel('Number of sequence trims within a sequence')
+ax.set_ylabel('Number of sequences')
+fig.savefig('out/hist_seqnum-seqtrimnum.png')
+plt.close()
+
+# Distribution of number of removed symbols in OG
+counts = df1['count'].value_counts()
+fig, ax = plt.subplots()
+ax.bar(counts.index, counts.values, width=1)
+ax.set_xlabel('Number of non-gap symbols in sequence trim')
+ax.set_ylabel('Number of sequence trims')
+fig.savefig('out/hist_seqtrimnum-symnum.png')
+plt.close()
+
+# Distribution of number of removed symbols in OG (truncated)
+idx = int(np.ceil(len(df1) * 0.95))
+counts = df1['count'].sort_values(ignore_index=True)[:idx].value_counts()
+fig, ax = plt.subplots()
+ax.bar(counts.index, counts.values, width=1)
+ax.set_xlabel('Number of non-gap symbols in sequence trim')
+ax.set_ylabel('Number of sequence trims')
+fig.savefig('out/hist_seqtrimnum-symnum_95.png')
+plt.close()
+
+# Distribution of number of region trims
+counts = groups2.size().value_counts()
+fig, ax = plt.subplots()
+ax.bar(counts.index, counts.values, width=1)
+ax.set_xlabel('Number of region trims in OG')
+ax.set_ylabel('Number of OGs')
+fig.savefig('out/hist_OGnum-regionnum.png')
 plt.close()
 
 # Distribution of length of trims
 fig, ax = plt.subplots()
-ax.hist(df['length'], bins=100)
-ax.set_xlabel('Length of trim')
-ax.set_ylabel('Number of trims')
-fig.savefig('out/hist_trimnum-length.png')
-ax.set_yscale('log')
-fig.savefig('out/hist_trimnum-length_log.png')
+ax.hist(df2['length'], bins=100)
+ax.set_xlabel('Length of region trim')
+ax.set_ylabel('Number of region trims')
+fig.savefig('out/hist_regionnum-regionlength.png')
 plt.close()
 
 # Distribution of length ratio of trims
 fig, ax = plt.subplots()
-ax.hist(df['length_ratio'], bins=50)
-ax.set_xlabel('Length ratio of trim')
-ax.set_ylabel('Number of trims')
-fig.savefig('out/hist_trimnum-ratio.png')
+ax.hist(df2['length_ratio'], bins=50)
+ax.set_xlabel('Length ratio of region trim')
+ax.set_ylabel('Number of region trims')
+fig.savefig('out/hist_regionnum-regionratio.png')
 plt.close()
 
 # Distribution of length of total trims
 fig, ax = plt.subplots()
-ax.hist(groups['length'].sum(), bins=100)
-ax.set_xlabel('Length of trims in OG')
+ax.hist(groups2['length'].sum(), bins=100)
+ax.set_xlabel('Total length of region trims in OG')
 ax.set_ylabel('Number of OGs')
-fig.savefig('out/hist_OGnum-length.png')
-ax.set_yscale('log')
-fig.savefig('out/hist_OGnum-length_log.png')
+fig.savefig('out/hist_OGnum-regionlength.png')
 plt.close()
 
 # Distribution of length ratio of total trims
 fig, ax = plt.subplots()
-ax.hist(groups['length_ratio'].sum(), bins=100)
-ax.set_xlabel('Total length ratio of trims in OG')
+ax.hist(groups2['length_ratio'].sum(), bins=100)
+ax.set_xlabel('Total length ratio of region trims in OG')
 ax.set_ylabel('Number of OGs')
-fig.savefig('out/hist_OGnum-ratio.png')
+fig.savefig('out/hist_OGnum-regionratio.png')
 plt.close()
 
 # Hexbin of length ratios vs number of trims
@@ -234,24 +288,24 @@ ax = fig.add_subplot(gs[1, 0])
 ax_histx = fig.add_subplot(gs[0, 0], sharex=ax)
 ax_histy = fig.add_subplot(gs[1, 1], sharey=ax)
 
-hb = ax.hexbin(groups.size(), groups['length_ratio'].sum(), bins='log', gridsize=50, mincnt=1, linewidth=0)
+hb = ax.hexbin(groups2.size(), groups2['length_ratio'].sum(), bins='log', gridsize=50, mincnt=1, linewidth=0)
 cax = fig.add_subplot(gs[3, 0])
 fig.colorbar(hb, cax=cax, orientation='horizontal')
 
-counts = groups.size().value_counts()
+counts = groups2.size().value_counts()
 ax_histx.bar(counts.index, counts.values, width=1)
-ax_histy.hist(groups['length_ratio'].sum(), bins=100, orientation='horizontal')
+ax_histy.hist(groups2['length_ratio'].sum(), bins=100, orientation='horizontal')
 
-ax.set_xlabel('Number of trims in OG')
-ax.set_ylabel('Total length ratio of trims in OG')
-fig.savefig('out/hexbin_ratio-trimnum.png')
+ax.set_xlabel('Number of region trims in OG')
+ax.set_ylabel('Total length ratio of region trims in OG')
+fig.savefig('out/hexbin_regionratio-regionnum.png')
 plt.close()
 
 # Hexbin of posterior2 vs posterior3
 fig, ax = plt.subplots()
-hb = ax.hexbin(df['norm2'], df['norm3'], bins='log', gridsize=25, mincnt=1, linewidth=0)
-ax.set_xlabel('Average state 2 posterior in trim')
-ax.set_ylabel('Average state 3 posterior in trim')
+hb = ax.hexbin(df2['norm2'], df2['norm3'], bins='log', gridsize=25, mincnt=1, linewidth=0)
+ax.set_xlabel('Average state 2 posterior in region trim')
+ax.set_ylabel('Average state 3 posterior in region trim')
 fig.colorbar(hb)
 fig.savefig('out/hexbin_norm3-norm2.png')
 plt.close()
