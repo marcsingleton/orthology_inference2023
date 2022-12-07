@@ -82,7 +82,7 @@ if __name__ == '__main__':
     with open('../insertion_hmm/out/model.json') as file:
         model_json = json.load(file)
 
-    if not os.path.exists('out/'):
+    if not os.path.exists('out/posteriors'):
         os.makedirs('out/posteriors/')
 
     with mp.Pool(processes=num_processes) as pool:
