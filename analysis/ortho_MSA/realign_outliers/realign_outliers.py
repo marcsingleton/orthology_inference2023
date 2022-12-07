@@ -29,7 +29,7 @@ for OGid in OGids:
     for header, seq in read_fasta(f'../realign_fastas/out/{OGid}.afa'):
         ppid = re.search(ppid_regex, header).group(1)
         spid = re.search(spid_regex, header).group(1)
-        msa.append({'ppid': ppid, 'spid': spid, 'seq': seq.upper()})
+        msa.append({'ppid': ppid, 'spid': spid, 'seq': seq})
     msa = sorted(msa, key=lambda x: tip_order[x['spid']])
 
     # Calculate weights

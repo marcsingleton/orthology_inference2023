@@ -31,7 +31,7 @@ for label in ['norm1', 'norm2']:
             msa.append({'spid': spid, 'seq': seq})
         msa = sorted(msa, key=lambda x: tip_order[x['spid']])
 
-        im = draw_msa([record['seq'].upper() for record in msa])
+        im = draw_msa([record['seq'] for record in msa])
         plt.imsave(f'out/{label}/{rank:03}_{row.OGid}.png', im)
 
 """

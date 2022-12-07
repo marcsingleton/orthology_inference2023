@@ -106,7 +106,7 @@ for label in ['norm1', 'norm2']:
         fbs = model.forward_backward(idx_seq)
         data = [fbs[label] for label in state_labels]
 
-        plot_msa_data([record['seq'].upper() for record in input_msa], data,
+        plot_msa_data([record['seq'] for record in input_msa], data,
                       data_labels=state_labels, data_colors=state_colors, **kwargs)
         plt.savefig(f'out/{label}/{rank:03}_{row.OGid}.png')
         plt.close()
@@ -183,7 +183,7 @@ for label in ['norm1', 'norm2']:
         for s in slices:
             trims[s] = 1
 
-        plot_msa_data([record['seq'].upper() for record in trimmed_msa], [posterior, trims],
+        plot_msa_data([record['seq'] for record in trimmed_msa], [posterior, trims],
                       data_labels=['2+3', 'trim'], data_colors=['C1', 'C0'], **kwargs)
         plt.savefig(f'out/{label}/{rank:03}_{row.OGid}_trim.png')
         plt.close()

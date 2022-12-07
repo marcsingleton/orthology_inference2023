@@ -52,7 +52,7 @@ for OGid in OGids:
     for header, seq in read_fasta(f'../realign_fastas/out/{OGid}.afa'):
         ppid = re.search(ppid_regex, header).group(1)
         spid = re.search(spid_regex, header).group(1)
-        input_msa.append({'header': header, 'ppid': ppid, 'spid': spid, 'seq': seq.upper()})
+        input_msa.append({'header': header, 'ppid': ppid, 'spid': spid, 'seq': seq})
 
     df = pd.read_table(f'out/posteriors/{OGid}.tsv')
 
