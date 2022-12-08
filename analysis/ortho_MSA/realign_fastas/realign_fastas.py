@@ -67,7 +67,7 @@ def run_cmd(OGid):
 
     # Extract poorly aligned regions
     regions = np.ones(len(input_msa[0]['seq']))
-    binary = ndimage.binary_closing(weight_msa.sum(axis=0) >= threshold, structure=structure)  # Close on well-aligned regions
+    binary = ndimage.binary_closing(weight_msa.sum(axis=0) >= cutoff, structure=structure)  # Close on well-aligned regions
     for s, in ndimage.find_objects(ndimage.label(binary)[0]):
         if s.stop - s.start >= min_length:
             regions[s] = 0
@@ -151,7 +151,7 @@ spid_regex = r'spid=([a-z]+)'
 
 unalignlevel1 = 0.7
 unalignlevel2 = 0.4
-threshold = 0.5
+cutoff = 0.5
 structure = np.ones(3)
 min_length = 10
 

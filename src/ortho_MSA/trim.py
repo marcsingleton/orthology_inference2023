@@ -45,10 +45,10 @@ def get_trim_slices(profile, posterior, gradient, posterior_high, posterior_low,
 
     This algorithm is designed to cleanly trim alignments at points where the
     number of gaps changes rapidly. It does this by first identifying core
-    regions which exceed the posterior_high threshold. It identifies margins on
+    regions which exceed the posterior_high cutoff. It identifies margins on
     the left and right sides of this core region. The extent of the margins is
     determined by the posterior_low, gradient_high, and gradient_low
-    thresholds. When expanding the margin outward, columns are added if the
+    cutoffs. When expanding the margin outward, columns are added if the
     posterior or gradient is higher than posterior_low and gradient_low,
     respectively. When expanding inward, columns are added if the gradient is
     higher than gradient_high. These rules ensure that the margins of the core
@@ -66,13 +66,13 @@ def get_trim_slices(profile, posterior, gradient, posterior_high, posterior_low,
     gradient: 1-dimensional ndarray
         Gradient of posterior decoding.
     posterior_high: float
-        Threshold for core region.
+        Cutoff for core region.
     posterior_low: float
-        Threshold for expanding margin outward based on posterior.
+        Cutoff for expanding margin outward based on posterior.
     gradient_high: float
-        Threshold for expanding margin inward based on gradient.
+        Cutoff for expanding margin inward based on gradient.
     gradient_low: float
-        Threshold for expanding margin outward based on gradient.
+        Cutoff for expanding margin outward based on gradient.
     """
     slices = []
     for s0, in ndimage.find_objects(ndimage.label(posterior >= posterior_high)[0]):
@@ -130,11 +130,11 @@ def get_hull_slices(posterior, gradient, posterior_high, posterior_low, gradient
     gradient: 1-dimensional ndarray
         Gradient of posterior decoding.
     posterior_high: float
-        Threshold for core region.
+        Cutoff for core region.
     posterior_low: float
-        Threshold for expanding margin outward based on posterior.
+        Cutoff for expanding margin outward based on posterior.
     gradient_low: float
-        Threshold for expanding margin outward based on gradient.
+        Cutoff for expanding margin outward based on gradient.
     """
     slices = []
     for s0, in ndimage.find_objects(ndimage.label(posterior >= posterior_high)[0]):
