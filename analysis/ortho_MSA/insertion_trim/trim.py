@@ -90,24 +90,27 @@ for OGid in OGids:
 
     seq_slices = {record['ppid']: [] for record in input_msa}
     for s in slices:
-        count_records = []
-        for record in input_msa:
+        subseq_records = []
+        for i, record in enumerate(input_msa):
             ppid, seq = record['ppid'], record['seq']
-            subseq = seq[s]
-            count = len(subseq) - subseq.count('-') - subseq.count('.')
-            count_records.append((ppid, count))
-        count_records = sorted(count_records, key=lambda x: x[1])
+            subseq = weight_msa[i, s] == 0
+            sym_count = subseq.sum()
+            align_count = ((weight_msa[:, s] == 0) * subseq).sum() - sym_count
+            subseq_records.append({'ppid': ppid, 'sym_count': sym_count, 'align_count': align_count})
+        subseq_records = sorted(subseq_records, key=lambda x: x['sym_count'])
 
-        count_sum = sum([ppid_weights[ppid] * count for ppid, count in count_records[:-mean_trim]])
-        weight_sum = sum([ppid_weights[ppid] for ppid, _ in count_records[:-mean_trim]])
+        count_sum = sum([ppid_weights[record['ppid']] * record['sym_count'] for record in subseq_records[:-mean_trim]])
+        weight_sum = sum([ppid_weights[record['ppid']] for record in subseq_records[:-mean_trim]])
         mean = max(count_sum / weight_sum, mean_min)
         p = 1 / (mean + 1)  # Geometric distribution on support 0, 1, ...
         k = np.log(alpha) / np.log(1 - p) - 1  # Expression for minimum k to achieve alpha significance
 
-        for ppid, count in count_records:
-            if count >= k:
+        for record in subseq_records:
+            ppid, sym_count, align_count = record['ppid'], record['sym_count'], record['align_count']
+            if sym_count >= k:
                 seq_slices[ppid].append(s)
-                rows1.append({'OGid': OGid, 'ppid': ppid, 'start': s.start, 'stop': s.stop, 'count': count})
+                rows1.append({'OGid': OGid, 'ppid': ppid, 'start': s.start, 'stop': s.stop,
+                              'sym_count': sym_count, 'align_count': align_count})
 
     # Identify state 2+3 trims
     posterior = df['3'].to_numpy(copy=True)
@@ -221,8 +224,8 @@ ax.set_ylabel('Number of sequences')
 fig.savefig('out/hist_seqnum-seqtrimnum.png')
 plt.close()
 
-# Distribution of number of removed symbols in OG
-counts = df1['count'].value_counts()
+# Distribution of number of removed symbols in sequence trims
+counts = df1['sym_count'].value_counts()
 fig, ax = plt.subplots()
 ax.bar(counts.index, counts.values, width=1)
 ax.set_xlabel('Number of non-gap symbols in sequence trim')
@@ -230,9 +233,9 @@ ax.set_ylabel('Number of sequence trims')
 fig.savefig('out/hist_seqtrimnum-symnum.png')
 plt.close()
 
-# Distribution of number of removed symbols in OG (truncated)
+# Distribution of number of removed symbols in sequence trims (truncated)
 idx = int(np.ceil(len(df1) * 0.95))
-counts = df1['count'].sort_values(ignore_index=True)[:idx].value_counts()
+counts = df1['sym_count'].sort_values(ignore_index=True)[:idx].value_counts()
 fig, ax = plt.subplots()
 ax.bar(counts.index, counts.values, width=1)
 ax.set_xlabel('Number of non-gap symbols in sequence trim')
@@ -240,7 +243,26 @@ ax.set_ylabel('Number of sequence trims')
 fig.savefig('out/hist_seqtrimnum-symnum_95.png')
 plt.close()
 
-# Distribution of number of region trims
+# Distribution of number of aligned symbols per non-gap symbols in sequence trims
+fig, ax = plt.subplots(gridspec_kw={'bottom': 0.15})
+ax.hist(df1['align_count'] / df1['sym_count'], bins=100)
+ax.set_xlabel('Number of aligned non-gap symbols\nper non-gap symbol in trim')
+ax.set_ylabel('Number of sequence trims')
+fig.savefig('out/hist_seqtrimnum-symratio.png')
+plt.close()
+
+# Correlation of non-gap symbols with aligned symbols
+idx = int(np.ceil(len(df1) * 0.95))
+x = df1.sort_values(by='sym_count', ignore_index=True)[:idx]
+fig, ax = plt.subplots()
+hb = ax.hexbin(x['sym_count'], x['align_count'], gridsize=50, mincnt=1, linewidth=0)
+ax.set_xlabel('Number of non-gap symbols in sequence trim')
+ax.set_ylabel('Number of aligned non-gap symbols')
+fig.colorbar(hb)
+fig.savefig('out/hist_alignnum-symnum.png')
+plt.close()
+
+# Distribution of number of region trims in OGs
 counts = groups2.size().value_counts()
 fig, ax = plt.subplots()
 ax.bar(counts.index, counts.values, width=1)
@@ -249,7 +271,7 @@ ax.set_ylabel('Number of OGs')
 fig.savefig('out/hist_OGnum-regionnum.png')
 plt.close()
 
-# Distribution of length of trims
+# Distribution of lengths of region trims
 fig, ax = plt.subplots()
 ax.hist(df2['length'], bins=100)
 ax.set_xlabel('Length of region trim')
@@ -257,7 +279,7 @@ ax.set_ylabel('Number of region trims')
 fig.savefig('out/hist_regionnum-regionlength.png')
 plt.close()
 
-# Distribution of length ratio of trims
+# Distribution of lengths ratio of region trims
 fig, ax = plt.subplots()
 ax.hist(df2['length_ratio'], bins=50)
 ax.set_xlabel('Length ratio of region trim')
@@ -265,7 +287,7 @@ ax.set_ylabel('Number of region trims')
 fig.savefig('out/hist_regionnum-regionratio.png')
 plt.close()
 
-# Distribution of length of total trims
+# Distribution of lengths of total region trims
 fig, ax = plt.subplots()
 ax.hist(groups2['length'].sum(), bins=100)
 ax.set_xlabel('Total length of region trims in OG')
@@ -273,7 +295,7 @@ ax.set_ylabel('Number of OGs')
 fig.savefig('out/hist_OGnum-regionlength.png')
 plt.close()
 
-# Distribution of length ratio of total trims
+# Distribution of length ratios of total region trims
 fig, ax = plt.subplots()
 ax.hist(groups2['length_ratio'].sum(), bins=100)
 ax.set_xlabel('Total length ratio of region trims in OG')
@@ -281,7 +303,7 @@ ax.set_ylabel('Number of OGs')
 fig.savefig('out/hist_OGnum-regionratio.png')
 plt.close()
 
-# Hexbin of length ratios vs number of trims
+# Hexbin of length ratios vs number of region trims
 fig = plt.figure(figsize=(6, 6), layout='constrained')
 gs = fig.add_gridspec(4, 2, height_ratios=(1, 2, 0.15, 0.1), width_ratios=(4, 1))
 ax = fig.add_subplot(gs[1, 0])
@@ -301,7 +323,7 @@ ax.set_ylabel('Total length ratio of region trims in OG')
 fig.savefig('out/hexbin_regionratio-regionnum.png')
 plt.close()
 
-# Hexbin of posterior2 vs posterior3
+# Hexbin of posterior2 vs posterior3 in region trims
 fig, ax = plt.subplots()
 hb = ax.hexbin(df2['norm2'], df2['norm3'], bins='log', gridsize=25, mincnt=1, linewidth=0)
 ax.set_xlabel('Average state 2 posterior in region trim')
