@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.ndimage as ndimage
+from src.ortho_MSA.trim import get_merged_slices
 from src.utils import read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
@@ -62,18 +63,19 @@ for OGid in OGids:
             while stop+1 < len(seq) and posterior[stop+1] >= posterior_low and seq[stop+1] not in ['-', '.']:
                 stop += 1
 
-            slices.append((start, stop+1))
+            slices.append(slice(start, stop+1))
+        slices = get_merged_slices(slices)
         trims.append((ppid, slices))
 
     with open(f'out/trims/{OGid}.tsv', 'w') as file:
         file.write('ppid\tslices\n')
         for ppid, slices in trims:
-            slicestring = ','.join([f'{start}-{stop}' for start, stop in slices])
+            slicestring = ','.join([f'{s.start}-{s.stop}' for s in slices])
             file.write(f'{ppid}\t{slicestring}\n')
 
     for ppid, slices in trims:
-        for start, stop in slices:
-            rows.append({'OGid': OGid, 'colnum': len(posteriors[0][1]), 'ppid': ppid, 'start': start, 'stop': stop})
+        for s in slices:
+            rows.append({'OGid': OGid, 'colnum': len(posteriors[0][1]), 'ppid': ppid, 'start': s.start, 'stop': s.stop})
 
 # Plot stats
 df = pd.DataFrame(rows)

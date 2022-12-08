@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import skbio
-from src.ortho_MSA.trim import get_hull_slices, get_trim_slices
+from src.ortho_MSA.trim import get_complement_slices, get_hull_slices, get_trim_slices
 from src.utils import get_brownian_weights, read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
@@ -123,13 +123,7 @@ for OGid in OGids:
     for s in slices:
         rows2.append({'OGid': OGid, 'colnum': len(input_msa[0]['seq']), 'start': s.start, 'stop': s.stop,
                       'posterior2': df.loc[s, '2'].sum(), 'posterior3': df.loc[s, '3'].sum()})
-
-    # Invert slices to get untrimmed regions
-    region_slices, stop = [], 0
-    for s in slices:
-        region_slices.append(slice(stop, s.start))
-        stop = s.stop
-    region_slices.append(slice(stop, len(input_msa[0]['seq'])))
+    region_slices = get_complement_slices(slices)  # Complement slices to get untrimmed regions
 
     # Create trimmed MSA from two sets of slices
     trimmed_msa = []
