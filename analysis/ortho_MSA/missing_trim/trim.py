@@ -11,8 +11,8 @@ from src.ortho_MSA.trim import get_merged_slices
 from src.utils import read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
-posterior_high = 0.95
-posterior_low = 0.5
+posterior_high = 0.75
+posterior_low = 0.05
 
 # Load OGids
 OGids = []
