@@ -182,7 +182,7 @@ OGids1 = set(df1['OGid']) - intersection
 OGids2 = set(df2['OGid']) - intersection
 
 values = [len(set(OGids)) - len(union), len(OGids1), len(OGids2), len(intersection)]
-labels = [f'{label}\n({value:,})' for label, value in zip(['no trims', 'sequence trims only', 'region trims only', 'sequence and region trims'], values)]
+labels = [f'{label}\n({value:,})' for label, value in zip(['no trims', 'segment trims only', 'region trims only', 'segment and region trims'], values)]
 colors = ['C0', 'C2', 'C1', 'C3']
 fig, ax = plt.subplots(gridspec_kw={'bottom': 0.2})
 ax.pie(values, labels=labels, labeldistance=None, colors=colors)
@@ -191,13 +191,13 @@ ax.set_title('OGs by type of trims')
 fig.savefig('out/pie_trims.png')
 plt.close()
 
-# Distribution of number of sequence trims in OGs
+# Distribution of number of segment trims in OGs
 counts = groups1.size().value_counts()
 fig, ax = plt.subplots()
 ax.bar(counts.index, counts.values, width=1)
-ax.set_xlabel('Number of sequence trims in OG')
+ax.set_xlabel('Number of segment trims in OG')
 ax.set_ylabel('Number of OGs')
-fig.savefig('out/hist_OGnum-seqtrimnum.png')
+fig.savefig('out/hist_OGnum-segnum.png')
 plt.close()
 
 # Distribution of number of sequences with trims in OGs
@@ -209,40 +209,40 @@ ax.set_ylabel('Number of OGs')
 fig.savefig('out/hist_OGnum-seqnum.png')
 plt.close()
 
-# Distribution of number of sequence trims by sequence
+# Distribution of number of segment trims by sequence
 counts = df1.groupby(['OGid', 'ppid']).size().value_counts()
 fig, ax = plt.subplots()
 ax.bar(counts.index, counts.values, width=1)
-ax.set_xlabel('Number of sequence trims within a sequence')
+ax.set_xlabel('Number of segment trims within a sequence')
 ax.set_ylabel('Number of sequences')
-fig.savefig('out/hist_seqnum-seqtrimnum.png')
+fig.savefig('out/hist_seqnum-segnum.png')
 plt.close()
 
-# Distribution of number of removed symbols in sequence trims
+# Distribution of number of removed symbols in segment trims
 counts = df1['sym_count'].value_counts()
 fig, ax = plt.subplots()
 ax.bar(counts.index, counts.values, width=1)
-ax.set_xlabel('Number of non-gap symbols in sequence trim')
-ax.set_ylabel('Number of sequence trims')
-fig.savefig('out/hist_seqtrimnum-symnum.png')
+ax.set_xlabel('Number of non-gap symbols in segment trim')
+ax.set_ylabel('Number of segment trims')
+fig.savefig('out/hist_segnum-symnum.png')
 plt.close()
 
-# Distribution of number of removed symbols in sequence trims (truncated)
+# Distribution of number of removed symbols in segment trims (truncated)
 idx = int(np.ceil(len(df1) * 0.95))
 counts = df1['sym_count'].sort_values(ignore_index=True)[:idx].value_counts()
 fig, ax = plt.subplots()
 ax.bar(counts.index, counts.values, width=1)
-ax.set_xlabel('Number of non-gap symbols in sequence trim')
-ax.set_ylabel('Number of sequence trims')
-fig.savefig('out/hist_seqtrimnum-symnum_95.png')
+ax.set_xlabel('Number of non-gap symbols in segment trim')
+ax.set_ylabel('Number of segment trims')
+fig.savefig('out/hist_segnum-symnum_95.png')
 plt.close()
 
-# Distribution of number of aligned symbols per non-gap symbols in sequence trims
+# Distribution of number of aligned symbols per non-gap symbols in segment trims
 fig, ax = plt.subplots(gridspec_kw={'bottom': 0.15})
 ax.hist(df1['align_count'] / df1['sym_count'], bins=100)
 ax.set_xlabel('Number of aligned non-gap symbols\nper non-gap symbol in trim')
-ax.set_ylabel('Number of sequence trims')
-fig.savefig('out/hist_seqtrimnum-symratio.png')
+ax.set_ylabel('Number of segment trims')
+fig.savefig('out/hist_segnum-symratio.png')
 plt.close()
 
 # Correlation of non-gap symbols with aligned symbols
@@ -250,7 +250,7 @@ idx = int(np.ceil(len(df1) * 0.95))
 x = df1.sort_values(by='sym_count', ignore_index=True)[:idx]
 fig, ax = plt.subplots()
 hb = ax.hexbin(x['sym_count'], x['align_count'], gridsize=50, mincnt=1, linewidth=0)
-ax.set_xlabel('Number of non-gap symbols in sequence trim')
+ax.set_xlabel('Number of non-gap symbols in segment trim')
 ax.set_ylabel('Number of aligned non-gap symbols')
 fig.colorbar(hb)
 fig.savefig('out/hist_alignnum-symnum.png')
