@@ -106,7 +106,7 @@ ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
 
 eta = 0.1  # Learning rate
-gamma = 0.95  # Momentum
+gamma = 0.9  # Momentum
 epsilon = 5E-2  # Convergence criterion
 iter_num = 100  # Max number of iterations
 
