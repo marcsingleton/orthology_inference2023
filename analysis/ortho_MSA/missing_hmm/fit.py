@@ -101,14 +101,14 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     return {'ll': ll, 't_grads': t_grads, 'e_grads': e_grads}
 
 
-num_processes = 6
+num_processes = 10
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
 
 eta = 0.1  # Learning rate
 gamma = 0.95  # Momentum
-epsilon = 1E-1  # Convergence criterion
-iter_num = 50  # Max number of iterations
+epsilon = 5E-2  # Convergence criterion
+iter_num = 100  # Max number of iterations
 
 state_set = {'1', '2'}
 start_set = {'1', '2'}

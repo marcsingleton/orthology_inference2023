@@ -172,19 +172,21 @@ for (OGid, ppid), labels in ids2labels.items():
             msa_seqs.append(record['seq'])
     msa_labels = [record['ppid'] if record['ppid'] == ppid else '' for record in msa]
 
-    kwargs_wide = {'figsize': (15, 6), 'height_ratio': 0.5, 'hspace': 0.2,
+    kwargs_wide = {'figsize': (15, 6),
+                   'height_ratio': 0.5, 'hspace': 0.45, 'left': 0.035, 'right': 0.94, 'top': 0.99, 'bottom': 0.03,
                    'msa_labels': msa_labels, 'msa_labelsize': 4,
-                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': state_labels, 'data_colors': state_colors,
-                   'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8,
-                                                         'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
-    adjust_wide = {'left': 0.04, 'bottom': 0.01, 'right': 0.94, 'top': 0.99}
+                   'data_max': 1.05, 'data_min': -0.05, 'data_labels': state_labels, 'data_colors': state_colors,
+                   'msa_legend': True,
+                   'legend_kwargs': {'bbox_to_anchor': (0.945, 0.5), 'loc': 'center left', 'fontsize': 8,
+                                     'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
 
-    kwargs_tall = {'figsize': (8, 8), 'height_ratio': 0.5, 'hspace': 0.2,
+    kwargs_tall = {'figsize': (8, 8),
+                   'height_ratio': 0.5, 'hspace': 0.45, 'left': 0.06, 'right': 0.90, 'top': 0.99, 'bottom': 0.05,
                    'msa_labels': msa_labels, 'msa_labelsize': 4,
-                   'data_max': 1.1, 'data_min': -0.1, 'data_labels': state_labels, 'data_colors': state_colors,
-                   'msa_legend': True, 'legend_kwargs': {'bbox_to_anchor': (0.90, 0.5), 'loc': 'center left', 'fontsize': 8,
-                                                         'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
-    adjust_tall = {'left': 0.06, 'bottom': 0.01, 'right': 0.89, 'top': 0.99}
+                   'data_max': 1.05, 'data_min': -0.05, 'data_labels': state_labels, 'data_colors': state_colors,
+                   'msa_legend': True,
+                   'legend_kwargs': {'bbox_to_anchor': (0.905, 0.5), 'loc': 'center left', 'fontsize': 8,
+                                     'handletextpad': 0.5, 'markerscale': 1.25, 'handlelength': 1}}
 
     # Plot labels
     lines = {label: np.zeros(len(msa[0]['seq'])) for label in state_labels}
@@ -193,12 +195,10 @@ for (OGid, ppid), labels in ids2labels.items():
     data = [lines[label] for label in state_labels]
 
     plot_msa_data(msa_seqs, data, **kwargs_wide)
-    plt.subplots_adjust(**adjust_wide)
     plt.savefig(f'out/traces/{OGid}-{ppid}_wide_labels.png')
     plt.close()
 
     plot_msa_data(msa_seqs, data, **kwargs_tall)
-    plt.subplots_adjust(**adjust_tall)
     plt.savefig(f'out/traces/{OGid}-{ppid}_tall_labels.png')
     plt.close()
 
@@ -208,12 +208,10 @@ for (OGid, ppid), labels in ids2labels.items():
     data = [fbs[label] for label in state_labels]
 
     plot_msa_data(msa_seqs, data, **kwargs_wide)
-    plt.subplots_adjust(**adjust_wide)
     plt.savefig(f'out/traces/{OGid}-{ppid}_wide.png')
     plt.close()
 
     plot_msa_data(msa_seqs, data, **kwargs_tall)
-    plt.subplots_adjust(**adjust_tall)
     plt.savefig(f'out/traces/{OGid}-{ppid}_tall.png')
     plt.close()
 
