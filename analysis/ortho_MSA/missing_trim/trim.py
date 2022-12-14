@@ -110,7 +110,7 @@ fig, ax = plt.subplots()
 ax.bar(counts.index, counts.values, width=1)
 ax.set_xlabel('Number of trims in sequence')
 ax.set_ylabel('Number of sequences')
-fig.savefig('out/hist_OGnum-seqnum.png')
+fig.savefig('out/hist_seqnum-trimnum.png')
 plt.close()
 
 # Distribution of length of trims
