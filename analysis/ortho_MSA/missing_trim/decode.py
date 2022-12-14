@@ -77,7 +77,7 @@ if __name__ == '__main__':
             if error_flag1 == 'False' and error_flag2 == 'False':
                 OGids.append(OGid)
 
-    with open('../missing/out/model.json') as file:
+    with open('../missing_hmm/out/model.json') as file:
         model_json = json.load(file)
 
     if not os.path.exists('out/posteriors/'):
