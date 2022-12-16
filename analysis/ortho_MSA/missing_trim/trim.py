@@ -131,6 +131,22 @@ ax.set_ylabel('Number of trims')
 fig.savefig('out/hist_trimnum-ratio.png')
 plt.close()
 
+# Distribution of lengths of total region trims
+fig, ax = plt.subplots()
+ax.hist(ppid_groups['length'].sum(), bins=100)
+ax.set_xlabel('Total length of trims in sequence')
+ax.set_ylabel('Number of sequences')
+fig.savefig('out/hist_seqnum-length.png')
+plt.close()
+
+# Distribution of length ratios of total region trims
+fig, ax = plt.subplots()
+ax.hist(ppid_groups['length_ratio'].sum(), bins=50)
+ax.set_xlabel('Total length ratio of trims in sequence')
+ax.set_ylabel('Number of sequences')
+fig.savefig('out/hist_seqnum-ratio.png')
+plt.close()
+
 """
 NOTES
 While unlikely, it is possible for a protein to be in multiple OGids at this point since during gene clustering, some
