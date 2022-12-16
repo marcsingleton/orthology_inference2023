@@ -53,8 +53,8 @@ for labels in ids2labels.values():
     for start, stop, label in labels:
         counts[label] += stop - start
 values = [counts[label] for label in state_labels]
-labels = [f'{label}\n{value:,}' for label, value in zip(state_labels, values)]
-plt.pie(values, colors=state_colors, labels=labels, labeldistance=1.2, textprops={'ha': 'center'})
+labels = [f'{label}\n({value:,})' for label, value in zip(state_labels, values)]
+plt.pie(values, colors=state_colors, labels=labels, labeldistance=1.25, textprops={'ha': 'center'})
 plt.title('Distribution of position labels across states')
 plt.savefig('out/pie_labels.png')
 plt.close()

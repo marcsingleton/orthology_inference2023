@@ -88,10 +88,10 @@ OGid_groups = df.groupby(['OGid'])
 
 # Number of OGs with trims
 values = [len(set(OGids)) - df['OGid'].nunique(), df['OGid'].nunique()]
-labels = [f'{label}\n{value:,}' for label, value in zip(['w/o trims', 'w/ trims'], values)]
+labels = [f'{label}\n({value:,})' for label, value in zip(['no missing trims', 'missing trims'], values)]
 fig, ax = plt.subplots()
-ax.pie(values, labels=labels, labeldistance=1.15)
-ax.set_title('OGs w/ and w/o trims')
+ax.pie(values, labels=labels, labeldistance=1.35, textprops={'ha': 'center'})
+ax.set_title('OGs by presence of missing trims')
 fig.savefig('out/pie_trims.png')
 plt.close()
 
