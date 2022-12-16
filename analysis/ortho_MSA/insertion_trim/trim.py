@@ -291,7 +291,7 @@ plt.close()
 
 # Distribution of length ratios of total region trims
 fig, ax = plt.subplots()
-ax.hist(groups2['length_ratio'].sum(), bins=100)
+ax.hist(groups2['length_ratio'].sum(), bins=50)
 ax.set_xlabel('Total length ratio of region trims in OG')
 ax.set_ylabel('Number of OGs')
 fig.savefig('out/hist_OGnum-regionratio.png')
