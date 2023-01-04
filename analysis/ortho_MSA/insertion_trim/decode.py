@@ -34,14 +34,14 @@ def decode(OGid, model_json, tree_template):
     tips = {tip.name: tip for tip in tree.tips()}
     for record in msa:
         spid, seq = record['spid'], record['seq']
-        conditional = np.zeros((2, len(seq)))
+        value = np.zeros((2, len(seq)))
         for j, sym in enumerate(seq):
             if sym in ['-', '.']:
-                conditional[0, j] = 1
+                value[0, j] = 1
             else:
-                conditional[1, j] = 1
+                value[1, j] = 1
         tip = tips[spid]
-        tip.conditional = conditional
+        tip.value = value
 
     # Instantiate model
     e_dists_rv = {}

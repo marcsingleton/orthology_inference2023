@@ -40,39 +40,42 @@ def get_tree_pmf(tree, pi, q0, q1, p0, p1):
     return l
 
 
-def get_tip_pmf(tree, tip_name, pi, q0, q1, p0, p1):
+def get_tip_pmf(tree, tip, pi, q0, q1, p0, p1):
     """Return pmf of tip with tip_name given other tips."""
     pmf0 = get_tree_pmf(tree, pi, q0, q1, p0, p1)
 
-    tip = tree.tip_dict[tip_name]
-    tip.conditional = 1 - tip.conditional  # Flip state of given tip
+    tip.value = 1 - tip.value  # Flip state of given tip
     pmf1 = get_tree_pmf(tree, pi, q0, q1, p0, p1)
-    tip.conditional = 1 - tip.conditional  # Flip state of given tip back
+    tip.value = 1 - tip.value  # Flip state of given tip back
 
     return pmf0 / (pmf0 + pmf1)
 
 
-def get_conditional(node, q0, q1, p0, p1):
+def get_conditional(tree, q0, q1, p0, p1, inplace=False):
     """Return conditional probabilities of tree given tips and node state."""
-    ss, ps = [], []
-    for child in node.children:
-        if child.is_tip():
-            s, conditional = np.zeros(child.conditional.shape[1]), child.conditional
-            conditional = np.matmul([[1-p0, p0], [p1, 1-p1]], conditional)
+    if not inplace:
+        tree = tree.copy()  # Make copy so computations do not change original tree
+
+    for node in tree.postorder():
+        if node.is_tip():
+            node.s = np.zeros(node.value.shape[1])
+            node.conditional = np.matmul([[1-p0, p0], [p1, 1-p1]], node.value)
         else:
-            s, conditional = get_conditional(child, q0, q1, p0, p1)
-        m = get_transition_matrix(q0, q1, child.length)
-        p = np.matmul(m, conditional)
+            ss, ps = [], []
+            for child in node.children:
+                s, conditional = child.s, child.conditional
+                m = get_transition_matrix(q0, q1, child.length)
+                p = np.matmul(m, conditional)
 
-        ss.append(s)
-        ps.append(p)
+                ss.append(s)
+                ps.append(p)
 
-    conditional = np.product(np.stack(ps), axis=0)
-    s = conditional.sum(axis=0)
-    conditional = conditional / s  # Normalize to 1 to prevent underflow
-    s = log(s) + np.sum(np.stack(ss), axis=0)  # Pass forward scaling constant in log space
+            conditional = np.product(np.stack(ps), axis=0)
+            s = conditional.sum(axis=0)
+            node.conditional = conditional / s  # Normalize to 1 to prevent underflow
+            node.s = log(s) + np.sum(np.stack(ss), axis=0)  # Pass forward scaling constant in log space
 
-    return s, conditional
+    return tree.s, tree.conditional
 
 
 def get_transition_matrix(q0, q1, t):
@@ -124,95 +127,100 @@ def get_tree_prime(tree, pi, q0, q1, p0, p1, param):
         raise ValueError('"param" is not "pi", "q0", "q1", "p0", or "p1"')
 
 
-def get_tip_prime(tree, tip_name, pi, q0, q1, p0, p1, param):
+def get_tip_prime(tree, tip, pi, q0, q1, p0, p1, param):
     """Return derivative of probability of tip relative to a given parameter."""
     pmf0 = get_tree_pmf(tree, pi, q0, q1, p0, p1)
     pmf0_prime = get_tree_prime(tree, pi, q0, q1, p0, p1, param)
 
-    tip = tree.tip_dict[tip_name]
-    tip.conditional = 1 - tip.conditional  # Flip state of given tip
+    tip.value = 1 - tip.value  # Flip state of given tip
     pmf1 = get_tree_pmf(tree, pi, q0, q1, p0, p1)
     pmf1_prime = get_tree_prime(tree, pi, q0, q1, p0, p1, param)
-    tip.conditional = 1 - tip.conditional  # Flip state of given tip back
+    tip.value = 1 - tip.value  # Flip state of given tip back
 
     d = pmf0 + pmf1
     d_prime = pmf0_prime + pmf1_prime
     return (pmf0_prime * d - pmf0 * d_prime) / d ** 2  # Quotient rule applied to get_tip_pmf
 
 
-def get_conditional_prime_q(node, q0, q1, p0, p1, param):
+def get_conditional_prime_q(tree, q0, q1, p0, p1, param, inplace=False):
     """Return derivative of conditional probabilities relative to q."""
-    # Collect product and derivative of product for each branch
-    ps = []
-    dps = []
-    for child in node.children:
-        if child.is_tip():
-            conditional = child.conditional
-            conditional = np.matmul([[1-p0, p0], [p1, 1-p1]], conditional)
-            derivative = np.zeros((2, conditional.shape[1]))
+    if not inplace:
+        tree = tree.copy()  # Make copy so computations do not change original tree
+
+    get_conditional(tree, q0, q1, p0, p1, inplace=True)  # Calculate conditionals for use during traversal
+    for node in tree.postorder():
+        if node.is_tip():
+            node.conditional = np.matmul([[1-p0, p0], [p1, 1-p1]], node.value)
+            node.derivative = np.zeros((2, node.value.shape[1]))
         else:
-            s, conditional = get_conditional(child, q0, q1, p0, p1)
-            conditional = exp(s) * conditional  # Un-normalize
-            derivative = get_conditional_prime_q(child, q0, q1, p0, p1, param)
+            # Collect product and derivative of product for each branch
+            ps = []
+            dps = []
+            for child in node.children:
+                s, conditional, derivative = child.s, child.conditional, child.derivative
+                conditional = exp(s) * conditional  # Un-normalize
 
-        m = get_transition_matrix(q0, q1, child.length)
-        p = np.matmul(m, conditional)
+                m = get_transition_matrix(q0, q1, child.length)
+                p = np.matmul(m, conditional)
 
-        dm = get_transition_matrix_prime_q(q0, q1, child.length, param)
-        dp = np.matmul(dm, conditional) + np.matmul(m, derivative)
+                dm = get_transition_matrix_prime_q(q0, q1, child.length, param)
+                dp = np.matmul(dm, conditional) + np.matmul(m, derivative)
 
-        ps.append(p)
-        dps.append(dp)
+                ps.append(p)
+                dps.append(dp)
 
-    # Assemble products and derivatives into terms and then sum (product rule)
-    terms = []
-    for i in range(len(node.children)):
-        term = [dps[j] if i == j else ps[j] for j in range(len(node.children))]
-        term = np.product(np.stack(term), axis=0)
-        terms.append(term)
-    derivative = np.sum(np.stack(terms), axis=0)
+            # Assemble products and derivatives into terms and then sum (product rule)
+            terms = []
+            for i in range(len(node.children)):
+                term = [dps[j] if i == j else ps[j] for j in range(len(node.children))]
+                term = np.product(np.stack(term), axis=0)
+                terms.append(term)
+            node.derivative = np.sum(np.stack(terms), axis=0)
 
-    return derivative
+    return tree.derivative
 
 
-def get_conditional_prime_p(node, q0, q1, p0, p1, param):
+def get_conditional_prime_p(tree, q0, q1, p0, p1, param, inplace=False):
     """Return derivative of conditional probabilities relative to p."""
-    # Collect product and derivative of product for each branch
-    ps = []
-    dps = []
-    for child in node.children:
-        if child.is_tip():
-            conditional = child.conditional
-            conditional = np.matmul([[1 - p0, p0], [p1, 1 - p1]], conditional)
-            if param == 'p0':
-                dm = [[-1, 1], [0, 0]]
-            elif param == 'p1':
-                dm = [[0, 0], [1, -1]]
-            else:
-                raise ValueError('"param" is not "p0" or "p1"')
-            derivative = np.matmul(dm, child.conditional)  # Use original conditional
+    if param == 'p0':
+        dm = [[-1, 1], [0, 0]]
+    elif param == 'p1':
+        dm = [[0, 0], [1, -1]]
+    else:
+        raise ValueError('"param" is not "p0" or "p1"')
+    if not inplace:
+        tree = tree.copy()  # Make copy so computations do not change original tree
+
+    get_conditional(tree, q0, q1, p0, p1, inplace=True)  # Calculate conditionals for use during traversal
+    for node in tree.postorder():
+        if node.is_tip():
+            node.conditional = np.matmul([[1 - p0, p0], [p1, 1 - p1]], node.value)
+            node.derivative = np.matmul(dm, node.value)  # Use original value
         else:
-            s, conditional = get_conditional(child, q0, q1, p0, p1)
-            conditional = exp(s) * conditional  # Un-normalize
-            derivative = get_conditional_prime_p(child, q0, q1, p0, p1, param)
+            # Collect product and derivative of product for each branch
+            ps = []
+            dps = []
+            for child in node.children:
+                s, conditional, derivative = child.s, child.conditional, child.derivative
+                conditional = exp(s) * conditional  # Un-normalize
 
-        m = get_transition_matrix(q0, q1, child.length)
-        p = np.matmul(m, conditional)
+                m = get_transition_matrix(q0, q1, child.length)
+                p = np.matmul(m, conditional)
 
-        dp = np.matmul(m, derivative)
+                dp = np.matmul(m, derivative)
 
-        ps.append(p)
-        dps.append(dp)
+                ps.append(p)
+                dps.append(dp)
 
-    # Assemble products and derivatives into terms and then sum (product rule)
-    terms = []
-    for i in range(len(node.children)):
-        term = [dps[j] if i == j else ps[j] for j in range(len(node.children))]
-        term = np.product(np.stack(term), axis=0)
-        terms.append(term)
-    derivative = np.sum(np.stack(terms), axis=0)
+            # Assemble products and derivatives into terms and then sum (product rule)
+            terms = []
+            for i in range(len(node.children)):
+                term = [dps[j] if i == j else ps[j] for j in range(len(node.children))]
+                term = np.product(np.stack(term), axis=0)
+                terms.append(term)
+            node.derivative = np.sum(np.stack(terms), axis=0)
 
-    return derivative
+    return tree.derivative
 
 
 def get_transition_matrix_prime_q(q0, q1, t, param):

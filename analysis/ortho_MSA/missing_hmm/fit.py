@@ -45,13 +45,14 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     spid = record['spid']
     tree, state_seq = record['tree'], record['state_seq']
     mis, mijs = record['mis'], record['mijs']
+    tips = {tip.name: tip for tip in tree.tips()}
 
     # Pre-calculate probabilities for each state as array
     tip_pmfs = {}
     e_dists_rv = {}
     for s, e_dist in e_dists_norm.items():
         pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
-        tip_pmf = utils.get_tip_pmf(tree, spid, pi, q0, q1, p0, p1)
+        tip_pmf = utils.get_tip_pmf(tree, tips[spid], pi, q0, q1, p0, p1)
         tip_pmfs[s] = tip_pmf
         e_dists_rv[s] = utils.ArrayRV(tip_pmf)
 
@@ -82,11 +83,11 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     for s, e_dist in e_dists_norm.items():
         pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
         tip_pmf = tip_pmfs[s]
-        tip_prime_pi = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'pi')
-        tip_prime_q0 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'q0')
-        tip_prime_q1 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'q1')
-        tip_prime_p0 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'p0')
-        tip_prime_p1 = utils.get_tip_prime(tree, spid, pi, q0, q1, p0, p1, 'p1')
+        tip_prime_pi = utils.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'pi')
+        tip_prime_q0 = utils.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'q0')
+        tip_prime_q1 = utils.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'q1')
+        tip_prime_p0 = utils.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'p0')
+        tip_prime_p1 = utils.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'p1')
 
         # Equations 2.15 and 2.16 (emission parameter phi only)
         e_grad = {}
@@ -168,17 +169,16 @@ if __name__ == '__main__':
         # Load tree and convert to vectors at tips
         tree = tree_template.shear([record['spid'] for record in msa])
         tips = {tip.name: tip for tip in tree.tips()}
-        tree.tip_dict = tips
         for record in msa:
             spid, seq = record['spid'], record['seq']
-            conditional = np.zeros((2, len(seq)))
+            value = np.zeros((2, len(seq)))
             for j, sym in enumerate(seq):
                 if sym in ['-', '.']:
-                    conditional[0, j] = 1
+                    value[0, j] = 1
                 else:
-                    conditional[1, j] = 1
+                    value[1, j] = 1
             tip = tips[spid]
-            tip.conditional = conditional
+            tip.value = value
 
         # Create state sequence
         state_seq = []

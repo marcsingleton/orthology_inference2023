@@ -23,17 +23,16 @@ def decode(OGid, model_json, tree_template):
     # Load tree and convert to vectors at tips
     tree = tree_template.shear([record['spid'] for record in msa])
     tips = {tip.name: tip for tip in tree.tips()}
-    tree.tip_dict = tips
     for record in msa:
         spid, seq = record['spid'], record['seq']
-        conditional = np.zeros((2, len(seq)))
+        value = np.zeros((2, len(seq)))
         for j, sym in enumerate(seq):
             if sym in ['-', '.']:
-                conditional[0, j] = 1
+                value[0, j] = 1
             else:
-                conditional[1, j] = 1
+                value[1, j] = 1
         tip = tips[spid]
-        tip.conditional = conditional
+        tip.value = value
 
     records = []
     for record in msa:
@@ -43,7 +42,7 @@ def decode(OGid, model_json, tree_template):
         e_dists_rv = {}
         for s, e_dist in model_json['e_dists'].items():
             pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
-            pmf = utils.get_tip_pmf(tree, spid, pi, q0, q1, p0, p1)
+            pmf = utils.get_tip_pmf(tree, tips[spid], pi, q0, q1, p0, p1)
             e_dists_rv[s] = utils.ArrayRV(pmf)
         model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
