@@ -66,7 +66,7 @@ def get_brownian_covariance(tree):
     # Fill in covariance matrix from root to tips
     tree.root_length = 0
     cov = np.zeros((len(tips), len(tips)))
-    for node in tree.traverse(include_self=True):
+    for node in tree.preorder():
         for child in node.children:
             child.root_length = node.root_length + child.length
         if not node.is_tip():
@@ -97,6 +97,7 @@ def get_contrasts(tree):
         Inferred root value
     """
     tree = tree.copy()  # Make copy so computations do not change original tree
+    tree.length = 0  # Set root length to 0 to allow calculation at root
 
     contrasts = []
     for node in tree.postorder():

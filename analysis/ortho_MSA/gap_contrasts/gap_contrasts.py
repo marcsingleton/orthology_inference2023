@@ -25,7 +25,6 @@ for row in OG_filter.itertuples():
     for tip in tree.tips():
         gap_vector = np.asarray([1 if sym == '-' else 0 for sym in msa[tip.name]])
         tip.value = gap_vector
-    tree.length = 0  # Set root length to 0 for convenience
 
     contrasts, _ = get_contrasts(tree)
     gap_matrix = np.asarray([[0 if sym == '-' else 1 for sym in seq] for seq in msa.values()])
