@@ -45,7 +45,8 @@ for OGid in OGids:
         spid2gnids[spid].add(gnid)
 
     tree = tree_template.shear(spid_set)
-    spid_weights = {tip.name: weight for tip, weight in get_brownian_weights(tree)}
+    tips, weights = get_brownian_weights(tree)
+    spid_weights = {tip.name: weight for tip, weight in zip(tips, weights)}
     gnid_weights = {}
     for spid, gnids in spid2gnids.items():
         weight = spid_weights[spid] / len(gnids)  # Species weight is distributed evenly over all associated genes

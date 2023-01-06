@@ -49,7 +49,8 @@ def run_cmd(OGid):
         spid2ppids[spid].append(ppid)
 
     tree = tree_template.shear(spid_set)
-    spid_weights = {tip.name: weight for tip, weight in get_brownian_weights(tree)}
+    tips, weights = get_brownian_weights(tree)
+    spid_weights = {tip.name: weight for tip, weight in zip(tips, weights)}
     ppid_weights = {}
     for spid, ppids in spid2ppids.items():
         weight = spid_weights[spid] / len(ppids)  # Species weight is distributed evenly over all associated proteins

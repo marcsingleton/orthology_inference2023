@@ -25,16 +25,18 @@ def get_brownian_weights(tree):
 
     Returns
     -------
-    weights: list of tuples of (tip, weight)
+    tips: list of TreeNodes (skbio)
+        List of tips in order as entries in weights
+    weights: ndarray
     """
     # Compute weights
     # The formula below is from the appendix of the referenced work
-    idx2tip, cov = get_brownian_covariance(tree)
+    tips, cov = get_brownian_covariance(tree)
     inv = np.linalg.inv(cov)
     row_sum = inv.sum(axis=1)
     total_sum = inv.sum()
     weights = row_sum / total_sum
-    return [(idx2tip[idx], weight) for idx, weight in enumerate(weights)]
+    return tips, weights
 
 
 def get_brownian_covariance(tree):
@@ -46,15 +48,14 @@ def get_brownian_covariance(tree):
 
     Returns
     -------
-    idx2tip: dict
-        Maps covariance matrix indices to corresponding tip on tree
+    tips: list of TreeNodes (skbio)
+        List of tips in order of entries in covariance matrix
     cov: ndarray
         Covariance matrix
     """
     tree = tree.copy()  # Make copy so computations do not change original tree
     tips = list(tree.tips())
     tip2idx = {tip: i for i, tip in enumerate(tips)}
-    idx2tip = {i: tip for i, tip in enumerate(tips)}
 
     # Accumulate tip names up to root
     for node in tree.postorder():
@@ -79,7 +80,7 @@ def get_brownian_covariance(tree):
             idx = tip2idx[node]
             cov[idx, idx] = node.root_length
 
-    return idx2tip, cov
+    return tips, cov
 
 
 def get_contrasts(tree):
