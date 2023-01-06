@@ -26,7 +26,7 @@ for row in OG_filter.itertuples():
         gap_vector = np.asarray([1 if sym == '-' else 0 for sym in msa[tip.name]])
         tip.value = gap_vector
 
-    contrasts, _ = get_contrasts(tree)
+    _, contrasts = get_contrasts(tree)
     gap_matrix = np.asarray([[0 if sym == '-' else 1 for sym in seq] for seq in msa.values()])
     len1 = gap_matrix.shape[1]  # Total length of alignment
     len2 = (gap_matrix / len(msa)).sum()  # Adjusted length of alignment

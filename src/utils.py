@@ -92,10 +92,10 @@ def get_contrasts(tree):
 
     Returns
     -------
-    contrasts: list of numerics
-        Contrasts have mean 0 and variance equal to the rate of trait evolution
     root: numeric
         Inferred root value
+    contrasts: list of numerics
+        Contrasts have mean 0 and variance equal to the rate of trait evolution
     """
     tree = tree.copy()  # Make copy so computations do not change original tree
     tree.length = 0  # Set root length to 0 to allow calculation at root
@@ -114,7 +114,7 @@ def get_contrasts(tree):
         node.length += length1 * length2 / length_sum
         contrasts.append((value1 - value2) / length_sum ** 0.5)
 
-    return contrasts, tree.value
+    return tree.value, contrasts
 
 
 def read_fasta(path):
