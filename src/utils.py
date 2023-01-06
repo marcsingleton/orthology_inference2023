@@ -25,7 +25,31 @@ def get_brownian_weights(tree):
 
     Returns
     -------
-    weights: list of tuples of (tipm, weight)
+    weights: list of tuples of (tip, weight)
+    """
+    # Compute weights
+    # The formula below is from the appendix of the referenced work
+    idx2tip, cov = get_brownian_covariance(tree)
+    inv = np.linalg.inv(cov)
+    row_sum = inv.sum(axis=1)
+    total_sum = inv.sum()
+    weights = row_sum / total_sum
+    return [(idx2tip[idx], weight) for idx, weight in enumerate(weights)]
+
+
+def get_brownian_covariance(tree):
+    """Get covariance matrix corresponding to Brownian motion process on tree.
+
+    Parameters
+    ----------
+    tree: TreeNode (skbio)
+
+    Returns
+    -------
+    idx2tip: dict
+        Maps covariance matrix indices to corresponding tip on tree
+    cov: ndarray
+        Covariance matrix
     """
     tree = tree.copy()  # Make copy so computations do not change original tree
     tips = list(tree.tips())
@@ -55,13 +79,40 @@ def get_brownian_weights(tree):
             idx = tip2idx[node]
             cov[idx, idx] = node.root_length
 
-    # Compute weights
-    # The formula below is from the appendix of the referenced work
-    inv = np.linalg.inv(cov)
-    row_sum = inv.sum(axis=1)
-    total_sum = inv.sum()
-    weights = row_sum / total_sum
-    return [(idx2tip[idx], weight) for idx, weight in enumerate(weights)]
+    return idx2tip, cov
+
+
+def get_contrasts(tree):
+    """Get phylogenetically independent contrasts from tree.
+
+    Parameters
+    ----------
+    tree: TreeNode (skbio)
+
+    Returns
+    -------
+    contrasts: list of numerics
+        Contrasts have mean 0 and variance equal to the rate of trait evolution
+    root: numeric
+        Inferred root value
+    """
+    tree = tree.copy()  # Make copy so computations do not change original tree
+
+    contrasts = []
+    for node in tree.postorder():
+        if node.is_tip():
+            continue
+
+        child1, child2 = node.children
+        length1, length2 = child1.length, child2.length
+        value1, value2 = child1.value, child2.value
+
+        length_sum = length1 + length2
+        node.value = (value1 * length2 + value2 * length1) / length_sum
+        node.length += length1 * length2 / length_sum
+        contrasts.append((value1 - value2) / length_sum ** 0.5)
+
+    return contrasts, tree.value
 
 
 def read_fasta(path):

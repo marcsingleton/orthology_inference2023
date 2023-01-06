@@ -6,28 +6,7 @@ import re
 import numpy as np
 import pandas as pd
 import skbio
-from src.utils import read_fasta
-
-
-def get_contrasts(tree):
-    tree = tree.copy()  # Make copy so computations do not change original tree
-
-    contrasts = []
-    for node in tree.postorder():
-        if node.is_tip():
-            continue
-
-        child1, child2 = node.children
-        length1, length2 = child1.length, child2.length
-        value1, value2 = child1.value, child2.value
-
-        length_sum = length1 + length2
-        node.value = (value1 * length2 + value2 * length1) / length_sum
-        node.length += length1 * length2 / length_sum
-        contrasts.append((value1 - value2) / length_sum)
-
-    return contrasts, tree.value
-
+from src.utils import read_fasta, get_contrasts
 
 # Load tree
 tree_template = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
