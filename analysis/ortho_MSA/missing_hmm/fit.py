@@ -9,7 +9,7 @@ from functools import reduce
 import numpy as np
 import skbio
 import src.ortho_MSA.hmm as hmm
-from src.ortho_MSA import utils
+from src.ortho_MSA import phylo
 from numpy import exp, log
 from src.utils import read_fasta
 
@@ -52,9 +52,9 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     e_dists_rv = {}
     for s, e_dist in e_dists_norm.items():
         pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
-        tip_pmf = utils.get_tip_pmf(tree, tips[spid], pi, q0, q1, p0, p1)
+        tip_pmf = phylo.get_tip_pmf(tree, tips[spid], pi, q0, q1, p0, p1)
         tip_pmfs[s] = tip_pmf
-        e_dists_rv[s] = utils.ArrayRV(tip_pmf)
+        e_dists_rv[s] = phylo.ArrayRV(tip_pmf)
 
     # Instantiate model and get expectations
     model = hmm.HMM(t_dists_norm, e_dists_rv, start_dist)
@@ -83,11 +83,11 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     for s, e_dist in e_dists_norm.items():
         pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
         tip_pmf = tip_pmfs[s]
-        tip_prime_pi = utils.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'pi')
-        tip_prime_q0 = utils.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'q0')
-        tip_prime_q1 = utils.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'q1')
-        tip_prime_p0 = utils.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'p0')
-        tip_prime_p1 = utils.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'p1')
+        tip_prime_pi = phylo.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'pi')
+        tip_prime_q0 = phylo.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'q0')
+        tip_prime_q1 = phylo.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'q1')
+        tip_prime_p0 = phylo.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'p0')
+        tip_prime_p1 = phylo.get_tip_prime(tree, tips[spid], pi, q0, q1, p0, p1, 'p1')
 
         # Equations 2.15 and 2.16 (emission parameter phi only)
         e_grad = {}

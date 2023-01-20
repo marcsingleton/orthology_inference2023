@@ -11,7 +11,7 @@ import pandas as pd
 import skbio
 from src.draw import plot_msa_data
 from src.ortho_MSA.trim import get_hull_slices, get_trim_slices
-from src.ortho_MSA import utils
+from src.ortho_MSA import phylo
 from src.utils import get_brownian_weights, read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
@@ -89,9 +89,9 @@ for label in ['norm1', 'norm2']:
         e_dists_rv = {}
         for s, e_dist in model_json['e_dists'].items():
             a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
-            pmf1 = utils.get_betabinom_pmf(emit_seq, len(input_msa), a, b)
-            pmf2 = utils.get_tree_pmf(tree, pi, q0, q1, p0, p1)
-            e_dists_rv[s] = utils.ArrayRV(pmf1 * pmf2)
+            pmf1 = phylo.get_betabinom_pmf(emit_seq, len(input_msa), a, b)
+            pmf2 = phylo.get_tree_pmf(tree, pi, q0, q1, p0, p1)
+            e_dists_rv[s] = phylo.ArrayRV(pmf1 * pmf2)
         model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
         # Make plotting parameters

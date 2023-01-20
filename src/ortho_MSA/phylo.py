@@ -1,4 +1,4 @@
-"""Classes and functions shared between fitting and plotting."""
+"""Classes and functions for fitting phylogenetic models."""
 
 import numpy as np
 from numpy import exp, log

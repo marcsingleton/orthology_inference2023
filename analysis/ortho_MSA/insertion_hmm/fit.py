@@ -9,7 +9,7 @@ from functools import reduce
 import numpy as np
 import skbio
 import src.ortho_MSA.hmm as hmm
-from src.ortho_MSA import utils
+from src.ortho_MSA import phylo
 from numpy import exp, log
 from src.utils import read_fasta
 
@@ -55,12 +55,12 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     e_dists_rv = {}
     for s, e_dist in e_dists_norm.items():
         a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
-        betabinom_pmf = utils.get_betabinom_pmf(emit_seq, n, a, b)
-        tree_pmf = utils.get_tree_pmf(tree, pi, q0, q1, p0, p1)
+        betabinom_pmf = phylo.get_betabinom_pmf(emit_seq, n, a, b)
+        tree_pmf = phylo.get_tree_pmf(tree, pi, q0, q1, p0, p1)
 
         betabinom_pmfs[s] = betabinom_pmf
         tree_pmfs[s] = tree_pmf
-        e_dists_rv[s] = utils.ArrayRV(betabinom_pmf * tree_pmf)
+        e_dists_rv[s] = phylo.ArrayRV(betabinom_pmf * tree_pmf)
 
     # Instantiate model and get expectations
     model = hmm.HMM(t_dists_norm, e_dists_rv, start_dist)
@@ -89,14 +89,14 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     for s, e_dist in e_dists_norm.items():
         a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
         betabinom_pmf = betabinom_pmfs[s]
-        betabinom_prime_a = utils.get_betabinom_prime(emit_seq, n, a, b, 'a')
-        betabinom_prime_b = utils.get_betabinom_prime(emit_seq, n, a, b, 'b')
+        betabinom_prime_a = phylo.get_betabinom_prime(emit_seq, n, a, b, 'a')
+        betabinom_prime_b = phylo.get_betabinom_prime(emit_seq, n, a, b, 'b')
         tree_pmf = tree_pmfs[s]
-        tree_prime_pi = utils.get_tree_prime(tree, pi, q0, q1, p0, p1, 'pi')
-        tree_prime_q0 = utils.get_tree_prime(tree, pi, q0, q1, p0, p1, 'q0')
-        tree_prime_q1 = utils.get_tree_prime(tree, pi, q0, q1, p0, p1, 'q1')
-        tree_prime_p0 = utils.get_tree_prime(tree, pi, q0, q1, p0, p1, 'p0')
-        tree_prime_p1 = utils.get_tree_prime(tree, pi, q0, q1, p0, p1, 'p1')
+        tree_prime_pi = phylo.get_tree_prime(tree, pi, q0, q1, p0, p1, 'pi')
+        tree_prime_q0 = phylo.get_tree_prime(tree, pi, q0, q1, p0, p1, 'q0')
+        tree_prime_q1 = phylo.get_tree_prime(tree, pi, q0, q1, p0, p1, 'q1')
+        tree_prime_p0 = phylo.get_tree_prime(tree, pi, q0, q1, p0, p1, 'p0')
+        tree_prime_p1 = phylo.get_tree_prime(tree, pi, q0, q1, p0, p1, 'p1')
 
         # Equations 2.15 and 2.16 (emission parameter phi only)
         e_grad = {}

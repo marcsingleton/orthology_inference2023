@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import skbio
 from matplotlib.lines import Line2D
-from src.ortho_MSA import utils
+from src.ortho_MSA import phylo
 from src.draw import plot_msa_data
 from src.utils import read_fasta
 
@@ -158,8 +158,8 @@ for (OGid, ppid), labels in ids2labels.items():
     e_dists_rv = {}
     for s, e_dist in model_json['e_dists'].items():
         pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
-        pmf = utils.get_tip_pmf(tree, tips[ppid2spid[ppid]], pi, q0, q1, p0, p1)
-        e_dists_rv[s] = utils.ArrayRV(pmf)
+        pmf = phylo.get_tip_pmf(tree, tips[ppid2spid[ppid]], pi, q0, q1, p0, p1)
+        e_dists_rv[s] = phylo.ArrayRV(pmf)
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
     # Make plotting parameters

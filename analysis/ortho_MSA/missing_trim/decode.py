@@ -8,7 +8,7 @@ import re
 import homomorph
 import numpy as np
 import skbio
-from src.ortho_MSA import utils
+from src.ortho_MSA import phylo
 from src.utils import read_fasta
 
 
@@ -42,8 +42,8 @@ def decode(OGid, model_json, tree_template):
         e_dists_rv = {}
         for s, e_dist in model_json['e_dists'].items():
             pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
-            pmf = utils.get_tip_pmf(tree, tips[spid], pi, q0, q1, p0, p1)
-            e_dists_rv[s] = utils.ArrayRV(pmf)
+            pmf = phylo.get_tip_pmf(tree, tips[spid], pi, q0, q1, p0, p1)
+            e_dists_rv[s] = phylo.ArrayRV(pmf)
         model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
         # Decode states and write
