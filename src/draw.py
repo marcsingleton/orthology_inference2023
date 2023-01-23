@@ -81,8 +81,8 @@ def draw_msa(msa,
 
     def get_dimensions(block_columns):
         im_length = sym_length * block_columns  # Length of final image
-        block_number = msa_columns // block_columns - (1 if msa_columns % block_columns == 0 else 0)  # Number of blocks in addition to the first
-        im_height = (sym_height * msa_rows + hspace) * block_number + sym_height * msa_rows  # Height of final image
+        block_number = ceil(msa_columns / block_columns)
+        im_height = sym_height * msa_rows + (block_number - 1) * (sym_height * msa_rows + hspace)
         return im_length, im_height
 
     # Set options
@@ -203,9 +203,10 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     aspect = (figsize[0] * (right - left)) / (figsize[1] * (top - bottom))
 
     def get_dimensions(block_columns):
-        plot_length = block_columns  # Length of final plot
-        block_number = msa_columns // block_columns - (1 if msa_columns % block_columns == 0 else 0)  # Number of blocks in addition to the first
-        plot_height = (1 + height_ratio + 2*hspace) * msa_rows * block_number + (1 + height_ratio + hspace) * msa_rows  # Height of final image
+        plot_length = block_columns
+        block_number = ceil(msa_columns / block_columns)
+        hspace_effective = hspace * (1 + height_ratio) / 2
+        plot_height = (1 + hspace_effective + height_ratio) * msa_rows + (block_number - 1) * (1 + 2 * hspace_effective + height_ratio) * msa_rows
         return plot_length, plot_height
 
     # Set options
@@ -243,7 +244,7 @@ def plot_msa_data(msa, data, figsize=(15, 6),
         data_alphas = [1 for _ in range(len(data))]
     elif len(data_alphas) != len(data):
         raise ValueError('len(data_alphas) does not match len(data)')
-    block_number = msa_columns // block_columns + (1 if msa_columns % block_columns > 0 else 0)  # Number of blocks
+    block_number = ceil(msa_columns / block_columns)
     block_rows = len(msa)
 
     # Draw axes
@@ -364,9 +365,9 @@ def plot_msa(msa, figsize=(12, 6),
     aspect = (figsize[0] * (right - left)) / (figsize[1] * (top - bottom))
 
     def get_dimensions(block_columns):
-        plot_length = block_columns  # Length of final plot
-        block_number = msa_columns // block_columns - (1 if msa_columns % block_columns == 0 else 0)  # Number of blocks in addition to the first
-        plot_height = (1 + hspace) * msa_rows * block_number + msa_rows  # Height of final image
+        plot_length = block_columns
+        block_number = ceil(msa_columns / block_columns)
+        plot_height = msa_rows + (block_number - 1) * (1 + hspace) * msa_rows
         return plot_length, plot_height
 
     # Set options
@@ -382,7 +383,7 @@ def plot_msa(msa, figsize=(12, 6),
         sym2color = default_sym2color
     if gap2color is None:
         gap2color = default_gap2color
-    block_number = msa_columns // block_columns + (1 if msa_columns % block_columns > 0 else 0)  # Number of blocks
+    block_number = ceil(msa_columns / block_columns)
     block_rows = len(msa)
 
     # Draw axes
