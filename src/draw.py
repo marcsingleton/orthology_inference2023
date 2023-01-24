@@ -458,12 +458,12 @@ def plot_msa(msa, figsize=(12, 6),
     return fig
 
 
-def plot_tree(tree, ax=None, tip_labels=True, support_labels=False,
+def plot_tree(tree, *, ax=None,
               color=None, linewidth=None,
-              tip_fontsize=None, tip_fontcolor=None, tip_offset=0,
-              support_format_spec=None, support_fontsize=None, support_fontcolor=None,
-              support_ha='center', support_va='top',
-              support_hoffset=0, support_voffset=0):
+              tip_labels=True, tip_fontsize=None, tip_fontcolor=None, tip_offset=0.005,
+              support_labels=False, support_format_spec=None, support_fontsize=None, support_fontcolor=None,
+              support_ha='center', support_va='top', support_hoffset=0, support_voffset=0,
+              xmin_pad=0.01, xmax_pad=0.1, ymin_pad=0.025, ymax_pad=0.025):
     """Draw tree using matplotlib.
 
     Parameters
@@ -471,19 +471,20 @@ def plot_tree(tree, ax=None, tip_labels=True, support_labels=False,
     tree: TreeNode (skbio)
     ax: Axes (matplotlib)
         Axes used to draw tree. If None, a new Figure and Axes are created.
-    tip_labels: bool
-        Toggle drawing tip labels.
-    support_labels: bool
-        Toggle drawing support labels. Support labels are obtained from
-        support attribute. If the attribute is None, it is ignored. Use
-        assign_supports to extract the numerical values from the node labels.
     color: color (matplotlib)
     linewidth: float
+        Width of branches.
+    tip_labels: bool
+        Toggle drawing tip labels.
     tip_fontsize: float or {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'}
     tip_fontcolor: color (matplotlib)
     tip_offset: float
         The offset of the tip label from the end of the branch tip in axes
         coordinates.
+    support_labels: bool
+        Toggle drawing support labels. Support labels are obtained from
+        support attribute. If the attribute is None, it is ignored. Use
+        assign_supports to extract the numerical values from the node labels.
     support_format_spec: str
         Format specification for supports using the format specification mini-
         language.
@@ -499,6 +500,9 @@ def plot_tree(tree, ax=None, tip_labels=True, support_labels=False,
     support_hoffset: float
         The horizontal offset of the support label relative to its alignment in
         axes coordinates.
+    xmin_pad, xmax_pad, ymin_pad, ymax_pad: float
+        Fraction of respective data ranges to pad on lower and upper bounds of
+        respective axes.
 
     Returns
     -------
@@ -523,52 +527,54 @@ def plot_tree(tree, ax=None, tip_labels=True, support_labels=False,
     if support_fontcolor is None:
         support_fontcolor = 'black'
     if support_ha == 'left':
-        get_x = lambda node: x_pos.get(node.parent, 0)  # In case root node
+        get_x = lambda node: xpos.get(node.parent, 0)  # In case root node
     elif support_ha == 'center':
-        get_x = lambda node: (x_pos.get(node.parent, 0) + x_pos[node]) / 2
+        get_x = lambda node: (xpos.get(node.parent, 0) + xpos[node]) / 2
     elif support_ha == 'right':
-        get_x = lambda node: x_pos[node]
+        get_x = lambda node: xpos[node]
     else:
         raise ValueError(f"'{support_ha}' is not a valid value for support_ha; "
                          f"supported values are 'left', 'right', 'center'")
 
     # Make mapping of each node to its horizontal positions
-    x_pos = {}
+    xpos = {}
     for node in tree.preorder():  # Return nodes on the way in
         length = node.length if node.length is not None else 0
-        depth = x_pos[node.parent] if node.parent else 0  # Checks for root node
-        x_pos[node] = depth + length
+        depth = xpos[node.parent] if node.parent else 0  # Checks for root node
+        xpos[node] = depth + length
 
     # Make mapping of each node to its vertical position
     tips = list(tree.tips())
-    y_max = len(tips)
-    y_pos = {tip: y_max - i for i, tip in enumerate(reversed(tips))}
+    ymax = len(tips)
+    ypos = {tip: ymax - i for i, tip in enumerate(reversed(tips))}
     for node in tree.postorder():  # Return nodes on the way out
         if node.children:
-            y_pos[node] = (y_pos[node.children[0]] + y_pos[node.children[-1]]) / 2
+            ypos[node] = (ypos[node.children[0]] + ypos[node.children[-1]]) / 2
 
     # Adjust axes and add labels
-    x_max = max(x_pos.values())
-    y_max = max(y_pos.values())
-    ax.set_xlim(-0.05 * x_max, 1.25 * x_max)  # Add margins around the tree to prevent overlapping the axes
-    ax.set_ylim(y_max + 0.8, 0.2)  # Also invert the y-axis (origin at the top)
-    ax.set_xlabel('branch length')
+    xmin, xmax = min(xpos.values()), max(xpos.values())
+    xrange = xmax - xmin
+    ax.set_xlim(xmin - xmin_pad * xrange, xmax + xmax_pad * xrange)
+
+    ymin, ymax = min(ypos.values()), max(ypos.values())
+    yrange = ymax - ymin
+    ax.set_ylim(ymax + ymax_pad * yrange, ymin - ymin_pad * yrange)  # Invert the y-axis (origin at the top)
 
     # Plot lines and text
     lines = []
     transform = ax.transLimits.inverted()  # Axes to data coordinates
     for node in tree.traverse():
         if node.parent:  # Horizontal line of node
-            x0, x1 = x_pos[node.parent], x_pos[node]
-            y = y_pos[node]
+            x0, x1 = xpos[node.parent], xpos[node]
+            y = ypos[node]
             lines.append(([(x0, y), (x1, y)], linewidth, color))
         if node.children:  # Vertical line of node
-            x = x_pos[node]
-            y0, y1 = y_pos[node.children[-1]], y_pos[node.children[0]]
+            x = xpos[node]
+            y0, y1 = ypos[node.children[-1]], ypos[node.children[0]]
             lines.append(([(x, y0), (x, y1)], linewidth, color))
         if tip_labels and node.is_tip():  # Write tip names
             dx, _ = transform.transform((tip_offset, 0)) - transform.transform((0, 0))
-            ax.text(x_pos[node] + dx, y_pos[node], node.name, verticalalignment='center',
+            ax.text(xpos[node] + dx, ypos[node], node.name, verticalalignment='center',
                     fontsize=tip_fontsize, color=tip_fontcolor)
         if support_labels and node.support is not None and not node.is_tip():  # Write support values if not None and not tip
             if support_format_spec is None:
@@ -576,11 +582,11 @@ def plot_tree(tree, ax=None, tip_labels=True, support_labels=False,
             else:
                 support_string = f'{node.support:{support_format_spec}}'
             dx, dy = transform.transform((support_hoffset, support_voffset)) - transform.transform((0, 0))
-            ax.text(get_x(node) + dx, y_pos[node] + dy, support_string,
+            ax.text(get_x(node) + dx, ypos[node] + dy, support_string,
                     fontsize=support_fontsize, color=support_fontcolor,
                     horizontalalignment=support_ha, verticalalignment=support_va)
     lc_args = {key: value for key, value in zip(['segments', 'linewidth', 'color'], zip(*lines))}
-    ax.add_collection(LineCollection(**lc_args))
+    ax.add_collection(LineCollection(**lc_args, capstyle='projecting'))
 
     return fig, ax
 
