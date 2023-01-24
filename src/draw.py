@@ -126,7 +126,7 @@ def draw_msa(msa,
 def plot_msa_data(msa, data, figsize=(15, 6),
                   msa_labels=None, msa_labelsize=6, msa_ticklength=0, msa_tickwidth=0.5, msa_tickpad=1,
                   x_start=0, x_labelsize=6, y_labelsize=6,
-                  tree=None, tree_position=0, tree_width=0.1, tree_linewidth=0.75, tip_labels=False,
+                  tree=None, tree_position=0, tree_width=0.1, tree_kwargs=None,
                   height_ratio=1, hspace=0.25, sym_length=7, sym_height=7,
                   left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
                   data_min=None, data_max=None,
@@ -165,10 +165,8 @@ def plot_msa_data(msa, data, figsize=(15, 6),
         Position of left edge of tree in figure coordinates.
     tree_width: float
         Width of tree in figure coordinates
-    tree_linewidth: float
-        Width of tree branches.
-    tip_labels: bool
-        Toggle drawing tip labels.
+    tree_kwargs: dict
+        Dictionary of additional keyword arguments passed to plot_tree.
     height_ratio: float
         Height of data axes as fraction of height of block.
     hspace: float
@@ -227,6 +225,8 @@ def plot_msa_data(msa, data, figsize=(15, 6),
         msa_labels = msa_rows * ['']
     elif len(msa_labels) != msa_rows:
         raise ValueError('len(msa_labels) does not match len(msa)')
+    if tree_kwargs is None:
+        tree_kwargs = {}
     if legend_kwargs is None:
         legend_kwargs = {}
     if block_columns is None:
@@ -298,7 +298,7 @@ def plot_msa_data(msa, data, figsize=(15, 6),
         if tree:
             transform = blended_transform_factory(fig.transFigure, msa_ax.transAxes)
             tree_ax = msa_ax.inset_axes([tree_position, 0, tree_width, 1], transform=transform)
-            plot_tree(tree, ax=tree_ax, tip_labels=tip_labels, linewidth=tree_linewidth)
+            plot_tree(tree, ax=tree_ax, ymin_pad=1 / (2 * msa_rows), ymax_pad=1 / (2 * msa_rows), **tree_kwargs)
             tree_ax.axis('off')
 
     # Draw legend
@@ -327,7 +327,7 @@ def plot_msa_data(msa, data, figsize=(15, 6),
 def plot_msa(msa, figsize=(12, 6),
              msa_labels=None, msa_labelsize=6, msa_length=0, msa_width=0.5, msa_pad=1,
              x_start=0, x_labelsize=6,
-             tree=None, tree_position=0, tree_width=0.1, tree_linewidth=0.75, tip_labels=False,
+             tree=None, tree_position=0, tree_width=0.1, tree_kwargs=None,
              hspace=0.25, sym_length=7, sym_height=7,
              left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
              msa_legend=False, legend_kwargs=None,
@@ -359,10 +359,8 @@ def plot_msa(msa, figsize=(12, 6),
         Position of left edge of tree in figure coordinates.
     tree_width: float
         Width of tree in figure coordinates
-    tree_linewidth: float
-        Width of tree branches.
-    tip_labels: bool
-        Toggle drawing tip labels.
+    tree_kwargs: dict
+        Dictionary of additional keyword arguments passed to plot_tree.
     hspace: float
         Padding between blocks of MSA as fraction of height of blocks.
     left, right, top, bottom: float
@@ -406,6 +404,8 @@ def plot_msa(msa, figsize=(12, 6),
         msa_labels = msa_rows * ['']
     elif len(msa_labels) != msa_rows:
         raise ValueError('len(msa_labels) does not match len(msa)')
+    if tree_kwargs is None:
+        tree_kwargs = {}
     if legend_kwargs is None:
         legend_kwargs = {}
     if block_columns is None:
@@ -437,7 +437,7 @@ def plot_msa(msa, figsize=(12, 6),
         if tree:
             transform = blended_transform_factory(fig.transFigure, msa_ax.transAxes)
             tree_ax = msa_ax.inset_axes([tree_position, 0, tree_width, 1], transform=transform)
-            plot_tree(tree, ax=tree_ax, tip_labels=tip_labels, linewidth=tree_linewidth)
+            plot_tree(tree, ax=tree_ax, ymin_pad=1 / (2 * msa_rows), ymax_pad=1 / (2 * msa_rows), **tree_kwargs)
             tree_ax.axis('off')
 
     # Draw legend
