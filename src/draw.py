@@ -46,7 +46,7 @@ def _get_block_columns(msa_columns, aspect, get_dimensions):
     return block_columns
 
 
-def draw_msa(msa,
+def draw_msa(msa, *,
              aspect=2.5, hspace=25, sym_length=7, sym_height=7,
              block_columns=None, sym2color=None, gap2color=None):
     """Draw alignment as PNG.
@@ -123,12 +123,12 @@ def draw_msa(msa,
     return im
 
 
-def plot_msa_data(msa, data, figsize=(15, 6),
+def plot_msa_data(msa, data, *,
                   msa_labels=None, msa_labelsize=6, msa_ticklength=0, msa_tickwidth=0.5, msa_tickpad=1,
                   x_start=0, x_labelsize=6, y_labelsize=6,
                   tree=None, tree_position=0, tree_width=0.1, tree_kwargs=None,
                   height_ratio=1, hspace=0.25, sym_length=7, sym_height=7,
-                  left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
+                  figsize=(15, 6), left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
                   data_min=None, data_max=None,
                   data_labels=None, data_colors=None, data_alphas=None,
                   msa_legend=False, legend_kwargs=None,
@@ -141,8 +141,6 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     data: list of lists or two-dimensional ndarray
         Data series to be plotted where outer list is the series and the inner
         list is a value associated with each column of the msa.
-    figsize: 2-tuple of floats
-        Figure dimension (width, height) in inches.
     msa_labels: list of strings
         Strings of labels of sequences in MSA in the same order as in msa.
         len(msa) must match len(msa_labels). Empty strings are not displayed.
@@ -172,14 +170,16 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     hspace: float
         Padding between each data axes and subsequent block of MSA as fraction
         of average height of blocks and data axes.
-    left, right, top, bottom: float
-        Extent of the subplots as a fraction of figure width or height.
-    anchor: (float, float)
-        Anchor for subplots.
     sym_length: int
         Number of pixels in length of the rectangles for each symbol.
     sym_height: int
         Number of pixels in height of the rectangles for each symbol.
+    figsize: 2-tuple of floats
+        Figure dimension (width, height) in inches.
+    left, right, top, bottom: float
+        Extent of the subplots as a fraction of figure width or height.
+    anchor: (float, float)
+        Anchor for subplots.
     data_min: float
         Minimum of y-axis across all data axes.
     data_max: float
@@ -324,12 +324,12 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     return fig
 
 
-def plot_msa(msa, figsize=(12, 6),
+def plot_msa(msa, *,
              msa_labels=None, msa_labelsize=6, msa_length=0, msa_width=0.5, msa_pad=1,
              x_start=0, x_labelsize=6,
              tree=None, tree_position=0, tree_width=0.1, tree_kwargs=None,
              hspace=0.25, sym_length=7, sym_height=7,
-             left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
+             figsize=(15, 6), left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
              msa_legend=False, legend_kwargs=None,
              block_columns=None, sym2color=None, gap2color=None):
     """Plot MSA as matplotlib figure.
@@ -337,8 +337,6 @@ def plot_msa(msa, figsize=(12, 6),
     Parameters
     ----------
     msa: list of strings
-    figsize: 2-tuple of floats
-        Figure dimension (width, height) in inches.
     msa_labels: list of strings
         Strings of labels of sequences in MSA in the same order as in msa.
         len(msa) must match len(msa_labels). Empty strings are not displayed.
@@ -363,14 +361,16 @@ def plot_msa(msa, figsize=(12, 6),
         Dictionary of additional keyword arguments passed to plot_tree.
     hspace: float
         Padding between blocks of MSA as fraction of height of blocks.
-    left, right, top, bottom: float
-        Extent of the subplots as a fraction of figure width or height.
-    anchor: (float, float)
-        Anchor for subplots.
     sym_length: int
         Number of pixels in length of the rectangles for each symbol.
     sym_height: int
         Number of pixels in height of the rectangles for each symbol.
+    figsize: 2-tuple of floats
+        Figure dimension (width, height) in inches.
+    left, right, top, bottom: float
+        Extent of the subplots as a fraction of figure width or height.
+    anchor: (float, float)
+        Anchor for subplots.
     msa_legend: bool
         True if legend is drawn.
     legend_kwargs: dict
