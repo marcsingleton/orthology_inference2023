@@ -8,6 +8,7 @@ from matplotlib import rcParams
 from matplotlib.collections import LineCollection
 from matplotlib.gridspec import GridSpec
 from matplotlib.lines import Line2D
+from matplotlib.transforms import blended_transform_factory
 
 
 def _get_aspect(block_columns, get_dimensions):
@@ -125,8 +126,9 @@ def draw_msa(msa,
 def plot_msa_data(msa, data, figsize=(15, 6),
                   msa_labels=None, msa_labelsize=6, msa_ticklength=0, msa_tickwidth=0.5, msa_tickpad=1,
                   x_start=0, x_labelsize=6, y_labelsize=6,
+                  tree=None, tree_position=0, tree_width=0.1, tree_linewidth=0.75, tip_labels=False,
                   height_ratio=1, hspace=0.25, sym_length=7, sym_height=7,
-                  left=0.05, right=0.95, top=0.95, bottom=0.05,
+                  left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
                   data_min=None, data_max=None,
                   data_labels=None, data_colors=None, data_alphas=None,
                   msa_legend=False, legend_kwargs=None,
@@ -158,6 +160,15 @@ def plot_msa_data(msa, data, figsize=(15, 6),
         Font size of x-axis labels.
     y_labelsize: float
         Font size of y-axis labels.
+    tree: TreeNode (skbio)
+    tree_position: float
+        Position of left edge of tree in figure coordinates.
+    tree_width: float
+        Width of tree in figure coordinates
+    tree_linewidth: float
+        Width of tree branches.
+    tip_labels: bool
+        Toggle drawing tip labels.
     height_ratio: float
         Height of data axes as fraction of height of block.
     hspace: float
@@ -165,6 +176,8 @@ def plot_msa_data(msa, data, figsize=(15, 6),
         of average height of blocks and data axes.
     left, right, top, bottom: float
         Extent of the subplots as a fraction of figure width or height.
+    anchor: (float, float)
+        Anchor for subplots.
     sym_length: int
         Number of pixels in length of the rectangles for each symbol.
     sym_height: int
@@ -262,8 +275,8 @@ def plot_msa_data(msa, data, figsize=(15, 6),
     gs = GridSpec(2*block_number, 1, figure=fig, left=left, right=right, top=top, bottom=bottom,
                   hspace=hspace, height_ratios=height_ratios)
     for i in range(block_number):
-        msa_ax = fig.add_subplot(gs[2*i, :])
-        data_ax = fig.add_subplot(gs[2*i+1, :], sharex=msa_ax, aspect=block_rows*height_ratio/(data_max - data_min))
+        msa_ax = fig.add_subplot(gs[2*i, :], anchor=anchor)
+        data_ax = fig.add_subplot(gs[2*i+1, :], sharex=msa_ax, aspect=block_rows*height_ratio/(data_max - data_min), anchor=anchor)
 
         block = im[:, i * sym_length * block_columns:(i + 1) * sym_length * block_columns]
         x_left, x_right = x_start + i * block_columns, x_start + i * block_columns + block.shape[1] // sym_length
@@ -281,6 +294,12 @@ def plot_msa_data(msa, data, figsize=(15, 6),
         data_ax.set_ylim(data_min, data_max)
         data_ax.tick_params(axis='y', labelsize=y_labelsize)
         data_ax.tick_params(axis='x', labelsize=x_labelsize)
+
+        if tree:
+            transform = blended_transform_factory(fig.transFigure, msa_ax.transAxes)
+            tree_ax = msa_ax.inset_axes([tree_position, 0, tree_width, 1], transform=transform)
+            plot_tree(tree, ax=tree_ax, tip_labels=tip_labels, linewidth=tree_linewidth)
+            tree_ax.axis('off')
 
     # Draw legend
     handles = []
@@ -308,8 +327,9 @@ def plot_msa_data(msa, data, figsize=(15, 6),
 def plot_msa(msa, figsize=(12, 6),
              msa_labels=None, msa_labelsize=6, msa_length=0, msa_width=0.5, msa_pad=1,
              x_start=0, x_labelsize=6,
+             tree=None, tree_position=0, tree_width=0.1, tree_linewidth=0.75, tip_labels=False,
              hspace=0.25, sym_length=7, sym_height=7,
-             left=0.05, right=0.95, top=0.95, bottom=0.05,
+             left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
              msa_legend=False, legend_kwargs=None,
              block_columns=None, sym2color=None, gap2color=None):
     """Plot MSA as matplotlib figure.
@@ -334,10 +354,21 @@ def plot_msa(msa, figsize=(12, 6),
         Starting value of x-axis.
     x_labelsize: float
         Font size of x-axis labels.
+    tree: TreeNode (skbio)
+    tree_position: float
+        Position of left edge of tree in figure coordinates.
+    tree_width: float
+        Width of tree in figure coordinates
+    tree_linewidth: float
+        Width of tree branches.
+    tip_labels: bool
+        Toggle drawing tip labels.
     hspace: float
         Padding between blocks of MSA as fraction of height of blocks.
     left, right, top, bottom: float
         Extent of the subplots as a fraction of figure width or height.
+    anchor: (float, float)
+        Anchor for subplots.
     sym_length: int
         Number of pixels in length of the rectangles for each symbol.
     sym_height: int
@@ -391,7 +422,7 @@ def plot_msa(msa, figsize=(12, 6),
     fig = plt.figure(figsize=figsize)
     gs = GridSpec(block_number, 1, figure=fig, left=left, right=right, top=top, bottom=bottom, hspace=hspace)
     for i in range(block_number):
-        msa_ax = fig.add_subplot(gs[i, :])
+        msa_ax = fig.add_subplot(gs[i, :], anchor=anchor)
 
         block = im[:, i * sym_length * block_columns:(i + 1) * sym_length * block_columns]
         x_left, x_right = x_start + i * block_columns, x_start + i * block_columns + block.shape[1] // sym_length
@@ -402,6 +433,12 @@ def plot_msa(msa, figsize=(12, 6),
         msa_ax.tick_params(axis='x', labelsize=x_labelsize)
         for spine in ['left', 'right', 'top', 'bottom']:
             msa_ax.spines[spine].set_visible(False)
+
+        if tree:
+            transform = blended_transform_factory(fig.transFigure, msa_ax.transAxes)
+            tree_ax = msa_ax.inset_axes([tree_position, 0, tree_width, 1], transform=transform)
+            plot_tree(tree, ax=tree_ax, tip_labels=tip_labels, linewidth=tree_linewidth)
+            tree_ax.axis('off')
 
     # Draw legend
     handles = []
