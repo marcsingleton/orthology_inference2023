@@ -1,6 +1,6 @@
 # Orthology Inference
 
-This is the repo for the Orthology Inference project. Its aim is to identify orthologous groups of proteins across 33 *Drosophila* genomes. Like many other orthology inference pipelines, we use a graph-based method of clustering reciprocal best hits from BLAST searches between pairs of genomes. The chief innovations, however, are 1) the extension of commonly used triangle clustering to its generalization of *k*-clique percolation and 2) the implementation of two phylo-HMMs to identity poorly supported regions and missing data in the alignments.
+This is the repo for the Orthology Inference project. Its aim is to identify orthologous groups of proteins across 33 *Drosophila* genomes. Like many other orthology inference pipelines, we use a graph-based method of clustering reciprocal best hits from BLAST searches between pairs of genomes. The chief innovations, however, are 1) the extension of commonly used triangle clustering to its generalization of *k*-clique percolation and 2) the implementation of two phylo-HMMs to identity poorly supported regions and missing data in the alignments. These methods and their results are discussed in further detail in the accompanying pre-print [article](https://www.biorxiv.org/content/10.1101/2023.01.24.525427v1).
 
 ## Project Organization
 
