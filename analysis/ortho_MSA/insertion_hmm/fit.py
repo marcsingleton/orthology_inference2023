@@ -119,7 +119,7 @@ spid_regex = r'spid=([a-z]+)'
 eta = 0.05  # Learning rate
 gamma = 0.85  # Momentum
 epsilon = 1E-1  # Convergence criterion
-iter_num = 300  # Max number of iterations
+iter_max = 300  # Max number of iterations
 
 state_set = {'1A', '1B', '2', '3'}
 start_set = {'1A', '1B', '2', '3'}
@@ -242,23 +242,23 @@ if __name__ == '__main__':
     e_momenta = {s: {param: None for param in e_dist} for s, e_dist in e_dists.items()}
     ll0 = None
     history = []
-    for i in range(1, iter_num + 1):
-        # Calculate expectations and likelihoods
+    for iter_num in range(1, iter_max + 1):
+        # Calculate gradients
         t_dists_norm, e_dists_norm = norm_params(t_dists, e_dists)
         with mp.Pool(processes=num_processes) as pool:
             gradients = pool.starmap(get_gradients, [(t_dists_norm, e_dists_norm, start_dist, record) for record in records])
 
         # Save and report parameters from previous update
         ll = sum([gradient['ll'] for gradient in gradients])
-        history.append({'iter_num': i, 'll': ll, 't_dists_norm': t_dists_norm, 'e_dists_norm': e_dists_norm})
+        history.append({'iter_num': iter_num, 'll': ll, 't_dists_norm': t_dists_norm, 'e_dists_norm': e_dists_norm})
 
-        print(f'ITERATION {i} / {iter_num}')
+        print(f'ITERATION {iter_num} / {iter_max}')
         print('\tll:', ll)
         print('\tt_dists_norm:', t_dists_norm)
         print('\te_dists_norm:', e_dists_norm)
 
         # Check convergence
-        if i > 1 and abs(ll - ll0) < epsilon:
+        if iter_num > 1 and abs(ll - ll0) < epsilon:
             break
         ll0 = ll
 
@@ -266,7 +266,7 @@ if __name__ == '__main__':
         for s1, t_dist in t_dists.items():
             for s2 in t_dist:
                 grad_stack = np.hstack([gradient['t_grads'][s1][s2] for gradient in gradients])
-                if i > 1:
+                if iter_num > 1:
                     dz = gamma * t_momenta[s1][s2] + eta * grad_stack.sum() / len(grad_stack)
                 else:
                     dz = eta * grad_stack.sum() / len(grad_stack)
@@ -276,7 +276,7 @@ if __name__ == '__main__':
         for s, e_dist in e_dists.items():
             for param in e_dist:
                 grad_stack = np.hstack([gradient['e_grads'][s][param] for gradient in gradients])
-                if i > 1:
+                if iter_num > 1:
                     dz = gamma * e_momenta[s][param] + eta * grad_stack.sum() / len(grad_stack)
                 else:
                     dz = eta * grad_stack.sum() / len(grad_stack)

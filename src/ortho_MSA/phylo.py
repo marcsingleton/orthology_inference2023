@@ -6,7 +6,7 @@ from scipy.special import beta, comb, digamma
 
 
 class ArrayRV:
-    """Class that allows HMM class to interface with pre-computed probability array.
+    """Class that allows HMM class to interface with a pre-computed probability array.
 
     The rvs method is only defined so the HMM recognizes it as a proper
     random variable. Since random variates are not needed in this script, the
