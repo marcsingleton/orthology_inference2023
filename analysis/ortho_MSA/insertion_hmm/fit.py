@@ -203,9 +203,9 @@ if __name__ == '__main__':
         for start, stop, label in labels:
             state_seq.extend((stop - start) * [label])
 
-        # Create count dictionaries
-        mis = hmm.count_states(state_seq, state_set)
-        mijs = hmm.count_transitions(state_seq, t_sets)
+        # Create indicator and count dictionaries
+        mis = hmm.state_indicators(state_seq, state_set)
+        mijs = hmm.transition_counts(state_seq, t_sets)
 
         records.append({'OGid': OGid, 'n': len(msa), 'tree': tree, 'state_seq': state_seq, 'emit_seq': emit_seq,
                         'mis': mis, 'mijs': mijs})

@@ -54,7 +54,7 @@ class HMM(homomorph.HMM):
         return p
 
 
-def count_transitions(state_seq, t_sets):
+def transition_counts(state_seq, t_sets):
     """Return counts of transitions between states."""
     mijs = {(state0, state1): 0 for state0, t_set in t_sets.items() for state1 in t_set}
     state0 = state_seq[0]
@@ -64,8 +64,8 @@ def count_transitions(state_seq, t_sets):
     return mijs
 
 
-def count_states(state_seq, state_set):
-    """Return counts of states."""
+def state_indicators(state_seq, state_set):
+    """Return indicators of states."""
     mis = {state: [] for state in state_set}
     for state in state_seq:
         for s in state_set:
