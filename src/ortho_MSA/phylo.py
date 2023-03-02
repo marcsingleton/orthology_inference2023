@@ -41,7 +41,7 @@ def get_tree_pmf(tree, pi, q0, q1, p0, p1):
 
 
 def get_tip_pmf(tree, tip, pi, q0, q1, p0, p1):
-    """Return pmf of tip with tip_name given other tips."""
+    """Return pmf of tip given other tips."""
     pmf0 = get_tree_pmf(tree, pi, q0, q1, p0, p1)
 
     tip.value = 1 - tip.value  # Flip state of given tip
