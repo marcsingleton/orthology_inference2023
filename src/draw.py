@@ -459,7 +459,7 @@ def plot_msa(msa, *,
 
 
 def plot_tree(tree, *, ax=None,
-              color=None, linewidth=None,
+              linecolor=None, linewidth=None,
               tip_labels=True, tip_fontsize=None, tip_fontcolor=None, tip_offset=0.005,
               support_labels=False, support_format_spec=None, support_fontsize=None, support_fontcolor=None,
               support_ha='center', support_va='top', support_hoffset=0, support_voffset=0,
@@ -471,7 +471,8 @@ def plot_tree(tree, *, ax=None,
     tree: TreeNode (skbio)
     ax: Axes (matplotlib)
         Axes used to draw tree. If None, a new Figure and Axes are created.
-    color: color (matplotlib)
+    linecolor: color (matplotlib) or dict
+        If is dict, linecolor is a mapping of nodes to colors.
     linewidth: float
         Width of branches.
     tip_labels: bool
@@ -514,8 +515,12 @@ def plot_tree(tree, *, ax=None,
         fig, ax = plt.subplots()
     else:
         fig = ax.get_figure()
-    if color is None:
-        color = 'black'
+    if not isinstance(linecolor, dict):
+        if linecolor is None:
+            linecolor = 'black'
+        node2color = defaultdict(lambda x=linecolor: x)  # Use default parameter to ensure lambda captures value
+    else:
+        node2color = linecolor
     if linewidth is None:
         linewidth = rcParams['lines.linewidth']
     if tip_fontsize is None:
@@ -564,14 +569,15 @@ def plot_tree(tree, *, ax=None,
     lines = []
     transform = ax.transLimits.inverted()  # Axes to data coordinates
     for node in tree.traverse():
+        linecolor = node2color[node]
         if node.parent:  # Horizontal line of node
             x0, x1 = xpos[node.parent], xpos[node]
             y = ypos[node]
-            lines.append(([(x0, y), (x1, y)], linewidth, color))
+            lines.append(([(x0, y), (x1, y)], linewidth, linecolor))
         if node.children:  # Vertical line of node
             x = xpos[node]
             y0, y1 = ypos[node.children[-1]], ypos[node.children[0]]
-            lines.append(([(x, y0), (x, y1)], linewidth, color))
+            lines.append(([(x, y0), (x, y1)], linewidth, linecolor))
         if tip_labels and node.is_tip():  # Write tip names
             dx, _ = transform.transform((tip_offset, 0)) - transform.transform((0, 0))
             ax.text(xpos[node] + dx, ypos[node], node.name, verticalalignment='center',
