@@ -568,7 +568,7 @@ def plot_tree(tree, *, ax=None,
     # Plot lines and text
     lines = []
     transform = ax.transLimits.inverted()  # Axes to data coordinates
-    for node in tree.traverse():
+    for node in tree.postorder():  # Use postorder so parent lines are drawn over children lines
         linecolor = node2color[node]
         if node.parent:  # Horizontal line of node
             x0, x1 = xpos[node.parent], xpos[node]
