@@ -79,16 +79,14 @@ def bar(counts, data_label, file_label):
     plt.close()
 
 
-def scatter(x, y, data_label, file_label, x_label, y_label, df_label, color):
+def hexbin(x, y, data_label, file_label, x_label, y_label, df_label):
     fig, ax = plt.subplots()
-    ax.scatter(x, y, label=df_label, color=color, alpha=0.2, s=10, edgecolors='none')
+    hb = ax.hexbin(x, y, bins='log', gridsize=50, mincnt=1, linewidth=0)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    ax.set_title(data_label)
-    leg = ax.legend(markerscale=2)
-    for lh in leg.legendHandles:
-        lh.set_alpha(1)
-    fig.savefig(f'out/blast_{data_label}/scatter_{file_label}.png')
+    ax.set_title(f'{data_label} ({df_label})')
+    fig.colorbar(hb)
+    fig.savefig(f'out/blast_{data_label}/hexbin_{file_label}.png')
     plt.close()
 
 
@@ -193,28 +191,28 @@ if __name__ == '__main__':
         # 1.2.3.2 NQAmin-E-value
         groups0 = df0.groupby('logevalue')
         x = groups0['nqa'].min()
-        scatter(x.index, x.values, data_label, 'nqamin-evalue_all', 'log10(E-value)', 'Minimum number of residues aligned', labels[0], colors[0])
+        hexbin(x.index, x.values, data_label, 'nqamin-evalue_all', 'log10(E-value)', 'Minimum number of residues aligned', labels[0])
 
         groups1 = df1.groupby('logevalue')
         x = groups1['nqa'].min()
         fig, ax = plt.subplots()
-        scatter(x.index, x.values, data_label, 'nqamin-evalue_reciprocal', 'log10(E-value)', 'Minimum number of residues aligned', labels[1], colors[1])
+        hexbin(x.index, x.values, data_label, 'nqamin-evalue_reciprocal', 'log10(E-value)', 'Minimum number of residues aligned', labels[1])
 
         # 1.2.3.3 NQAmax-E-value
         groups0 = df0.groupby('logevalue')
         x = groups0['nqa'].max()
-        scatter(x.index, x.values, data_label, 'nqamax-evalue_all', 'log10(E-value)', 'Maximum number of residues aligned', labels[0], colors[0])
+        hexbin(x.index, x.values, data_label, 'nqamax-evalue_all', 'log10(E-value)', 'Maximum number of residues aligned', labels[0])
 
         groups1 = df1.groupby('logevalue')
         x = groups1['nqa'].max()
-        scatter(x.index, x.values, data_label, 'nqamax-evalue_reciprocal', 'log10(E-value)', 'Maximum number of residues aligned', labels[1], colors[1])
+        hexbin(x.index, x.values, data_label, 'nqamax-evalue_reciprocal', 'log10(E-value)', 'Maximum number of residues aligned', labels[1])
 
         # 1.2.3.4 Bitscoremin-E-value
         x = groups0['bitscore'].min()
-        scatter(x.index, x.values, data_label, 'bitscoremin-evalue_all', 'log10(E-value)', 'Minimum bitscore', labels[0], colors[0])
+        hexbin(x.index, x.values, data_label, 'bitscoremin-evalue_all', 'log10(E-value)', 'Minimum bitscore', labels[0])
 
         x = groups1['bitscore'].min()
-        scatter(x.index, x.values, data_label, 'bitscoremin-evalue_reciprocal', 'log10(E-value)', 'Minimum bitscore', labels[1], colors[1])
+        hexbin(x.index, x.values, data_label, 'bitscoremin-evalue_reciprocal', 'log10(E-value)', 'Minimum bitscore', labels[1])
 
         # 1.2.4 Bitscore histograms
         hist2_1([df0['bitscore'], df1['bitscore']], 200, data_label, 'bitscore', 'Bitscore', labels, colors)

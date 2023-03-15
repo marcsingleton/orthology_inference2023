@@ -70,27 +70,25 @@ def bar3(dfs, file_label, x_label, y_label, df_labels, colors):
     plt.close()
 
 
-def scatter1(x, y, file_label, xy_label, df_label, color):
+def hexbin1(x, y, file_label, xy_label, df_label):
     fig, ax = plt.subplots()
-    ax.scatter(x, y, alpha=0.5, s=10, label=df_label, color=color, edgecolors='none')
+    hb = ax.hexbin(x, y, bins='log', gridsize=100, mincnt=1, linewidth=0)
     ax.set_xlabel(f'Mean {xy_label} in OG')
     ax.set_ylabel(f'Variance of {xy_label} in OG')
-    leg = ax.legend(markerscale=2)
-    for lh in leg.legendHandles:
-        lh.set_alpha(1)
-    fig.savefig(f'out/blast/scatter_{file_label}.png')
+    ax.set_title(df_label)
+    fig.colorbar(hb)
+    fig.savefig(f'out/blast/hexbin_{file_label}.png')
     plt.close()
 
 
-def scatter2(x, y, file_label, y_label, df_label, color):
+def hexbin2(x, y, file_label, y_label, df_label):
     fig, ax = plt.subplots()
-    ax.scatter(x, y, alpha=0.5, s=10, label=df_label, color=color, edgecolors='none')
+    hb = ax.hexbin(x, y, bins='log', gridsize=100, mincnt=1, linewidth=0)
     ax.set_xlabel('Number of proteins in OG')
     ax.set_ylabel(y_label)
-    leg = ax.legend(markerscale=2)
-    for lh in leg.legendHandles:
-        lh.set_alpha(1)
-    plt.savefig(f'out/blast/scatter_{file_label}.png')
+    ax.set_title(df_label)
+    fig.colorbar(hb)
+    plt.savefig(f'out/blast/hexbin_{file_label}.png')
     plt.close()
 
 
@@ -179,7 +177,7 @@ if __name__ == '__main__':
 
     # 2.3 OG scatters
     for OG, file_label, label, color in zip(OGs, file_labels, labels, colors):
-        scatter1(OG['bitscore'].mean(), OG['bitscore'].var(), f'bitscorevar-bitscoremean_{file_label}', 'bitscore', label, color)
+        hexbin1(OG['bitscore'].mean(), OG['bitscore'].var(), f'bitscorevar-bitscoremean_{file_label}', 'bitscore', label)
 
     # 3 HSPNUM HISTOGRAMS
     counts = [hit['hspnum'].value_counts() for hit in hits]
@@ -211,7 +209,7 @@ if __name__ == '__main__':
 
     # 6.3 OG scatters
     for OG, file_label, label, color in zip(OGs, file_labels, labels, colors):
-        scatter1(OG['nqa'].mean(), OG['nqa'].var(), f'nqavar-nqamean_{file_label}', 'NQA', label, color)
+        hexbin1(OG['nqa'].mean(), OG['nqa'].var(), f'nqavar-nqamean_{file_label}', 'NQA', label)
 
     # 7 cNQA PLOTS
     # 7.1 Hit histograms
@@ -225,7 +223,7 @@ if __name__ == '__main__':
 
     # 7.3 OG scatters
     for OG, file_label, label, color in zip(OGs, file_labels, labels, colors):
-        scatter1(OG['cnqa'].mean(), OG['cnqa'].var(), f'cnqavar-cnqamean_{file_label}', 'cNQA', label, color)
+        hexbin1(OG['cnqa'].mean(), OG['cnqa'].var(), f'cnqavar-cnqamean_{file_label}', 'cNQA', label)
 
     # 8 FQA PLOTS
     # 8.1 Hit histograms
@@ -239,7 +237,7 @@ if __name__ == '__main__':
 
     # 8.3 OG scatters
     for OG, file_label, label, color in zip(OGs, file_labels, labels, colors):
-        scatter1(OG['fqa'].mean(), OG['fqa'].var(), f'fqavar-fqamean_{file_label}', 'FQA', label, color)
+        hexbin1(OG['fqa'].mean(), OG['fqa'].var(), f'fqavar-fqamean_{file_label}', 'FQA', label)
 
     # 9 cFQA PLOTS
     # 9.1 Hit histograms
@@ -253,7 +251,7 @@ if __name__ == '__main__':
 
     # 9.3 OG scatters
     for OG, file_label, label, color in zip(OGs, file_labels, labels, colors):
-        scatter1(OG['cfqa'].mean(), OG['cfqa'].var(), f'cfqavar-cfqamean_{file_label}', 'cFQA', label, color)
+        hexbin1(OG['cfqa'].mean(), OG['cfqa'].var(), f'cfqavar-cfqamean_{file_label}', 'cFQA', label)
 
     # 10 xFQA PLOTS
     # 10.1 Hit histograms
@@ -267,7 +265,7 @@ if __name__ == '__main__':
 
     # 10.3 OG scatters
     for OG, file_label, label, color in zip(OGs, file_labels, labels, colors):
-        scatter1(OG['xfqa'].mean(), OG['xfqa'].var(), f'xfqavar-xfqamean_{file_label}', 'xFQA', label, color)
+        hexbin1(OG['xfqa'].mean(), OG['xfqa'].var(), f'xfqavar-xfqamean_{file_label}', 'xFQA', label)
 
     # 11 FQA-FSA SCATTERS
     for hit, file_label, label in zip(hits, file_labels, labels):
@@ -295,10 +293,10 @@ if __name__ == '__main__':
         hist1(edgefrac, 50, f'OGidnum-edgefrac_{file_label}', 'Fraction of possible edges', 'OGs', label, color)
 
     # 13 CORRELATIONS
-    scatter2(ppidnums[1], OGs[1]['bitscore'].mean(), f'bitscore-ppidnum_{file_labels[1]}', 'Mean bitscore of hits in OG', labels[1], colors[1])
-    scatter2(ppidnums[1], OGs[1]['fqa'].mean(), f'fqa-ppidnum_{file_labels[1]}', 'Mean FQA of hits in OG', labels[1], colors[1])
-    scatter2(ppidnums[1], edgenums[1], f'edgenum-ppidnum_{file_labels[1]}', 'Number of edges in OG', labels[1], colors[1])
-    scatter2(ppidnums[1], edgefracs[1], f'edgefrac-ppidnum_{file_labels[1]}', 'Fraction of possible edges in OG', labels[1], colors[1])
+    hexbin2(ppidnums[1], OGs[1]['bitscore'].mean(), f'bitscore-ppidnum_{file_labels[1]}', 'Mean bitscore of hits in OG', labels[1])
+    hexbin2(ppidnums[1], OGs[1]['fqa'].mean(), f'fqa-ppidnum_{file_labels[1]}', 'Mean FQA of hits in OG', labels[1])
+    hexbin2(ppidnums[1], edgenums[1], f'edgenum-ppidnum_{file_labels[1]}', 'Number of edges in OG', labels[1])
+    hexbin2(ppidnums[1], edgefracs[1], f'edgefrac-ppidnum_{file_labels[1]}', 'Fraction of possible edges in OG', labels[1])
 
 """
 DEPENDENCIES
