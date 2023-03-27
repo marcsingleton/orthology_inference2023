@@ -1,6 +1,7 @@
 """Drawing functions for specialized data."""
 
 from math import ceil
+from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import numpy as np
