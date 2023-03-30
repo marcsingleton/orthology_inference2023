@@ -129,7 +129,7 @@ def plot_msa_data(msa, data, *,
                   x_start=0, x_labelsize=6, y_labelsize=6,
                   tree=None, tree_position=0, tree_width=0.1, tree_kwargs=None,
                   height_ratio=1, hspace=0.25, sym_length=7, sym_height=7,
-                  figsize=(15, 6), left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
+                  fig=None, figsize=(15, 6), left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
                   data_min=None, data_max=None,
                   data_labels=None, data_colors=None, data_alphas=None,
                   msa_legend=False, legend_kwargs=None,
@@ -175,6 +175,7 @@ def plot_msa_data(msa, data, *,
         Number of pixels in length of the rectangles for each symbol.
     sym_height: int
         Number of pixels in height of the rectangles for each symbol.
+    fig: Figure (matplotlib)
     figsize: 2-tuple of floats
         Figure dimension (width, height) in inches.
     left, right, top, bottom: float
@@ -272,7 +273,7 @@ def plot_msa_data(msa, data, *,
         height_ratios.append(h)
 
     im = draw_msa(msa, block_columns=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
-    fig = plt.figure(figsize=figsize)
+    fig = fig if fig is not None else plt.figure(figsize=figsize)
     gs = GridSpec(2*block_number, 1, figure=fig, left=left, right=right, top=top, bottom=bottom,
                   hspace=hspace, height_ratios=height_ratios)
     for i in range(block_number):
@@ -330,7 +331,7 @@ def plot_msa(msa, *,
              x_start=0, x_labelsize=6,
              tree=None, tree_position=0, tree_width=0.1, tree_kwargs=None,
              hspace=0.25, sym_length=7, sym_height=7,
-             figsize=(15, 6), left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
+             fig=None, figsize=(15, 6), left=0.05, right=0.95, top=0.95, bottom=0.05, anchor=(0.5, 0.5),
              msa_legend=False, legend_kwargs=None,
              block_columns=None, sym2color=None, gap2color=None):
     """Plot MSA as matplotlib figure.
@@ -366,6 +367,7 @@ def plot_msa(msa, *,
         Number of pixels in length of the rectangles for each symbol.
     sym_height: int
         Number of pixels in height of the rectangles for each symbol.
+    fig: Figure (matplotlib)
     figsize: 2-tuple of floats
         Figure dimension (width, height) in inches.
     left, right, top, bottom: float
@@ -420,7 +422,7 @@ def plot_msa(msa, *,
 
     # Draw axes
     im = draw_msa(msa, block_columns=len(msa[0]), sym_length=sym_length, sym_height=sym_height, sym2color=sym2color, gap2color=gap2color)
-    fig = plt.figure(figsize=figsize)
+    fig = fig if fig is not None else plt.figure(figsize=figsize)
     gs = GridSpec(block_number, 1, figure=fig, left=left, right=right, top=top, bottom=bottom, hspace=hspace)
     for i in range(block_number):
         msa_ax = fig.add_subplot(gs[i, :], anchor=anchor)
