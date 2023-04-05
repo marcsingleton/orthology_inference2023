@@ -132,9 +132,9 @@ for _, group in groups:
         for spid in (spids - included_spids):
             exclusions[spid] += 1
 labels, height = zip(*sorted(exclusions.items()))
-x = list(range(len(labels)))
+xs = list(range(len(labels)))
 fig, ax = plt.subplots()
-ax.bar(x, height)
+ax.bar(xs, height)
 ax.set_xticks(xs, labels, rotation=60, fontsize=8)
 ax.set_xlabel('Species')
 ax.set_ylabel('Number of exclusions')
