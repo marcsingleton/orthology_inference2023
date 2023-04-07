@@ -315,7 +315,7 @@ def plot_msa_data(msa, data, *,
             except KeyError:
                 color2syms[color] = [sym]
         for color, syms in color2syms.items():
-            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', label=', '.join(syms)))
+            handles.append(Line2D([], [], color=f'#{color}', linestyle='none', marker='.', label=', '.join(syms)))
     if data_labels:
         if handles:  # Add spacer entry if MSA legend is also drawn
             handles.append(Line2D([], [], color='none'))
@@ -455,7 +455,7 @@ def plot_msa(msa, *,
             except KeyError:
                 color2syms[color] = [sym]
         for color, syms in color2syms.items():
-            handles.append(Line2D([], [], color=f'#{color}', linestyle='None', marker='.', label=', '.join(syms)))
+            handles.append(Line2D([], [], color=f'#{color}', linestyle='none', marker='.', label=', '.join(syms)))
     if handles:
         fig.legend(handles=handles, **legend_kwargs)
     return fig
