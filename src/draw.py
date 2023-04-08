@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import rcParams
 from matplotlib.collections import LineCollection
+from matplotlib.colors import is_color_like
 from matplotlib.gridspec import GridSpec
 from matplotlib.lines import Line2D
 from matplotlib.transforms import blended_transform_factory
@@ -192,7 +193,7 @@ def plot_msa_data(msa, data, *,
     data_linewidths: float, int, or list of float or int
         Line widths for data series. If list, length must match number of
         series in data.
-    data_colors: list of colors
+    data_colors: color or list of color
         Colors for data series. Length must match number of series in data.
     msa_legend: bool
         True if MSA legend is drawn.
@@ -260,6 +261,8 @@ def plot_msa_data(msa, data, *,
     if data_colors is None:
         color_cycle = rcParams['axes.prop_cycle'].by_key()['color']
         data_colors = [color_cycle[i % len(color_cycle)] for i in range(len(data))]
+    elif is_color_like(data_colors):
+        data_colors = [data_colors for _ in range(len(data))]
     elif len(data_colors) != len(data):
         raise ValueError('len(data_colors) does not match len(data)')
     block_number = ceil(msa_columns / block_columns)
