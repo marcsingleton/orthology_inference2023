@@ -304,8 +304,8 @@ def plot_msa_data(msa, data, *,
         data_ax.tick_params(axis='x', labelsize=x_labelsize)
 
         if tree:
-            transform = blended_transform_factory(fig.transFigure, msa_ax.transAxes)
-            tree_ax = msa_ax.inset_axes([tree_position, 0, tree_width, 1], transform=transform)
+            transform = blended_transform_factory(fig.transSubfigure, msa_ax.transAxes)
+            tree_ax = msa_ax.inset_axes((tree_position, 0, tree_width, 1), transform=transform)
             plot_tree(tree, ax=tree_ax, ymin_pad=1 / (2 * msa_rows), ymax_pad=1 / (2 * msa_rows), **tree_kwargs)
             tree_ax.axis('off')
 
@@ -444,8 +444,8 @@ def plot_msa(msa, *,
             msa_ax.spines[spine].set_visible(False)
 
         if tree:
-            transform = blended_transform_factory(fig.transFigure, msa_ax.transAxes)
-            tree_ax = msa_ax.inset_axes([tree_position, 0, tree_width, 1], transform=transform)
+            transform = blended_transform_factory(fig.transSubfigure, msa_ax.transAxes)
+            tree_ax = msa_ax.inset_axes((tree_position, 0, tree_width, 1), transform=transform)
             plot_tree(tree, ax=tree_ax, ymin_pad=1 / (2 * msa_rows), ymax_pad=1 / (2 * msa_rows), **tree_kwargs)
             tree_ax.axis('off')
 
