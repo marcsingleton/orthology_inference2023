@@ -164,7 +164,7 @@ def plot_msa_data(msa, data, *,
     tree_position: float
         Position of left edge of tree in figure coordinates.
     tree_width: float
-        Width of tree in figure coordinates
+        Width of tree in figure coordinates.
     tree_kwargs: dict
         Dictionary of additional keyword arguments passed to plot_tree.
     height_ratio: float
@@ -364,7 +364,7 @@ def plot_msa(msa, *,
     tree_position: float
         Position of left edge of tree in figure coordinates.
     tree_width: float
-        Width of tree in figure coordinates
+        Width of tree in figure coordinates.
     tree_kwargs: dict
         Dictionary of additional keyword arguments passed to plot_tree.
     hspace: float
