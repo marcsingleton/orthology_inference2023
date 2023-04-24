@@ -288,8 +288,8 @@ def plot_msa_data(msa, data, *,
 
         block = im[:, i * sym_length * block_columns:(i + 1) * sym_length * block_columns]
         x_left, x_right = x_start + i * block_columns, x_start + i * block_columns + block.shape[1] // sym_length
-        msa_ax.imshow(block, extent=[x_left, x_right, block_rows, 0])
-        msa_ax.set_yticks([y+0.5 for y, msa_label in zip(range(msa_rows), msa_labels) if msa_label != ''])
+        msa_ax.imshow(block, extent=[x_left, x_right, block_rows - 0.5, -0.5])
+        msa_ax.set_yticks([y for y, msa_label in zip(range(msa_rows), msa_labels) if msa_label != ''])
         msa_ax.set_yticklabels([msa_label for msa_label in msa_labels if msa_label != ''])
         msa_ax.tick_params(axis='y', length=msa_ticklength, width=msa_tickwidth, pad=msa_tickpad, labelsize=msa_labelsize)
         msa_ax.xaxis.set_visible(False)
@@ -306,7 +306,9 @@ def plot_msa_data(msa, data, *,
         if tree:
             transform = blended_transform_factory(fig.transSubfigure, msa_ax.transAxes)
             tree_ax = msa_ax.inset_axes((tree_position, 0, tree_width, 1), transform=transform)
-            plot_tree(tree, ax=tree_ax, ymin_pad=1 / (2 * msa_rows), ymax_pad=1 / (2 * msa_rows), **tree_kwargs)
+            plot_tree(tree, ax=tree_ax, **tree_kwargs)
+            tree_ax.sharey(msa_ax)
+            tree_ax.set_ylim((msa_rows - 0.5, -0.5))
             tree_ax.axis('off')
 
     # Draw legend
@@ -435,8 +437,8 @@ def plot_msa(msa, *,
 
         block = im[:, i * sym_length * block_columns:(i + 1) * sym_length * block_columns]
         x_left, x_right = x_start + i * block_columns, x_start + i * block_columns + block.shape[1] // sym_length
-        msa_ax.imshow(block, extent=[x_left, x_right, block_rows, 0])
-        msa_ax.set_yticks([y + 0.5 for y, msa_label in zip(range(msa_rows), msa_labels) if msa_label != ''])
+        msa_ax.imshow(block, extent=[x_left, x_right, block_rows - 0.5, -0.5])
+        msa_ax.set_yticks([y for y, msa_label in zip(range(msa_rows), msa_labels) if msa_label != ''])
         msa_ax.set_yticklabels([msa_label for msa_label in msa_labels if msa_label != ''])
         msa_ax.tick_params(axis='y', length=msa_length, width=msa_width, pad=msa_pad, labelsize=msa_labelsize)
         msa_ax.tick_params(axis='x', labelsize=x_labelsize)
@@ -446,7 +448,9 @@ def plot_msa(msa, *,
         if tree:
             transform = blended_transform_factory(fig.transSubfigure, msa_ax.transAxes)
             tree_ax = msa_ax.inset_axes((tree_position, 0, tree_width, 1), transform=transform)
-            plot_tree(tree, ax=tree_ax, ymin_pad=1 / (2 * msa_rows), ymax_pad=1 / (2 * msa_rows), **tree_kwargs)
+            plot_tree(tree, ax=tree_ax, **tree_kwargs)
+            tree_ax.sharey(msa_ax)
+            tree_ax.set_ylim((msa_rows - 0.5, -0.5))
             tree_ax.axis('off')
 
     # Draw legend
@@ -559,7 +563,7 @@ def plot_tree(tree, *, ax=None,
 
     # Make mapping of each node to its vertical position
     tips = list(tree.tips())
-    ymax = len(tips)
+    ymax = len(tips) - 1
     ypos = {tip: ymax - i for i, tip in enumerate(reversed(tips))}
     for node in tree.postorder():  # Return nodes on the way out
         if node.children:
