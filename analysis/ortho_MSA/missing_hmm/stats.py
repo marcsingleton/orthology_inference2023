@@ -17,6 +17,7 @@ ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
 state_labels = ['1', '2']
 state_colors = ['C0', 'C1']
+k = 4
 
 tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
 tree_order = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
@@ -78,6 +79,21 @@ plt.savefig('out/line_ll-iter.png')
 plt.close()
 
 # Plot model parameters
+params = ['pinv', 'alpha']
+fig, axs = plt.subplots(len(params), 1)
+for label, color in zip(state_labels, state_colors):
+    for ax, param in zip(axs, params):
+        xs = [record['iter_num'] for record in history]
+        ys = [record['e_dists_norm'][label][param] for record in history]
+        ax.plot(xs, ys, label=label, color=color)
+        ax.set_ylabel(param)
+axs[-1].set_xlabel('Iteration')
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels, state_colors)]
+fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
+plt.subplots_adjust(right=0.875)
+plt.savefig('out/line_var-iter.png')
+plt.close()
+
 params = ['pi', 'q0', 'q1']
 fig, axs = plt.subplots(len(params), 1)
 for label, color in zip(state_labels, state_colors):
@@ -157,8 +173,8 @@ for (OGid, ppid), labels in ids2labels.items():
     # Instantiate model
     e_dists_rv = {}
     for s, e_dist in model_json['e_dists'].items():
-        pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
-        pmf = phylo.get_tip_pmf(tree, tips[ppid2spid[ppid]], pi, q0, q1, p0, p1)
+        pinv, alpha, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pinv', 'alpha', 'pi', 'q0', 'q1', 'p0', 'p1']]
+        pmf = phylo.get_tip_pmf(tree, tips[ppid2spid[ppid]], pinv, k, alpha, pi, q0, q1, p0, p1)
         e_dists_rv[s] = phylo.ArrayRV(pmf)
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
