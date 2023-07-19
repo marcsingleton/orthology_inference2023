@@ -22,8 +22,9 @@ def norm_params(t_dists, e_dists):
         t_dists_norm[s1] = {s2: exp(z)/z_sum for s2, z in t_dist.items()}
     e_dists_norm = {}
     for s, e_dist in e_dists.items():
-        za, zb, zpi, zq0, zq1, zp0, zp1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
+        za, zb, zpinv, zalpha, zpi, zq0, zq1, zp0, zp1 = [e_dist[param] for param in ['a', 'b', 'pinv', 'alpha', 'pi', 'q0', 'q1', 'p0', 'p1']]
         e_dists_norm[s] = {'a': exp(za), 'b': exp(zb),
+                           'pinv': 1 / (1 + exp(-zpinv)), 'alpha': exp(zalpha),
                            'pi': 1 / (1 + exp(-zpi)), 'q0': exp(zq0), 'q1': exp(zq1),
                            'p0': 1 / (1 + exp(-zp0)), 'p1': 1 / (1 + exp(-zp1))}
     return t_dists_norm, e_dists_norm
@@ -36,8 +37,9 @@ def unnorm_params(t_dists_norm, e_dists_norm):
         t_dists[s1] = {s2: log(v) for s2, v in t_dist.items()}
     e_dists = {}
     for s, e_dist in e_dists_norm.items():
-        a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
+        a, b, pinv, alpha, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pinv', 'alpha', 'pi', 'q0', 'q1', 'p0', 'p1']]
         e_dists[s] = {'a': log(a), 'b': log(b),
+                      'pinv': log(pinv / (1 - pinv)), 'alpha': log(alpha),
                       'pi': log(pi / (1 - pi)), 'q0': log(q0), 'q1': log(q1),
                       'p0': log(p0 / (1 - p0)), 'p1': log(p1 / (1 - p1))}
     return t_dists, e_dists
@@ -54,9 +56,9 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     betabinom_pmfs, tree_pmfs = {}, {}
     e_dists_rv = {}
     for s, e_dist in e_dists_norm.items():
-        a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
+        a, b, pinv, alpha, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pinv', 'alpha', 'pi', 'q0', 'q1', 'p0', 'p1']]
         betabinom_pmf = phylo.get_betabinom_pmf(emit_seq, n, a, b)
-        tree_pmf = phylo.get_tree_pmf(tree, pi, q0, q1, p0, p1)
+        tree_pmf = phylo.get_tree_pmf(tree, pinv, k, alpha, pi, q0, q1, p0, p1)
 
         betabinom_pmfs[s] = betabinom_pmf
         tree_pmfs[s] = tree_pmf
@@ -87,22 +89,26 @@ def get_gradients(t_dists_norm, e_dists_norm, start_dist, record):
     # Get e_dists gradients
     e_grads = {}
     for s, e_dist in e_dists_norm.items():
-        a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
+        a, b, pinv, alpha, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pinv', 'alpha', 'pi', 'q0', 'q1', 'p0', 'p1']]
         betabinom_pmf = betabinom_pmfs[s]
         betabinom_prime_a = phylo.get_betabinom_prime(emit_seq, n, a, b, 'a')
         betabinom_prime_b = phylo.get_betabinom_prime(emit_seq, n, a, b, 'b')
         tree_pmf = tree_pmfs[s]
-        tree_prime_pi = phylo.get_tree_prime(tree, pi, q0, q1, p0, p1, 'pi')
-        tree_prime_q0 = phylo.get_tree_prime(tree, pi, q0, q1, p0, p1, 'q0')
-        tree_prime_q1 = phylo.get_tree_prime(tree, pi, q0, q1, p0, p1, 'q1')
-        tree_prime_p0 = phylo.get_tree_prime(tree, pi, q0, q1, p0, p1, 'p0')
-        tree_prime_p1 = phylo.get_tree_prime(tree, pi, q0, q1, p0, p1, 'p1')
+        tree_prime_pinv = phylo.get_tree_prime(tree, pinv, k, alpha, pi, q0, q1, p0, p1, 'pinv')
+        tree_prime_alpha = phylo.get_tree_prime(tree, pinv, k, alpha, pi, q0, q1, p0, p1, 'alpha')
+        tree_prime_pi = phylo.get_tree_prime(tree, pinv, k, alpha, pi, q0, q1, p0, p1, 'pi')
+        tree_prime_q0 = phylo.get_tree_prime(tree, pinv, k, alpha, pi, q0, q1, p0, p1, 'q0')
+        tree_prime_q1 = phylo.get_tree_prime(tree, pinv, k, alpha, pi, q0, q1, p0, p1, 'q1')
+        tree_prime_p0 = phylo.get_tree_prime(tree, pinv, k, alpha, pi, q0, q1, p0, p1, 'p0')
+        tree_prime_p1 = phylo.get_tree_prime(tree, pinv, k, alpha, pi, q0, q1, p0, p1, 'p1')
 
         # Equations 2.15 and 2.16 (emission parameter phi only)
         e_grad = {}
         mn = np.array([mi - ni for mi, ni in zip(mis[s], nis[s])])
         e_grad['a'] = -mn / betabinom_pmf * betabinom_prime_a * a
         e_grad['b'] = -mn / betabinom_pmf * betabinom_prime_b * b
+        e_grad['pinv'] = -mn / tree_pmf * tree_prime_pinv * pinv * (1 - pinv)
+        e_grad['alpha'] = -mn / tree_pmf * tree_prime_alpha * alpha
         e_grad['pi'] = -mn / tree_pmf * tree_prime_pi * pi * (1 - pi)
         e_grad['q0'] = -mn / tree_pmf * tree_prime_q0 * q0
         e_grad['q1'] = -mn / tree_pmf * tree_prime_q1 * q1
@@ -121,17 +127,23 @@ gamma = 0.85  # Momentum
 epsilon = 1E-1  # Convergence criterion
 iter_max = 300  # Max number of iterations
 
-state_set = {'1A', '1B', '2', '3'}
-start_set = {'1A', '1B', '2', '3'}
+state_set = {'1', '2', '3'}
+start_set = {'1', '2', '3'}
 t_sets = {s1: {s2 for s2 in state_set} for s1 in state_set}
 tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
 
 t_pseudo = 0.1  # t_dist pseudocounts
 start_pseudo = 0.1  # start_dist pseudocounts
-e_dists_initial = {'1A': {'a': 0.9, 'b': 0.1, 'pi': 0.95, 'q0': 0.01, 'q1': 0.01, 'p0': 0.01, 'p1': 0.05},
-                   '1B': {'a': 1, 'b': 0.4, 'pi': 0.5, 'q0': 0.2, 'q1': 0.25, 'p0': 0.015, 'p1': 0.05},
-                   '2': {'a': 0.7, 'b': 0.15, 'pi': 0.75, 'q0': 0.05, 'q1': 0.075, 'p0': 0.1, 'p1': 0.4},
-                   '3': {'a': 1.6, 'b': 0.35, 'pi': 0.01, 'q0': 0.01, 'q1': 0.01, 'p0': 0.025, 'p1': 0.01}}
+e_dists_initial = {'1': {'a': 1, 'b': 0.1,
+                         'pinv': 0.2, 'alpha': 0.85,
+                         'pi': 0.85, 'q0': 0.1, 'q1': 0.1, 'p0': 0.01, 'p1': 0.05},
+                   '2': {'a': 0.55, 'b': 0.2,
+                         'pinv': 0.01, 'alpha': 1,
+                         'pi': 0.8, 'q0': 0.05, 'q1': 0.07, 'p0': 0.1, 'p1': 0.55},
+                   '3': {'a': 1.3, 'b': 0.6,
+                         'pinv': 0.01, 'alpha': 1,
+                         'pi': 0.001, 'q0': 0.0001, 'q1': 0.0001, 'p0': 0.05, 'p1': 0.01}}
+k = 4
 
 if __name__ == '__main__':
     # Load labels
@@ -142,6 +154,7 @@ if __name__ == '__main__':
         for line in file:
             fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
             OGid, start, stop, label = fields['OGid'], int(fields['start']), int(fields['stop']), fields['label']
+            label = '1' if label in ['1A', '1B'] else label  # Merge 1A and 1B
             label_set.add(label)
             try:
                 OGid2labels[OGid].append((start, stop, label))
@@ -157,7 +170,7 @@ if __name__ == '__main__':
         if start0 != 0:
             print(f'First interval for {OGid} does not begin at 0')
         for start, stop, label in labels[1:]:
-            if label0 == label:
+            if label != '1' and label0 == label:
                 print(f'State for interval ({OGid}, {start}, {stop}) equals previous state')
             if stop0 != start:
                 print(f'Start for interval ({OGid}, {start}, {stop}) does not equal previous stop')

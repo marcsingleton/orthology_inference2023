@@ -14,8 +14,9 @@ from src.draw import plot_msa_data
 from src.utils import read_fasta
 
 spid_regex = r'spid=([a-z]+)'
-state_labels = ['1A', '1B', '2', '3']
-state_colors = ['C0', 'C3', 'C1', 'C2']
+state_labels = ['1', '2', '3']
+state_colors = ['C0', 'C1', 'C2']
+k = 4
 
 tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
 tree_order = skbio.read('../../ortho_tree/consensus_LG/out/100R_NI.nwk', 'newick', skbio.TreeNode)
@@ -29,6 +30,8 @@ with open('labels.tsv') as file:
     for line in file:
         fields = {key: value for key, value in zip(field_names, line.rstrip('\n').split('\t'))}
         OGid, start, stop, label = fields['OGid'], int(fields['start']), int(fields['stop']), fields['label']
+        label = '1' if label in ['1A', '1B'] else label  # Merge 1A and 1B
+
         label_set.add(label)
         try:
             OGid2labels[OGid].append((start, stop, label))
@@ -51,7 +54,7 @@ for labels in OGid2labels.values():
         counts[label] += stop - start
 values = [counts[label] for label in state_labels]
 labels = [f'{label}\n({value:,})' for label, value in zip(state_labels, values)]
-plt.pie(values, colors=state_colors, labels=labels, labeldistance=1.15, textprops={'ha': 'center'})
+plt.pie(values, colors=state_colors, labels=labels, labeldistance=1.2, textprops={'ha': 'center'})
 plt.title('Distribution of column labels across states')
 plt.savefig('out/pie_labels.png')
 plt.close()
@@ -74,6 +77,21 @@ plt.savefig('out/line_ll-iter.png')
 plt.close()
 
 # Plot model parameters
+params = ['pinv', 'alpha']
+fig, axs = plt.subplots(len(params), 1)
+for label, color in zip(state_labels, state_colors):
+    for ax, param in zip(axs, params):
+        xs = [record['iter_num'] for record in history]
+        ys = [record['e_dists_norm'][label][param] for record in history]
+        ax.plot(xs, ys, label=label, color=color)
+        ax.set_ylabel(param)
+axs[-1].set_xlabel('Iteration')
+handles = [Line2D([], [], label=label, color=color) for label, color in zip(state_labels, state_colors)]
+fig.legend(handles=handles, bbox_to_anchor=(0.875, 0.5), loc='center left')
+plt.subplots_adjust(right=0.875)
+plt.savefig('out/line_var-iter.png')
+plt.close()
+
 params = ['pi', 'q0', 'q1']
 fig, axs = plt.subplots(len(params), 1)
 for label, color in zip(state_labels, state_colors):
@@ -176,9 +194,9 @@ for OGid, labels in OGid2labels.items():
     # Instantiate model
     e_dists_rv = {}
     for s, e_dist in model_json['e_dists'].items():
-        a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
+        a, b, pinv, alpha, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pinv', 'alpha', 'pi', 'q0', 'q1', 'p0', 'p1']]
         pmf1 = phylo.get_betabinom_pmf(emit_seq, len(msa), a, b)
-        pmf2 = phylo.get_tree_pmf(tree, pi, q0, q1, p0, p1)
+        pmf2 = phylo.get_tree_pmf(tree, pinv, k, alpha, pi, q0, q1, p0, p1)
         e_dists_rv[s] = phylo.ArrayRV(pmf1 * pmf2)
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
