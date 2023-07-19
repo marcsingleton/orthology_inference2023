@@ -46,9 +46,9 @@ def decode(OGid, model_json, tree_template):
     # Instantiate model
     e_dists_rv = {}
     for s, e_dist in model_json['e_dists'].items():
-        a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
+        a, b, pinv, alpha, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pinv', 'alpha', 'pi', 'q0', 'q1', 'p0', 'p1']]
         pmf1 = phylo.get_betabinom_pmf(emit_seq, len(msa), a, b)
-        pmf2 = phylo.get_tree_pmf(tree, pi, q0, q1, p0, p1)
+        pmf2 = phylo.get_tree_pmf(tree, pinv, k, alpha, pi, q0, q1, p0, p1)
         e_dists_rv[s] = phylo.ArrayRV(pmf1 * pmf2)
     model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
@@ -65,6 +65,7 @@ def decode(OGid, model_json, tree_template):
 
 num_processes = int(os.environ['SLURM_CPUS_ON_NODE'])
 spid_regex = r'spid=([a-z]+)'
+k = 4
 
 tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
 

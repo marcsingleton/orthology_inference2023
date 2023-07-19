@@ -26,7 +26,7 @@ posterior_low2 = 0.01
 gradient_high = 0.001
 gradient_low = 0.001
 
-alpha = 0.01
+mean_alpha = 0.01
 mean_min = 2
 mean_trim = 5  # Number of "outliers" to remove before calculating mean
 
@@ -104,7 +104,7 @@ for OGid in OGids:
         weight_sum = sum([ppid_weights[record['ppid']] for record in subseq_records[:-mean_trim]])
         mean = max(count_sum / weight_sum, mean_min)
         p = 1 / (mean + 1)  # Geometric distribution on support 0, 1, ...
-        k = np.log(alpha) / np.log(1 - p) - 1  # Expression for minimum k to achieve alpha significance
+        k = np.log(mean_alpha) / np.log(1 - p) - 1  # Expression for minimum k to achieve alpha significance
 
         for record in subseq_records:
             ppid, sym_count, align_count = record['ppid'], record['sym_count'], record['align_count']

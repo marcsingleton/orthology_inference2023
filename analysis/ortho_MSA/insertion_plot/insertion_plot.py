@@ -16,8 +16,9 @@ from src.utils import get_brownian_weights, read_fasta
 
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
-state_labels = ['1A', '1B', '2', '3']
-state_colors = ['C0', 'C3', 'C1', 'C2']
+state_labels = ['1', '2', '3']
+state_colors = ['C0', 'C1', 'C2']
+k = 4
 
 # Cutoffs for state 3 trims
 posterior_high1 = 0.75
@@ -32,7 +33,7 @@ posterior_low2 = 0.01
 gradient_high = 0.001
 gradient_low = 0.001
 
-alpha = 0.01
+mean_alpha = 0.01
 mean_min = 2
 mean_trim = 5  # Number of "outliers" to remove before calculating mean
 
@@ -88,9 +89,9 @@ for label in ['norm1', 'norm2']:
         # Instantiate model
         e_dists_rv = {}
         for s, e_dist in model_json['e_dists'].items():
-            a, b, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pi', 'q0', 'q1', 'p0', 'p1']]
+            a, b, pinv, alpha, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['a', 'b', 'pinv', 'alpha', 'pi', 'q0', 'q1', 'p0', 'p1']]
             pmf1 = phylo.get_betabinom_pmf(emit_seq, len(input_msa), a, b)
-            pmf2 = phylo.get_tree_pmf(tree, pi, q0, q1, p0, p1)
+            pmf2 = phylo.get_tree_pmf(tree, pinv, k, alpha, pi, q0, q1, p0, p1)
             e_dists_rv[s] = phylo.ArrayRV(pmf1 * pmf2)
         model = homomorph.HMM(model_json['t_dists'], e_dists_rv, model_json['start_dist'])
 
@@ -158,10 +159,10 @@ for label in ['norm1', 'norm2']:
             weight_sum = sum([ppid_weights[ppid] for ppid, _ in count_records[:-mean_trim]])
             mean = max(count_sum / weight_sum, mean_min)
             p = 1 / (mean + 1)  # Geometric distribution on support 0, 1, ...
-            k = np.log(alpha) / np.log(1 - p) - 1  # Expression for minimum k to achieve alpha significance
+            n = np.log(mean_alpha) / np.log(1 - p) - 1  # Expression for minimum k to achieve alpha significance
 
             for ppid, count in count_records:
-                if count >= k:
+                if count >= n:
                     seq_slices[ppid].append(s)
 
         # Identify state 2+3 trims
