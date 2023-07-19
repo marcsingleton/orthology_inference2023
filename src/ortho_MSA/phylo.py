@@ -2,7 +2,8 @@
 
 import numpy as np
 from numpy import exp, log
-from scipy.special import beta, comb, digamma
+from scipy.special import beta, comb, digamma, gammainc
+from scipy.stats import gamma as gamma_rv
 
 
 class ArrayRV:
@@ -33,19 +34,23 @@ def get_betabinom_pmf(x, n, a, b):
     return comb(n, x) * beta(x + a, n - x + b) / beta(a, b)
 
 
-def get_tree_pmf(tree, pi, q0, q1, p0, p1):
+def get_tree_pmf(tree, pinv, k, alpha, pi, q0, q1, p0, p1):
     """Return probability of tree given tips."""
-    s, conditional = get_conditional(tree, q0, q1, p0, p1)
-    l = ((exp(s) * conditional) * [[1-pi], [pi]]).sum(axis=0)
-    return l
+    likelihoods = []
+    rates = get_rates(pinv, k, alpha)
+    for rate, prior in rates:
+        s, conditional = get_conditional(tree, rate * q0, rate * q1, p0, p1)
+        likelihood = ([[1-pi], [pi]] * exp(s) * conditional).sum(axis=0)
+        likelihoods.append(likelihood * prior)
+    return np.stack(likelihoods).sum(axis=0)
 
 
-def get_tip_pmf(tree, tip, pi, q0, q1, p0, p1):
+def get_tip_pmf(tree, tip, pinv, k, alpha, pi, q0, q1, p0, p1):
     """Return pmf of tip given other tips."""
-    pmf0 = get_tree_pmf(tree, pi, q0, q1, p0, p1)
+    pmf0 = get_tree_pmf(tree, pinv, k, alpha, pi, q0, q1, p0, p1)
 
     tip.value = 1 - tip.value  # Flip state of given tip
-    pmf1 = get_tree_pmf(tree, pi, q0, q1, p0, p1)
+    pmf1 = get_tree_pmf(tree, pinv, k, alpha, pi, q0, q1, p0, p1)
     tip.value = 1 - tip.value  # Flip state of given tip back
 
     return pmf0 / (pmf0 + pmf1)
@@ -78,12 +83,29 @@ def get_conditional(tree, q0, q1, p0, p1, inplace=False):
     return tree.s, tree.conditional
 
 
+def get_rates(pinv, k, alpha):
+    """Return rates and priors for models with site-specific rate variation."""
+    igfs = []  # Incomplete gamma function evaluations
+    for i in range(k+1):
+        x = gamma_rv.ppf(i/k, a=alpha, scale=1/alpha)
+        igfs.append(gammainc(alpha+1, alpha*x))
+    rates = [(0, pinv)]
+    for i in range(k):
+        rate = k/(1-pinv) * (igfs[i+1] - igfs[i])
+        rates.append((rate, (1-pinv)/k))
+    return rates
+
+
 def get_transition_matrix(q0, q1, t):
     """Return transition matrix for two-state CTMC."""
     q = q0 + q1
-    p00 = (q1 + q0 * exp(-q*t)) / q
+    if q == 0 or t == 0:
+        p00 = 1
+        p11 = 1
+    else:
+        p00 = (q1 + q0 * exp(-q*t)) / q
+        p11 = (q0 + q1 * exp(-q*t)) / q
     p01 = 1 - p00
-    p11 = (q0 + q1 * exp(-q*t)) / q
     p10 = 1 - p11
     return np.array([[p00, p01], [p10, p11]])
 
@@ -109,32 +131,65 @@ def beta_prime(a, b):
     return beta(a, b) * (digamma(a) - digamma(a + b))
 
 
-def get_tree_prime(tree, pi, q0, q1, p0, p1, param):
+def get_tree_prime(tree, pinv, k, alpha, pi, q0, q1, p0, p1, param):
     """Return derivative of probability of tree relative to a given parameter."""
-    if param == 'pi':
-        s, conditional = get_conditional(tree, q0, q1, p0, p1)
-        d = ((exp(s) * conditional) * [[-1], [1]]).sum(axis=0)  # Broadcasting magic
-        return d
+    derivatives = []
+    rates = get_rates(pinv, k, alpha)
+    if param == 'pinv':
+        s, conditional = get_conditional(tree, 0, 0, p0, p1)
+        likelihood = ([[1-pi], [pi]] * exp(s) * conditional).sum(axis=0)
+        derivatives.append(likelihood)
+        for rate, prior in rates[1:]:  # Skip invariant because calculated above
+            s, conditional = get_conditional(tree, rate * q0, rate * q1, p0, p1)
+            likelihood = ([[1 - pi], [pi]] * exp(s) * conditional).sum(axis=0)
+            term1 = -likelihood / k
+
+            derivative0 = get_conditional_prime_q(tree, rate * q0, rate * q1, p0, p1, 'q0')
+            derivative0 = ([[1 - pi], [pi]] * derivative0).sum(axis=0)  # Broadcasting magic
+            derivative1 = get_conditional_prime_q(tree, rate * q0, rate * q1, p0, p1, 'q1')
+            derivative1 = ([[1 - pi], [pi]] * derivative1).sum(axis=0)  # Broadcasting magic
+            term2 = prior * (derivative0 * q0 + derivative1 * q1) * rate / (1 - pinv)
+
+            derivatives.append(term1 + term2)
+    elif param == 'alpha':
+        rates_prime = get_rates_prime_alpha(pinv, k, alpha)
+        for (rate, prior), rate_prime in zip(rates[1:], rates_prime[1:]):  # Skip invariant because alpha is not parameter of invariant category
+            derivative0 = get_conditional_prime_q(tree, rate * q0, rate * q1, p0, p1, 'q0')
+            derivative0 = ([[1 - pi], [pi]] * derivative0).sum(axis=0)  # Broadcasting magic
+            derivative1 = get_conditional_prime_q(tree, rate * q0, rate * q1, p0, p1, 'q1')
+            derivative1 = ([[1 - pi], [pi]] * derivative1).sum(axis=0)  # Broadcasting magic
+            derivative = derivative0 * q0 + derivative1 * q1
+
+            derivatives.append(rate_prime * derivative * prior)
+    elif param == 'pi':
+        for rate, prior in rates:
+            s, conditional = get_conditional(tree, rate * q0, rate * q1, p0, p1)
+            derivative = ([[-1], [1]] * exp(s) * conditional).sum(axis=0)  # Broadcasting magic
+            derivatives.append(derivative * prior)
     elif param in ['q0', 'q1']:
-        derivative = get_conditional_prime_q(tree, q0, q1, p0, p1, param)
-        d = (derivative * [[1 - pi], [pi]]).sum(axis=0)  # Broadcasting magic
-        return d
+        for rate, prior in rates[1:]:  # Skip invariant because qs are not parameters of invariant category
+            derivative = get_conditional_prime_q(tree, rate * q0, rate * q1, p0, p1, param)
+            derivative = ([[1 - pi], [pi]] * derivative).sum(axis=0)  # Broadcasting magic
+            derivatives.append(rate * derivative * prior)
     elif param in ['p0', 'p1']:
-        derivative = get_conditional_prime_p(tree, q0, q1, p0, p1, param)
-        d = (derivative * [[1 - pi], [pi]]).sum(axis=0)  # Broadcasting magic
-        return d
+        for rate, prior in rates:
+            derivative = get_conditional_prime_p(tree, rate * q0, rate * q1, p0, p1, param)
+            derivative = ([[1 - pi], [pi]] * derivative).sum(axis=0)  # Broadcasting magic
+            derivatives.append(derivative * prior)
     else:
-        raise ValueError('"param" is not "pi", "q0", "q1", "p0", or "p1"')
+        raise ValueError('"param" is not "pinv", "alpha", "pi", "q0", "q1", "p0", or "p1"')
+
+    return np.stack(derivatives).sum(axis=0)
 
 
-def get_tip_prime(tree, tip, pi, q0, q1, p0, p1, param):
+def get_tip_prime(tree, tip, pinv, k, alpha, pi, q0, q1, p0, p1, param):
     """Return derivative of probability of tip relative to a given parameter."""
-    pmf0 = get_tree_pmf(tree, pi, q0, q1, p0, p1)
-    pmf0_prime = get_tree_prime(tree, pi, q0, q1, p0, p1, param)
+    pmf0 = get_tree_pmf(tree, pinv, k, alpha, pi, q0, q1, p0, p1)
+    pmf0_prime = get_tree_prime(tree, pinv, k, alpha, pi, q0, q1, p0, p1, param)
 
     tip.value = 1 - tip.value  # Flip state of given tip
-    pmf1 = get_tree_pmf(tree, pi, q0, q1, p0, p1)
-    pmf1_prime = get_tree_prime(tree, pi, q0, q1, p0, p1, param)
+    pmf1 = get_tree_pmf(tree, pinv, k, alpha, pi, q0, q1, p0, p1)
+    pmf1_prime = get_tree_prime(tree, pinv, k, alpha, pi, q0, q1, p0, p1, param)
     tip.value = 1 - tip.value  # Flip state of given tip back
 
     d = pmf0 + pmf1
@@ -228,15 +283,37 @@ def get_transition_matrix_prime_q(q0, q1, t, param):
     q = q0 + q1
     if param == 'q0':
         d00 = -(q1 + (t * q0 ** 2 + t * q0 * q1 - q1) * exp(-q * t)) / q ** 2
-        d01 = -d00
         d11 = q1*(1 - (q0 * t + q1 * t + 1) * exp(-q * t)) / q ** 2
+        d01 = -d00
         d10 = -d11
         return np.array([[d00, d01], [d10, d11]])
     elif param == 'q1':
         d00 = q0 * (1 - (t * q0 + t * q1 + 1) * exp(-q * t)) / q ** 2
-        d01 = -d00
         d11 = -(q0 + (t * q1 ** 2 + t * q0 * q1 - q0) * exp(-q * t)) / q ** 2
+        d01 = -d00
         d10 = -d11
         return np.array([[d00, d01], [d10, d11]])
     else:
         raise ValueError('"param" is not "q0" or "q1"')
+
+
+def get_rates_prime_alpha(pinv, k, alpha, eps=1E-8):
+    """Return derivatives of rates relative to alpha for models with site-specific rate variation.
+
+    Rate derivatives are calculated using the symmetric finite difference
+    formula for the gamma function evaluations because the expression for the
+    exact derivative was extremely complex and involved a non-standard integral
+    derived from the gamma function.
+    """
+    igfs_prime = []  # Incomplete gamma function evaluations
+    for i in range(k+1):
+        alpha0 = alpha - eps/2
+        alpha1 = alpha + eps/2
+        x0 = gamma_rv.ppf(i/k, a=alpha0, scale=1/alpha0)
+        x1 = gamma_rv.ppf(i/k, a=alpha1, scale=1/alpha1)
+        igfs_prime.append((gammainc(alpha1+1, alpha1*x1) - gammainc(alpha0+1, alpha0*x0)) / eps)
+    rates_prime = [0]
+    for i in range(k):
+        rate_prime = k/(1-pinv) * (igfs_prime[i+1] - igfs_prime[i])
+        rates_prime.append(rate_prime)
+    return rates_prime
