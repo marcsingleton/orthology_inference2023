@@ -8,14 +8,18 @@ import numpy as np
 import skbio
 from numpy import exp, log
 from src.utils import read_fasta
-from src.ortho_MSA.phylo import get_transition_matrix
+from src.ortho_MSA.phylo import get_rates, get_transition_matrix
 
 
-def get_tree_pmf(tree, tip, pi, q0, q1, p0, p1, param):
+def get_tree_pmf(tree, tip, pinv, k, alpha, pi, q0, q1, p0, p1, param):
     """Return probability of tree given tips."""
-    s, conditional = get_conditional(tree, tip, q0, q1, p0, p1, param)
-    l = ((exp(s) * conditional) * [[1-pi], [pi]]).sum(axis=0)
-    return l
+    likelihoods = []
+    rates = get_rates(pinv, k, alpha)
+    for rate, prior in rates:
+        s, conditional = get_conditional(tree, tip, rate * q0, rate * q1, p0, p1, param)
+        likelihood = ([[1-pi], [pi]] * exp(s) * conditional).sum(axis=0)
+        likelihoods.append(likelihood * prior)
+    return np.stack(likelihoods).sum(axis=0)
 
 
 def get_conditional(tree, tip, q0, q1, p0, p1, param, inplace=False):
@@ -53,9 +57,9 @@ def get_conditional(tree, tip, q0, q1, p0, p1, param, inplace=False):
     return tree.s, tree.conditional
 
 
-def get_tip_pmf(tree, tip, pi, q0, q1, p0, p1):
-    pmf0 = get_tree_pmf(tree, tip, pi, q0, q1, p0, p1, 'p0')
-    pmf1 = get_tree_pmf(tree, tip, pi, q0, q1, p0, p1, 'p1')
+def get_tip_pmf(tree, tip, pinv, k, alpha, pi, q0, q1, p0, p1):
+    pmf0 = get_tree_pmf(tree, tip, pinv, k, alpha, pi, q0, q1, p0, p1, 'p0')
+    pmf1 = get_tree_pmf(tree, tip, pinv, k, alpha, pi, q0, q1, p0, p1, 'p1')
     pmf = pmf0 + pmf1
     return np.stack([pmf0, pmf1]) / pmf
 
@@ -63,6 +67,7 @@ def get_tip_pmf(tree, tip, pi, q0, q1, p0, p1):
 ppid_regex = r'ppid=([A-Za-z0-9_.]+)'
 gnid_regex = r'gnid=([A-Za-z0-9_.]+)'
 spid_regex = r'spid=([a-z]+)'
+k = 4
 
 tree_template = skbio.read('../../ortho_tree/consensus_GTR2/out/NI.nwk', 'newick', skbio.TreeNode)
 cutoff = 0.8
@@ -70,7 +75,7 @@ cutoff = 0.8
 with open('../missing_hmm/out/model.json') as file:
     model_json = json.load(file)
 e_dist = model_json['e_dists']['2']
-pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pi', 'q0', 'q1', 'p0', 'p1']]
+pinv, alpha, pi, q0, q1, p0, p1 = [e_dist[param] for param in ['pinv', 'alpha', 'pi', 'q0', 'q1', 'p0', 'p1']]
 
 OGids = [path.removesuffix('.tsv') for path in os.listdir('../missing_trim/out/trims/') if path.endswith('.tsv')]
 for OGid in OGids:
@@ -116,7 +121,7 @@ for OGid in OGids:
     records = []
     for record in msa:
         ppid, spid = record['ppid'], record['spid']
-        pmf = get_tip_pmf(tree, tips[spid], pi, q0, q1, p0, p1)
+        pmf = get_tip_pmf(tree, tips[spid], pinv, k, alpha, pi, q0, q1, p0, p1)
         binary = pmf[1] >= cutoff
         for start, stop in ppid2missing[ppid]:
             records.append({'ppid': ppid, 'gnid': gnid, 'spid': spid,
