@@ -15,12 +15,12 @@ spid_regex = r'spid=([a-z]+)'
 
 # Cutoffs for state 3 trims
 posterior_high1 = 0.75
-posterior_low1 = 0.01
+posterior_low1 = 1E-3
 profile_low1 = 0.1
 
 # Cutoffs for state 2+3 trims
 posterior_high2 = 0.9
-posterior_low2 = 0.01
+posterior_low2 = 1E-3
 
 # Common cutoffs for gradients
 gradient_high = 0.001
